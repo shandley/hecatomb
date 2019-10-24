@@ -49,3 +49,5 @@ mmseqs search $OUT/seqtable_queryDB $DB $OUT/resultDB $OUT/tmp_nt_check -a -e 0.
 mmseqs filterdb $OUT/resultDB $OUT/resultDB.firsthit --extract-lines 1;
 mmseqs convertalis $OUT/seqtable_queryDB $DB $OUT/resultDB.firsthit $OUT/resultDB.firsthit.m8;
 
+# Annotate
+mmseqs_pviral_nt_check_annotate.R

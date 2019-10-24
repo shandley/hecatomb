@@ -30,3 +30,6 @@ mmseqs search $OUT/seqtable_queryDB $DB $OUT/resultDB $OUT/tmp_nt -a -e 0.000001
 # extract top-hit
 mmseqs filterdb $OUT/resultDB $OUT/resultDB.firsthit --extract-lines 1;
 mmseqs convertalis $OUT/seqtable_queryDB $DB $OUT/resultDB.firsthit $OUT/resultDB.firsthit.m8;
+
+# Annotate
+mmseqs_pviral_nt_annotate.R
