@@ -13,7 +13,7 @@
 # Set Variables
 CONPATH=/mnt/data1/databases/contaminants # non-biological sequences
 HOSTPATH=/mnt/data1/databases/human_masked # host sequence database
-BACPATH=/mnt/data1/databases/masked_dbs/genome-collection-combos/reformated/bac_giant # masked bacterial and giant virus genome
+BACPATH=/mnt/data1/databases/masked_dbs/genome-collection-combos/reformated/bac_giant/unique_species # masked bacterial and giant virus genome
 
 # Prep output directories
 mkdir -p ./clumped
@@ -128,7 +128,7 @@ RUNTIME_6=$(($SECONDS - $T6))
 
 # Step 7: Trim low-quality bases
 T7=$SECONDS
-bbduk.sh in=./QC/step_6/"$F"_R1.s6.out in2=./QC/step_6/"$F"_R2.s6.out \
+bbduk.sh in=./QC/step_6/"$F"_R1.s6.out.fastq in2=./QC/step_6/"$F"_R2.s6.out.fastq \
 	out=./QC/step_7/"$F"_R1.s7.out.fastq out2=./QC/step_7/"$F"_R2.s7.out.fastq outs=./QC/step_7/"$F"_singletons.s7.out.fastq \
 	stats=./QC/step_7/"$F".s7.stats \
 	qtrim=r trimq=20 \
