@@ -16,6 +16,7 @@
 mkdir -p ./assembly
 mkdir -p ./assembly/stats
 mkdir -p ./assembly/megahit_contigs
+mkdir -p ./assembly/contig_graphs
 
 # Set variables
 IN=./QC/step_7
@@ -43,6 +44,7 @@ megahit -1 $OUT/"$F"_R1.norm.out.fastq -2 $OUT/"$F"_R2.norm.out.fastq -o $OUT/"$
 	--out-prefix "$F".mh;
 
 cp $OUT/"$F"_megahit_out/*.mh.contigs.fa $OUT/megahit_contigs;
+cp $OUT/"$F"_megahit_out/k99_"$F".fastg $OUT/contig_graphs;
 
 # Step 3: Quantification by mapping
 bbmap.sh ref=$OUT/megahit_contigs/"$F".mh.contigs.fa in=$IN/"$F"_R1.s7.out.fastq in2=$IN/"$F"_R2.s7.out.fastq \
