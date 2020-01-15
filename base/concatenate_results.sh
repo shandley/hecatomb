@@ -18,5 +18,10 @@ sed -i '1iid\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies' ./results/v
 sed 's/uc_//g' ./results/mmseqs_aa_out/phage_table.tsv > ./results/phage_tax_table.tsv
 sed -i '1iid\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies' ./results/phage_tax_table.tsv
 
-# Concatentate alignment files
+# Adjust alignment files
 
+sed -i '1iquery\ttarget\tpercent_id\talignment_length\tnum_mismatches\tnumber_gaps\tstart_query\tend_query\tstart_target\tend_target\te_value\tbit_score' ./results/mmseqs_aa_checked_out/taxonomyResult.firsthit.m8;
+sed -i '1iquery\ttarget\tpercent_id\talignment_length\tnum_mismatches\tnumber_gaps\tstart_query\tend_query\tstart_target\tend_target\te_value\tbit_score' ./results/mmseqs_nt_checked_out/resultDB.firsthit.m8;
+
+cp ./results/mmseqs_aa_checked_out/taxonomyResult.firsthit.m8 ./results/aa.aln.m8;
+cp ./results/mmseqs_nt_checked_out/resultDB.firsthit.m8 ./results/nt.aln.m8;
