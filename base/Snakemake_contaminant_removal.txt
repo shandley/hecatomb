@@ -1,0 +1,212 @@
+# GLOBAL --------------------------------------------------------------------------------------------------
+IDS, = glob_wildcards("fastq/{id}_R1.fq")
+
+configfile: "config.yaml"
+
+# RULES --------------------------------------------------------------------------------------------------
+
+rule all:
+	input:
+		expand("clustered/dereplicated/reformated.{id}.out.fasta", id = IDS)
+
+rule step_0_clump:
+	input:
+		r1 = "fastq/{id}_R1.fq",
+		r2 = "fastq/{id}_R2.fq"
+
+	output:
+		out1 = "clumped/{id}.clumped.R1.fastq.gz",
+		out2 = "clumped/{id}.clumped.R2.fastq.gz"
+
+	log:
+		"logs/clumpify/clumpify.{id}.log"
+
+	shell:
+		"""
+		clumpify.sh in={input.r1} in2={input.r2} out={output.out1} out2={output.out2} reorder=a dedupe=TRUE 2> {log}
+		"""
+
+rule step_1_primer_removal:
+	input:
+		r1 = "clumped/{id}.clumped.R1.fastq.gz",
+		r2 = "clumped/{id}.clumped.R2.fastq.gz"
+
+	output:
+		out1 = temp("QC/step_1/{id}.s1.R1.fastq.gz"),
+		out2 = temp("QC/step_1/{id}.s1.R2.fastq.gz"),
+		stats = "stats/step_1/{id}.s1.stats"
+
+	log:
+		runlog = "logs/QC/step_1/s1.{id}.log"
+	
+	shell:
+		"""
+		bbduk.sh in={input.r1} in2={input.r2} out={output.out1} out2={output.out2} stats={output.stats} \
+		ref={config[primer]} \
+		k=16 hdist=1 mink=11 ktrim=l restrictleft=20 removeifeitherbad=f \
+		trimpolya=10 ordered=t rcomp=f 2> {log}
+		"""
+
+rule step_2_readthrough_removal:
+	input:
+		r1 = "QC/step_1/{id}.s1.R1.fastq.gz",
+		r2 = "QC/step_1/{id}.s1.R2.fastq.gz"
+
+	output: out1 = temp("QC/step_2/{id}.s2.R1.fastq.gz"),
+		out2 = temp("QC/step_2/{id}.s2.R2.fastq.gz"),
+		stats = "stats/step_2/{id}.s2.stats"
+
+	log:
+		runlog = "logs/QC/step_2/s2.{id}.log"
+
+	shell:
+		"""
+		bbduk.sh in={input.r1} in2={input.r2} out={output.out1} out2={output.out2} stats={output.stats} \
+		ref={config[primer_ad]} \
+		k=16 hdist=1 mink=10 ktrim=r removeifeitherbad=f ordered=t rcomp=t 2> {log}
+		"""
+
+rule step_3_adapter_removal:
+	input:
+		r1 = "QC/step_2/{id}.s2.R1.fastq.gz",
+		r2 = "QC/step_2/{id}.s2.R2.fastq.gz"
+
+	output:
+		out1 = temp("QC/step_3/{id}.s3.R1.fastq.gz"),
+		out2 = temp("QC/step_3/{id}.s3.R2.fastq.gz"),
+		stats = "stats/step_3/{id}.s2.stats"
+
+	log:
+		runlog = "logs/QC/step_3/s3.{id}.log"
+
+	shell:
+		"""
+		bbduk.sh in={input.r1} in2={input.r2} out={output.out1} out2={output.out2} stats={output.stats} \
+		ref={config[adapt]} \
+		k=16 hdist=1 mink=10 ktrim=r removeifeitherbad=f ordered=t rcomp=t 2> {log}
+		"""
+
+rule step_4_vector_contamination:
+	input:
+		r1 = "QC/step_3/{id}.s3.R1.fastq.gz",
+		r2 = "QC/step_3/{id}.s3.R2.fastq.gz"
+	
+	output:
+		out1 = temp("QC/step_4/{id}.s4.R1.fastq.gz"),
+		out2 = temp("QC/step_4/{id}.s4.R2.fastq.gz"),
+		stats = "stats/vector_contamination/vec.{id}.stats"
+
+	log:
+		runlog = "logs/QC/vector_contamination/vec.{id}.log"
+
+	shell:
+		"""
+		bbduk.sh in={input.r1} in2={input.r2} out={output.out1} out2={output.out2} stats={output.stats} \
+		ref={config[vec]} \
+		k=31 hammingdistance=1 ordered=t 2> {log}
+		"""
+
+rule step_5_host_removal:
+	input:
+		r1 = "QC/step_4/{id}.s4.R1.fastq.gz",
+		r2 = "QC/step_4/{id}.s4.R2.fastq.gz"
+
+	output:
+		out1 = "QC/step_5/{id}.unmapped.s5.out.fastq",
+		out2 = "QC/step_5/{id}.hostmapped.s5.out.fastq"
+
+	log:
+		runlog = "logs/QC/host_mapping/hostmapped.{id}.log"
+
+	shell:
+		"""
+		bbmap.sh in={input.r1} in2={input.r2} outu={output.out1} outm={output.out2} \
+		path={config[host_masked]}
+		semiperfectmode=t quickmatch=t fast=t ordered=t 2> {log}
+		"""
+
+rule step_6_map_repair:
+	input:
+		r1 = "QC/step_5/{id}.unmapped.s5.out.fastq"
+
+	output:
+		out1 = temp("QC/step_5/{id}.s5.R1.out.fastq"),
+		out2 = temp("QC/step_5/{id}.s5.R2.out.fastq")
+
+	log:
+		runlog = "logs/QC/host_mapping/repair.{id}.log"
+
+	shell:
+		"""
+		repair.sh in={input.r1} out={output.out1} out2={output.out2} 2> {log}
+		"""
+
+rule step_7_qc_trim:
+	input:
+		r1 = "QC/step_5/{id}.s5.R1.out.fastq",
+		r2 = "QC/step_5/{id}.s5.R2.out.fastq"
+
+	output:
+		out1 = temp("QC/step_6/{id}.s6.R1.out.fastq"),
+		out2 = temp("QC/step_6/{id}.s6.R2.out.fastq"),
+		stats = "QC/step_6/{id}.s6.stats"
+
+	log:
+		runlog = "logs/QC/step_6/s6.{id}.log"
+
+	shell:
+		"""
+		bbduk.sh in={input.r1} in2={input.r2} out={output.out1} out2={output.out2} stats={output.stats} \
+		qtrim=r trimq={config[qc]} maxns=2 minlength=50 ordered=t 2> {log}
+		"""
+
+rule step_8_bacterial:
+	input:
+		r1 = "QC/step_5/{id}.s5.R1.out.fastq"
+
+	output:
+		out1 = "QC/bacterial/bacterial.{id}.out.fastq",
+		out2 = "QC/bacterial/nonbacterial.{id}.out.fastq"
+	
+	log:
+		runlog = "logs/QC/bacterial/bacterial.{id}.log"
+
+	shell:
+		"""
+		bbmap.sh in={input.r1} outm={output.out1} outu={output.out2} path={config[bac]} \
+		semiperfectmode=t quickmatch=t fast=t ordered=t 2> {log}
+		"""
+
+rule step_9_dereplicate:
+	input:
+		r1 = "QC/bacterial/nonbacterial.{id}.out.fastq"
+
+	output:
+		out1 = "clustered/dereplicated/dereped.{id}.out.fasta",
+		out2 = "clustered/dereplicated/dereped.{id}.stats"
+
+	log:
+		runlog = "logs/clustered/dereped.{id}.log"
+
+	shell:
+		"""
+		dedupe.sh in={input.r1} out={output.out1} csf={output.out2} \
+		s={config[subs]} rnc=t pbr=t -Xmx{config[ram]} 2> {log}
+		"""
+
+rule step_10_dereplicate_repair:
+	input:
+		r1 = "clustered/dereplicated/dereped.{id}.out.fasta"
+
+	output:
+		out1 = "clustered/dereplicated/reformated.{id}.out.fasta"
+
+	log:
+		runlog = "logs/clustered/reformated.{id}.out.fasta"
+
+	shell:
+		"""
+		reformat.sh in={input.r1} out={output.out1} \
+		deleteinput=t fastawrap=0 -Xmx{config[ram]} 2> {log}
+		"""
+
