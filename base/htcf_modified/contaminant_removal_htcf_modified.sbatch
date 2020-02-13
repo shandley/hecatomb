@@ -210,7 +210,7 @@ bbmap.sh \
 repair.sh \
 	in=./QC/step_6/${sample}_unmapped.s6.out.fastq \
 	out=./QC/step_6/${sample}_R1.s6.out.fastq \
-	out2=./QC/step_6/"$F"_R2.s6.out.fastq \
+	out2=./QC/step_6/${sample}_R2.s6.out.fastq \
 	ow=t
 
 RUNTIME_6=$(($SECONDS - $T6))
