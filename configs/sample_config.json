@@ -8,6 +8,6 @@
         "_comment": "These are our predefined databases that we screen against, but you may want to replace host with e.g. mouse",
         "bacteria" : "bac_uniquespecies_giant.masked_Ns_removed.fasta",
         "host": "human_virus_masked.fasta",
-        "contaminants": "contaminants"
+        "contaminants": "vector_contaminants.fa.gz"
     }
 }
