@@ -7,9 +7,6 @@ Rob Edwards, Jan 2020
 
 import os
 import sys
-import time
-
-# configfile: os.path.join(os.environ["HECATOMB"], "configs/rob_config.json")
 
 if not config:
     sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
