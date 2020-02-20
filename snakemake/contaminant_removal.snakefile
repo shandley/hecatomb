@@ -27,19 +27,12 @@ CONPATH = os.path.join(DBDIR, "contaminants")
 
 # paths for our data. This is where we will read and put things
 READDIR = config['Paths']['Reads']
-CLUMPED = "clumped"
-QC = "QC"
+CLUMPED = config['Output']["clumped"]
+QC = config['Output']['QC']
 
 SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
 PATTERN_R1 = '{sample}_R1'
 PATTERN_R2 = '{sample}_R2'
-
-start_time = time.time()
-
-def print_time():
-    elapsed = time.time() - start_time
-    time.strftime("%H:%M:%S", time.gmtime(elapsed))
-
 
 # Summary:
 	# Step 0: Clumpify reads (https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/clumpify-guide/)

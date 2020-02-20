@@ -8,3 +8,8 @@ DatabaseFiles:
   bacteria: bac_uniquespecies_giant.masked_Ns_removed.fasta
   host: human_virus_masked.fasta
   contaminants: vector_contaminants.fa.gz
+Output:
+    # Clumped is where the clumpify output of the original reads is written. QC is the output for all the QC steps
+    clumped: clumped
+    QC: QC
+
