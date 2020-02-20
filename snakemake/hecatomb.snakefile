@@ -355,7 +355,7 @@ rule remove_exact_dups:
     Step 10: Remove exact duplicates
     """
     input:
-        os.path.join(DATADIR, "{sample}_viral_amb.fastq")
+        os.path.join(QC, "step_9", "{sample}.viral_amb.fastq")
     output:
         os.path.join(QC, "step_10", "{sample}_R1.s9.deduped.out.fastq")
     shell:
@@ -372,7 +372,7 @@ rule deduplicate:
     input:
         os.path.join(QC, "step_10", "{sample}_R1.s9.deduped.out.fastq")
     output:
-        fa = os.path.join(QC, "step_11", "{sample}_R1.best.fasta")
+        fa = os.path.join(QC, "step_11", "{sample}_R1.best.fasta"),
         stats = os.path.join(QC, "step_11", "{sample}_stats.txt")
     shell:
         """
@@ -441,7 +441,7 @@ rule create_seq_table:
     Step 13d. Create sequence table
     """
     input:
-        seq = os.path.join(QC, "counts", "{sample}_seqs.txt")
+        seq = os.path.join(QC, "counts", "{sample}_seqs.txt"),
         cnt = os.path.join(QC, "counts", "{sample}_counts.txt")
     output:
         os.path.join(QC, "counts", "{sample}_seqtable.txt")
