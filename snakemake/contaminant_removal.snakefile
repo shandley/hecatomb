@@ -58,7 +58,6 @@ rule all:
     input:
         # the database directories
         os.path.join(BACPATH, "ref"),
-        os.path.join(CONPATH, "ref"),
         os.path.join(HOSTPATH, "ref"),
         # expand(os.path.join(CLUMPED, "{sample}_R1.clumped.fastq.gz"), sample=SAMPLES)
         # expand(os.path.join(QC, "step_1", "{sample}.s1.stats.txt"), sample=SAMPLES)
@@ -81,7 +80,10 @@ rule download_databases:
     output:
         os.path.join(BACPATH, config['DatabaseFiles']['bacteria']),
         os.path.join(CONPATH, config['DatabaseFiles']['contaminants']),
-        os.path.join(HOSTPATH, config['DatabaseFiles']['host'])
+        os.path.join(HOSTPATH, config['DatabaseFiles']['host']),
+        os.path.join(CONPATH, "nebnext_adapters.fa"),
+        os.path.join(CONPATH, "primerB.fa"),
+        os.path.join(CONPATH, "rc_primerB_ad6.fa")
     params:
         db = DBDIR
     shell:
@@ -95,17 +97,6 @@ rule make_bac_databases:
     params:
         wd = BACPATH,
         fa = config['DatabaseFiles']['bacteria']
-    shell:
-        "cd {params.wd} && bbmap.sh ref={params.fa}"
-
-rule make_con_databases:
-    input:
-        os.path.join(CONPATH, config['DatabaseFiles']['contaminants'])
-    output:
-        directory(os.path.join(CONPATH, "ref"))
-    params:
-        wd = CONPATH,
-        fa = config['DatabaseFiles']['contaminants']
     shell:
         "cd {params.wd} && bbmap.sh ref={params.fa}"
 
@@ -237,7 +228,7 @@ rule remove_vector_contamination:
     input:
         r1 = os.path.join(QC, "step_4", PATTERN_R1 + ".s4.out.fastq"),
         r2 = os.path.join(QC, "step_4", PATTERN_R2 + ".s4.out.fastq"),
-        primers = os.path.join(CONPATH, "vector_contaminants.fa.gz")
+        primers = os.path.join(CONPATH, config['DatabaseFiles']['contaminants'])
     output:
         r1 = os.path.join(QC, "step_5", PATTERN_R1 + ".s5.out.fastq"),
         r2 = os.path.join(QC, "step_5", PATTERN_R2 + ".s5.out.fastq"),
@@ -258,6 +249,7 @@ rule host_removal:
     input:
         r1 = os.path.join(QC, "step_5", PATTERN_R1 + ".s5.out.fastq"),
         r2 = os.path.join(QC, "step_5", PATTERN_R2 + ".s5.out.fastq"),
+        refpath = os.path.join(HOSTPATH, "ref")
     output:
         unmapped = os.path.join(QC, "step_6", "{sample}.unmapped.s6.out.fastq"),
         mapped = os.path.join(QC, "step_6", "{sample}.hostmapped.s6.out.fastq")
@@ -392,7 +384,8 @@ rule remove_bacteria:
     """
     input:
         r1 = os.path.join(QC, "step_8", PATTERN_R1 + ".s8.out.fastq"),
-        r2 = os.path.join(QC, "step_8", PATTERN_R2 + ".s8.out.fastq")
+        r2 = os.path.join(QC, "step_8", PATTERN_R2 + ".s8.out.fastq"),
+        bacpath = os.path.join(BACPATH, "ref")
     output:
         mapped = os.path.join(QC, "step_9", "{sample}.bacterial.fastq"),
         unmapped = os.path.join(QC, "step_9", "{sample}.viral_amb.fastq"),
