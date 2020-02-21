@@ -8,6 +8,12 @@ Rob Edwards, Jan 2020
 
 import os
 import sys
+import socket
+
+# this line can be deleted, I am using it for debugging my system, not snakemake!
+hostname = socket.gethostname()
+sys.stderr.write(f"Running on: {hostname}\n")
+
 
 if not config:
     sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
@@ -29,8 +35,12 @@ if not os.path.exists(os.path.join(HOSTPATH, "ref")):
 
 # paths for our data. This is where we will read and put things
 READDIR = config['Paths']['Reads']
-CLUMPED = config['Output']["clumped"]
+CLUMPED = config['Output']["Clumped"]
 QC = config['Output']['QC']
+RESULTS = config['Output']['Results']
+
+# how much memory we have
+XMX = config['System']['Memory']
 
 SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
 PATTERN_R1 = '{sample}_R1'
@@ -56,7 +66,13 @@ rule all:
     input:
         # step 9 output
         # expand(os.path.join(QC, "step_9", "{sample}.viral_amb.fastq"), sample=SAMPLES)
-        expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES)
+        # process all the data into a sequence table
+        expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES),
+        #convert the sequence table into a single outpupt
+        os.path.join(RESULTS, "seqtable_all.tsv"),
+        os.path.join(RESULTS, "seqtable.tab2fx")
+
+
 
 
 """
@@ -262,7 +278,7 @@ rule merge_reads:
         """
         bbmerge.sh in1={input.r1} in2={input.r2} \
             out={output.merged} outu1={output.r1} outu2={output.r2} \
-            rem k=62 extend2=50 ecct vstrict=t ordered=t -Xmx128g ow=t;
+            rem k=62 extend2=50 ecct vstrict=t ordered=t {XMX} ow=t;
         """
 
 """
@@ -362,7 +378,7 @@ rule remove_exact_dups:
         """
         dedupe.sh in={input} \
                 out={output} \
-                ac=f  ow=t -Xmx128g;
+                ac=f  ow=t {XMX};
         """
 
 rule deduplicate:
@@ -378,7 +394,7 @@ rule deduplicate:
         """
         dedupe.sh in={input} \
             csf={output.stats} out={output.fa} \
-            ow=t s=4 rnc=t pbr=t -Xmx128g;
+            ow=t s=4 rnc=t pbr=t {XMX};
         """
 
 rule extract_seq_counts:
@@ -394,7 +410,7 @@ rule extract_seq_counts:
         reformat.sh in={input} out={output} \
             deleteinput=t fastawrap=0 \
             ow=t \
-            -Xmx128g;
+            {XMX};
         """
 
 rule extract_counts:
@@ -431,9 +447,11 @@ rule exract_count_stats:
         os.path.join(QC, "step_11", "{sample}_stats.txt")
     output:
         os.path.join(QC, "counts", "{sample}_counts.txt")
+    params:
+        s = "{sample}"
     shell:
         """
-        cut -f 2 {input} | sed "1s/size/$F/" > {output}
+        cut -f 2 {input} | sed "1s/size/{params.s}/" > {output}
         """
 
 rule create_seq_table:
@@ -449,6 +467,20 @@ rule create_seq_table:
         """
         paste {input.seq} {input.cnt} > {output}
         """
+
+rule merge_seq_table:
+    """
+    Merge seq counts
+    """
+    input:
+        files = expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES)
+    output:
+        seqtable = os.path.join(RESULTS, "seqtable_all.tsv"),
+        tab2fx = os.path.join(RESULTS, "seqtable.tab2fx")
+    params:
+        resultsdir = directory(RESULTS),
+    script:
+        "scripts/seqtable_merge.R"
 
 
 
