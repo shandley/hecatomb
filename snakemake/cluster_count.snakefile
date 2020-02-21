@@ -34,7 +34,7 @@ SAMPLES, = glob_wildcards(os.path.join(DATADIR, '{sample}_viral_amb.fastq'))
 
 rule all:
     input:
-        expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES}
+        expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES)
 
 
 rule remove_exact_dups:
