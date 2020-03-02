@@ -6,6 +6,11 @@
 # 3) Download to local computer and FTP to server
 # *I know there is likely an easier way to wget this data directly, but I am too lazy to sort that out right now
 
+# RAE:
+# Turns out this is really simple. Here is the URL:
+# https://www.uniprot.org/uniprot/?query=taxonomy:%22Viruses%20[10239]%22&format=fasta&limit=10&sort=score&fil=reviewed:no
+# see: https://www.uniprot.org/help/api_queries for more information on how to get the URL!
+
 # Write	out date/time of DB build
 date > uniprotDB_build.timestamp;
 
