@@ -21,13 +21,14 @@ if not os.path.exists(DBDIR):
 BACPATH = os.path.join(DBDIR, "bac_giant_unique_species")
 HOSTPATH = os.path.join(DBDIR, "human_masked")
 CONPATH = os.path.join(DBDIR, "contaminants")
-
+PROTPATH = os.path.join(DBDIR, "proteins")
 
 rule all:
     input:
         # the database directories
         os.path.join(BACPATH, "ref"),
         os.path.join(HOSTPATH, "ref"),
+        os.path.join(PROTPATH, "uniprot_virus.faa")
 
 """
 These rules set up the databases. If we don't have them already installed,
@@ -47,10 +48,8 @@ rule download_databases:
         os.path.join(CONPATH, "nebnext_adapters.fa"),
         os.path.join(CONPATH, "primerB.fa"),
         os.path.join(CONPATH, "rc_primerB_ad6.fa")
-    params:
-        db = DBDIR
     shell:
-        "cd {params.db} && curl -LO https://edwards.sdsu.edu/CERVAID/databases/hecatomb.databases.tar.bz2 && tar xf hecatomb.databases.tar.bz2"
+        "cd {DBDIR} && curl -LO https://edwards.sdsu.edu/CERVAID/databases/hecatomb.databases.tar.bz2 && tar xf hecatomb.databases.tar.bz2"
 
 rule make_bac_databases:
     input:
@@ -73,3 +72,11 @@ rule make_host_databases:
         fa = config['DatabaseFiles']['host']
     shell:
         "cd {params.wd} && bbmap.sh ref={params.fa}"
+
+rule download_uniprot_viruses:
+    output:
+        os.path.join(PROTPATH, "uniprot_virus.faa")
+    shell:
+        """
+        mkdir -p {PROTPATH} && curl -Lo {output} 'https://www.uniprot.org/uniprot/?query=taxonomy:%22Viruses%20[10239]%22&format=fasta&&sort=score&fil=reviewed:no'
+        """
