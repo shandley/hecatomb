@@ -77,4 +77,4 @@ mmseqs convertalis \
 echo
 echo "Running mmseqs_pviral_annotate.R"
 echo
-Rscript mmseqs_pviral_nt_annotate.R
+Rscript mmseqs_pviral_nt_annotate_htcf_modified.R

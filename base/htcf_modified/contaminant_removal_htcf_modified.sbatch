@@ -26,7 +26,7 @@ module load bbtools
 # Set Variables
 CONPATH=/scratch/mtblab/rachel/qiive_databases/contaminants # non-biological sequences
 HOSTPATH=/scratch/mtblab/rachel/qiive_databases/human_masked # host sequence database
-BACPATH=/scratch/mtblab/rachel/qiive_databases/masked_dbs/genome-collection-combos/reformated/bac_giant/unique_species # masked bacterial and giant virus genome
+BACPATH=/scratch/mtblab/rachel/qiive_databases/bac_giant/unique_species # masked bacterial and giant virus genome
 
 # Prep output directories
 mkdir -p ./clumped
