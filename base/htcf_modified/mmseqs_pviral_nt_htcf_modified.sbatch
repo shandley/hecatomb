@@ -5,13 +5,14 @@
 #SBATCH --constraint=cpu_E52650
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=64G
-#SBATCH -J pvrl_aa
+#SBATCH -J pvrl_nt
 #SBATCH --mail-user=rachel.rodgers
 #SBATCH --mail-type=ALL
 
 set -ue
 
 module load mmseqs2/10-6d92c
+module load R
 
 # Script to query target DNA sequence database with reduced (seqtab) clustered sequences from merge_seqtable.sh using mmseqs2
 
@@ -28,6 +29,7 @@ module load mmseqs2/10-6d92c
 
 # Set targetDB
 # This nt DB is all refseq viral gene sequences and nearest neighbors (exact duplicates removed)
+
 DB=/scratch/mtblab/rachel/qiive_databases/refseq_virus_nt_UniVec_masked/nt.fnaDB
 
 # Create output directory
@@ -35,14 +37,44 @@ mkdir -p ./results/mmseqs_nt_out
 OUT=./results/mmseqs_nt_out
 
 # Create Query databases
+echo
+echo "CREATE QUERY DB"
+echo
 mmseqs createdb ./results/mmseqs_aa_out/pviral_aa_unclassified_seqs.fasta $OUT/seqtable_queryDB --dbtype 2
 
 # mmseqs search
-mmseqs search $OUT/seqtable_queryDB $DB $OUT/resultDB $OUT/tmp_nt -a -e 0.000001 --search-type 3 --cov-mode 2 -c 0.95
+echo
+echo "MMSeqs SEARCH"
+echo
+mmseqs search \
+	$OUT/seqtable_queryDB \
+	$DB \
+	$OUT/resultDB \
+	$OUT/tmp_nt -a -e 0.000001 --search-type 3 --cov-mode 2 -c 0.95 \
+	--threads ${SLURM_CPUS_PER_TASK}
 
 # extract top-hit
-mmseqs filterdb $OUT/resultDB $OUT/resultDB.firsthit --extract-lines 1
-mmseqs convertalis $OUT/seqtable_queryDB $DB $OUT/resultDB.firsthit $OUT/resultDB.firsthit.m8
+echo
+echo "FILTERDB"
+echo
+mmseqs filterdb \
+	$OUT/resultDB \
+	$OUT/resultDB.firsthit \
+	--extract-lines 1 \
+	--threads ${SLURM_CPUS_PER_TASK}
+
+echo
+echo "CONVERTALIS"
+echo
+mmseqs convertalis \
+	$OUT/seqtable_queryDB \
+	$DB \
+	$OUT/resultDB.firsthit \
+	$OUT/resultDB.firsthit.m8 \
+	--threads ${SLURM_CPUS_PER_TASK}
 
 # Annotate
-mmseqs_pviral_nt_annotate.R
+echo
+echo "Running mmseqs_pviral_annotate.R"
+echo
+Rscript mmseqs_pviral_nt_annotate.R
