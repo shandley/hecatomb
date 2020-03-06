@@ -5,7 +5,7 @@ library("tidyverse")
 library("taxonomizr")
 
 # Read *.m8 file with best hit NCBI accession number
-m8 <- read_tsv("./results/mmseqs_nt_out/resultDB.firsthit.m8", col_names = FALSE)
+m8 <- read_tsv("./results/mmseqs_nt_checked_out/resultDB.firsthit.m8", col_names = FALSE)
 colnames(m8) <- c("query","target","pident","alnlen","mismatch","gapopen","qstart","qend","tstart","tend","evalue","bits")
 
 # Create NCBI accession number vector
@@ -22,5 +22,4 @@ seqids <- select(m8, "query")
 mmseqs_pviral_nt_lineage <- cbind(seqids, ncbi_tax)
 
 # Write results to table
-dir.create(path = "./results/mmseqs_nt_checked_out/", showWarnings=FALSE)
-write_tsv(mmseqs_pviral_nt_lineage, path = "./results/mmseqs_nt_checked_out/mmseqs_pviral_nt_lineage.tsv")
+write_tsv(mmseqs_pviral_nt_lineage, path = "./results/mmseqs_nt_checked_out/mmseqs_pviral_nt_checked_lineage.tsv")
