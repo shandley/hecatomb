@@ -31,6 +31,7 @@ BACPATH=/scratch/mtblab/rachel/qiive_databases/bac_giant/unique_species # masked
 # Prep output directories
 mkdir -p ./clumped
 mkdir -p ./QC/step_{1..9}
+mkdir -p ./runtimes
 
 read1=$(sed -n ${SLURM_ARRAY_TASK_ID}p lookup.txt)
 read2=$(echo ${read1} | sed s/R1/R2/g)
@@ -38,7 +39,7 @@ read2=$(echo ${read1} | sed s/R1/R2/g)
 sample=$(echo ${read1} | sed s/_R1_001.fastq.gz//g)
 
 # Begin time-log
-echo -e "S0\tS1\tS2\tS3\tS4\tS5\tS6\tS7\tS8\ts9" > ${sample}_contaminant_removal_runtimes.txt
+echo -e "S0\tS1\tS2\tS3\tS4\tS5\tS6\tS7\tS8\ts9" > ./runtimes/${sample}_contaminant_removal_runtimes.txt
 
 # Set file names
 #for i in *_R1.fastq.gz; do
