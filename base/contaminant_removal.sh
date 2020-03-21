@@ -42,7 +42,7 @@ for i in *_R1.fastq.gz; do
 T0=$SECONDS
 clumpify.sh in="$F"_R1.fastq.gz in2="$F"_R2.fastq.gz \
 	out=./clumped/"$F"_R1.fastq.clumped.gz out2=./clumped/"$F"_R2.fastq.clumped.gz \
-	reorder=a \
+	reorder=a dedupe=t \
 	ow=t;
 RUNTIME_0=$(($SECONDS - $T0))
 
@@ -131,7 +131,7 @@ T7=$SECONDS
 bbduk.sh in=./QC/step_6/"$F"_R1.s6.out.fastq in2=./QC/step_6/"$F"_R2.s6.out.fastq \
 	out=./QC/step_7/"$F"_R1.s7.out.fastq out2=./QC/step_7/"$F"_R2.s7.out.fastq outs=./QC/step_7/"$F"_singletons.s7.out.fastq \
 	stats=./QC/step_7/"$F".s7.stats \
-	qtrim=r trimq=20 \
+	forcetrimright2=5 \
 	maxns=2 minlength=50 \
 	ordered=t \
 	ow=t;

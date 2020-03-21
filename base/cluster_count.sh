@@ -52,3 +52,4 @@ cut -f 2 $OUT/"$F"_stats.txt | sed "1s/size/$F/" > $OUT/"$F"_counts.txt;
 paste $OUT/"$F"_seqs.txt $OUT/"$F"_counts.txt > $OUT/"$F"_seqtable.txt;
 
 done
+
