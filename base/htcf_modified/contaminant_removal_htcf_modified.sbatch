@@ -41,10 +41,6 @@ sample=$(echo ${read1} | sed s/_R1_001.fastq.gz//g)
 # Begin time-log
 echo -e "S0\tS1\tS2\tS3\tS4\tS5\tS6\tS7\tS8\ts9" > ./runtimes/${sample}_contaminant_removal_runtimes.txt
 
-# Set file names
-#for i in *_R1.fastq.gz; do
-        #F=`basename $i _R1.fastq.gz`;
-
 # Summary:
 	# Step 0: Clumpify reads (https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/clumpify-guide/)
 	# Step 1: Remove 5' amplification primer
@@ -288,7 +284,7 @@ bbmap.sh \
 
 RUNTIME_9=$(($SECONDS - $T9))
 
-echo -e "$RUNTIME_0\t$RUNTIME_1\t$RUNTIME_2\t$RUNTIME_3\t$RUNTIME_4\t$RUNTIME_5\t$RUNTIME_6\t$RUNTIME_7\t$RUNTIME_8\t$RUNTIME_9" >> ${sample}_contaminant_removal_runtimes.txt
+echo -e "$RUNTIME_0\t$RUNTIME_1\t$RUNTIME_2\t$RUNTIME_3\t$RUNTIME_4\t$RUNTIME_5\t$RUNTIME_6\t$RUNTIME_7\t$RUNTIME_8\t$RUNTIME_9" >> ./runtimes/${sample}_contaminant_removal_runtimes.txt
 
 # Add filenames to time table
 
