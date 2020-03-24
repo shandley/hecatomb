@@ -32,6 +32,14 @@ wget https://edwards.sdsu.edu/CERVAID/databases/hecatomb.databases.tar.bz2
 tar xf hecatomb.databases.tar.bz2
 ```
 
+4. Now you need to process the metagenomes using the [snakemake pipeline](snakemake/download_databases.snakefile). If you provide the config file that has the location of the databases, it will process all the databases for you. Note that the snakefile will also perform steps 1 and 2 above, but we recommend doing those manually as it allows you to monitor the download and ensure the files downloaded correctly.
+
+```bash
+snakemake --configfile configs/sample_config.yaml --snakefile snakemake/download_databases.snakefile
+```
+
+This will compile all the databases for you.
+
 You're done! That was easy!
 
 
