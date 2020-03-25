@@ -4,7 +4,7 @@
 library("tidyverse")
 
 # Read seqtables
-files <- list.files(path = "./QC/step_9/clustered/", pattern = "*_seqtable.txt", full.names = TRUE)
+files <- list.files(path = "./QC/step_8/clustered/", pattern = "*_seqtable.txt", full.names = TRUE)
 
 # Reduce seqtables to a single table
 seqtable.all <- files %>%

@@ -11,16 +11,16 @@
         # BBtools: https://jgi.doe.gov/data-and-tools/bbtools/
 
 # Set Variables
-CONPATH=/mnt/data1/databases/contaminants # non-biological sequences
-HOSTPATH=/mnt/data1/databases/human_masked # host sequence database
-BACPATH=/mnt/data1/databases/masked_dbs/genome-collection-combos/reformated/bac_giant/unique_species # masked bacterial and giant virus genome
+CONPATH=/mnt/data1/databases/hecatomb/contaminants # non-biological sequences
+HOSTPATH=/mnt/data1/databases/hecatomb/host/human # host sequence database
+BACPATH=/mnt/data1/databases/hecatomb/bacteria # masked bacterial and giant virus genome
 
 # Prep output directories
 mkdir -p ./clumped
-mkdir -p ./QC/step_{1..9};
+mkdir -p ./QC/step_{1..8};
 
 # Begin time-log
-echo -e "S0\tS1\tS2\tS3\tS4\tS5\tS6\tS7\tS8\ts9" > contaminant_removal_runtimes.txt
+echo -e "S0\tS1\tS2\tS3\tS4\tS5\tS6\tS7\tS8" > contaminant_removal_runtimes.txt
 
 # Set file names
 for i in *_R1.fastq.gz; do
@@ -35,8 +35,7 @@ for i in *_R1.fastq.gz; do
 	# Step 5: PhiX Removal and vector contamination removal
 	# Step 6: Host-removal
 	# Step 7: Trim low-quality bases
-	# Step 8: Read correction, merging and extension
-	# Step 9: Remove bacterial contaminants reserving viral and aambiguous sequences
+	# Step 8: Remove bacterial contaminants reserving viral and aambiguous sequences
 
 # Step 0: Clumpify and deduplicate reads
 T0=$SECONDS
@@ -118,6 +117,7 @@ bbmap.sh in=./QC/step_5/"$F"_R1.s5.out.fastq in2=./QC/step_5/"$F"_R2.s5.out.fast
 	quickmatch fast \
 	ordered=t \
 	path=$HOSTPATH \
+	-Xmx48g;
 	ow=t;
 
 repair.sh in=./QC/step_6/"$F"_unmapped.s6.out.fastq \
@@ -135,38 +135,30 @@ bbduk.sh in=./QC/step_6/"$F"_R1.s6.out.fastq in2=./QC/step_6/"$F"_R2.s6.out.fast
 	maxns=2 minlength=50 \
 	ordered=t \
 	ow=t;
-RUNTIME_7=$(($SECONDS - $T7))
-
-# Step 8: Merge forward (R1) and reverse (R2) reads
-T8=$SECONDS
-bbmerge.sh in1=./QC/step_7/"$F"_R1.s7.out.fastq in2=./QC/step_7/"$F"_R2.s7.out.fastq \
-	out=./QC/step_8/"$F"_merged.fastq outu1=./QC/step_8/"$F"_R1.unmerged.fastq outu2=./QC/step_8/"$F"_R2.unmerged.fastq \
-	rem k=62 extend2=50 ecct vstrict=t \
-	ordered=t \
-	-Xmx128g \
-	ow=t;
 
 	# Split singletons and combine R1 and R2 files
 	grep -A 3 '1:N:' ./QC/step_7/"$F"_singletons.s7.out.fastq | sed '/^--$/d' > ./QC/step_7/"$F"_singletons_R1.out.fastq;
-	grep -A	3 '2:N:' ./QC/step_7/"$F"_singletons.s7.out.fastq | sed '/^--$/d' > ./QC/step_7/"$F"_singletons_R2.out.fastq;
+	grep -A 3 '2:N:' ./QC/step_7/"$F"_singletons.s7.out.fastq | sed '/^--$/d' > ./QC/step_7/"$F"_singletons_R2.out.fastq;
 
-	cat ./QC/step_8/"$F"_merged.fastq ./QC/step_8/"$F"_R1.unmerged.fastq ./QC/step_7/"$F"_singletons_R1.out.fastq > ./QC/step_8/"$F"_R1.s8.out.fastq;
-	cat ./QC/step_8/"$F"_merged.fastq ./QC/step_8/"$F"_R2.unmerged.fastq ./QC/step_7/"$F"_singletons_R2.out.fastq > ./QC/step_8/"$F"_R2.s8.out.fastq;
-RUNTIME_8=$(($SECONDS - $T8))
+	cat ./QC/step_7/"$F"_R1.s7.out.fastq ./QC/step_7/"$F"_singletons_R1.out.fastq > ./QC/step_7/"$F"_R1.s7.combined.out.fastq;
+        cat ./QC/step_7/"$F"_R2.s7.out.fastq ./QC/step_7/"$F"_singletons_R2.out.fastq > ./QC/step_7/"$F"_R2.s7.combined.out.fastq;
 
-# Step 9: Remove bacterial contaminants reserving viral and ambiguous sequences
-T9=$SECONDS
-bbmap.sh in=./QC/step_8/"$F"_R1.s8.out.fastq \
+RUNTIME_7=$(($SECONDS - $T7))
+
+# Step 8: Remove bacterial contaminants reserving viral and ambiguous sequences
+T8=$SECONDS
+bbmap.sh in=./QC/step_7/"$F"_R1.s7.combined.out.fastq \
 	path=$BACPATH \
-	outm=./QC/step_9/"$F"_bacterial.fastq outu=./QC/step_9/"$F"_viral_amb.fastq \
+	outm=./QC/step_8/"$F"_bacterial.fastq outu=./QC/step_8/"$F"_viral_amb.fastq \
 	semiperfectmode=t \
 	quickmatch fast \
-	refstats=./QC/step_9/"$F"_refstats.txt scafstats=./QC/step_9/"$F"_scafstats.txt \
+	refstats=./QC/step_8/"$F"_refstats.txt scafstats=./QC/step_8/"$F"_scafstats.txt \
 	ordered=t \
+	-Xmx48g \
 	ow=t;
-RUNTIME_9=$(($SECONDS - $T9))
+RUNTIME_8=$(($SECONDS - $T8))
 
-echo -e "$RUNTIME_0\t$RUNTIME_1\t$RUNTIME_2\t$RUNTIME_3\t$RUNTIME_4\t$RUNTIME_5\t$RUNTIME_6\t$RUNTIME_7\t$RUNTIME_8\t$RUNTIME_9" >> contaminant_removal_runtimes.txt
+echo -e "$RUNTIME_0\t$RUNTIME_1\t$RUNTIME_2\t$RUNTIME_3\t$RUNTIME_4\t$RUNTIME_5\t$RUNTIME_6\t$RUNTIME_7\t$RUNTIME_8" >> contaminant_removal_runtimes.txt
 
 done
 
@@ -175,4 +167,3 @@ done
 ls -1 *_R1.fastq.gz > filenames;
 sed -i '1ifilenames' filenames;
 paste filenames contaminant_removal_runtimes.txt >RUNTIMES_contaminant_removal.log;
-

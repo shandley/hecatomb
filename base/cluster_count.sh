@@ -5,14 +5,14 @@
         # BBtools: https://jgi.doe.gov/data-and-tools/bbtools/
 
 # Summary:
-	# Step 1: Remove exact duplicates (consider to be PCR artifacts)
+	# Step 1: Remove exact duplicates
         # Step 2: Deduplicate
         # Step 3: Reformat and prepare for sequence table generation
 
 # Prep output directory
-mkdir -p ./QC/step_9/clustered;
-IN=./QC/step_9
-OUT=./QC/step_9/clustered;
+mkdir -p ./QC/step_8/clustered;
+IN=./QC/step_8
+OUT=./QC/step_8/clustered;
 
 # Set file names
 for i in $IN/*_viral_amb.fastq; do
@@ -20,23 +20,23 @@ for i in $IN/*_viral_amb.fastq; do
 
 # Step 1: Remove exact duplicates
 dedupe.sh in=$IN/"$F"_viral_amb.fastq ow=t \
-	out=$OUT/"$F"_R1.s9.deduped.out.fastq \
+	out=$OUT/"$F"_R1.s8.deduped.out.fastq \
 	ac=f \
-	-Xmx128g;
+	-Xmx62g;
 
 # Step 2: Dereplicate
-dedupe.sh in=$OUT/"$F"_R1.s9.deduped.out.fastq ow=t \
+dedupe.sh in=$OUT/"$F"_R1.s8.deduped.out.fastq ow=t \
 	s=4 \
 	rnc=t pbr=t \
 	csf=$OUT/"$F"_stats.txt out=$OUT/"$F"_best.fasta \
-	-Xmx128g;
+	-Xmx62g;
 
 # Step 3: Extract sequences and counts for seqtable (count table)
 # Convert to fasta
 reformat.sh in=$OUT/"$F"_best.fasta out=$OUT/"$F"_reformated.fasta \
 	deleteinput=t fastawrap=0 \
 	ow=t \
-	-Xmx128g;
+	-Xmx62g;
 
 # Parse and combine stats and contig files
 # Extract sequences
