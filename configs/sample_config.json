@@ -2,6 +2,7 @@
     "Paths": {
         "_comment" : "The database directory is where to save the databases. We will automatically install them if they are not available",
         "Databases" : "databases",
+        "Temp" : "tmp",
         "Reads" : "test_data/fastq"
     },
     "DatabaseFiles": {
