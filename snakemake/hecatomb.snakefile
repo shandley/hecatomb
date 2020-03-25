@@ -10,11 +10,6 @@ import os
 import sys
 import socket
 
-# this line can be deleted, I am using it for debugging my system, not snakemake!
-hostname = socket.gethostname()
-sys.stderr.write(f"Running on: {hostname}\n")
-
-
 if not config:
     sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
     sys.stderr.write("examples are provided in the Git repo\n")
