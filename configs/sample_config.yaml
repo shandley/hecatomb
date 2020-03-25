@@ -1,0 +1,24 @@
+---
+Paths:
+  # The database directory is where to save the databases. We will automatically install them if they are not available
+  Databases: databases
+  Temp: tmp
+  Reads: test_data/fastq
+
+DatabaseFiles:
+  # These are our predefined databases that we screen against, but you may want to replace host with e.g. mouse
+  bacteria: bac_uniquespecies_giant.masked_Ns_removed.fasta
+  host: human_virus_masked.fasta
+  contaminants: vector_contaminants.fa.gz
+
+Output:
+  # Clumped is where the clumpify output of the original reads is written. QC is the output for all the QC steps
+  Clumped: clumped
+  QC: QC
+  Results: results
+
+System:
+  # How much memory you want to allocate to java
+  Memory: -Xmx128g
+
+
