@@ -177,9 +177,9 @@ ps.aln.scaled <- ps.aln.scaled %>%
 
 #### USER INPUT ####
 # Write alignment table
-saveRDS(ps.aln.fixed, file = "./results/aln_phage.RDS")
+saveRDS(ps.aln.scaled, file = "./results/aln_phage.RDS")
 
 # Write zero abundance filtered file
-ps.aln.fixed.filt <- ps.aln.fixed %>%
+ps.aln.fixed.filt <- ps.aln.scaled %>%
 	filter(Abundance > 0)
 saveRDS(ps.aln.fixed.filt, file = "./results/aln_phage_filt.RDS")

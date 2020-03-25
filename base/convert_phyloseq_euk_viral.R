@@ -181,6 +181,6 @@ ps.aln.scaled <- ps.aln.scaled %>%
 saveRDS(ps.aln.scaled, file = "./results/aln_euk_viruses.RDS")
 
 # Write zero abundance filtered file
-ps.aln.fixed.filt <- ps.aln.fixed %>%
+ps.aln.fixed.filt <- ps.aln.scaled %>%
 	filter(Abundance > 0)
 saveRDS(ps.aln.fixed.filt, file = "./results/aln_euk_viruses_filt.RDS")
