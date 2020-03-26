@@ -24,9 +24,9 @@ module load bbtools
         # BBtools: https://jgi.doe.gov/data-and-tools/bbtools/
 
 # Set Variables
-CONPATH=/scratch/mtblab/rachel/qiive_databases/contaminants # non-biological sequences
-HOSTPATH=/scratch/mtblab/rachel/qiive_databases/human_masked # host sequence database
-BACPATH=/scratch/mtblab/rachel/qiive_databases/bac_giant/unique_species # masked bacterial and giant virus genome
+CONPATH=/scratch/ref/hecatomb_databases/contaminants # non-biological sequences
+HOSTPATH=/scratch/ref/hecatomb_databases/human_masked # host sequence database
+BACPATH=/scratch/ref/hecatomb_databases/bac_giant/unique_species # masked bacterial and giant virus genome
 
 # Prep output directories
 mkdir -p ./clumped

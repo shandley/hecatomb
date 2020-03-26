@@ -29,7 +29,7 @@ module load pullseq
 # more details about database building can be found at: https://github.com/soedinglab/mmseqs2/wiki#taxonomy-assignment-using-mmseqs-taxonomy
 
 # Set targetDB (UniProt Viral Proteins Cluster at 99% identity)
-DB=/scratch/mtblab/rachel/qiive_databases/virus_uniprot/targetDB
+DB=/scratch/ref/hecatomb_databases/virus_uniprot/targetDB
 
 # Set phage lineage file path
 PHAGE=~/software/QIIVE/base/phage_taxonomic_lineages.txt

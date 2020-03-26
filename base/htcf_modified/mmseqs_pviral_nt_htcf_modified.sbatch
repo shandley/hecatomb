@@ -30,7 +30,7 @@ module load R
 # Set targetDB
 # This nt DB is all refseq viral gene sequences and nearest neighbors (exact duplicates removed)
 
-DB=/scratch/mtblab/rachel/qiive_databases/refseq_virus_nt_UniVec_masked/nt.fnaDB
+DB=/scratch/ref/hecatomb_databases/refseq_virus_nt_UniVec_masked/nt.fnaDB
 
 # Create output directory
 mkdir -p ./results/mmseqs_nt_out

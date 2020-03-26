@@ -32,7 +32,7 @@ module load R
 # Set targetDB
 # This is a targetDB consisting of all UniProtKB entires clustered at 30% ID (UniClust30) concatenated to Virus UniProt entries clustered at $
 # More information about the UniClust db's as well as download links to UniClust30 and UniClust90 are available at: https://uniclust.mmseqs.c$
-DB=/scratch/mtblab/rachel/qiive_databases/bac_virus_masked/nt.fnaDB
+DB=/scratch/ref/hecatomb_databases/bac_virus_masked/nt.fnaDB
 
 # Set phage lineage file path
 PHAGE=~/software/QIIVE/base/phage_taxonomic_lineages.txt

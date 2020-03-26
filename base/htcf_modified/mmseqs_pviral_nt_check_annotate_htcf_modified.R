@@ -12,10 +12,10 @@ colnames(m8) <- c("query","target","pident","alnlen","mismatch","gapopen","qstar
 acc <- m8$target
 
 # Convert accessions to taxonomic IDs
-ids <- accessionToTaxa(acc, "/scratch/mtblab/rachel/qiive_databases/taxonomizr/accessionTaxa.sql")
+ids <- accessionToTaxa(acc, "/scratch/ref/hecatomb_databases/taxonomizr/accessionTaxa.sql")
 
 # Get taxonomic lineage
-ncbi_tax <- as_tibble(getTaxonomy(ids, "/scratch/mtblab/rachel/qiive_databases/taxonomizr/accessionTaxa.sql"))
+ncbi_tax <- as_tibble(getTaxonomy(ids, "/scratch/ref/hecatomb_databases/taxonomizr/accessionTaxa.sql"))
 
 # Bind m8 file to lineage
 seqids <- select(m8, "query")
