@@ -35,7 +35,7 @@ stmerge <- merge(viral_table, seqtable, all.x = TRUE)
 # Sum per taxon counts
 merged_table <- stmerge %>%
   select(-id) %>%
-  unite("lineage", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "_", remove = FALSE) %>%
+  unite("lineage", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep = "_", remove = FALSE) %>%
   group_by(lineage, Species) %>%
   summarise_if(is.numeric, funs(sum(as.numeric(.)))) %>%
   separate("lineage", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep = "_") %>%
