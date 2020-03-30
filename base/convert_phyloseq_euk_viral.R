@@ -42,7 +42,7 @@ merged_table <- stmerge %>%
   ungroup()
 
 # Remove taxon information to create final count table (called otu_table in phyloseq)
-count_table <- merged_table[,-c(1:8)]
+count_table <- merged_table[,-c(1:7)]
 
 # Convert summarized table to a matrix of just the taxon in preperation for phyloseq import
 tax.tbl.m <- merged_table %>%
