@@ -10,7 +10,7 @@
 set -ue
 
 module load seqkit
-module load diamond/0.9.22
+module load diamond/0.9.21
 module load prodigal
 
 # Prep output directories
