@@ -35,7 +35,7 @@ module load R
 DB=/scratch/ref/hecatomb_databases/bac_virus_masked/nt.fnaDB
 
 # Set phage lineage file path
-PHAGE=~/software/QIIVE/base/phage_taxonomic_lineages.txt
+PHAGE=/scratch/ref/hecatomb_databases/phage_taxonomic_lineages.txt
 
 # Create output directory
 OUT=./results/mmseqs_nt_checked_out

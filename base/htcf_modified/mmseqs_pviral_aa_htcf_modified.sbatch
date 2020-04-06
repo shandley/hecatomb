@@ -32,7 +32,7 @@ module load pullseq
 DB=/scratch/ref/hecatomb_databases/virus_uniprot/targetDB
 
 # Set phage lineage file path
-PHAGE=~/software/QIIVE/base/phage_taxonomic_lineages.txt
+PHAGE=/scratch/ref/hecatomb_databases/phage_taxonomic_lineages.txt
 
 # Create output directory
 mkdir -p ./results/mmseqs_aa_out/

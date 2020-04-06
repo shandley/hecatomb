@@ -35,7 +35,7 @@ module load seqkit
 DB=/scratch/ref/hecatomb_databases/uni_plus_virus/targetDB
 
 # Set phage lineage file path
-PHAGE=~/software/QIIVE/base/phage_taxonomic_lineages.txt
+PHAGE=/scratch/ref/hecatomb_databases/phage_taxonomic_lineages.txt
 
 # Create output directory
 mkdir -p ./results/mmseqs_aa_checked_out;
