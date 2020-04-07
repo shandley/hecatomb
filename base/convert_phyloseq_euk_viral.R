@@ -1,9 +1,9 @@
 #!/usr/bin/Rscript
 
 #### What this script does ####
-# Generates 3 output files ready for import into R for additional analysis
-# 1) A raw count PhyloSeq object
-# 2) A data frame on counts standardized to input library size
+# Generates five output files ready for import into R for additional analysis
+# 1) Two Raw count PhyloSeq objects, one counted at the Species level another at the Genus level
+# 2) Two Standardized count tables (no longer PhyloSeq objects) of standardized counts at the Species and Genus level
 # 3) A data frame of individual reads and their alingment statistics
 
 #### Instructions ####
@@ -24,7 +24,7 @@ library("speedyseq")
 
 #### USER INPUT ####
 # Load mapping file
-MAP <- import_qiime_sample_data("./results/mapping_pot.txt")
+MAP <- import_qiime_sample_data("./results/mapping.txt")
 
 # Load viral taxonomy and remove any non-viral sequences
 viral_table <- fread(file = "./results/viruses_tax_table.tsv", header = TRUE, stringsAsFactors=TRUE)
@@ -64,13 +64,14 @@ rm(col.sums, samples); gc()
 
 #### USER INPUT ####
 library.size <- library.size %>%
-  rename(sample_ID = value) %>% # Rename to whatever your sequence file name / sample name is in your mapping file
+  rename(seq_id = value) %>% # Rename to whatever your sequence file name / sample name is in your mapping file
   rename(library_size = value1)
 library.size <- data.table(library.size)
 
-###############################################
-#### 1) GENERATE RAW COUNT PHYLOSEQ OBJECT ####
-###############################################
+########################################################
+#### 1) GENERATE RAW COUNT PHYLOSEQ OBJECT: SPECIES ####
+########################################################
+
 # Merge viral taxonomy table with alignments stats
 alnmerge <- merge(viral_table, aln.all, by = "id")
 
@@ -78,7 +79,7 @@ alnmerge <- merge(viral_table, aln.all, by = "id")
 stmerge <- merge(viral_table, seqtable, all.x = TRUE, by = "id")
 
 # Sum per taxon counts
-merged_counts <- stmerge %>%
+merged_counts.sp <- stmerge %>%
   select(-id) %>%
   unite("lineage", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep = "_", remove = FALSE) %>%
   group_by(lineage, Species) %>%
@@ -87,7 +88,7 @@ merged_counts <- stmerge %>%
   ungroup()
 
 # Average aln stats
-merged_aln <- alnmerge %>%
+merged_aln.sp <- alnmerge %>%
   select(-id) %>%
   unite("lineage", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep = "_", remove = FALSE) %>%
   group_by(lineage, Species) %>%
@@ -96,76 +97,103 @@ merged_aln <- alnmerge %>%
   ungroup()
 
 # Remove taxon information to create final count table (called otu_table in phyloseq)
-count_table <- merged_counts[,-c(1:7)]
+count_table.sp <- merged_counts.sp[,-c(1:7)]
 
 # Convert summarized table to a matrix of just the taxon in preperation for phyloseq import
-tax.tbl.m <- merged_aln %>%
+tax.tbl.m.sp <- merged_aln.sp %>%
   as.matrix()
 
 # Create PhyloSeq object
-OTU <- otu_table(count_table, taxa_are_rows = TRUE)
-TAX <- tax_table(tax.tbl.m)
-ps0 = phyloseq(OTU, TAX, MAP)
+OTU.sp <- otu_table(count_table.sp, taxa_are_rows = TRUE)
+TAX.sp <- tax_table(tax.tbl.m.sp)
+ps0.sp = phyloseq(OTU.sp, TAX.sp, MAP)
 
 #### USER INPUT ####
 # Save PhyloSeq object as an RDS file
-saveRDS(ps0, file = "./results/ps0_euk_viruses.RDS")
+saveRDS(ps0.sp, file = "./results/ps0_euk_viruses_species.RDS")
 
-# Remove some files to free up memory
-rm(aln.aa, aln.nt, alnmerge, count_table, merged_aln, merged_counts, OTU, TAX, tax.tbl.m, stmerge); gc()
+#######################################################
+#### 2) GENERATE RAW COUNT PHYLOSEQ OBJECT : GENUS ####
+#######################################################
+# Sum per taxon counts
+merged_counts.ge <- stmerge %>%
+  select(-id) %>%
+  unite("lineage", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep = "_", remove = FALSE) %>%
+  group_by(lineage) %>%
+  summarise_if(is.numeric, funs(sum(as.numeric(.)))) %>%
+  separate("lineage", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep = "_") %>%
+  ungroup()
 
-##################################################
-#### 2) GENERATE STANDARDIZED PHYLOSEQ OBJECT ####
-##################################################
+# Average aln stats
+merged_aln.ge <- alnmerge %>%
+  select(-id) %>%
+  unite("lineage", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep = "_", remove = FALSE) %>%
+  group_by(lineage) %>%
+  summarise_if(is.numeric, funs(mean(as.numeric(.)))) %>%
+  separate("lineage", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep = "_") %>%
+  ungroup()
+
+# Remove taxon information to create final count table (called otu_table in phyloseq)
+count_table.ge <- merged_counts.ge[,-c(1:6)]
+
+# Convert summarized table to a matrix of just the taxon in preperation for phyloseq import
+tax.tbl.m.ge <- merged_aln.ge %>%
+  as.matrix()
+
+# Create PhyloSeq object
+OTU.ge <- otu_table(count_table.ge, taxa_are_rows = TRUE)
+TAX.ge <- tax_table(tax.tbl.m.ge)
+ps0.ge = phyloseq(OTU.ge, TAX.ge, MAP)
+
+#### USER INPUT ####
+# Save PhyloSeq object as an RDS file
+saveRDS(ps0.ge, file = "./results/ps0_euk_viruses_genus.RDS")
+
+#########################################################
+#### 3) GENERATE STANDARDIZED COUNTS OBJECT: SPECIES ####
+#########################################################
 # Melt PhyloSeq Object
 # This may take a lot of time and require a lot of RAM
-ps.melt <- ps0 %>%
+ps.melt.sp <- ps0.sp %>%
   speedyseq::psmelt() %>%
   as_tibble()
 
 # Adjust values
-ps.melt.value <- ps.melt %>%
-  select(c((ncol(MAP)+11):(ncol(ps.melt)))) %>%
+ps.melt.value.sp <- ps.melt.sp %>%
+  select(c((ncol(MAP)+11):(ncol(ps.melt.sp)))) %>%
    mutate_if(is.factor, ~ as.numeric(levels(.x))[.x])
 
 # Adjust factors
-ps.melt.fact <- ps.melt %>%
+ps.melt.fact.sp <- ps.melt.sp %>%
   select(c(1:(ncol(MAP)+10))) %>%
   mutate_if(is.character, as.factor)
 
-ps.melt.fixed <- bind_cols(ps.melt.fact, ps.melt.value)
+ps.melt.fixed.sp <- bind_cols(ps.melt.fact.sp, ps.melt.value.sp)
 
 # Convert to data table. This may take a bit of time as well
-ps.melt.fixed <- data.table(ps.melt.fixed)
+ps.melt.fixed.sp <- data.table(ps.melt.fixed.sp)
 
 # Add Baltimore virus classifications
 baltimore <- fread("/mnt/data1/databases/hecatomb/2020_03_11_family_Baltimore_classification_lookup.txt", stringsAsFactors = TRUE)
-ps.melt.fixed <- left_join(ps.melt.fixed, baltimore, by = "Family")
-ps.melt.fixed$Family <- as.factor(ps.melt.fixed$Family) # left_join may have converted to character
-ps.melt.fixed <- data.table(ps.melt.fixed)
-rm(baltimore)
+ps.melt.fixed.sp <- left_join(ps.melt.fixed.sp, baltimore, by = "Family")
+ps.melt.fixed.sp$Family <- as.factor(ps.melt.fixed.sp$Family) # left_join may have converted to character
+ps.melt.fixed.sp <- data.table(ps.melt.fixed.sp)
 
 # Merge with library size
-ps.melt.fixed <- merge(ps.melt.fixed, library.size, all.x = TRUE, by = "sample_ID")
+ps.melt.fixed.sp <- merge(ps.melt.fixed.sp, library.size, all.x = TRUE, by = "seq_id")
 
 # Add proportion, min and mean and median standardizations
 min.ls <- min(library.size$library_size)
 mean.ls <- mean(library.size$library_size)
 median.ls <- median(library.size$library_size)
 
-ps.melt.scaled <- ps.melt.fixed %>%
+ps.melt.scaled.sp <- ps.melt.fixed.sp %>%
         mutate(proportional_abundance = Abundance/library_size) %>%
         mutate(scaled_abundance_min = (min.ls*proportional_abundance)) %>%
         mutate(scaled_abundance_mean = (mean.ls*proportional_abundance)) %>%
         mutate(scaled_abundance_median = (median.ls*proportional_abundance))
 
-ps.melt.scaled <- ps.melt.fixed %>%
-        mutate(proportional_abundance = Abundance/library_size) %>%
-        mutate(scaled_abundance_min = (min.ls*proportional_abundance)) %>%
-        mutate(scaled_abundance_mean = (mean.ls*proportional_abundance)) %>%
-        mutate(scaled_abundance_median = (median.ls*proportional_abundance))
-
-ps.melt.scaled <- ps.melt.scaled %>%
+ps.melt.scaled.sp <- ps.melt.scaled.sp %>%
         rename(avg_percent_id = percent_id) %>%
         rename(avg_alignment_length = alignment_length) %>%
         rename(avg_num_mismatches = num_mismatches) %>%
@@ -179,10 +207,64 @@ ps.melt.scaled <- ps.melt.scaled %>%
 
 #### USER INPUT ####
 # Save PhyloSeq object as an RDS file
-saveRDS(ps0, file = "./results/ps0_euk_viruses_standardized.RDS")
+saveRDS(ps.melt.scaled.sp, file = "./results/ps0_euk_viruses_standardized_species.RDS")
+
+##########################################################
+#### 4) GENERATE STANDARDIZED COUNTS  OBJECT: GENUS ######
+##########################################################
+# Melt PhyloSeq Object
+# This may take a lot of time and require a lot of RAM
+ps.melt.ge <- ps0.ge %>%
+  speedyseq::psmelt() %>%
+  as_tibble()
+
+# Adjust values
+ps.melt.value.ge <- ps.melt.ge %>%
+  select(c((ncol(MAP)+10):(ncol(ps.melt.ge)))) %>%
+   mutate_if(is.factor, ~ as.numeric(levels(.x))[.x])
+
+# Adjust factors
+ps.melt.fact.ge <- ps.melt.ge %>%
+  select(c(1:(ncol(MAP)+9))) %>%
+  mutate_if(is.character, as.factor)
+
+ps.melt.fixed.ge <- bind_cols(ps.melt.fact.ge, ps.melt.value.ge)
+
+# Convert to data table. This may take a bit of time as well
+ps.melt.fixed.ge <- data.table(ps.melt.fixed.ge)
+
+# Add Baltimore virus classifications
+ps.melt.fixed.ge <- left_join(ps.melt.fixed.ge, baltimore, by = "Family")
+ps.melt.fixed.ge$Family <- as.factor(ps.melt.fixed.ge$Family) # left_join may have converted to character
+ps.melt.fixed.ge <- data.table(ps.melt.fixed.ge)
+
+# Merge with library size
+ps.melt.fixed.ge <- merge(ps.melt.fixed.ge, library.size, all.x = TRUE, by = "seq_id")
+
+ps.melt.scaled.ge <- ps.melt.fixed.ge %>%
+        mutate(proportional_abundance = Abundance/library_size) %>%
+        mutate(scaled_abundance_min = (min.ls*proportional_abundance)) %>%
+        mutate(scaled_abundance_mean = (mean.ls*proportional_abundance)) %>%
+        mutate(scaled_abundance_median = (median.ls*proportional_abundance))
+
+ps.melt.scaled.ge <- ps.melt.scaled.ge %>%
+        rename(avg_percent_id = percent_id) %>%
+        rename(avg_alignment_length = alignment_length) %>%
+        rename(avg_num_mismatches = num_mismatches) %>%
+        rename(avg_number_gaps = number_gaps) %>%
+        rename(avg_start_query = start_query) %>%
+        rename(avg_end_query = end_query) %>%
+        rename(avg_start_target = start_target) %>%
+        rename(avg_end_target = end_target) %>%
+        rename(avg_e_value = e_value) %>%
+        rename(avg_bit_score = bit_score)
+
+#### USER INPUT ####
+# Save PhyloSeq object as an RDS file
+saveRDS(ps.melt.scaled.ge, file = "./results/ps0_euk_viruses_standardized_genus.RDS")
 
 #################################################
-#### 3) GENERATE INDIVIDUAL READ STATS TABLE ####
+#### 5) GENERATE INDIVIDUAL READ STATS TABLE ####
 #################################################
 # Merge viral taxonomy and aa/nt alignment table
 setkey(viral_table, id)
@@ -244,7 +326,7 @@ ps.aln.fixed <- data.table(ps.aln.fixed)
 rm(baltimore); gc()
 
 # Merge with library size
-ps.aln.fixed <- merge(ps.aln.fixed, library.size, all.x = TRUE, by = "sample_ID")
+ps.aln.fixed <- merge(ps.aln.fixed, library.size, all.x = TRUE, by = "seq_id")
 
 ps.aln.scaled <- ps.aln.fixed %>%
         mutate(proportional_abundance = Abundance/library_size) %>%
