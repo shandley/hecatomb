@@ -8,10 +8,6 @@ sed 's/uc_//g' ./results/mmseqs_aa_checked_out/viruses_checked_aa_table.tsv > ./
 tail -n +2 ./results/mmseqs_nt_checked_out/mmseqs_pviral_nt_checked_lineage.tsv | \
 	sed 's/NA/unknown/g' > ./results/mmseqs_nt_checked_out/mmseqs_pviral_nt_checked_lineage_edited.tsv
 
-# Remove extraneous data beyond species level
-cut -f1-8 <./results/viruses_tax_table.tsv >./results/viruses_tax_table_NEW.tsv &&
-mv -f ./results/viruses_tax_table_NEW.tsv ./results/viruses_tax_table.tsv
-
 # Happily marry the corrected aa and nt files
 cat ./results/mmseqs_aa_checked_out/viruses_checked_aa_table_edited.tsv ./results/mmseqs_nt_checked_out/mmseqs_pviral_nt_checked_lineage_edited.tsv | \
 	sort -n -k 1 > ./results/viruses_tax_table.tsv
@@ -21,7 +17,7 @@ sed -i '1iid\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies' ./results/v
 ## Fix some strange taxonomy names
 sed 's/uc_//g' ./results/mmseqs_aa_out/phage_table.tsv > ./results/phage_tax_table.tsv
 sed -i '1iid\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies' ./results/phage_tax_table.tsv
-cut -f1-8 viruses_tax_table.tsv > tmp & mv tmp viruses_tax_table.tsv
+cut -f1-8 ./results/viruses_tax_table.tsv > tmp & mv tmp ./results/viruses_tax_table.tsv
 
 # Adjust alignment files
 
