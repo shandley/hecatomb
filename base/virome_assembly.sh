@@ -1,14 +1,5 @@
 #!/bin/bash
 
-# Takes quality controlled reads (through contaminant_remval.sh Step 7) and performs a metagenomic assembly
-
-# Steps:
-# 0) Kmer stats file generation
-# 1) Digital normalization (bbnorm)
-# 2) Individual sample assembly (megahit)
-# 3) Contig assembly to create contig dictionary (flye)
-# 4) Individual sample mapping to contig dictionary
-
 # Prep output directories
 mkdir -p ./assembly
 mkdir -p ./assembly/stats
@@ -68,53 +59,95 @@ for i in $IN/*_R1.s7.out.fastq; do
 bbmap.sh ref=$OUT/contig_dictionary/contig_dictionary.fasta in=$IN/"$F"_R1.s7.out.fastq in2=$IN/"$F"_R2.s7.out.fastq \
 	out=$OUT/contig_dictionary/"$F".aln.sam.gz \
         kfilter=22 subfilter=15 maxindel=80 \
+	ambiguous=random \
+	physcov=t \
+	covstats=$OUT/contig_dictionary/"$F".covstats \
+	rpkm=$OUT/contig_dictionary/"$F".rpkm \
+	statsfile=$OUT/contig_dictionary/"$F".statsfile \
+	scafstats=$OUT/contig_dictionary/"$F".scafstats \
         ow=t;
-
-	# Calculate coverage
-	pileup.sh in=$OUT/contig_dictionary/"$F".aln.sam.gz out=$OUT/contig_dictionary/"$F"_cov.txt;
-
-	# Output mappeed/unmapped reads
-	reformat.sh in=$OUT/contig_dictionary/"$F".aln.sam.gz out=$OUT/contig_dictionary/"$F"_mapped.fastq mappedonly;
-     	reformat.sh in=$OUT/contig_dictionary/"$F".aln.sam.gz out=$OUT/contig_dictionary/"$F"_unmapped.fastq unmappedonly;
-
 done
 
-# Step 4: Contig Annotation with CAT
-CAT contigs -c $OUT/contig_dictionary/contig_dictionary.fasta -o $OUT/contig_dictionary/out.CAT \
-	--force \
-	--sensitive \
-	-d /mnt/data1/databases/CAT/CAT_prepare_20200304/2020-03-04_CAT_database \
-	-t /mnt/data1/databases/CAT/CAT_prepare_20200304/2020-03-04_taxonomy;
-
-CAT add_names -i $OUT/contig_dictionary/out.CAT.contig2classification.txt -o $OUT/contig_dictionary/out.CAT.taxonomy \
-	-t /mnt/data1/databases/CAT/CAT_prepare_20200304/2020-03-04_taxonomy \
-	--only_official --exclude_scores --force;
-
-CAT summarise -c $OUT/contig_dictionary/contig_dictionary.fasta -i $OUT/contig_dictionary/out.CAT.taxonomy \
-	-o $OUT/contig_dictionary/out.CAT.summary;
-
-# Step 5: Create contig count table
+# Step 4: Create contig count table (covtable.all, this is similar to an otu_table or seqtable))
 DIR=./assembly/contig_dictionary
 
-# Extract the average coverage from individual sample mappings
-for i in $DIR/*_cov.txt; do
+# Extract contig IDs
+grep ">" $DIR/assembly.fasta | sed 's/>//' > $DIR/contig.ids;
 
-        F=`basename $i _cov.txt`;
+# Filter per sample low percent coverage contig mappings
 
-        # Extract contig IDs and average fold coverage
-        tail -n+2 $DIR/"$F"_cov.txt | cut -f2 > $DIR/"$F"_cov.avg;
+# Combine frags with coverage percent and calculate fragments per length (frags/contig length)
+# Removes alignment statistic from mappings across < 90% of the length of the contig
 
-        sed -i "1i $F" $DIR/"$F"_cov.avg;
+# Output a table of Frags / Length
+for i in $DIR/*.rpkm; do
 
+	F=`basename $i .rpkm`;
+
+	tail -n+5 $DIR/"$F".rpkm | cut -f7 > $DIR/"$F".frags;
+
+	paste $DIR/"$F".covstats $DIR/"$F".frags > $DIR/"$F".tmp;
+
+	tail -n+2 $DIR/"$F".tmp  | awk '{print$1"\t"$5"\t"($11 / $3)}' | awk '{ if ($2 >= 90) { print } }' | cut -f1,3 > $DIR/"$F".length.normalized;
+
+	sed -i "1iID\t$F" $DIR/"$F".length.normalized;
 done
 
-# Combine individual average coverage files
-paste $DIR/*_cov.avg > $DIR/average.coverage;
+# Remove temporary files
+rm $DIR/*.tmp;
+rm $DIR/*.frags;
 
-# Extract contig IDs and join with average coverages
-cut -f1 $DIR/out.CAT.taxonomy > $DIR/contig.ids;
-paste $DIR/contig.ids $DIR/average.coverage > $DIR/covtable.all;
+# Output a table of FPKMs
+for i in $DIR/*.rpkm; do
+
+        F=`basename $i .rpkm`;
+
+        tail -n+5 $DIR/"$F".rpkm | cut -f8 > $DIR/"$F".fpkm;
+
+        paste $DIR/"$F".covstats $DIR/"$F".fpkm > $DIR/"$F".tmp;
+
+       tail -n+2 $DIR/"$F".tmp  | awk '{ if ($5 >= 90) { print$1"\t"$11 } }'  > $DIR/"$F".fpkm.filt;
+
+       sed -i "1iID\t$F" $DIR/"$F".fpkm.filt;
+done
 
 # Remove temporary files
-rm $DIR/*_cov.avg;
-rm $DIR/contig.ids;
+rm $DIR/*.tmp;
+rm $DIR/*.fpkm;
+
+#### EXTRA CODE TO DELETE LATER LIES BELOW!####
+
+#for i in $DIR/*.covstats; do
+#        F=`basename $i .covstats`;
+
+#        awk '{ if ($5 >= 90) { print } }' $DIR/"$F".covstats > $DIR/"$F"_filtered.covstats
+
+# Extract the average coverage from individual sample mappings
+#for i in $DIR/*.rpkm; do
+#	F=`basename $i .rpkm`;
+#
+#	# Extract contig IDs and average fold coverage
+#	tail -n+6 $DIR/"$F".rpkm | cut -f1,2,7 | awk '{print($3 / $2)}' > $DIR/"$F".length.norm;
+#
+#	sed -i "1i $F" $DIR/"$F".length.norm;
+#done
+
+# Combine individual average coverage files
+#paste $DIR/*length.norm > $DIR/all.length.coverage;
+
+# Extract contig IDs and join with average coverages
+#grep ">" $DIR/assembly.fasta | sed 's/>//' > $DIR/contig.ids;
+#sed -i '1iID' $DIR/contig.ids;
+#paste $DIR/contig.ids $DIR/all.length.coverage > $DIR/covtable.all;
+
+# Remove temporary files
+#rm $DIR/*.length.norm;
+#rm $DIR/contig.ids;
+
+# Filter per sample low percent coverage contig mappings
+
+#for i in $DIR/*.covstats; do
+#	F=`basename $i .covstats`;
+
+#	awk '{ if ($5 >= 90) { print } }' $DIR/"$F".covstats > $DIR/"$F"_filtered.covstats
+
