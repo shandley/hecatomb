@@ -1,29 +1,30 @@
 #!/bin/bash
 
-# Prep output directories
-mkdir -p ./assembly/megahit_contigs/annotation
+# Set variables
+DIR=./assembly/contig_dictionary
 
-# Set Variables
-ANNOTATEDB=/mnt/data1/databases/CAT/CAT_prepare_20190108
-IN=./assembly/megahit_contigs
-OUT=./assembly/megahit_contigs/annotation
-MIN=1000
+# CAT annotation
+# GitHub: https://github.com/dutilh/CAT
 
-# Set file names
-for i in $IN/*.mh.contigs.fa; do
-        F=`basename $i .mh.contigs.fa`;
+# Main CAT pipeline
+CAT contigs -c $DIR/contig_dictionary.fasta -o $DIR/out.CAT \
+        --force \
+        --sensitive \
+        -d /mnt/data1/databases/CAT/CAT_prepare_20200304/2020-03-04_CAT_database \
+        -t /mnt/data1/databases/CAT/CAT_prepare_20200304/2020-03-04_taxonomy;
 
-# Filter out sequences shorter than length MIN
+# Add taxonomic names
+CAT add_names -i $DIR/out.CAT.contig2classification.txt -o $DIR/out.CAT.taxonomy \
+        -t /mnt/data1/databases/CAT/CAT_prepare_20200304/2020-03-04_taxonomy \
+        --only_official --exclude_scores --force;
 
-	seqkit seq $IN/"$F".mh.contigs.fa -m $MIN -j 24 -o $OUT/"$F"_n1000.contigs.fa;
+# Summarize results
+CAT summarise -c $DIR/contig_dictionary.fasta -i $DIR/out.CAT.taxonomy \
+        -o $DIR/out.CAT.summary;
 
-# CAT Annotations
+# Creat contig taxonomy table
+# Seperate names from CAT scores and lineage information
+        cut -f1,6-12 $DIR/out.CAT.taxonomy > $DIR/contig.taxonomy;
+        cut -f1-5 $DIR/out.CAT.taxonomy > $DIR/CAT.scores;
 
-	CAT contigs -c $OUT/"$F"_n1000.contigs.fa -d $ANNOTATEDB/2019-05-06_CAT_database -t $ANNOTATEDB/2019-05-06_taxonomy \
-	--out_prefix $OUT/$F --index_chunks 1;
 
-	CAT add_names -i $OUT/"$F".contig2classification.txt -o $OUT/"$F".contig2classification.official_names.txt -t $ANNOTATEDB/2019-05-06_taxonomy --only_official;
-
-	CAT summarise -c $OUT/"$F"_n1000.contigs.fa -i $OUT/"$F".contig2classification.official_names.txt -o $OUT/"$F"_CAT.summary.txt;
-
-done

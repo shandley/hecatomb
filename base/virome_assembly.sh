@@ -74,21 +74,29 @@ DIR=./assembly/contig_dictionary
 # Extract contig IDs
 grep ">" $DIR/assembly.fasta | sed 's/>//' > $DIR/contig.ids;
 
-# Filter per sample low percent coverage contig mappings
-
 # Combine frags with coverage percent and calculate fragments per length (frags/contig length)
 # Removes alignment statistic from mappings across < 90% of the length of the contig
+
+# Output a table of counts
+for i in $DIR/*.rpkm; do
+
+        F=`basename $i .rpkm`;
+
+        tail -n+5 $DIR/"$F".rpkm | cut -f7 > $DIR/"$F".frags;
+
+        paste $DIR/"$F".covstats $DIR/"$F".frags > $DIR/"$F".tmp;
+
+        tail -n+2 $DIR/"$F".tmp  | awk '{ if ($2 >= 90) { print$1"\t"$11 } }' > $DIR/"$F".frag.counts;
+
+       sed -i "1iID\t$F" $DIR/"$F".frag.counts;
+done
 
 # Output a table of Frags / Length
 for i in $DIR/*.rpkm; do
 
 	F=`basename $i .rpkm`;
 
-	tail -n+5 $DIR/"$F".rpkm | cut -f7 > $DIR/"$F".frags;
-
-	paste $DIR/"$F".covstats $DIR/"$F".frags > $DIR/"$F".tmp;
-
-	tail -n+2 $DIR/"$F".tmp  | awk '{print$1"\t"$5"\t"($11 / $3)}' | awk '{ if ($2 >= 90) { print } }' | cut -f1,3 > $DIR/"$F".length.normalized;
+	tail -n+2 $DIR/"$F".tmp  | awk '{print$1"\t"$5"\t"($11 / $3)}' | awk '{ if ($2 >= 90) { print$1"\t"$3 } }' > $DIR/"$F".length.normalized;
 
 	sed -i "1iID\t$F" $DIR/"$F".length.normalized;
 done

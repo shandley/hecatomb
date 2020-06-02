@@ -22,21 +22,21 @@ for i in $IN/*_viral_amb.fastq; do
 dedupe.sh in=$IN/"$F"_viral_amb.fastq ow=t \
 	out=$OUT/"$F"_R1.s8.deduped.out.fastq \
 	ac=f \
-	-Xmx62g;
+	-Xmx128g;
 
 # Step 2: Dereplicate
 dedupe.sh in=$OUT/"$F"_R1.s8.deduped.out.fastq ow=t \
 	s=4 \
 	rnc=t pbr=t \
 	csf=$OUT/"$F"_stats.txt out=$OUT/"$F"_best.fasta \
-	-Xmx62g;
+	-Xmx128g;
 
 # Step 3: Extract sequences and counts for seqtable (count table)
 # Convert to fasta
 reformat.sh in=$OUT/"$F"_best.fasta out=$OUT/"$F"_reformated.fasta \
 	deleteinput=t fastawrap=0 \
 	ow=t \
-	-Xmx62g;
+	-Xmx128g;
 
 # Parse and combine stats and contig files
 # Extract sequences

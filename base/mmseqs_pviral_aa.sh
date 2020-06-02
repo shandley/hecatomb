@@ -13,7 +13,7 @@
 # more details about database building can be found at: https://github.com/soedinglab/mmseqs2/wiki#taxonomy-assignment-using-mmseqs-taxonomy
 
 # Set targetDB (UniProt Viral Proteins Cluster at 99% identity)
-DB=/mnt/data1/databases/virus_uniprot/targetDB
+DB=/mnt/data1/databases/hecatomb/aa/mmseqs_pviral_aa/seqTaxDB
 
 # Set phage lineage file path
 PHAGE=~/virome_analysis/scripts/base/phage_taxonomic_lineages.txt
