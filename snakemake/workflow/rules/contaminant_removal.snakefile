@@ -24,7 +24,7 @@ CONPATH = os.path.join(DBDIR, "contaminants")
 
 # paths for our data. This is where we will read and put things
 READDIR = config['Paths']['Reads']
-CLUMPED = config['Output']["clumped"]
+CLUMPED = config['Output']["Clumped"]
 QC = config['Output']['QC']
 
 SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
@@ -40,8 +40,7 @@ PATTERN_R2 = '{sample}_R2'
 	# Step 5: PhiX Removal and vector contamination removal
 	# Step 6: Host-removal
 	# Step 7: Trim low-quality bases
-	# Step 8: Read correction, merging and extension
-	# Step 9: Remove bacterial contaminants reserving viral and aambiguous sequences
+	# Step 8: Remove bacterial contaminants reserving viral and aambiguous sequences
 
 
 rule all:
@@ -241,8 +240,8 @@ rule host_removal:
         r2 = os.path.join(QC, "step_5", PATTERN_R2 + ".s5.out.fastq"),
         refpath = os.path.join(HOSTPATH, "ref")
     output:
-        unmapped = os.path.join(QC, "step_6", "{sample}.unmapped.s6.out.fastq"),
-        mapped = os.path.join(QC, "step_6", "{sample}.hostmapped.s6.out.fastq")
+        unmapped = os.path.join(QC, "step_6", "{sample}.host.unmapped.s6.out.fastq"),
+        mapped = os.path.join(QC, "step_6", "{sample}.host.mapped.s6.out.fastq")
     params:
         hostpath = HOSTPATH 
     shell:
@@ -253,12 +252,30 @@ rule host_removal:
             semiperfectmode=t quickmatch fast ordered=t ow=t;
         """
 
+rule line_sine_removal:
+    """
+    Step 6a. Remove any LINES and SINES in the sequences.
+    """
+    input:
+        unmapped = os.path.join(QC, "step_6", "{sample}.unmapped.s6.out.fastq"),
+        linesine = os.path.join(CONPATH, "line_sine.fasta")
+    output:
+        unmapped = os.path.join(QC, "step_6", "{sample}.linesine.unmapped.s6.out.fastq"),
+        mapped   = os.path.join(QC, "step_6", "{sample}.linesine.mapped.s6.out.fastq")
+        stats    = os.path.join(QC, "step_6", "{sample}.linesine.stats")
+    shell:
+        """
+        bbduk.sh in={input.unmapped} out={output.unmapped} \
+          outm={output.mapped} \
+          ref={input.linesine} k=31 hdist=1 stats={output.stats}
+        """
+
 rule repair:
     """
     Step 6b. Repair the paired ends
     """
     input:
-        unmapped = os.path.join(QC, "step_6", "{sample}.unmapped.s6.out.fastq"),
+        unmapped = os.path.join(QC, "step_6", "{sample}.linesine.unmapped.s6.out.fastq")
     output:
         r1 = os.path.join(QC, "step_6", PATTERN_R1 + ".s6.out.fastq"),
         r2 = os.path.join(QC, "step_6", PATTERN_R2 + ".s6.out.fastq")
@@ -287,24 +304,6 @@ rule trim_low_quality:
             out={output.r1} out2={output.r2} outs={output.singletons} \
             stats={output.stats} \
             qtrim=r trimq=20 maxns=2 minlength=50 ordered=t ow=t;
-        """
-
-rule merge_reads:
-    """
-    Step 8: Merge forward (R1) and reverse (R2) reads
-    """
-    input:
-        r1 = os.path.join(QC, "step_7", PATTERN_R1 + ".s7.out.fastq"),
-        r2 = os.path.join(QC, "step_7", PATTERN_R2 + ".s7.out.fastq"),
-    output:
-        merged = os.path.join(QC, "step_8", "{sample}.merged.fastq"),
-        r1 = os.path.join(QC, "step_8", PATTERN_R1 + ".unmerged.fastq"),
-        r2 = os.path.join(QC, "step_8", PATTERN_R2 + ".unmerged.fastq"),
-    shell:
-        """
-        bbmerge.sh in1={input.r1} in2={input.r2} \
-            out={output.merged} outu1={output.r1} outu2={output.r2} \
-            rem k=62 extend2=50 ecct vstrict=t ordered=t -Xmx128g ow=t;
         """
 
 """
@@ -343,8 +342,7 @@ rule concat_r1:
     Step 8c.i Concatenate reads
     """
     input:
-        merged = os.path.join(QC, "step_8", "{sample}.merged.fastq"),
-        r1 = os.path.join(QC, "step_8", PATTERN_R1 + ".unmerged.fastq"),
+        r1 = os.path.join(QC, "step_7", PATTERN_R1 + ".s7.out.fastq"),
         r1singletons = os.path.join(QC, "step_8", "{sample}.singletons.R1.out.fastq")
     output:
         r1combo = os.path.join(QC, "step_8", PATTERN_R1 + ".s8.out.fastq"),
@@ -358,8 +356,7 @@ rule concat_r2:
     Step 8c.ii Concatenate reads
     """
     input:
-        merged = os.path.join(QC, "step_8", "{sample}.merged.fastq"),
-        r2 = os.path.join(QC, "step_8", PATTERN_R2 + ".unmerged.fastq"),
+        r2 = os.path.join(QC, "step_7", PATTERN_R2 + ".s7.out.fastq"),
         r2singletons = os.path.join(QC, "step_8", "{sample}.singletons.R2.out.fastq")
     output:
         r2combo = os.path.join(QC, "step_8", PATTERN_R2 + ".s8.out.fastq")
