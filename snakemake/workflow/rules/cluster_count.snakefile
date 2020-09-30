@@ -16,7 +16,7 @@ if not config:
 DBDIR = config['Paths']['Databases']
 
 
-CLUMPED = config['Output']["clumped"]
+CLUMPED = config['Output']["Clumped"]
 QC = config['Output']['QC']
 
 DATADIR = os.path.join(QC, "step_9")
