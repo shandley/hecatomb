@@ -1,6 +1,6 @@
 [![Edwards Lab](https://img.shields.io/badge/Bioinformatics-EdwardsLab-03A9F4)](https://edwards.sdsu.edu/research)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)                                                            
-[![GitHub language count](https://img.shields.io/github/languages/count/shandley/hecatomb)
+![GitHub language count](https://img.shields.io/github/languages/count/shandley/hecatomb)
 [![Downloads](https://img.shields.io/github/downloads/shandley/hecatomb/total?style=flat-square)](https://github.com/shandley/hecatomb/releases)
 
 
@@ -22,7 +22,7 @@ You are now read to run `hecatomb`!
 
 ## Running hecatomb
 
-You will need a directory with some gzip-compressed `fastq` files in them. At the moment, `hecatomb` requires paired end reads (i.e a file whose name ends `_R1.fastq.gz` and a file whose name ends `_R2.fastq.gz`).
+You will need a directory with some gzip-compressed `fastq` files in them. At the moment, `hecatomb` requires paired end reads. The only requirement is that your paired end files contain \_R1 for the first mate pair and \_R2 for the second mate pair. We will figure out the file names by just looking for `_R1`.
 
 The [test_data/fastq](../test_data/fastq) directory has some example datasets that you can run through the pipeline to see if it is working.
 
@@ -89,5 +89,4 @@ tar xf hecatomb.databases.tar.bz2
 ```
 
 You're done! That was easy!
-
 
