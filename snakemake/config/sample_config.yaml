@@ -1,8 +1,16 @@
 ---
 Paths:
-  # The database directory is where to save the databases. We will automatically install them if they are not available
+  # The Database directory is where to save the databases. 
+  # You can install them using download_databases.snakefile 
+ 
   Databases: databases
+
+  # Temp is a temporary directory. By default we make 
+  # subdirectories in here for each application
   Temp: tmp
+ 
+  # The Reads directory has your input fastq files that you want
+  # to process through hecatomb
   Reads: test_data/fastq
 
 DatabaseFiles:
