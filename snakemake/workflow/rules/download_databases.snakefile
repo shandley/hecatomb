@@ -27,12 +27,18 @@ HOSTPATH = os.path.join(DBDIR, "human_masked")
 CONPATH  = os.path.join(DBDIR, "contaminants")
 PROTPATH = os.path.join(DBDIR, "proteins")
 TAXPATH  = os.path.join(DBDIR, "taxonomy")
+NUCLPATH = os.path.join(DBDIR, "nucleotide")
+
+# these are just derivied from above
+URVPATH = os.path.join(PROTPATH, "uniref_plus_virus") # uniref50 + viruses
+
 
 # URLs where we download the data from
 id_mapping_url    = "https://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz"
 hecatomb_db_url   = "https://edwards.sdsu.edu/CERVAID/databases/hecatomb.databases.tar.bz2"
 taxdump_url       = "ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz"
 uniprot_virus_url = "https://www.uniprot.org/uniprot/?query=taxonomy:%22Viruses%20[10239]%22&format=fasta&&sort=score&fil=reviewed:no"
+ntacc2tax         = "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz"
 
 
 rule all:
@@ -40,8 +46,12 @@ rule all:
         # the database directories
         os.path.join(BACPATH, "ref"),
         os.path.join(HOSTPATH, "ref"),
+        os.path.join(CONPATH, "line_sine.fasta"),
         os.path.join(PROTPATH, "uniprot_virus.faa"),
-        multiext(os.path.join(PROTPATH, "uniprot_virus_c99"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp")
+        os.path.join(TAXPATH, "uniprot_ncbi_mapping.dat"),
+        multiext(os.path.join(PROTPATH, "uniprot_virus_c99"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp"),
+        multiext(os.path.join(URVPATH, "uniref50_virus"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp")
+
 
 
 """
@@ -105,21 +115,45 @@ rule download_uniprot_viruses:
         os.path.join(PROTPATH, "uniprot_virus.faa")
     shell:
         """
-        mkdir -p {PROTPATH} && curl -Lo {output} {uniprot_virus_url}"
+        mkdir -p {PROTPATH} && curl -Lo {output} '{uniprot_virus_url}'
+        """
+
+rule download_uniref50:
+    output:
+        os.path.join(PROTPATH, "uniref50.fasta.gz")
+    shell:
+        """
+        mkdir -p {PROTPATH} && curl -Lo {output} "ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz"
         """
 
 rule download_ncbi_taxonomy:
     output:
         os.path.join(TAXPATH, "taxdump.tar.gz")
     shell:
-        "curl -Lo {output} {taxdump_url}"
+        """
+        curl -Lo {output} "{taxdump_url}"
+        """
 
 
 rule download_id_taxonomy_mapping:
     output:
         os.path.join(TAXPATH, "idmapping.dat.gz")
     shell:
-        "cd {TAXPATH} && curl -LO {id_mapping_url}"
+        """
+        cd {TAXPATH};
+        curl -LO "{id_mapping_url}"
+        """
+
+
+rule uniprot_to_ncbi_mapping:
+    input:
+        os.path.join(TAXPATH, "idmapping.dat.gz")
+    output:
+        os.path.join(TAXPATH, "uniprot_ncbi_mapping.dat")
+    shell:
+        """
+        zcat {input} | awk '$2 == "NCBI_TaxID" {{print $1"\t"$3 }}' > {output}
+        """
 
 rule extract_ncbi_taxonomy:
     input:
@@ -127,17 +161,47 @@ rule extract_ncbi_taxonomy:
     params:
         path = TAXPATH
     output:
-        os.path.join(TAXPATH, "citations.dmp"),
-        os.path.join(TAXPATH, "delnodes.dmp"),
-        os.path.join(TAXPATH, "division.dmp"),
-        os.path.join(TAXPATH, "gc.prt"),
-        os.path.join(TAXPATH, "gencode.dmp"),
-        os.path.join(TAXPATH, "merged.dmp"),
-        os.path.join(TAXPATH, "names.dmp"),
-        os.path.join(TAXPATH, "nodes.dmp"),
-        os.path.join(TAXPATH, "readme.txt")
+        temp(os.path.join(TAXPATH, "citations.dmp")),
+        temp(os.path.join(TAXPATH, "delnodes.dmp")),
+        temp(os.path.join(TAXPATH, "division.dmp")),
+        temp(os.path.join(TAXPATH, "gc.prt")),
+        temp(os.path.join(TAXPATH, "gencode.dmp")),
+        temp(os.path.join(TAXPATH, "merged.dmp")),
+        temp(os.path.join(TAXPATH, "readme.txt")),
+        temp(os.path.join(TAXPATH, "names.dmp")),
+        temp(os.path.join(TAXPATH, "nodes.dmp")),
     shell:
         "cd {params.path} && tar xf taxdump.tar.gz"
+
+rule download_accession_to_tax:
+    output:
+        os.path.join(TAXPATH, "nucl_gb.accession2taxid.gz")
+    shell:
+        """
+        cd {TAXPATH};
+        curl -LO "{ntacc2tax}"
+        """
+
+rule extract_accession_to_tax:
+    input:
+        os.path.join(TAXPATH, "nucl_gb.accession2taxid.gz")
+    output:
+        os.path.join(TAXPATH, "nucl_gb.accession2taxid")
+    shell:
+        "unpigz {input}"
+
+rule create_nt_tax_table:
+    input:
+        nt = os.path.join(NUCLPATH, "nt.fna"),
+        tx = os.path.join(TAXPATH, "nucl_gb.accession2taxid")
+    output:
+        tx = os.path.join(NUCLPATH, "nt.tax")
+    shell:
+        """
+        grep '^>' {input.nt} | cut -f 1 -d ' ' | sed -e 's/^>//' | \
+        xargs -n 10 | sed -e 's/ /|/g' | \
+        xargs -i egrep {} {input.tx} | cut -f 2,3 > {output.tx}
+        """
 
 rule cluster_uniprot:
     input:
@@ -159,14 +223,81 @@ rule mmseqs_uniprot_clusters:
 rule mmseqs_uniprot_taxdb:
     input:
         vdb = os.path.join(PROTPATH, "uniprot_virus_c99.db"),
-        tax = os.path.join(TAXPATH, "nodes.dmp"),
-        idm = os.path.join(TAXPATH, "idmapping.dat.gz")
+        idm = os.path.join(TAXPATH, "uniprot_ncbi_mapping.dat"),
+        nms = os.path.join(TAXPATH, "names.dmp"),
+        nds = os.path.join(TAXPATH, "nodes.dmp"),
+        mgd = os.path.join(TAXPATH, "merged.dmp"),
+        dln = os.path.join(TAXPATH, "delnodes.dmp"),
     params:
         tax = TAXPATH
     output:
-        multiext(os.path.join(PROTPATH, "uniprot_virus_c99"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp")
+        multiext(os.path.join(PROTPATH, "uniprot_virus_c99"), 
+                 ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", 
+                 ".db_merged.dmp", ".db_delnodes.dmp")
     shell:
         """
         mmseqs createtaxdb --ncbi-tax-dump {params.tax} --tax-mapping-file {input.idm} {input.vdb} $(mktemp -d -p {TMPDIR})
+        """
+
+rule uniref_plus_viruses:
+    input:
+        ur = os.path.join(PROTPATH, "uniref50.fasta.gz"),
+        vr = os.path.join(PROTPATH, "uniprot_virus_c99.faa"),
+    output:
+        temp(os.path.join(URVPATH, "uniref50_virus.fasta"))
+    shell:
+        """
+        unpigz -c {input.ur} | cat - {input.vr} > {output}
+        """
+
+rule mmseqs_urv:
+    input:
+        os.path.join(URVPATH, "uniref50_virus.fasta")
+    output:
+        os.path.join(URVPATH, "uniref50_virus.db")
+    shell:
+        "mmseqs createdb {input} {output}"
+
+rule mmseqs_urv_taxonomy:
+    input:
+        vdb = os.path.join(URVPATH, "uniref50_virus.db"),
+        idm = os.path.join(TAXPATH, "uniprot_ncbi_mapping.dat"),
+        nms = os.path.join(TAXPATH, "names.dmp"),
+        nds = os.path.join(TAXPATH, "nodes.dmp"),
+        mgd = os.path.join(TAXPATH, "merged.dmp"),
+        dln = os.path.join(TAXPATH, "delnodes.dmp"),
+    params:
+        tax = TAXPATH
+    output:
+        multiext(os.path.join(URVPATH, "uniref50_virus"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp")
+    shell:
+        """
+        mmseqs createtaxdb --ncbi-tax-dump {params.tax} --tax-mapping-file {input.idm} {input.vdb} $(mktemp -d -p {TMPDIR})
+        """
+
+rule mmseqs_nt_db:
+    input:
+        nt = os.path.join(NUCLPATH, "nt.fna")
+    output:
+        idx = os.path.join(NUCLPATH, "ntDB.index"),
+        dbt = os.path.join(NUCLPATH, "ntDB.dbtype")
+    params:
+        db = os.path.join(NUCLPATH, "ntDB")
+    shell:
+        """
+        mmseqs createdb {input} {params.db} --dbtype 2 --shuffle 0
+        """
+
+rule line_sine_download:
+    """
+    A database of LINES and SINES that we screen against to 
+    remove contaminants.
+    """
+    output:
+        os.path.join(CONPATH, "line_sine.fasta")
+    shell:
+        """
+        curl -L http://sines.eimb.ru/banks/SINEs.bnk > {output} && \
+        curl -L http://sines.eimb.ru/banks/LINEs.bnk >> {output}
         """
 
