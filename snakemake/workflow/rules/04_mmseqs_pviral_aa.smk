@@ -96,6 +96,14 @@ rule create_seqtable_db:
         os.path.join(RESULTS, "seqtable.fasta")
     output:
         os.path.join(AA_OUT, "seqtable_query.db")
+    benchmark:
+        "benchmarks/create_seqtable_db}.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=16
+    conda:
+        "envs/mmseqs2.yaml"
     shell:
         "mmseqs createdb --shuffle 0 --dbtype 0 {input} {output}"
 
@@ -107,10 +115,18 @@ rule seqtable_taxsearch:
         tr = os.path.join(AA_OUT, "taxonomyResult.dbtype")
     params:
         tr = os.path.join(AA_OUT, "taxonomyResult")
+    benchmark:
+        "benchmarks/seqtable_taxsearch.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=16
+    conda:
+        "envs/mmseqs2.yaml"
     shell:
         """
         mmseqs taxonomy {input.sq} {input.db} {params.tr} $(mktemp -d -p {TMPDIR}) \
-        -a --start-sens 1 --sens-steps 3 -s 7 \
+        -a --start-sens 1 --sens-steps 3 -s 7 --threads {resources.cpus} \
         --search-type 2 --tax-output-mode 1
         """
 
@@ -123,24 +139,39 @@ rule seqtable_convert_alignments:
         tr = os.path.join(AA_OUT, "taxonomyResult")
     output:
         os.path.join(AA_OUT, "aln.m8")
+    benchmark:
+        "benchmarks/seqtable_convert_alignments.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=16
+    conda:
+        "envs/mmseqs2.yaml"
     shell:
         """
-        mmseqs convertalis {input.sq} {input.db} {params.tr} {output} \
+        mmseqs convertalis {input.sq} {input.db} {params.tr} {output} --threads {resources.cpus} \
         --format-output "query,target,pident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,qaln,taln"
         """
 
 rule seqtable_lca:
     input:
-        db = os.path.join(PROTPATH, "uniprot_virus_c99.db"),
         tr = os.path.join(AA_OUT, "taxonomyResult.dbtype")
     output:
         os.path.join(AA_OUT, "lca.db.dbtype")
     params:
         lc = os.path.join(AA_OUT, "lca.db"),
         tr = os.path.join(AA_OUT, "taxonomyResult")
+    benchmark:
+        "benchmarks/seqtable_lca.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=16
+    conda:
+        "envs/mmseqs2.yaml"
     shell:
         """
-        mmseqs lca {input.db} {params.tr} {params.lc} --tax-lineage true \
+        mmseqs lca  {VIRDB} {params.tr} {params.lc}  --tax-lineage 1 --threads {resources.cpus} \
         --lca-ranks "superkingdom,phylum,class,order,family,genus,species";
         """
 
@@ -152,9 +183,17 @@ rule seqtable_taxtable_tsv:
         lc = os.path.join(AA_OUT, "lca.db")
     output:
         os.path.join(AA_OUT, "taxonomyResult.tsv")
+    benchmark:
+        "benchmarks/seqtable_taxtable_tsv.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=16
+    conda:
+        "envs/mmseqs2.yaml"
     shell:
         """
-        mmseqs createtsv {input.sq} {params.lc} {output}
+        mmseqs createtsv --threads {resources.cpus} {input.sq} {params.lc} {output}
         """
 
 rule seqtable_create_kraken:
@@ -163,9 +202,17 @@ rule seqtable_create_kraken:
         lc = os.path.join(AA_OUT, "lca.db")
     output:
         os.path.join(AA_OUT, "taxonomyResult.report")
+    benchmark:
+        "benchmarks/seqtable_create_kraken.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=16
+    conda:
+        "envs/mmseqs2.yaml"
     shell:
         """
-        mmseqs taxonomyreport {input.db} {input.lc} {output}
+        mmseqs taxonomyreport --threads {resources.cpus} {VIRDB} {input.lc} {output}
         """
 
 ## Adjust taxonomy table and extract viral lineages
