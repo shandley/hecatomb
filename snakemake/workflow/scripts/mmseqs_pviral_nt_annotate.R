@@ -12,15 +12,14 @@ colnames(m8) <- c("query","target","pident","alnlen","mismatch","gapopen","qstar
 acc <- m8$target
 
 # Convert accessions to taxonomic IDs
-ids <- accessionToTaxa(acc, "/mnt/data1/databases/taxonomizr/accessionTaxa.sql")
+ids <- accessionToTaxa(acc, snakemake@params[["taxtax"]])
 
 # Get taxonomic lineage
-ncbi_tax <- as_tibble(getTaxonomy(ids, "/mnt/data1/databases/taxonomizr/accessionTaxa.sql"))
+ncbi_tax <- as_tibble(getTaxonomy(ids, snakemake@params[["taxtax"]]))
 
 # Bind m8 file to lineage
 seqids <- select(m8, "query")
 mmseqs_pviral_nt_lineage <- cbind(seqids, ncbi_tax)
 
 # Write results to table
-dir.create(path = "./results/mmseqs_nt_checked_out/", showWarnings=FALSE)
-write_tsv(mmseqs_pviral_nt_lineage, path = "./results/mmseqs_nt_checked_out/mmseqs_pviral_nt_lineage.tsv")
+write_tsv(mmseqs_pviral_nt_lineage, path = snakemake@output[["linout"]])
