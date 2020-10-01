@@ -15,6 +15,34 @@ We chose to use [snakemake](https://snakemake.readthedocs.io/) over other workfl
 
 We have tried to abstract out the configuration from the implementation. In particular, we have kept the input/output directories in the configuration file so that you can easily manipulate those. We strongly recommend that you copy the configuration file to each working directory, and then edit it in that directory (or not, as appropriate, if you like the directory structure we use!).
 
+Setting up snakemake:
+
+We use snakemake profiles (see these [great](https://www.sichong.site/2020/02/25/snakemake-and-slurm-how-to-manage-workflow-with-resource-constraint-on-hpc/) and [great](http://bluegenes.github.io/Using-Snakemake_Profiles/) blogs). Our default profile is
+
+
+```yaml
+# non-slurm settings
+
+use-conda: True
+conda-frontend: mamba
+
+
+# slurm settings
+
+jobs: 10
+cluster: "sbatch -t {resources.time_min} --mem={resources.mem_mb} -c {resources.cpus} -o logs_slurm/{rule}_{jobid}.out -e logs_slurm/{rule}_{jobid}.err "
+default-resources: [cpus=1, mem_mb=2000, time_min=60]
+latency-wait: 60
+local-cores: 32
+latency-wait: 60
+keep-going: True
+```
+
+With that profile in `~/.config/snakemake/slurm/config.yaml`, and $HECATOMB set to the base directory you checked out from GitHub, you should be able to run this with:
+
+```bash
+snakemake --profile slurm --configfile config.yaml -s $HECATOMB/snakemake/hecatomb_alt.snakefile 
+```
 
 
 # MMSEQS
