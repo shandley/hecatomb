@@ -1,0 +1,11 @@
+name: R
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - r-modelr
+  - r-rlang
+  - r-taxonomizr
+  - r-tidyr
+  - r-tidyverse
