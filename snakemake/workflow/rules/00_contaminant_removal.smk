@@ -44,7 +44,7 @@ Summary:
     # Step 8: Remove bacterial contaminants reserving viral and aambiguous sequences
 """
 
-rule all:
+rule contaminant_removal_first:
     input:
         # the database directories
         os.path.join(BACPATH, "ref"),
@@ -77,7 +77,7 @@ rule remove_leftmost_primerB:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -108,7 +108,7 @@ rule remove_3prime_contaminant:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -138,7 +138,7 @@ rule remove_primer_free_adapter:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -168,7 +168,7 @@ rule remove_adapter_free_primer:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -198,7 +198,7 @@ rule remove_vector_contamination:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \

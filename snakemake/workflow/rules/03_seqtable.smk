@@ -23,7 +23,7 @@ RESULTS = config['Output']['Results']
 SAMPLES, = glob_wildcards(os.path.join(QC, "counts", "{sample}_seqtable.txt"))
 
 
-rule all:
+rule seqtable_first:
     input:
         os.path.join(RESULTS, "seqtable_all.tsv"),
         os.path.join(RESULTS, "seqtable.tab2fx")
@@ -48,7 +48,7 @@ rule merge_seq_table:
     params:
         resultsdir = directory(RESULTS),
     conda:
-        "envs/R.yaml"
+        "../envs/R.yaml"
     script:
         "scripts/seqtable_merge.R"
 

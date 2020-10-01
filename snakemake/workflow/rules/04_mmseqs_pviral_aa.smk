@@ -77,7 +77,7 @@ if not os.path.exists(PHAGE_LINEAGES):
 
 
 
-rule all:
+rule mmseqs_pviral_aa_first:
     input:
         os.path.join(AA_OUT, "phage_tax_table.tsv"),
         os.path.join(AA_OUT, "viruses_tax_table.tsv"),
@@ -103,7 +103,7 @@ rule create_seqtable_db:
         mem_mb=20000,
         cpus=16
     conda:
-        "envs/mmseqs2.yaml"
+        "../envs/mmseqs2.yaml"
     shell:
         "mmseqs createdb --shuffle 0 --dbtype 0 {input} {output}"
 
@@ -122,7 +122,7 @@ rule seqtable_taxsearch:
         mem_mb=20000,
         cpus=16
     conda:
-        "envs/mmseqs2.yaml"
+        "../envs/mmseqs2.yaml"
     shell:
         """
         mmseqs taxonomy {input.sq} {input.db} {params.tr} $(mktemp -d -p {TMPDIR}) \
@@ -146,7 +146,7 @@ rule seqtable_convert_alignments:
         mem_mb=20000,
         cpus=16
     conda:
-        "envs/mmseqs2.yaml"
+        "../envs/mmseqs2.yaml"
     shell:
         """
         mmseqs convertalis {input.sq} {input.db} {params.tr} {output} --threads {resources.cpus} \
@@ -168,7 +168,7 @@ rule seqtable_lca:
         mem_mb=20000,
         cpus=16
     conda:
-        "envs/mmseqs2.yaml"
+        "../envs/mmseqs2.yaml"
     shell:
         """
         mmseqs lca  {VIRDB} {params.tr} {params.lc}  --tax-lineage 1 --threads {resources.cpus} \
@@ -190,7 +190,7 @@ rule seqtable_taxtable_tsv:
         mem_mb=20000,
         cpus=16
     conda:
-        "envs/mmseqs2.yaml"
+        "../envs/mmseqs2.yaml"
     shell:
         """
         mmseqs createtsv --threads {resources.cpus} {input.sq} {params.lc} {output}
@@ -209,7 +209,7 @@ rule seqtable_create_kraken:
         mem_mb=20000,
         cpus=16
     conda:
-        "envs/mmseqs2.yaml"
+        "../envs/mmseqs2.yaml"
     shell:
         """
         mmseqs taxonomyreport --threads {resources.cpus} {VIRDB} {input.lc} {output}

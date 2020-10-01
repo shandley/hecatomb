@@ -79,7 +79,7 @@ if not os.path.exists(BVMDB):
     sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
     sys.exit()
 
-rule all:
+rule mmseqs_pviral_nt_check_first:
     input:
         os.path.join(NT_CHECKED_OUT, "phage_nt_seqs.fasta"),
         os.path.join(NT_CHECKED_OUT, "pviral_virus_nt_seqs.fasta"),

@@ -64,7 +64,7 @@ if not os.path.exists(TAXTAX):
 
 
 
-rule all:
+rule mmseqs_pviral_nt_first:
     input:
         os.path.join(NT_OUT, "resultDB.firsthit.m8"),
         os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_lineage.tsv")

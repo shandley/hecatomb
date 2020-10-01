@@ -197,7 +197,7 @@ if len(SAMPLES) == 0:
     sys.stderr.write("You should complain to Rob\n")
     sys.exit()
 
-rule all:
+rule concatenate_results_first:
     input:
         os.path.join(RESULTS, "viruses_tax_table.tsv"),
         os.path.join(RESULTS, "phage_tax_table.tsv"),

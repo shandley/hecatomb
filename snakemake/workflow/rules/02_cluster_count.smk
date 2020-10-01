@@ -20,10 +20,6 @@ CLUMPED = config['Output']["Clumped"]
 QC = config['Output']['QC']
 
 DATADIR = os.path.join(QC, "step_9")
-if not os.path.exists(DATADIR):
-    sys.stderr.write("ERROR: Please run contaminant_removal.snakefile for the first data steps")
-    # we could just add this as a rule ...
-    sys.exit(1)
 
 
 # Step 1: Remove exact duplicates (consider to be PCR artifacts)
@@ -32,7 +28,7 @@ if not os.path.exists(DATADIR):
 
 SAMPLES, = glob_wildcards(os.path.join(DATADIR, '{sample}_viral_amb.fastq'))
 
-rule all:
+rule cluster_count_first:
     input:
         expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES)
 
@@ -52,7 +48,7 @@ rule remove_exact_dups:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         dedupe.sh in={input} \
@@ -77,7 +73,7 @@ rule deduplicate:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         dedupe.sh in={input} \
@@ -101,7 +97,7 @@ rule extract_seq_counts:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         reformat.sh in={input} out={output} \

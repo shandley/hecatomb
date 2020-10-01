@@ -69,7 +69,7 @@ if not os.path.exists(URVDB):
     sys.stderr.write("download_databases.snakefile before commencing\n")
     sys.exit()
 
-rule all:
+rule mmseqs_pviral_aa_check_first:
     input:
         os.path.join(AA_OUT_CHECKED, "taxonomyResult.firsthit.m8"),
         os.path.join(AA_OUT_CHECKED, "taxonomyResult.report"),

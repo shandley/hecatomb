@@ -50,7 +50,7 @@ rule host_removal:
         mem_mb=100000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         bbmap.sh in={input.r1} in2={input.r2} \
@@ -78,7 +78,7 @@ rule line_sine_removal:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         bbduk.sh in={input.unmapped} out={output.unmapped} \
@@ -103,7 +103,7 @@ rule repair_paired_ends:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """   
         repair.sh in={input.unmapped} \
@@ -131,7 +131,7 @@ rule trim_low_quality:
         mem_mb=20000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -222,7 +222,7 @@ rule remove_bacteria:
         mem_mb=100000,
         cpus=8
     conda:
-        "envs/bbmap.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         bbmap.sh in={input.r1} \
