@@ -1,0 +1,47 @@
+"""
+The snakefile that runs hecatomb.
+
+This snakefile automatically calls the snakefiles in [rules](rules) to figure out the path.
+
+Rob Edwards, October 2020
+"""
+
+
+import os
+import sys
+import socket
+
+if not config:
+    sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
+    sys.stderr.write("examples are provided in the Git repo\n")
+    sys.exit()
+
+
+DBDIR = config['Paths']['Databases']
+
+# paths for our databases
+BACPATH = os.path.join(DBDIR, "bac_giant_unique_species")
+HOSTPATH = os.path.join(DBDIR, "human_masked")
+CONPATH = os.path.join(DBDIR, "contaminants")
+
+
+if not os.path.exists(os.path.join(HOSTPATH, "ref")):
+    sys.stderr.write("FATAL: You appear not to have the host databases. Please download the databases using the download_databases.snakefile\n")
+    sys.exit()
+
+# paths for our data. This is where we will read and put things
+READDIR = config['Paths']['Reads']
+CLUMPED = config['Output']["Clumped"]
+QC = config['Output']['QC']
+RESULTS = config['Output']['Results']
+
+
+SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
+PATTERN_R1 = '{sample}_R1'
+PATTERN_R2 = '{sample}_R2'
+
+rule all:
+    input:
+         # these two inputs are the outputs from 03_seqtable.smk
+         os.path.join(RESULTS, "seqtable_all.tsv"),
+         os.path.join(RESULTS, "seqtable.tab2fx")
