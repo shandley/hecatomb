@@ -39,6 +39,16 @@ rule merge_seq_table:
         tab2fx = os.path.join(RESULTS, "seqtable.tab2fx")
     params:
         resultsdir = directory(RESULTS),
+    benchmark:
+        "benchmarks/merge_seq_table.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=8
+    params:
+        resultsdir = directory(RESULTS),
+    conda:
+        "envs/R.yaml"
     script:
         "scripts/seqtable_merge.R"
 
