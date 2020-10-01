@@ -85,8 +85,14 @@ rule make_bac_databases:
     params:
         wd = BACPATH,
         fa = config['DatabaseFiles']['bacteria']
+    resources:
+        time_min = 240,
+        mem_mb=100000,
+        cpus=16
+    conda:
+        "envs/bbmap.yaml"
     shell:
-        "cd {params.wd} && bbmap.sh ref={params.fa}"
+        "cd {params.wd} && bbmap.sh -Xmx{resources.mem_mb}m ref={params.fa}"
 
 rule make_host_databases:
     input:
@@ -96,8 +102,14 @@ rule make_host_databases:
     params:
         wd = HOSTPATH,
         fa = config['DatabaseFiles']['host']
+    resources:
+        time_min = 240,
+        mem_mb=100000,
+        cpus=16
+    conda:
+        "envs/bbmap.yaml"
     shell:
-        "cd {params.wd} && bbmap.sh ref={params.fa}"
+        "cd {params.wd} && bbmap.sh -Xmx{resources.mem_mb}m ref={params.fa}"
 
 
 """
