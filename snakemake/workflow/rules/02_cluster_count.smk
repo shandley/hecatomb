@@ -8,8 +8,6 @@ Rob Edwards, Jan 2020
 import os
 import sys
 
-DATADIR = os.path.join(QC, "step_9")
-
 rule cluster_count_first:
     input:
         expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES)
@@ -20,7 +18,7 @@ rule remove_exact_dups:
     Step 1: Remove exact duplicates
     """
     input:
-        os.path.join(DATADIR, "{sample}_viral_amb.fastq")
+        os.path.join(QC, "step_9", "{sample}.viral_amb.fastq")
     output:
         os.path.join(QC, "step_10", "{sample}_R1.s9.deduped.out.fastq")
     benchmark:
