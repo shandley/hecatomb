@@ -45,11 +45,20 @@ rule remove_exact_dups:
         os.path.join(DATADIR, "{sample}_viral_amb.fastq")
     output:
         os.path.join(QC, "step_10", "{sample}_R1.s9.deduped.out.fastq")
+    benchmark:
+        "benchmarks/remove_exact_dups_{sample}.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=8
+    conda:
+        "envs/bbmap.yaml"
     shell:
         """
         dedupe.sh in={input} \
                 out={output} \
-                ac=f  ow=t -Xmx128g;
+                ac=f  ow=t \
+                -Xmx{resources.mem_mb}m
         """
 
 rule deduplicate:
@@ -59,13 +68,22 @@ rule deduplicate:
     input:
         os.path.join(QC, "step_10", "{sample}_R1.s9.deduped.out.fastq")
     output:
-        fa = os.path.join(QC, "step_11", "{sample}_R1.best.fasta")
+        fa = os.path.join(QC, "step_11", "{sample}_R1.best.fasta"),
         stats = os.path.join(QC, "step_11", "{sample}_stats.txt")
+    benchmark:
+        "benchmarks/deduplicate_{sample}.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=8
+    conda:
+        "envs/bbmap.yaml"
     shell:
         """
         dedupe.sh in={input} \
             csf={output.stats} out={output.fa} \
-            ow=t s=4 rnc=t pbr=t -Xmx128g;
+            ow=t s=4 rnc=t pbr=t \
+            -Xmx{resources.mem_mb}m
         """
 
 rule extract_seq_counts:
@@ -76,12 +94,20 @@ rule extract_seq_counts:
         os.path.join(QC, "step_11", "{sample}_R1.best.fasta")
     output:
         os.path.join(QC, "step_12", "{sample}_reformated.fasta")
+    benchmark:
+        "benchmarks/extract_seq_counts_{sample}.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=8
+    conda:
+        "envs/bbmap.yaml"
     shell:
         """
         reformat.sh in={input} out={output} \
             deleteinput=t fastawrap=0 \
             ow=t \
-            -Xmx128g;
+            -Xmx{resources.mem_mb}m
         """
 
 rule extract_counts:
@@ -128,7 +154,7 @@ rule create_seq_table:
     Create sequence table
     """
     input:
-        seq = os.path.join(QC, "counts", "{sample}_seqs.txt")
+        seq = os.path.join(QC, "counts", "{sample}_seqs.txt"),
         cnt = os.path.join(QC, "counts", "{sample}_counts.txt")
     output:
         os.path.join(QC, "counts", "{sample}_seqtable.txt")
