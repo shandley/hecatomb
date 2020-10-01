@@ -6,30 +6,6 @@ This section of contaminant removal has been abstracted as we may replace pieces
 import os
 import sys
 
-if not config:
-    sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
-    sys.stderr.write("examples are provided in the Git repo\n")
-    sys.exit()
-
-DBDIR = config['Paths']['Databases']
-if not os.path.exists(DBDIR):
-    os.mkdir(DBDIR)
-
-# paths for our databases
-BACPATH = os.path.join(DBDIR, "bac_giant_unique_species")
-HOSTPATH = os.path.join(DBDIR, "human_masked")
-CONPATH = os.path.join(DBDIR, "contaminants")
-
-# paths for our data. This is where we will read and put things
-READDIR = config['Paths']['Reads']
-CLUMPED = config['Output']["Clumped"]
-QC = config['Output']['QC']
-
-SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
-PATTERN_R1 = '{sample}_R1'
-PATTERN_R2 = '{sample}_R2'
-
-
 rule host_removal:
     """
     Step 6: Host removal

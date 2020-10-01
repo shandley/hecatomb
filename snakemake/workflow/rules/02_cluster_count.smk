@@ -8,25 +8,6 @@ Rob Edwards, Jan 2020
 import os
 import sys
 
-if not config:
-    sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
-    sys.stderr.write("examples are provided in the Git repo\n")
-    sys.exit()
-
-DBDIR = config['Paths']['Databases']
-
-
-CLUMPED = config['Output']["Clumped"]
-QC = config['Output']['QC']
-
-DATADIR = os.path.join(QC, "step_9")
-
-
-# Step 1: Remove exact duplicates (consider to be PCR artifacts)
-# Step 2: Deduplicate
-# Step 3: Reformat and prepare for sequence table generation
-
-SAMPLES, = glob_wildcards(os.path.join(DATADIR, '{sample}_viral_amb.fastq'))
 
 rule cluster_count_first:
     input:

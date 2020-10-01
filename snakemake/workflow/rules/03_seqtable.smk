@@ -8,20 +8,6 @@ Rob Edwards, Feb 2020
 import os
 import sys
 
-if not config:
-    sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
-    sys.stderr.write("examples are provided in the Git repo\n")
-    sys.exit()
-
-DBDIR = config['Paths']['Databases']
-
-
-CLUMPED = config['Output']['Clumped']
-QC = config['Output']['QC']
-RESULTS = config['Output']['Results']
-
-SAMPLES, = glob_wildcards(os.path.join(QC, "counts", "{sample}_seqtable.txt"))
-
 
 rule seqtable_first:
     input:
