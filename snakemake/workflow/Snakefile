@@ -11,6 +11,20 @@ import os
 import sys
 import socket
 
+
+"""
+Summary:
+    # Step 0: Clumpify reads (https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/clumpify-guide/)
+    # Step 1: Remove 5' amplification primer
+    # Step 2: Remove 3' read through contaminant (Reverse complement of amplification primer + 6 bases of the adapter)
+    # Step 3: Remove primer free adapter (both orientations)
+    # Step 4: Remove adapter free primer (both orientations)
+    # Step 5: PhiX Removal and vector contamination removal
+    # Step 6: Host-removal
+    # Step 7: Trim low-quality bases
+    # Step 8: Remove bacterial contaminants reserving viral and aambiguous sequences
+"""
+
 if not config:
     sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
     sys.stderr.write("examples are provided in the Git repo\n")
