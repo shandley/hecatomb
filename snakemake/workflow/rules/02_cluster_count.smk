@@ -8,6 +8,7 @@ Rob Edwards, Jan 2020
 import os
 import sys
 
+DATADIR = os.path.join(QC, "step_9")
 
 rule cluster_count_first:
     input:
