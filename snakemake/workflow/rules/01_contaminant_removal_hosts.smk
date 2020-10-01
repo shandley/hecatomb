@@ -41,7 +41,7 @@ rule line_sine_removal:
     Step 6a. Remove any LINES and SINES in the sequences.
     """
     input:
-        unmapped = os.path.join(QC, "step_6", "{sample}.unmapped.s6.out.fastq"),
+        unmapped = os.path.join(QC, "step_6", "{sample}.host.unmapped.s6.out.fastq"),
         linesine = os.path.join(CONPATH, "line_sine.fasta")
     output:
         unmapped = os.path.join(QC, "step_6", "{sample}.linesine.unmapped.s6.out.fastq"),
