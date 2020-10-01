@@ -48,13 +48,26 @@ NT_OUT = os.path.join(RESULTS, "mmseqs_nt_out")
 if not os.path.exists(NT_OUT):
     os.makedirs(NT_OUT)
 
+NT_CHECKED_OUT = os.path.join(RESULTS, "mmseqs_nt_checked_out")
+if not os.path.exists(NT_CHECKED_OUT):
+    os.makedirs(NT_CHECKED_OUT)
+
+# taxonomizr taxa
+TAXPATH  = os.path.join(DBDIR, "taxonomy")
+TAXTAX = os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql")
+if not os.path.exists(TAXTAX):
+    sys.stderr.write(f"FATAL: You appear not to have the taxonomizr ")
+    sys.stderr.write(f"database {TAXTAX} installed.\n")
+    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
+    sys.exit()
 
 
 
 
 rule all:
     input:
-        os.path.join(NT_OUT, "resultDB.firsthit.m8")
+        os.path.join(NT_OUT, "resultDB.firsthit.m8"),
+        os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_lineage.tsv")
 
 rule create_nt_querydb:
     input:
@@ -71,15 +84,17 @@ rule create_nt_querydb:
 
 rule nt_search:
     input:
-        st = os.path.join(NT_OUT, "seqtable_queryDB")
+        idx = os.path.join(NT_OUT, "seqtable_queryDB.index"),
+        dbt = os.path.join(NT_OUT, "seqtable_queryDB.dbtype")
     output:
         idx = os.path.join(NT_OUT, "resultDB.index"),
         dbt = os.path.join(NT_OUT, "resultDB.dbtype")
     params:
+        st = os.path.join(NT_OUT, "seqtable_queryDB"),
         rdb = os.path.join(NT_OUT, "resultDB")
     shell:
         """
-        mmseqs search {input.st} {NTDB} {params.rdb} $(mktemp -d -p {TMPDIR}) \
+        mmseqs search {params.st} {NTDB} {params.rdb} $(mktemp -d -p {TMPDIR}) \
         -a -e 0.000001 --search-type 3 --cov-mode 2 -c 0.95
         """
 
@@ -117,7 +132,10 @@ rule nt_to_m8:
 rule nt_annotate:
     input:
         fhtbl = os.path.join(NT_OUT, "resultDB.firsthit.m8")
-
+    output:
+        linout = os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_lineage.tsv")
+    params:
+        taxtax = TAXTAX
     script:
         "scripts/mmseqs_pviral_nt_annotate.R"
 
