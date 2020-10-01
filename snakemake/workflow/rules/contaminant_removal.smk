@@ -55,32 +55,16 @@ rule all:
         # step 9 output
         expand(os.path.join(QC, "step_9", "{sample}.viral_amb.fastq"), sample=SAMPLES)
 
-
-rule clumpify:
-    """
-    Step 0: Clumpify and deduplicate reads
-    """
-    input:
-        r1 = os.path.join(READDIR, PATTERN_R1 + ".fastq.gz"),
-        r2 = os.path.join(READDIR, PATTERN_R2 + ".fastq.gz")
-    output:
-        r1 = os.path.join(CLUMPED, PATTERN_R1 + ".clumped.fastq.gz"),
-        r2 = os.path.join(CLUMPED, PATTERN_R2 + ".clumped.fastq.gz")
-    shell:
-        """
-        clumpify.sh in={input.r1} in2={input.r2} \
-            out={output.r1} out2={output.r2} \
-            reorder=a \
-            ow=t;
-        """
+# NOTE: bbduk uses "threads=auto" by default that typically uses all threads, so no need to specify. -Xmx is used to
+# specify the memory allocation
 
 rule remove_leftmost_primerB:
     """
     Step 1: Remove leftmost primerB. Not the reverse complements
     """
     input:
-        r1 = os.path.join(CLUMPED, PATTERN_R1 + ".clumped.fastq.gz"),
-        r2 = os.path.join(CLUMPED, PATTERN_R2 + ".clumped.fastq.gz"),
+        r1 = os.path.join(READDIR, PATTERN_R1 + ".fastq.gz"),
+        r2 = os.path.join(READDIR, PATTERN_R2 + ".fastq.gz"),
         primers = os.path.join(CONPATH, "primerB.fa")
     output:
         r1 = os.path.join(QC, "step_1", PATTERN_R1 + ".s1.out.fastq"),
@@ -101,7 +85,8 @@ rule remove_leftmost_primerB:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=1 mink=11 ktrim=l restrictleft=20 \
-            removeifeitherbad=f trimpolya=10 ordered=t rcomp=f ow=t
+            removeifeitherbad=f trimpolya=10 ordered=t rcomp=f ow=t \
+            -Xmx{resources.mem_mb}m
         """
 
 rule remove_3prime_contaminant:
@@ -130,7 +115,8 @@ rule remove_3prime_contaminant:
             ref={input.primers} \
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
-            k=16 hdist=1 mink=11 ktrim=r removeifeitherbad=f ordered=t rcomp=f ow=t;
+            k=16 hdist=1 mink=11 ktrim=r removeifeitherbad=f ordered=t rcomp=f ow=t \
+            -Xmx{resources.mem_mb}m
         """
 
 rule remove_primer_free_adapter:
@@ -159,7 +145,8 @@ rule remove_primer_free_adapter:
             ref={input.primers} \
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
-            k=16 hdist=1 mink=10 ktrim=r removeifeitherbad=f ordered=t rcomp=t ow=t;
+            k=16 hdist=1 mink=10 ktrim=r removeifeitherbad=f ordered=t rcomp=t ow=t \
+            -Xmx{resources.mem_mb}m
         """
 
 rule remove_adapter_free_primer:
@@ -188,7 +175,8 @@ rule remove_adapter_free_primer:
             ref={input.primers} \
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
-            k=16 hdist=0 removeifeitherbad=f ordered=t rcomp=t ow=t;
+            k=16 hdist=0 removeifeitherbad=f ordered=t rcomp=t ow=t \
+            -Xmx{resources.mem_mb}m
         """
 
 rule remove_vector_contamination:
@@ -217,18 +205,9 @@ rule remove_vector_contamination:
             ref={input.primers} \
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
-            k=31 hammingdistance=1 ordered=t ow=t;
+            k=31 hammingdistance=1 ordered=t ow=t \
+            -Xmx{resources.mem_mb}m
         """
-
-
-
-
-
-
-
-
-
-
 
 
 
