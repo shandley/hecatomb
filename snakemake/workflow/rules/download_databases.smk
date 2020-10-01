@@ -73,7 +73,9 @@ rule download_databases:
         os.path.join(CONPATH, "primerB.fa"),
         os.path.join(CONPATH, "rc_primerB_ad6.fa")
     shell:
-        "cd {DBDIR} && curl -LO {hecatomb_db_url} && tar xf hecatomb.databases.tar.bz2"
+        """
+        cd {DBDIR} && curl -LO '{hecatomb_db_url}' && tar xf hecatomb.databases.tar.bz2
+        """
 
 rule make_bac_databases:
     input:
@@ -115,7 +117,7 @@ rule download_uniprot_viruses:
         os.path.join(PROTPATH, "uniprot_virus.faa")
     shell:
         """
-        mkdir -p {PROTPATH} && curl -Lo {output} '{uniprot_virus_url}'
+        mkdir -p {PROTPATH} && curl -Lgo {output} "{uniprot_virus_url}"
         """
 
 rule download_uniref50:
@@ -123,7 +125,7 @@ rule download_uniref50:
         os.path.join(PROTPATH, "uniref50.fasta.gz")
     shell:
         """
-        mkdir -p {PROTPATH} && curl -Lo {output} "ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz"
+        mkdir -p {PROTPATH} && curl -Lgo {output} "ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz"
         """
 
 rule download_ncbi_taxonomy:
@@ -188,7 +190,7 @@ rule extract_accession_to_tax:
     output:
         os.path.join(TAXPATH, "nucl_gb.accession2taxid")
     shell:
-        "unpigz {input}"
+        "gunzip {input}"
 
 rule create_nt_tax_table:
     input:
@@ -209,6 +211,12 @@ rule cluster_uniprot:
     output:
         db = os.path.join(PROTPATH, "uniprot_virus_c99.faa"),
         cl = os.path.join(PROTPATH, "uniprot_virus_c99.faa.clstr")
+    benchmark:
+        "benchmarks/cluster_uniprot.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=8
     shell:
         "cd-hit -i {input} -o {output.db} -d 0 -c 0.99 -M 0 -T 0"
 
@@ -217,6 +225,12 @@ rule mmseqs_uniprot_clusters:
         os.path.join(PROTPATH, "uniprot_virus_c99.faa")
     output:
         os.path.join(PROTPATH, "uniprot_virus_c99.db")
+    benchmark:
+        "benchmarks/mmseqs_uniprot_clusters.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=8
     shell:
         "mmseqs createdb {input} {output}"
 
@@ -230,6 +244,12 @@ rule mmseqs_uniprot_taxdb:
         dln = os.path.join(TAXPATH, "delnodes.dmp"),
     params:
         tax = TAXPATH
+    benchmark:
+        "benchmarks/mmseqs_uniprot_taxdb.txt"
+    resources:
+        time_min = 240,
+        mem_mb=100000,
+        cpus=8
     output:
         multiext(os.path.join(PROTPATH, "uniprot_virus_c99"), 
                  ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", 
@@ -247,7 +267,7 @@ rule uniref_plus_viruses:
         temp(os.path.join(URVPATH, "uniref50_virus.fasta"))
     shell:
         """
-        unpigz -c {input.ur} | cat - {input.vr} > {output}
+        gunzip -c {input.ur} | cat - {input.vr} > {output}
         """
 
 rule mmseqs_urv:
@@ -255,6 +275,12 @@ rule mmseqs_urv:
         os.path.join(URVPATH, "uniref50_virus.fasta")
     output:
         os.path.join(URVPATH, "uniref50_virus.db")
+    benchmark:
+        "benchmarks/mmseqs_urv.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=8
     shell:
         "mmseqs createdb {input} {output}"
 
@@ -270,6 +296,12 @@ rule mmseqs_urv_taxonomy:
         tax = TAXPATH
     output:
         multiext(os.path.join(URVPATH, "uniref50_virus"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp")
+    benchmark:
+        "benchmarks/mmseqs_urv_taxonomy.txt"
+    resources:
+        time_min = 240,
+        mem_mb=100000,
+        cpus=8
     shell:
         """
         mmseqs createtaxdb --ncbi-tax-dump {params.tax} --tax-mapping-file {input.idm} {input.vdb} $(mktemp -d -p {TMPDIR})
@@ -281,6 +313,12 @@ rule mmseqs_nt_db:
     output:
         idx = os.path.join(NUCLPATH, "ntDB.index"),
         dbt = os.path.join(NUCLPATH, "ntDB.dbtype")
+    benchmark:
+        "benchmarks/mmseqs_nt_db.txt"
+    resources:
+        time_min = 240,
+        mem_mb=20000,
+        cpus=8
     params:
         db = os.path.join(NUCLPATH, "ntDB")
     shell:
@@ -292,12 +330,17 @@ rule line_sine_download:
     """
     A database of LINES and SINES that we screen against to 
     remove contaminants.
+
+    Note that the current version has two ids with the same name
+    but different sequences, so we use seqtk to rename them
     """
     output:
         os.path.join(CONPATH, "line_sine.fasta")
     shell:
         """
-        curl -L http://sines.eimb.ru/banks/SINEs.bnk > {output} && \
-        curl -L http://sines.eimb.ru/banks/LINEs.bnk >> {output}
+        (curl -L http://sines.eimb.ru/banks/SINEs.bnk && \
+                curl -L http://sines.eimb.ru/banks/LINEs.bnk) \
+                | sed -e '/^>/ s/ /_/g' | seqtk rename \
+                > {output}
         """
 
