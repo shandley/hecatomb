@@ -22,7 +22,7 @@ You are now read to run `hecatomb`!
 
 ## Running hecatomb
 
-You will need a directory with some gzip-compressed `fastq` files in them. At the moment, `hecatomb` requires paired end reads. The only requirement is that your paired end files contain \_R1 for the first mate pair and \_R2 for the second mate pair. We will figure out the file names by just looking for `_R1`.
+You will need a directory with some gzip-compressed `fastq` files in them. At the moment, `hecatomb` requires paired end reads. The only requirement is that your paired end files contain \_R1 for the first mate pair and \_R2 for the second mate pair. We will figure out the file names by just looking for `_R1`. 
 
 The [test_data/fastq](../test_data/fastq) directory has some example datasets that you can run through the pipeline to see if it is working.
 
@@ -89,4 +89,3 @@ tar xf hecatomb.databases.tar.bz2
 ```
 
 You're done! That was easy!
-
