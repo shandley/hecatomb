@@ -6,43 +6,6 @@ Rob Edwards, Jan 2020
 """
 
 import os
-import sys
-
-if not config:
-    sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
-    sys.stderr.write("examples are provided in the Git repo\n")
-    sys.exit()
-
-DBDIR = config['Paths']['Databases']
-if not os.path.exists(DBDIR):
-    os.mkdir(DBDIR)
-
-# paths for our databases
-BACPATH = os.path.join(DBDIR, "bac_giant_unique_species")
-HOSTPATH = os.path.join(DBDIR, "human_masked")
-CONPATH = os.path.join(DBDIR, "contaminants")
-
-# paths for our data. This is where we will read and put things
-READDIR = config['Paths']['Reads']
-CLUMPED = config['Output']["Clumped"]
-QC = config['Output']['QC']
-
-SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
-PATTERN_R1 = '{sample}_R1'
-PATTERN_R2 = '{sample}_R2'
-
-"""
-Summary:
-    # Step 0: Clumpify reads (https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/clumpify-guide/)
-    # Step 1: Remove 5' amplification primer
-    # Step 2: Remove 3' read through contaminant (Reverse complement of amplification primer + 6 bases of the adapter)
-    # Step 3: Remove primer free adapter (both orientations)
-    # Step 4: Remove adapter free primer (both orientations)
-    # Step 5: PhiX Removal and vector contamination removal
-    # Step 6: Host-removal
-    # Step 7: Trim low-quality bases
-    # Step 8: Remove bacterial contaminants reserving viral and aambiguous sequences
-"""
 
 rule contaminant_removal_first:
     input:
