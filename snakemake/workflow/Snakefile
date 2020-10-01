@@ -40,6 +40,16 @@ SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
 PATTERN_R1 = '{sample}_R1'
 PATTERN_R2 = '{sample}_R2'
 
+include: "rules/00_contaminant_removal.smk"
+include: "rules/01_contaminant_removal_hosts.smk"
+include: "rules/02_cluster_count.smk"
+include: "rules/03_seqtable.smk"
+# include: "rules/04_mmseqs_pviral_aa.smk"
+# include: "rules/05_mmseqs_pviral_aa_check.smk"
+# include: "rules/06_mmseqs_pviral_nt.smk"
+# include: "rules/07_mmseqs_pviral_nt_check.smk"
+# include: "rules/08_concatenate_results.smk"
+
 rule all:
     input:
          # these two inputs are the outputs from 03_seqtable.smk
