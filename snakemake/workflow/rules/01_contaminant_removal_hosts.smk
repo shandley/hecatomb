@@ -129,7 +129,7 @@ rule get_r1_singletons:
         r1singletons = os.path.join(QC, "step_8", "{sample}.singletons.R1.out.fastq"),
     shell:
         """
-        grep --no-group-separator -A 3 '1:N:' {input.singletons} > {output.r1singletons};
+        egrep --no-group-separator -A 3 '/1|1:N:' {input.singletons} > {output.r1singletons};
         """
 
 rule get_r2_singletons:
@@ -144,7 +144,7 @@ rule get_r2_singletons:
         odir = os.path.join(QC, "step_8")
     shell:
         """
-        grep --no-group-separator -A 3 '2:N:' {input.singletons} > {output.r2singletons};
+        egrep --no-group-separator -A 3 '/2|2:N:' {input.singletons} > {output.r2singletons};
         """
 
 rule concat_r1:
