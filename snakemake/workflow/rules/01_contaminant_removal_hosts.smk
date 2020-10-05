@@ -22,7 +22,6 @@ rule host_removal:
     benchmark:
         "benchmarks/remove_vector_contamination_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=100000,
         cpus=8
     conda:
@@ -50,7 +49,6 @@ rule line_sine_removal:
     benchmark:
         "benchmarks/line_sine_removal_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:
@@ -75,7 +73,6 @@ rule repair_paired_ends:
     benchmark:
         "benchmarks/repair_paired_ends_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:
@@ -103,7 +100,6 @@ rule trim_low_quality:
     benchmark:
         "benchmarks/trim_low_quality_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:
@@ -144,8 +140,11 @@ rule get_r2_singletons:
         singletons = os.path.join(QC, "step_7", "{sample}.singletons.s7.out.fastq")
     output:
         r2singletons = os.path.join(QC, "step_8", "{sample}.singletons.R2.out.fastq")
+    params:
+        odir = os.path.join(QC, "step_8")
     shell:
         """
+        mkdir -p {params.odir};
         grep --no-group-separator -A 3 '2:N:' {input.singletons} > {output.r2singletons};
         """
 
@@ -194,7 +193,6 @@ rule remove_bacteria:
     benchmark:
         "benchmarks/remove_bacteria_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=100000,
         cpus=8
     conda:

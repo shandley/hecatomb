@@ -24,7 +24,6 @@ rule remove_exact_dups:
     benchmark:
         "benchmarks/remove_exact_dups_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:
@@ -49,7 +48,6 @@ rule deduplicate:
     benchmark:
         "benchmarks/deduplicate_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:
@@ -73,7 +71,6 @@ rule extract_seq_counts:
     benchmark:
         "benchmarks/extract_seq_counts_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:

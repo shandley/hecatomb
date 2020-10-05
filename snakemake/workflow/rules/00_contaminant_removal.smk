@@ -36,7 +36,6 @@ rule remove_leftmost_primerB:
     benchmark:
         "benchmarks/removeprimerB_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:
@@ -67,7 +66,6 @@ rule remove_3prime_contaminant:
     benchmark:
         "benchmarks/remove_3prime_contaminant_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:
@@ -97,7 +95,6 @@ rule remove_primer_free_adapter:
     benchmark:
         "benchmarks/remove_primer_free_adapter_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:
@@ -127,7 +124,6 @@ rule remove_adapter_free_primer:
     benchmark:
         "benchmarks/remove_adapter_free_primer_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:
@@ -157,7 +153,6 @@ rule remove_vector_contamination:
     benchmark:
         "benchmarks/remove_vector_contamination_{sample}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
     conda:

@@ -99,7 +99,6 @@ rule create_seqtable_db:
     benchmark:
         "benchmarks/create_seqtable_db}.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=16
     conda:
@@ -118,7 +117,6 @@ rule seqtable_taxsearch:
     benchmark:
         "benchmarks/seqtable_taxsearch.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=16
     conda:
@@ -142,7 +140,6 @@ rule seqtable_convert_alignments:
     benchmark:
         "benchmarks/seqtable_convert_alignments.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=16
     conda:
@@ -164,7 +161,6 @@ rule seqtable_lca:
     benchmark:
         "benchmarks/seqtable_lca.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=16
     conda:
@@ -186,7 +182,6 @@ rule seqtable_taxtable_tsv:
     benchmark:
         "benchmarks/seqtable_taxtable_tsv.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=16
     conda:
@@ -205,7 +200,6 @@ rule seqtable_create_kraken:
     benchmark:
         "benchmarks/seqtable_create_kraken.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=16
     conda:
