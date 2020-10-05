@@ -144,7 +144,6 @@ rule get_r2_singletons:
         odir = os.path.join(QC, "step_8")
     shell:
         """
-        mkdir -p {params.odir};
         grep --no-group-separator -A 3 '2:N:' {input.singletons} > {output.r2singletons};
         """
 
