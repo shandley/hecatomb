@@ -30,13 +30,7 @@ CLUMPED = config['Output']["Clumped"]
 QC = config['Output']['QC']
 RESULTS = config['Output']['Results']
 
-###################################################################
-#                                                                 #
-# We create subdirectories in this temp directory as needed       #
-#                                                                 #
-###################################################################
 
-TMPDIR = config['Paths']['Temp']
 if not os.path.exists(TMPDIR):
     os.makedirs(TMPDIR, exist_ok=True)
 

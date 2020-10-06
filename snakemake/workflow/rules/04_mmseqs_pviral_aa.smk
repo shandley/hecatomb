@@ -23,6 +23,8 @@ Rob Edwards, March 2020
 import os
 import sys
 
+if not os.path.exists(TMPDIR):
+    os.makedirs(TMPDIR, exist_ok=True)
 
 if not os.path.exists(AA_OUT):
     os.makedirs(AA_OUT, exist_ok=True)
