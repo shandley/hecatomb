@@ -106,9 +106,8 @@ rule nt_annotate:
     benchmark: "benchmarks/nt_annotate.txt"
     resources:
         mem_mb=100000,
-        cpus=16
     conda:
-        "../envs/mmseqs2.yaml"
+        "../envs/R.yaml"
     script:
         "../scripts/mmseqs_pviral_nt_annotate.R"
 
