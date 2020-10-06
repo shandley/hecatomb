@@ -35,7 +35,7 @@ rule merge_seq_table:
     conda:
         "../envs/R.yaml"
     script:
-        "scripts/seqtable_merge.R"
+        "../scripts/seqtable_merge.R"
 
 
 

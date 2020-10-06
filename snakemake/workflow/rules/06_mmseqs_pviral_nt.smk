@@ -137,7 +137,7 @@ rule nt_annotate:
     params:
         taxtax = TAXTAX
     script:
-        "scripts/mmseqs_pviral_nt_annotate.R"
+        "../scripts/mmseqs_pviral_nt_annotate.R"
 
 
 
