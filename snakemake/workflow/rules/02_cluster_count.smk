@@ -117,9 +117,11 @@ rule exract_count_stats:
         os.path.join(QC, "step_11", "{sample}_stats.txt")
     output:
         os.path.join(QC, "counts", "{sample}_counts.txt")
+    params:
+        s = "{sample}"
     shell:
         """
-        cut -f 2 {input} | sed "1s/size/$F/" > {output}
+        cut -f 2 {input} | sed "1s/size/{params.s}/" > {output}
         """
 
 rule create_seq_table:
