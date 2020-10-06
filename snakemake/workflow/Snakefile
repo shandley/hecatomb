@@ -48,6 +48,10 @@ READDIR = config['Paths']['Reads']
 CLUMPED = config['Output']["Clumped"]
 QC = config['Output']['QC']
 RESULTS = config['Output']['Results']
+DBDIR = config['Paths']['Databases']
+
+AA_OUT  = os.path.join(RESULTS, "mmseqs_aa_out")
+
 
 
 SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
@@ -58,11 +62,39 @@ include: "rules/00_contaminant_removal.smk"
 include: "rules/01_contaminant_removal_hosts.smk"
 include: "rules/02_cluster_count.smk"
 include: "rules/03_seqtable.smk"
-# include: "rules/04_mmseqs_pviral_aa.smk"
+include: "rules/04_mmseqs_pviral_aa.smk"
 # include: "rules/05_mmseqs_pviral_aa_check.smk"
 # include: "rules/06_mmseqs_pviral_nt.smk"
 # include: "rules/07_mmseqs_pviral_nt_check.smk"
 # include: "rules/08_concatenate_results.smk"
+
+
+# Databases and checks
+
+# paths for our databases
+PROTPATH = os.path.join(DBDIR, "proteins")
+
+if not os.path.exists(PROTPATH):
+    sys.stderr.write("FATAL: You appear not to have the protein databases. Please download the databases using the download_databases.snakefile\n")
+    sys.exit()
+
+# The virus database, clustered at 99% with cd-hit and then compiled
+# with mmseqs
+
+VIRDB = os.path.join(PROTPATH, "uniprot_virus_c99.db")
+if not os.path.exists(VIRDB):
+    sys.stderr.write(f"FATAL: {VIRDB} does not exist. Please ensure you")
+    sys.stderr.write(" have installed the databases\n")
+    sys.exit()
+
+PHAGE_LINEAGES = os.path.join(DBDIR, "phages", "phage_taxonomic_lineages.txt")
+if not os.path.exists(PHAGE_LINEAGES):
+    sys.stderr.write("FATAL: phages/phage_taxonomic_lineages.txt not ")
+    sys.stderr.write("found in the databases directory. Please check ")
+    sys.stderr.write("you have the latest version of the databases\n")
+    sys.exit()
+
+
 
 rule all:
     input:
@@ -72,4 +104,8 @@ rule all:
          expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES),
          # these two inputs are the outputs from 03_seqtable.smk
          os.path.join(RESULTS, "seqtable_all.tsv"),
-         os.path.join(RESULTS, "seqtable.tab2fx")
+         os.path.join(RESULTS, "seqtable.tab2fx"),
+         # output from 04_mmseqs_pviral_aa
+         os.path.join(AA_OUT, "phage_tax_table.tsv"),
+         os.path.join(AA_OUT, "viruses_tax_table.tsv"),
+         os.path.join(AA_OUT, "unclassified_seqs.fasta")

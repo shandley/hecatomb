@@ -19,63 +19,14 @@ more details about database building can be found at: https://github.com/soeding
 Rob Edwards, March 2020
 
 """
-
-"""
-Before we begin, we need to make sure the databases have been downloaded
-and installed.
-
-If not, we throw an error here rather than proceeding to download them.
-That way, the downloading is asynchronous.
-"""
+from ../Snakefile import AA_OUT, RESULTS, PROTPATH, TMPDIR
 
 import os
 import sys
 
-if not config:
-    sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
-    sys.stderr.write("examples are provided in the Git repo\n")
-    sys.exit()
 
-
-DBDIR = config['Paths']['Databases']
-TMPDIR = config['Paths']['Temp']
-if not os.path.exists(TMPDIR):
-    os.mkdir(TMPDIR)
-
-# paths for our databases
-PROTPATH = os.path.join(DBDIR, "proteins")
-
-if not os.path.exists(PROTPATH):
-    sys.stderr.write("FATAL: You appear not to have the protein databases. Please download the databases using the download_databases.snakefile\n")
-    sys.exit()
-
-# The results directory we create with hecatomb
-RESULTS = config['Output']['Results']
-AA_OUT  = os.path.join(RESULTS, "mmseqs_aa_out")
 if not os.path.exists(AA_OUT):
-    os.mkdir(AA_OUT)
-
-# how much memory we have
-XMX = config['System']['Memory']
-
-
-# The virus database, clustered at 99% with cd-hit and then compiled
-# with mmseqs
-
-VIRDB = os.path.join(PROTPATH, "uniprot_virus_c99.db")
-if not os.path.exists(VIRDB):
-    sys.stderr.write(f"FATAL: {VIRDB} does not exist. Please ensure you")
-    sys.stderr.write(" have installed the databases\n")
-    sys.exit()
-
-PHAGE_LINEAGES = os.path.join(DBDIR, "phages", "phage_taxonomic_lineages.txt")
-if not os.path.exists(PHAGE_LINEAGES):
-    sys.stderr.write("FATAL: phages/phage_taxonomic_lineages.txt not ")
-    sys.stderr.write("found in the databases directory. Please check ")
-    sys.stderr.write("you have the latest version of the databases\n")
-    sys.exit()
-
-
+    os.makedirs(AA_OUT, exist_ok=True)
 
 rule mmseqs_pviral_aa_first:
     input:
