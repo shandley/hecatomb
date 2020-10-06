@@ -297,7 +297,8 @@ rule pull_unclassified_seqs:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
         ls = os.path.join(AA_OUT, "pviral_unclassified_seqs.list")
     output:
-        os.path.join(AA_OUT, "unclassified_seqs.fasta")
+        os.path.join(AA_OUT, "pviral_aa_unclassified_seqs.fasta")
+        #os.path.join(AA_OUT, "unclassified_seqs.fasta")
     shell:
         """
         grep --no-group-separator -A 1 -Fwf {input.ls} {input.fa} > {output}

@@ -122,7 +122,7 @@ include: "rules/02_cluster_count.smk"
 include: "rules/03_seqtable.smk"
 include: "rules/04_mmseqs_pviral_aa.smk"
 include: "rules/05_mmseqs_pviral_aa_check.smk"
-# include: "rules/06_mmseqs_pviral_nt.smk"
+include: "rules/06_mmseqs_pviral_nt.smk"
 # include: "rules/07_mmseqs_pviral_nt_check.smk"
 # include: "rules/08_concatenate_results.smk"
 
@@ -139,7 +139,7 @@ rule all:
         # output from 04_mmseqs_pviral_aa
         os.path.join(AA_OUT, "phage_tax_table.tsv"),
         os.path.join(AA_OUT, "viruses_tax_table.tsv"),
-        os.path.join(AA_OUT, "unclassified_seqs.fasta"),
+        os.path.join(AA_OUT, "pviral_aa_unclassified_seqs.fasta"),
         # output from section 05_mmseqs_pviral_aa_check
         os.path.join(AA_OUT_CHECKED, "taxonomyResult.firsthit.m8"),
         os.path.join(AA_OUT_CHECKED, "taxonomyResult.report"),
