@@ -50,7 +50,6 @@ rule create_seqtable_db:
         "benchmarks/create_seqtable_db}.txt"
     resources:
         mem_mb=20000,
-        cpus=16
     conda:
         "../envs/mmseqs2.yaml"
     shell:
