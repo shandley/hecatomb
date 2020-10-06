@@ -48,8 +48,11 @@ READDIR = config['Paths']['Reads']
 CLUMPED = config['Output']["Clumped"]
 QC = config['Output']['QC']
 RESULTS = config['Output']['Results']
+TMPDIR = config['Paths']['Temp']
 
+# output directories for our amino acid searches
 AA_OUT  = os.path.join(RESULTS, "mmseqs_aa_out")
+AA_OUT_CHECKED  = os.path.join(RESULTS, "mmseqs_aa_checked_out")
 
 SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
 PATTERN_R1 = '{sample}_R1'
@@ -77,12 +80,22 @@ if not os.path.exists(PHAGE_LINEAGES):
     sys.stderr.write("you have the latest version of the databases\n")
     sys.exit()
 
+# uniref50 + viruses
+URVPATH = os.path.join(PROTPATH, "uniref_plus_virus")
+URVDB = os.path.join(URVPATH, "uniref50_virus.db") # uniref50 + viruses database
+if not os.path.exists(URVDB):
+    sys.stderr.write("FATAL: {URVDB} not found.\n")
+    sys.stderr.write("Please make sure that you have run ")
+    sys.stderr.write("download_databases.snakefile before commencing\n")
+    sys.exit()
+
+
 include: "rules/00_contaminant_removal.smk"
 include: "rules/01_contaminant_removal_hosts.smk"
 include: "rules/02_cluster_count.smk"
 include: "rules/03_seqtable.smk"
 include: "rules/04_mmseqs_pviral_aa.smk"
-# include: "rules/05_mmseqs_pviral_aa_check.smk"
+include: "rules/05_mmseqs_pviral_aa_check.smk"
 # include: "rules/06_mmseqs_pviral_nt.smk"
 # include: "rules/07_mmseqs_pviral_nt_check.smk"
 # include: "rules/08_concatenate_results.smk"
@@ -90,14 +103,20 @@ include: "rules/04_mmseqs_pviral_aa.smk"
 
 rule all:
     input:
-         # output of contaminant removal
-         expand(os.path.join(QC, "step_9", "{sample}.viral_amb.fastq"), sample=SAMPLES),
-         # output of 02_cluster_count.smk
-         expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES),
-         # these two inputs are the outputs from 03_seqtable.smk
-         os.path.join(RESULTS, "seqtable_all.tsv"),
-         os.path.join(RESULTS, "seqtable.tab2fx"),
-         # output from 04_mmseqs_pviral_aa
-         os.path.join(AA_OUT, "phage_tax_table.tsv"),
-         os.path.join(AA_OUT, "viruses_tax_table.tsv"),
-         os.path.join(AA_OUT, "unclassified_seqs.fasta")
+        # output of contaminant removal
+        expand(os.path.join(QC, "step_9", "{sample}.viral_amb.fastq"), sample=SAMPLES),
+        # output of 02_cluster_count.smk
+        expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES),
+        # these two inputs are the outputs from 03_seqtable.smk
+        os.path.join(RESULTS, "seqtable_all.tsv"),
+        os.path.join(RESULTS, "seqtable.tab2fx"),
+        # output from 04_mmseqs_pviral_aa
+        os.path.join(AA_OUT, "phage_tax_table.tsv"),
+        os.path.join(AA_OUT, "viruses_tax_table.tsv"),
+        os.path.join(AA_OUT, "unclassified_seqs.fasta"),
+        # output from section 05_mmseqs_pviral_aa_check
+        os.path.join(AA_OUT_CHECKED, "taxonomyResult.firsthit.m8"),
+        os.path.join(AA_OUT_CHECKED, "taxonomyResult.report"),
+        os.path.join(AA_OUT_CHECKED, "viruses_checked_aa_table.tsv"),
+        os.path.join(AA_OUT_CHECKED, "viruses_checked_aa_tax_table.tsv"),
+        os.path.join(AA_OUT_CHECKED, "unclassified_checked_aa_seqs.fasta")
