@@ -19,7 +19,6 @@ more details about database building can be found at: https://github.com/soeding
 Rob Edwards, March 2020
 
 """
-from ../Snakefile import AA_OUT, RESULTS, PROTPATH, TMPDIR
 
 import os
 import sys
