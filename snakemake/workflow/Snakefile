@@ -89,6 +89,32 @@ if not os.path.exists(URVDB):
     sys.stderr.write("download_databases.snakefile before commencing\n")
     sys.exit()
 
+# Nucleotide data
+NUCLPATH = os.path.join(DBDIR, "nucleotides")
+NTDB = os.path.join(NUCLPATH, "refseq_virus_nt_UniVec_masked", "nt.fnaDB")
+if not os.path.exists(NTDB):
+    sys.stderr.write(f"FATAL: You appear not to have the nucleotide ")
+    sys.stderr.write(f"database {NTDB} installed.\n")
+    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
+    sys.exit()
+
+NT_OUT = os.path.join(RESULTS, "mmseqs_nt_out")
+if not os.path.exists(NT_OUT):
+    os.makedirs(NT_OUT)
+
+NT_CHECKED_OUT = os.path.join(RESULTS, "mmseqs_nt_checked_out")
+if not os.path.exists(NT_CHECKED_OUT):
+    os.makedirs(NT_CHECKED_OUT)
+
+# taxonomizr taxa
+TAXPATH  = os.path.join(DBDIR, "taxonomy")
+TAXTAX = os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql")
+if not os.path.exists(TAXTAX):
+    sys.stderr.write(f"FATAL: You appear not to have the taxonomizr ")
+    sys.stderr.write(f"database {TAXTAX} installed.\n")
+    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
+    sys.exit()
+
 
 include: "rules/00_contaminant_removal.smk"
 include: "rules/01_contaminant_removal_hosts.smk"
@@ -119,4 +145,7 @@ rule all:
         os.path.join(AA_OUT_CHECKED, "taxonomyResult.report"),
         os.path.join(AA_OUT_CHECKED, "viruses_checked_aa_table.tsv"),
         os.path.join(AA_OUT_CHECKED, "viruses_checked_aa_tax_table.tsv"),
-        os.path.join(AA_OUT_CHECKED, "unclassified_checked_aa_seqs.fasta")
+        os.path.join(AA_OUT_CHECKED, "unclassified_checked_aa_seqs.fasta"),
+        # output from section 06_mmseqs_pviral_nt
+        os.path.join(NT_OUT, "resultDB.firsthit.m8"),
+        os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_lineage.tsv"),
