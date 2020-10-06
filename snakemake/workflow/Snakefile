@@ -49,6 +49,8 @@ CLUMPED = config['Output']["Clumped"]
 QC = config['Output']['QC']
 RESULTS = config['Output']['Results']
 TMPDIR = config['Paths']['Temp']
+if not os.path.exists(TMPDIR):
+    os.makedirs(TMPDIR, exist_ok=True)
 
 # output directories for our amino acid searches
 AA_OUT  = os.path.join(RESULTS, "mmseqs_aa_out")
@@ -122,7 +124,7 @@ include: "rules/02_cluster_count.smk"
 include: "rules/03_seqtable.smk"
 include: "rules/04_mmseqs_pviral_aa.smk"
 include: "rules/05_mmseqs_pviral_aa_check.smk"
-# include: "rules/06_mmseqs_pviral_nt.smk"
+include: "rules/06_mmseqs_pviral_nt.smk"
 # include: "rules/07_mmseqs_pviral_nt_check.smk"
 # include: "rules/08_concatenate_results.smk"
 
