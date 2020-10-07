@@ -90,7 +90,8 @@ rule viral_seqs_lca:
         vqdb = os.path.join(AA_OUT_CHECKED, "viral_seqs_queryDB"),
         tr = os.path.join(AA_OUT_CHECKED, "taxonomyResult.dbtype")
     params:
-        tr = os.path.join(AA_OUT_CHECKED, "taxonomyResult")
+        tr = os.path.join(AA_OUT_CHECKED, "taxonomyResult"),
+        ot = os.path.join(AA_OUT_CHECKED, "lca.db")
     output:
         os.path.join(AA_OUT_CHECKED, "lca.db.dbtype"),
         os.path.join(AA_OUT_CHECKED, "lca.db.index")
@@ -102,8 +103,8 @@ rule viral_seqs_lca:
         "../envs/mmseqs2.yaml"
     shell:
         """
-        mmseqs lca {URVDB} {params.tr} {output} \
-        --tax-lineage true --threads {resources.cpus} \
+        mmseqs lca {URVDB} {params.tr} {params.ot} \
+        --tax-lineage 1 --threads {resources.cpus} \
         --lca-ranks "superkingdom,phylum,class,order,family,genus,species"
         """
 
@@ -111,7 +112,8 @@ rule extract_top_hit:
     input:
         os.path.join(AA_OUT_CHECKED, "taxonomyResult.dbtype")
     params:
-        tr = os.path.join(AA_OUT_CHECKED, "taxonomyResult")
+        tr = os.path.join(AA_OUT_CHECKED, "taxonomyResult"),
+        fh = os.path.join(AA_OUT_CHECKED, "taxonomyResult.firsthit")
     output:
         os.path.join(AA_OUT_CHECKED, "taxonomyResult.firsthit.dbtype"),
         os.path.join(AA_OUT_CHECKED, "taxonomyResult.firsthit.index")
@@ -123,7 +125,7 @@ rule extract_top_hit:
         "../envs/mmseqs2.yaml"
     shell:
         """
-        mmseqs filterdb {params.tr} {output} --extract-lines 1  --threads {resources.cpus}
+        mmseqs filterdb {params.tr} {params.fh} --extract-lines 1  --threads {resources.cpus}
         """
 
 rule convertalis_vsqd:
