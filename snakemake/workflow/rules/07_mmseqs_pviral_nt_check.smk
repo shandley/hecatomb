@@ -9,75 +9,6 @@ Rob Edwards August, 2020
 import os
 import sys
 
-### These imports are from hecatomb.snakefile
-
-if not config:
-    sys.stderr.write("FATAL: Please define a config file using the --configfile command line option.\n")
-    sys.stderr.write("examples are provided in the Git repo\n")
-    sys.exit()
-
-
-RESULTS = config['Output']['Results']
-DBDIR = config['Paths']['Databases']
-
-if not os.path.exists(TMPDIR):
-    os.makedirs(TMPDIR, exist_ok=True)
-
-AA_OUT  = os.path.join(RESULTS, "mmseqs_aa_out")
-if not os.path.exists(AA_OUT):
-    os.makedirs(AA_OUT, exist_ok=True)
-
-AA_OUT_CHECKED  = os.path.join(RESULTS, "mmseqs_aa_checked_out")
-if not os.path.exists(AA_OUT_CHECKED):
-    os.makedirs(AA_OUT_CHECKED, exist_ok=True)
-
-
-PHAGE_LINEAGES = os.path.join(DBDIR, "phages", "phage_taxonomic_lineages.txt")
-if not os.path.exists(PHAGE_LINEAGES):
-    sys.stderr.write("FATAL: phages/phage_taxonomic_lineages.txt not ")
-    sys.stderr.write("found in the databases directory. Please check ")
-    sys.stderr.write("you have the latest version of the databases\n")
-    sys.exit()
-
-
-
-NUCLPATH = os.path.join(DBDIR, "nucleotides")
-NTDB = os.path.join(NUCLPATH, "refseq_virus_nt_UniVec_masked", "nt.fnaDB")
-if not os.path.exists(NTDB):
-    sys.stderr.write(f"FATAL: You appear not to have the nucleotide ")
-    sys.stderr.write(f"database {NTDB} installed.\n")
-    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
-    sys.exit()
-
-
-NT_OUT = os.path.join(RESULTS, "mmseqs_nt_out")
-if not os.path.exists(NT_OUT):
-    os.makedirs(NT_OUT)
-
-NT_CHECKED_OUT = os.path.join(RESULTS, "mmseqs_nt_checked_out")
-if not os.path.exists(NT_CHECKED_OUT):
-    os.makedirs(NT_CHECKED_OUT)
-
-# taxonomizr taxa
-TAXPATH  = os.path.join(DBDIR, "taxonomy")
-TAXTAX = os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql")
-if not os.path.exists(TAXTAX):
-    sys.stderr.write(f"FATAL: You appear not to have the taxonomizr ")
-    sys.stderr.write(f"database {TAXTAX} installed.\n")
-    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
-    sys.exit()
-
-
-
-
-### These are new imports/definitions
-
-BVMDB = os.path.join(NUCLPATH, "bac_virus_masked", "nt.fnaDB")
-if not os.path.exists(BVMDB):
-    sys.stderr.write(f"FATAL: You appear not to have the nucleotide ")
-    sys.stderr.write(f"database {BVMDB} installed.\n")
-    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
-    sys.exit()
 
 rule mmseqs_pviral_nt_check_first:
     input:
@@ -160,6 +91,11 @@ rule create_nt_db:
          dbt = os.path.join(NT_CHECKED_OUT, "seqtable_queryDB.dbtype")
     params:
          st = os.path.join(NT_CHECKED_OUT, "seqtable_queryDB")
+    benchmark: "benchmarks/create_nt_db.txt"
+    resources:
+        mem_mb=100000,
+    conda:
+        "../envs/mmseqs2.yaml"
     shell:
         """
         mmseqs createdb {input} {params.st} --dbtype 2
@@ -175,10 +111,16 @@ rule nt_search_checked:
     params:
         st = os.path.join(NT_CHECKED_OUT, "seqtable_queryDB"),
         rdb = os.path.join(NT_CHECKED_OUT, "resultDB")
+    benchmark: "benchmarks/nt_search_checked.txt"
+    resources:
+        mem_mb=100000,
+        cpus=16
+    conda:
+        "../envs/mmseqs2.yaml"
     shell:
         """
         mmseqs search {params.st} {NTDB} {params.rdb} $(mktemp -d -p {TMPDIR}) \
-        -a -e 0.000001 --search-type 3 --cov-mode 2 -c 0.95
+        -a -e 0.000001 --search-type 3 --cov-mode 2 -c 0.95 --threads {resources.cpus}
         """
 
 rule filter_nt_db:
@@ -189,10 +131,17 @@ rule filter_nt_db:
         idx = os.path.join(NT_CHECKED_OUT, "resultDB.firsthit.index"),
         dbt = os.path.join(NT_CHECKED_OUT, "resultDB.firsthit.dbtype")
     params:
-        rdb = os.path.join(NT_CHECKED_OUT, "resultDB")
+        rdb = os.path.join(NT_CHECKED_OUT, "resultDB"),
+        rfh = os.path.join(NT_CHECKED_OUT, "resultDB.firsthit")
+    benchmark: "benchmarks/filter_nt_db.txt"
+    resources:
+        mem_mb=100000,
+        cpus=16
+    conda:
+        "../envs/mmseqs2.yaml"
     shell:
         """
-        mmseqs filterdb {params.rdb} {output}  --extract-lines 1
+        mmseqs filterdb {params.rdb} {params.rfh}  --extract-lines 1 --threads {resources.cpus}
         """
 
 rule convert_nt_alias:
@@ -206,9 +155,15 @@ rule convert_nt_alias:
     params:
         fh = os.path.join(NT_CHECKED_OUT, "resultDB.firsthit"),
         sq = os.path.join(NT_CHECKED_OUT, "seqtable_queryDB"),
+    benchmark: "benchmarks/convert_nt_alias.txt"
+    resources:
+        mem_mb=100000,
+        cpus=16
+    conda:
+        "../envs/mmseqs2.yaml"
     shell:
         """
-        mmseqs convertalis {params.sq} {BVMDB} {params.fh} {output}
+        mmseqs convertalis {params.sq} {BVMDB} {params.fh} {output} --threads {resources.cpus}
         """
 
 rule annotate_checked_nt:
@@ -218,6 +173,11 @@ rule annotate_checked_nt:
         linout = os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_checked_lineage.tsv")
     params:
         taxtax = TAXTAX
+    benchmark: "benchmarks/annotate_checked_nt.txt"
+    resources:
+        mem_mb=100000,
+    conda:
+        "../envs/R.yaml"
     script:
         "../scripts/mmseqs_pviral_nt_check_annotate.R"
 

@@ -117,6 +117,15 @@ if not os.path.exists(TAXTAX):
     sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
     sys.exit()
 
+BVMDB = os.path.join(NUCLPATH, "bac_virus_masked", "nt.fnaDB")
+if not os.path.exists(BVMDB):
+    sys.stderr.write(f"FATAL: You appear not to have the nucleotide ")
+    sys.stderr.write(f"database {BVMDB} installed.\n")
+    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
+    sys.exit()
+
+# Bacterial virus masked database for section 07 mmseqs pviral check
+
 
 include: "rules/00_contaminant_removal.smk"
 include: "rules/01_contaminant_removal_hosts.smk"
@@ -125,7 +134,7 @@ include: "rules/03_seqtable.smk"
 include: "rules/04_mmseqs_pviral_aa.smk"
 include: "rules/05_mmseqs_pviral_aa_check.smk"
 include: "rules/06_mmseqs_pviral_nt.smk"
-# include: "rules/07_mmseqs_pviral_nt_check.smk"
+include: "rules/07_mmseqs_pviral_nt_check.smk"
 # include: "rules/08_concatenate_results.smk"
 
 
@@ -151,3 +160,8 @@ rule all:
         # output from section 06_mmseqs_pviral_nt
         os.path.join(NT_OUT, "resultDB.firsthit.m8"),
         os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_lineage.tsv"),
+        # output from section 07_mmseqs_pviral_nt_check
+        os.path.join(NT_CHECKED_OUT, "phage_nt_seqs.fasta"),
+        os.path.join(NT_CHECKED_OUT, "pviral_virus_nt_seqs.fasta"),
+        os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_checked_lineage.tsv"),
+
