@@ -13,9 +13,9 @@ rule remove_exact_dups:
     Step 1: Remove exact duplicates
     """
     input:
-        os.path.join(QC, "step_9", "{sample}.viral_amb.fastq")
+        os.path.join(QC, "step_9", PATTERN_R1 + ".viral_amb.fastq")
     output:
-        os.path.join(QC, "step_10", "{sample}_R1.s9.deduped.out.fastq")
+        os.path.join(QC, "step_10", PATTERN_R1 + ".s9.deduped.out.fastq")
     benchmark:
         "benchmarks/remove_exact_dups_{sample}.txt"
     resources:
@@ -36,9 +36,9 @@ rule deduplicate:
     Step 2: Dereplicate
     """
     input:
-        os.path.join(QC, "step_10", "{sample}_R1.s9.deduped.out.fastq")
+        os.path.join(QC, "step_10", PATTERN_R1 + ".s9.deduped.out.fastq")
     output:
-        fa = os.path.join(QC, "step_11", "{sample}_R1.best.fasta"),
+        fa = os.path.join(QC, "step_11", PATTERN_R1 + ".best.fasta"),
         stats = os.path.join(QC, "step_11", "{sample}_stats.txt")
     benchmark:
         "benchmarks/deduplicate_{sample}.txt"
@@ -60,9 +60,9 @@ rule extract_seq_counts:
     Step 3: Extract sequences and counts for seqtable (count table)
     """
     input:
-        os.path.join(QC, "step_11", "{sample}_R1.best.fasta")
+        os.path.join(QC, "step_11", PATTERN_R1 + ".best.fasta")
     output:
-        os.path.join(QC, "step_12", "{sample}_reformated.fasta")
+        os.path.join(QC, "step_12", PATTERN_R1 + ".reformated.fasta")
     benchmark:
         "benchmarks/extract_seq_counts_{sample}.txt"
     resources:
@@ -83,7 +83,7 @@ rule extract_counts:
     Parse and combine stats and contig files
     """
     input:
-        os.path.join(QC, "step_12", "{sample}_reformated.fasta") 
+        os.path.join(QC, "step_12", PATTERN_R1 + ".reformated.fasta")
     output:
         os.path.join(QC, "counts", "{sample}_seqs.txt")
     shell:
@@ -96,7 +96,7 @@ rule extract_counts_ids:
     Extract sequence IDs
     """
     input:
-        os.path.join(QC, "step_12", "{sample}_reformated.fasta")
+        os.path.join(QC, "step_12", PATTERN_R1 + ".reformated.fasta")
     output:
         os.path.join(QC, "counts", "{sample}_contig_ids.txt")
     shell:
