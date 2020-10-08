@@ -181,12 +181,11 @@ rule remove_bacteria:
     """
     input:
         r1 = os.path.join(QC, "step_8", PATTERN_R1 + ".s8.out.fastq"),
-        r2 = os.path.join(QC, "step_8", PATTERN_R2 + ".s8.out.fastq"),
         bacpath = os.path.join(BACPATH, "ref")
     output:
-        mapped = os.path.join(QC, "step_9", "{sample}.bacterial.fastq"),
-        unmapped = os.path.join(QC, "step_9", "{sample}.viral_amb.fastq"),
-        scafstats = os.path.join(QC, "step_9", "{sample}.scafstats.txt")
+        mapped = os.path.join(QC, "step_9", PATTERN_R1 + ".bacterial.fastq"),
+        unmapped = os.path.join(QC, "step_9", PATTERN_R1 + ".viral_amb.fastq"),
+        scafstats = os.path.join(QC, "step_9", PATTERN_R1 + ".scafstats.txt")
     params:
         bacpath = BACPATH
     benchmark:
