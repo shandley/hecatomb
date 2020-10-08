@@ -7,17 +7,6 @@ Rob Edwards, Jan 2020
 
 import os
 
-rule contaminant_removal_first:
-    input:
-        # the database directories
-        os.path.join(BACPATH, "ref"),
-        os.path.join(HOSTPATH, "ref"),
-        # expand(os.path.join(CLUMPED, "{sample}_R1.clumped.fastq.gz"), sample=SAMPLES)
-        # expand(os.path.join(QC, "step_1", "{sample}.s1.stats.txt"), sample=SAMPLES)
-
-        # step 9 output
-        expand(os.path.join(QC, "step_9", "{sample}.viral_amb.fastq"), sample=SAMPLES)
-
 # NOTE: bbduk uses "threads=auto" by default that typically uses all threads, so no need to specify. -Xmx is used to
 # specify the memory allocation
 
@@ -26,8 +15,8 @@ rule remove_leftmost_primerB:
     Step 1: Remove leftmost primerB. Not the reverse complements
     """
     input:
-        r1 = os.path.join(READDIR, PATTERN_R1 + ".fastq.gz"),
-        r2 = os.path.join(READDIR, PATTERN_R2 + ".fastq.gz"),
+        r1 = remove_leftmost_primerB_r1_input,
+        r2 = remove_leftmost_primerB_r2_input,
         primers = os.path.join(CONPATH, "primerB.fa")
     output:
         r1 = os.path.join(QC, "step_1", PATTERN_R1 + ".s1.out.fastq"),
