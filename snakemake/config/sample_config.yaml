@@ -19,6 +19,14 @@ DatabaseFiles:
   host: human_virus_masked.fasta
   contaminants: vector_contaminants.fa.gz
 
+Options:
+  # These are options that control the flow of the pipeline and add additional
+  # processing steps. Set these to True to include them or False to ignore them
+  # run_prinseq first cleans the reads with prinseq++
+  run_prinseq: True
+  # use_bowtie substitutes bowtie2 and samtools for bbmap
+  use_bowtie: True
+
 Output:
   # Clumped is where the clumpify output of the original reads is written. QC is the output for all the QC steps
   Clumped: clumped
