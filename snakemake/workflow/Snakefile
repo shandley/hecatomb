@@ -187,6 +187,15 @@ if len(SAMPLES) == 0:
     sys.exit()
 
 
+# if we don't run prinseq, this is our input to the first step of 00_contaminant_removal.smk
+remove_leftmost_primerB_r1_input = os.path.join(READDIR, PATTERN_R1 + file_extension),
+remove_leftmost_primerB_r2_input = os.path.join(READDIR, PATTERN_R2 + file_extension),
+
+if config['Options']['run_prinseq']:
+    include: "rules/00_prinseq.smk"
+    remove_leftmost_primerB_r1_input = os.path.join(QC, "step_0", PATTERN_R1 + ".good_out.s0.fastq"),
+    remove_leftmost_primerB_r2_input = os.path.join(QC, "step_0", PATTERN_R2 + ".good_out.s0.fastq"),
+
 
 include: "rules/00_contaminant_removal.smk"
 if config['Options']['use_bowtie']:
@@ -200,16 +209,6 @@ include: "rules/05_mmseqs_pviral_aa_check.smk"
 include: "rules/06_mmseqs_pviral_nt.smk"
 include: "rules/07_mmseqs_pviral_nt_check.smk"
 include: "rules/08_concatenate_results.smk"
-
-# if we don't run prinseq, this is our input to the first step of 00_contaminant_removal.smk
-remove_leftmost_primerB_r1_input = os.path.join(READDIR, PATTERN_R1 + file_extension),
-remove_leftmost_primerB_r2_input = os.path.join(READDIR, PATTERN_R2 + file_extension),
-
-if config['Options']['run_prinseq']:
-    include: "rules/00_prinseq.smk"
-    remove_leftmost_primerB_r1_input = os.path.join(QC, "step_0", PATTERN_R1 + ".good_out.s0.fastq"),
-    remove_leftmost_primerB_r2_input = os.path.join(QC, "step_0", PATTERN_R2 + ".good_out.s0.fastq"),
-
 
 
 rule all:
