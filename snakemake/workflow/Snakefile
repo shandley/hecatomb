@@ -38,10 +38,8 @@ BACPATH = os.path.join(DBDIR, "bac_giant_unique_species")
 HOSTPATH = os.path.join(DBDIR, "human_masked")
 CONPATH = os.path.join(DBDIR, "contaminants")
 
-
-if not os.path.exists(os.path.join(HOSTPATH, "ref")):
-    sys.stderr.write("FATAL: You appear not to have the host databases. Please download the databases using the download_databases.snakefile\n")
-    sys.exit()
+BACBT2 = os.path.join(DBDIR, "bac_giant_unique_species", "bac_uniquespecies_giant.masked_Ns_removed")
+HOSTBT2 = os.path.join(DBDIR, "human_masked", "human_virus_masked")
 
 # paths for our data. This is where we will read and put things
 READDIR = config['Paths']['Reads']
@@ -55,10 +53,6 @@ if not os.path.exists(TMPDIR):
 # output directories for our amino acid searches
 AA_OUT  = os.path.join(RESULTS, "mmseqs_aa_out")
 AA_OUT_CHECKED  = os.path.join(RESULTS, "mmseqs_aa_checked_out")
-
-SAMPLES, = glob_wildcards(os.path.join(READDIR, '{sample}_R1.fastq.gz'))
-PATTERN_R1 = '{sample}_R1'
-PATTERN_R2 = '{sample}_R2'
 
 # paths for our databases
 PROTPATH = os.path.join(DBDIR, "proteins")
@@ -82,7 +76,13 @@ if not os.path.exists(PHAGE_LINEAGES):
     sys.stderr.write("you have the latest version of the databases\n")
     sys.exit()
 
-# uniref50 + viruses
+
+###################################################################
+#                                                                 #
+# Uniprot databases and related information                       #
+#                                                                 #
+###################################################################
+
 URVPATH = os.path.join(PROTPATH, "uniref_plus_virus")
 URVDB = os.path.join(URVPATH, "uniref50_virus.db") # uniref50 + viruses database
 if not os.path.exists(URVDB):
@@ -108,7 +108,13 @@ NT_CHECKED_OUT = os.path.join(RESULTS, "mmseqs_nt_checked_out")
 if not os.path.exists(NT_CHECKED_OUT):
     os.makedirs(NT_CHECKED_OUT)
 
-# taxonomizr taxa
+
+###################################################################
+#                                                                 #
+# Taxonomy databases and related information                      #
+#                                                                 #
+###################################################################
+
 TAXPATH  = os.path.join(DBDIR, "taxonomy")
 TAXTAX = os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql")
 if not os.path.exists(TAXTAX):
@@ -117,6 +123,8 @@ if not os.path.exists(TAXTAX):
     sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
     sys.exit()
 
+# Bacterial virus masked database for section 07 mmseqs pviral check
+
 BVMDB = os.path.join(NUCLPATH, "bac_virus_masked", "nt.fnaDB")
 if not os.path.exists(BVMDB):
     sys.stderr.write(f"FATAL: You appear not to have the nucleotide ")
@@ -124,11 +132,68 @@ if not os.path.exists(BVMDB):
     sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
     sys.exit()
 
-# Bacterial virus masked database for section 07 mmseqs pviral check
+
+###################################################################
+#                                                                 #
+# The bacterial and host bbmap and bowtie2 indexes                #
+#                                                                 #
+###################################################################
+
+# check to see if we have the right versions of the databases for
+# either bowtie or bbmap (default)
+if config['Options']['use_bowtie']:
+    for bti in [BACBT2, HOSTBT2]:
+        if not os.path.exists(f"{bti}.1.bt2l") and not os.path.exists(f"{bti}.1.bt2"):
+            sys.stderr.write(f"FATAL: You do not appear to have the bowtie2 indexes for {bti}\n")
+            sys.stderr.write("This version of hecatomb uses bowtie to remove host, bacteria, and contaminants\n")
+            sys.stderr.write("Please re-run the alt version of download databases\n")
+            sys.exit()
+
+    if not os.path.exists(os.path.join(CONPATH, "line_sine.1.bt2")):
+        sys.stderr.write("FATAL: You do not appear to have the bowtie2 indexes for the line/sine database\n")
+        sys.stderr.write("This version of hecatomb uses bowtie to remove contaminants\n")
+        sys.stderr.write("Please re-run the alt version of download databases\n")
+        sys.exit()
+else:
+    if not os.path.exists(os.path.join(HOSTPATH, "ref")):
+        sys.stderr.write("FATAL: You appear not to have the host databases. Please download the databases using the download_databases.snakefile\n")
+        sys.exit()
+
+###################################################################
+#                                                                 #
+# Read the sequence files and parse the file names.               #
+#                                                                 #
+###################################################################
+
+SAMPLES,EXTENSIONS = glob_wildcards(os.path.join(READDIR, '{sample}_R1{extensions}'))
+
+if not EXTENSIONS:
+    sys.stderr.write("""
+        FATAL: We could not parse the sequence file names.
+        We are expecting {sample}_R1{extension}, and so your files
+        should contain the characters '_R1' in the fwd reads
+        and '_R2' in the rev reads
+        """)
+    sys.exit()
+# we just get the generic extension. This is changed in Step 1
+
+file_extension = EXTENSIONS[0]
+# a convenience so we don't need to use '{sample}_R1' all the time
+PATTERN_R1 = '{sample}_R1'
+PATTERN_R2 = '{sample}_R2'
+
+if len(SAMPLES) == 0:
+    sys.stderr.write("FATAL: We could not detect any samples at all.\n")
+    sys.stderr.write("You should complain to Rob\n")
+    sys.exit()
+
 
 
 include: "rules/00_contaminant_removal.smk"
-include: "rules/01_contaminant_removal_hosts.smk"
+if config['Options']['use_bowtie']:
+    include: "rules/01_contaminant_removal_hosts_alt.smk"
+else:
+    include: "rules/01_contaminant_removal_hosts.smk"
 include: "rules/02_cluster_count.smk"
 include: "rules/03_seqtable.smk"
 include: "rules/04_mmseqs_pviral_aa.smk"
@@ -136,6 +201,16 @@ include: "rules/05_mmseqs_pviral_aa_check.smk"
 include: "rules/06_mmseqs_pviral_nt.smk"
 include: "rules/07_mmseqs_pviral_nt_check.smk"
 include: "rules/08_concatenate_results.smk"
+
+# if we don't run prinseq, this is our input to the first step of 00_contaminant_removal.smk
+remove_leftmost_primerB_r1_input = os.path.join(READDIR, PATTERN_R1 + file_extension),
+remove_leftmost_primerB_r2_input = os.path.join(READDIR, PATTERN_R2 + file_extension),
+
+if config['Options']['run_prinseq']:
+    include: "rules/00_prinseq.smk"
+    remove_leftmost_primerB_r1_input = os.path.join(QC, "step_0", PATTERN_R1 + ".good_out.s0.fastq"),
+    remove_leftmost_primerB_r2_input = os.path.join(QC, "step_0", PATTERN_R2 + ".good_out.s0.fastq"),
+
 
 
 rule all:
