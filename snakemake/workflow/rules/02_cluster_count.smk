@@ -8,11 +8,6 @@ Rob Edwards, Jan 2020
 import os
 import sys
 
-rule cluster_count_first:
-    input:
-        expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES)
-
-
 rule remove_exact_dups:
     """
     Step 1: Remove exact duplicates
