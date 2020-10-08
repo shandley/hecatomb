@@ -9,7 +9,6 @@ Rob Edwards, October 2020
 
 import os
 import sys
-import socket
 
 
 """
@@ -216,7 +215,7 @@ if config['Options']['run_prinseq']:
 rule all:
     input:
         # output of contaminant removal
-        expand(os.path.join(QC, "step_9", "{sample}.viral_amb.fastq"), sample=SAMPLES),
+        expand(os.path.join(QC, "step_9", PATTERN_R1 + ".viral_amb.fastq"), sample=SAMPLES),
         # output of 02_cluster_count.smk
         expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES),
         # these two inputs are the outputs from 03_seqtable.smk
