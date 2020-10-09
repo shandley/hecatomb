@@ -30,7 +30,7 @@ You should be able to `cd` into the GitHub directory and run `snakemake` directl
 
 ```
 cd hecatomb
-snakemake --configfile configs/sample_config.json --snakefile snakemake/contaminant_removal.snakefile
+snakemake --configfile snakemake/config/sample_config.yaml --snakefile snakemake/workflow/monolithic_hecatomb.smk
 ```
 
 ## Config File
