@@ -89,7 +89,7 @@ rule clumpify:
         r2 = os.path.join(CLUMPED, PATTERN_R2 + ".clumped.fastq.gz")
     shell:
         """
-        clumpify.sh in={input.r1} in2={input.r2} \
+        clumpify.sh {XMX} in={input.r1} in2={input.r2} \
             out={output.r1} out2={output.r2} \
             reorder=a \
             ow=t;
@@ -109,7 +109,7 @@ rule remove_leftmost_primerB:
         stats = os.path.join(QC, "step_1", "{sample}.s1.stats.txt")
     shell:
         """
-        bbduk.sh in={input.r1} in2={input.r2} \
+        bbduk.sh {XMX} in={input.r1} in2={input.r2} \
             ref={input.primers} \
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
@@ -131,7 +131,7 @@ rule remove_3prime_contaminant:
         stats = os.path.join(QC, "step_2", "{sample}.s2.stats.txt")
     shell:
         """
-        bbduk.sh in={input.r1} in2={input.r2} \
+        bbduk.sh {XMX} in={input.r1} in2={input.r2} \
             ref={input.primers} \
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
@@ -152,7 +152,7 @@ rule remove_primer_free_adapter:
         stats = os.path.join(QC, "step_3", "{sample}.s3.stats.txt")
     shell:
         """
-        bbduk.sh in={input.r1} in2={input.r2} \
+        bbduk.sh {XMX} in={input.r1} in2={input.r2} \
             ref={input.primers} \
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
@@ -173,7 +173,7 @@ rule remove_adapter_free_primer:
         stats = os.path.join(QC, "step_4", "{sample}.s4.stats.txt")
     shell:
         """
-        bbduk.sh in={input.r1} in2={input.r2} \
+        bbduk.sh {XMX} in={input.r1} in2={input.r2} \
             ref={input.primers} \
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
@@ -194,7 +194,7 @@ rule remove_vector_contamination:
         stats = os.path.join(QC, "step_5", "{sample}.s5.stats.txt")
     shell:
         """
-        bbduk.sh in={input.r1} in2={input.r2} \
+        bbduk.sh {XMX} in={input.r1} in2={input.r2} \
             ref={input.primers} \
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
@@ -216,7 +216,7 @@ rule host_removal:
         hostpath = HOSTPATH 
     shell:
         """
-        bbmap.sh in={input.r1} in2={input.r2} \
+        bbmap.sh {XMX} in={input.r1} in2={input.r2} \
             outu={output.unmapped} outm={output.mapped} \
             path={params.hostpath} \
             semiperfectmode=t quickmatch fast ordered=t ow=t;
@@ -233,7 +233,7 @@ rule repair:
         r2 = os.path.join(QC, "step_6", PATTERN_R2 + ".s6.out.fastq")
     shell:
         """   
-        repair.sh in={input.unmapped} \
+        repair.sh {XMX} in={input.unmapped} \
             out={output.r1} out2={output.r2} \
             ow=t;
         """
@@ -252,7 +252,7 @@ rule trim_low_quality:
         stats = os.path.join(QC, "step_7", "{sample}.s7.stats.txt")
     shell:
         """
-        bbduk.sh in={input.r1} in2={input.r2} \
+        bbduk.sh {XMX} in={input.r1} in2={input.r2} \
             out={output.r1} out2={output.r2} outs={output.singletons} \
             stats={output.stats} \
             qtrim=r trimq=20 maxns=2 minlength=50 ordered=t ow=t;
@@ -353,7 +353,7 @@ rule remove_bacteria:
         bacpath = BACPATH
     shell:
         """
-        bbmap.sh in={input.r1} \
+        bbmap.sh {XMX} in={input.r1} \
             path={params.bacpath} \
             outm={output.mapped} outu={output.unmapped} \
             scafstats={output.scafstats} \
