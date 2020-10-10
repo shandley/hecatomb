@@ -414,7 +414,9 @@ rule line_sine_download:
     """
     output:
         os.path.join(CONPATH, "line_sine.fasta")
-    conda: "envs/curl.yaml"
+    conda:
+        "envs/seqtk.yaml",
+        "envs/curl.yaml"
     shell:
         """
         (curl -L http://sines.eimb.ru/banks/SINEs.bnk && \
