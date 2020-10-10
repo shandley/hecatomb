@@ -48,13 +48,13 @@ if config['Options']['use_bowtie']:
         expand(os.path.join(BACPATH, "bac_uniquespecies_giant.masked_Ns_removed.{n}.bt2l"), n=[1,2,3,4]),
         expand(os.path.join(HOSTPATH, "human_virus_masked.{n}.bt2l"), n=[1,2,3,4]),
         expand(os.path.join(CONPATH, "line_sine.{n}.bt2"), n=[1,2,3,4]),
-        expand(os.path.join(CONPATH, "line_sine.rev.{m}.bt2"), m=[1,2]),
+        expand(os.path.join(CONPATH, "line_sine.rev.{m}.bt2"), m=[1,2])
     ]
 else:
     inputs = [
         os.path.join(BACPATH, "ref"),
         os.path.join(HOSTPATH, "ref"),
-        os.path.join(CONPATH, "line_sine.fasta"),
+        os.path.join(CONPATH, "line_sine.fasta")
     ]
 
 
