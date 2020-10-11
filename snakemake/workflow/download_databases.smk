@@ -103,7 +103,6 @@ rule make_bac_databases:
         wd = BACPATH,
         fa = config['DatabaseFiles']['bacteria']
     resources:
-        time_min = 240,
         mem_mb=100000,
         cpus=16
     conda:
@@ -120,7 +119,6 @@ rule make_bac_bt_idx:
     benchmark:
         "benchmarks/make_bac_bt_idx.txt"
     resources:
-        time_min = 240,
         mem_mb=100000,
         cpus=8
     params:
@@ -394,9 +392,10 @@ rule mmseqs_nt_db:
     benchmark:
         "benchmarks/mmseqs_nt_db.txt"
     resources:
-        time_min = 240,
         mem_mb=20000,
         cpus=8
+    conda:
+        "envs/mmseqs2.yaml"
     params:
         db = os.path.join(NUCLPATH, "ntDB")
     shell:
@@ -424,3 +423,23 @@ rule line_sine_download:
                 > {output}
         """
 
+rule line_sine_format:
+    """
+    Build the bowtoe2 indices
+    """
+    input:
+        os.path.join(CONPATH, "line_sine.fasta")
+    output:
+        expand(os.path.join(CONPATH, "line_sine.{n}.bt2"), n=[1,2,3,4]),
+        expand(os.path.join(CONPATH, "line_sine.rev.{m}.bt2"), m=[1,2])
+    params:
+        idx = os.path.join(CONPATH, "line_sine")
+    resources:
+        mem_mb=100000,
+        cpus=8
+    conda:
+        "envs/bowtie2.yaml"
+    shell:
+        """
+        bowtie2-build {input} {params.idx}
+        """
