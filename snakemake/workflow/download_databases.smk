@@ -27,7 +27,7 @@ HOSTPATH = os.path.join(DBDIR, "human_masked")
 CONPATH  = os.path.join(DBDIR, "contaminants")
 PROTPATH = os.path.join(DBDIR, "proteins")
 TAXPATH  = os.path.join(DBDIR, "taxonomy")
-NUCLPATH = os.path.join(DBDIR, "nucleotide")
+NUCLPATH = os.path.join(DBDIR, "nucleotides")
 
 # these are just derivied from above
 URVPATH = os.path.join(PROTPATH, "uniref_plus_virus") # uniref50 + viruses
