@@ -471,4 +471,4 @@ rule extract_nucleotide_databases:
         os.path.join(NUCLPATH, "refseq_virus_nt_UniVec_masked/nt.fnaDB.index"),
         os.path.join(NUCLPATH, "bac_virus_masked/nt.fnaDB.index"),
     shell:
-        "cd {DBDIR} && tar xf {input}"
+        "tar xf {input}"
