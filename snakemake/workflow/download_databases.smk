@@ -169,6 +169,8 @@ rule make_host_bt_idx:
         wd = HOSTPATH,
         btidx = "human_virus_masked",
         fa = config['DatabaseFiles']['host']
+    conda:
+        "envs/bowtie2.yaml"
     shell:
         "cd {params.wd} && bowtie2-build --threads {resources.cpus} --large-index {params.fa} {params.btidx}"
 
