@@ -168,6 +168,7 @@ To download and install all the databases.
 Here are a list of the databases that are currently missing:
 """)
     sys.stderr.write("\n".join(fatal_messages))
+    sys.stderr.write("\n\n")
     sys.exit(5)
 
 ###################################################################
