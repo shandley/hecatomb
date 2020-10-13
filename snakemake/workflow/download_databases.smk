@@ -37,6 +37,7 @@ URVPATH = os.path.join(PROTPATH, "uniref_plus_virus") # uniref50 + viruses
 id_mapping_url    = "https://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz"
 hecatomb_db_url   = "https://edwards.sdsu.edu/CERVAID/databases/hecatomb.databases.tar.bz2"
 hecatomb_nucl_url = "https://edwards.sdsu.edu/CERVAID/databases/hecatomb.nucleotide.databases.tar.bz2"
+taxonomizr_url    = "https://edwards.sdsu.edu/CERVAID/databases/taxonomizr_accessionTaxa.sql.gz"
 taxdump_url       = "ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz"
 uniprot_virus_url = "https://www.uniprot.org/uniprot/?query=taxonomy:%22Viruses%20[10239]%22&format=fasta&&sort=score&fil=reviewed:no"
 ntacc2tax         = "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz"
@@ -70,6 +71,7 @@ rule all:
         os.path.join(NUCLPATH, "bac_virus_masked/nt.fnaDB.dbtype"),
         os.path.join(NUCLPATH, "refseq_virus_nt_UniVec_masked/nt.fnaDB.index"),
         os.path.join(NUCLPATH, "bac_virus_masked/nt.fnaDB.index"),
+        os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql"),
         multiext(os.path.join(PROTPATH, "uniprot_virus_c99"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp"),
         multiext(os.path.join(URVPATH, "uniref50_virus"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp")
 
@@ -472,3 +474,19 @@ rule extract_nucleotide_databases:
         os.path.join(NUCLPATH, "bac_virus_masked/nt.fnaDB.index"),
     shell:
         "tar -C {DBDIR} -xf {input}"
+
+rule download_taxonomizr:
+    output:
+          temporary(os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql.gz"))
+    conda:
+         "envs/curl.yaml"
+    shell:
+         "cd {DBDIR} && curl -LO {taxonomizr_url}"
+
+rule extract_taxonomizr:
+    input:
+        os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql.gz")
+    output:
+          os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql")
+    shell:
+         "gunzip {input}"
