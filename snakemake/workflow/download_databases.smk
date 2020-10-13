@@ -266,8 +266,10 @@ rule extract_accession_to_tax:
         os.path.join(TAXPATH, "nucl_gb.accession2taxid.gz")
     output:
         os.path.join(TAXPATH, "nucl_gb.accession2taxid")
+    conda:
+        "envs/pigz.yaml"
     shell:
-        "gunzip {input}"
+        "unpigz {input}"
 
 rule create_nt_tax_table:
     input:
@@ -345,9 +347,11 @@ rule uniref_plus_viruses:
         vr = os.path.join(PROTPATH, "uniprot_virus_c99.faa"),
     output:
         temp(os.path.join(URVPATH, "uniref50_virus.fasta"))
+    conda:
+        "envs/pigz.yaml"
     shell:
         """
-        gunzip -c {input.ur} | cat - {input.vr} > {output}
+        unpigz -c {input.ur} | cat - {input.vr} > {output}
         """
 
 rule mmseqs_urv:
@@ -461,6 +465,7 @@ rule download_nucleotide_databases:
         "envs/curl.yaml"
     shell:
         "cd {DBDIR} && curl -LO {hecatomb_nucl_url}"
+
 rule extract_nucleotide_databases:
     """
     Extract the nucleotide databases
@@ -488,5 +493,7 @@ rule extract_taxonomizr:
         os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql.gz")
     output:
           os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql")
+    conda:
+        "envs/pigz.yaml"
     shell:
-         "gunzip {input}"
+         "unpigz {input}"
