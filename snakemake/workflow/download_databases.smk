@@ -486,7 +486,7 @@ rule download_taxonomizr:
     conda:
          "envs/curl.yaml"
     shell:
-         "cd {DBDIR} && curl -LO {taxonomizr_url}"
+         "cd {TAXPATH} && curl -LO {taxonomizr_url}"
 
 rule extract_taxonomizr:
     input:
