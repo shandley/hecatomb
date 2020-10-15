@@ -175,9 +175,10 @@ rule reads_bacteria_mapped:
     input:
         os.path.join(QC, "step_7", '{sample}.bacteria.bam')
     output:
-        r1 = os.path.join(QC, "step_7", PATTERN_R1 + '.bacterial.fastq'),
-        r2 = os.path.join(QC, "step_7", PATTERN_R2 + '.bacterial.fastq'),
-        s = os.path.join(QC, "step_7", '{sample}_singletons_bacteria.mapped.fastq')
+        r1 = os.path.join(QC, "step_7", PATTERN_R1 + '.bacteria_mapped.fastq'),
+        r2 = os.path.join(QC, "step_7", PATTERN_R2 + '.bacteria_mapped.fastq'),
+        s1 = os.path.join(QC, "step_7", PATTERN_R1 + '.bacteria_mapped_singletons.fastq'),
+        s2 = os.path.join(QC, "step_7", PATTERN_R2 + '.bacteria_mapped_singletons.fastq')
     benchmark:
         "benchmarks/reads_bacteria_mapped_{sample}.txt"
     resources:
@@ -189,16 +190,18 @@ rule reads_bacteria_mapped:
         """
         samtools fastq --threads {resources.cpus} -G 12 -f 65 {input} > {output.r1} &&
         samtools fastq --threads {resources.cpus}  -G 12 -f 129 {input} > {output.r2} &&
-        samtools fastq  --threads {resources.cpus} -F 5 {input} > {output.s}
+        samtools fastq  --threads {resources.cpus} -f 72 -F 4 {input} > {output.s1} &&
+        samtools fastq  --threads {resources.cpus} -f 136 -F 4 {input} > {output.s2}
         """
 
 rule reads_bacteria_unmapped:
     input:
         os.path.join(QC, "step_7", '{sample}.bacteria.bam')
     output:
-        r1 = os.path.join(QC, "step_9", PATTERN_R1 + ".viral_amb.fastq"),
-        r2 = os.path.join(QC, "step_9", PATTERN_R2 + ".viral_amb.fastq"),
-        s = os.path.join(QC, "step_9", '{sample}_singletons.s7.out.fastq')
+        r1 = os.path.join(QC, "step_8", PATTERN_R1 + ".bacteria_unmapped.fastq"),
+        r2 = os.path.join(QC, "step_8", PATTERN_R2 + ".bacteria_unmapped.fastq"),
+        s1 = os.path.join(QC, "step_8", PATTERN_R1 + ".bacteria_unmapped_singletons.fastq"),
+        s2 = os.path.join(QC, "step_8", PATTERN_R2 + ".bacteria_unmapped_singletons.fastq")
     benchmark:
         "benchmarks/reads_bacteria_unmapped_{sample}.txt"
     resources:
@@ -210,5 +213,18 @@ rule reads_bacteria_unmapped:
         """
         samtools fastq --threads {resources.cpus} -f 77  {input} > {output.r1} && 
         samtools fastq --threads {resources.cpus} -f 141 {input} > {output.r2} &&
-        samtools fastq --threads {resources.cpus} -f 4 -F 1  {input} > {output.s}
+        samtools fastq --threads {resources.cpus} -f 68 -F 8  {input} > {output.s1} &&
+        samtools fastq --threads {resources.cpus} -f 132 -F 8  {input} > {output.s2}
         """
+
+rule concatenate_singletons:
+    """
+    Combine the unmapped reads and singletons into a single file for the next step
+    """
+    input:
+        r1 = os.path.join(QC, "step_8", PATTERN_R1 + ".bacteria_unmapped.fastq"),
+        s1 = os.path.join(QC, "step_8", PATTERN_R1 + ".bacteria_unmapped_singletons.fastq")
+    output:
+          os.path.join(QC, "step_9", PATTERN_R1 + ".viral_amb.fastq")
+    shell:
+         "cat {input} > {output}"
