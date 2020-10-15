@@ -112,7 +112,7 @@ You can run on slurm with a similar command, just changing the `--cluster` part:
 
 ```bash
 mkdir logs_slurm
-snakemake -s snakemake/workflow/Snakefile --configfile config/sample_config.yaml --cluster 'sbatch  --mem={resources.mem_mb} -c {resources.cpus} -o logs_slurm/{rule}_{jobid} _{jobid}.out -e logs_slurm/{rule}_{jobid}.err' --local-cores 32 --cores 600 --latency-wait 60 --default-resources "cpus=1, mem_mb=2000" --use-conda --conda-frontend mamba
+snakemake -s snakemake/workflow/Snakefile --configfile snakemake/config/sample_config.yaml --cluster 'sbatch  --mem={resources.mem_mb} -c {resources.cpus} -o logs_slurm/{rule}_{jobid} _{jobid}.out -e logs_slurm/{rule}_{jobid}.err' --local-cores 32 --cores 600 --latency-wait 60 --default-resources cpus=1, mem_mb=2000 --use-conda --conda-frontend mamba
 ```
 
 This puts the output and error files in the directory `logs_slurm`. On my cluster, nothing runs if I forget to make the logs_slurm output directories, though!
