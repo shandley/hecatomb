@@ -150,6 +150,14 @@ latency-wait: 60
 local-cores: 32
 ```
 
+Once you have set this up, you can run the same snakemake command as before a lot simpler:
+
+```bash
+mkdir logs_slurm
+snakemake -s snakemake/workflow/Snakefile --configfile config/sample_config.yaml --profile slurm
+```
+
+
 
 ## The config file
 
