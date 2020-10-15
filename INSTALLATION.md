@@ -127,7 +127,7 @@ Our default profile encompasses both snakemake and slurm details. If you are not
 You will need to make a directory in you `.config` directory and add this information:
 
 ```bash
-mkdir ~/.config/snakemake/slurm/
+mkdir -p ~/.config/snakemake/slurm/
 vi ~/.config/snakemake/slurm/config.yaml
 ```
 
