@@ -86,13 +86,15 @@ snakemake --configfile snakemake/config/sample_config.yaml -s snakemake/workflow
 
 You can run `hecatomb` on a single machine but it excels when you run it across a cluster. We recommend using `slurm` or `sge`
 
+> _Tip_: `SGE` and `slurm` are two similar cluster queuing systems, and your cluster likely has one or the other. If you routinely use `qsub` to submit jobs, your cluster is probably using `SGE`. If you routinely use `sbatch` to submit jobs, your cluster is probably using `slurm`. Not sure? Ask your systems administrator for advice!
+
 ## Running on SGE
 
 If you are using `SGE` or a variant,  you can run `hecatomb` using the snakemake cluster command:
 
 ```bash
 mkdir sge_out sge_err
-snakemake -s snakemake/workflow/Snakefile --configfile config/sample_config.yaml --cluster 'qsub -cwd -o sge_out -e sge_err' --local-cores 6 --cores 600 --latency-wait 60  --default-resources "cpus=1, mem_mb=2000" --use-conda --conda-frontend mamba
+snakemake -s snakemake/workflow/Snakefile --configfile config/sample_config.yaml --cluster 'qsub -cwd -o sge_out -e sge_err' --local-cores 6 --cores 600 --latency-wait 60  --default-resources cpus=1 mem_mb=2000 --use-conda --conda-frontend mamba
 ```
 
 Note that here we have added a couple of additional options that you should vary depending on your cluster configuration:
@@ -112,7 +114,7 @@ You can run on slurm with a similar command, just changing the `--cluster` part:
 
 ```bash
 mkdir logs_slurm
-snakemake -s snakemake/workflow/Snakefile --configfile snakemake/config/sample_config.yaml --cluster 'sbatch  --mem={resources.mem_mb} -c {resources.cpus} -o logs_slurm/{rule}_{jobid} _{jobid}.out -e logs_slurm/{rule}_{jobid}.err' --local-cores 32 --cores 600 --latency-wait 60 --default-resources cpus=1, mem_mb=2000 --use-conda --conda-frontend mamba
+snakemake -s snakemake/workflow/Snakefile --configfile snakemake/config/sample_config.yaml --cluster 'sbatch  --mem={resources.mem_mb} -c {resources.cpus} -o logs_slurm/{rule}_{jobid} _{jobid}.out -e logs_slurm/{rule}_{jobid}.err' --local-cores 32 --cores 600 --latency-wait 60 --default-resources cpus=1 mem_mb=2000 --use-conda --conda-frontend mamba
 ```
 
 This puts the output and error files in the directory `logs_slurm`. On my cluster, nothing runs if I forget to make the logs_slurm output directories, though!
@@ -122,9 +124,50 @@ This puts the output and error files in the directory `logs_slurm`. On my cluste
 
 We recommend using profiles (see these [great](https://www.sichong.site/2020/02/25/snakemake-and-slurm-how-to-manage-workflow-with-resource-constraint-on-hpc/) and [great](http://bluegenes.github.io/Using-Snakemake_Profiles/) blogs for more information). 
 
-Our default profile encompasses both snakemake and slurm details. If you are not using slurm, then feel free to leave those parts out.
+You can make a profile for a computer with no cluster, sge, or slurm.
 
-You will need to make a directory in you `.config` directory and add this information:
+In any case, we are going to make a directory and file in your home directory. That way, whenever you run `snakemake` it can access it.
+
+
+#### SGE profile
+
+For `SGE` we will make a file called `config.yaml` in the sge directory:
+
+```bash
+mkdir -p ~/.config/snakemake/sge/
+vi ~/.config/snakemake/sge/config.yaml
+```
+
+In that file put these contents:
+
+```yaml
+# non-slurm settings
+jobs: 600
+use-conda: True
+conda-frontend: mamba
+default-resources: [cpus=1, mem_mb=2000]
+keep-going: True
+
+# sge settings
+cluster: "qsub -cwd -o sge_out -e sge_err -pe smp {resources.cpus} -V "
+latency-wait: 60
+local-cores: 6
+```
+
+> _Tip_: Your cluster may have slightly different parallel environments. To figure out what is avaialble, try the command `qconf -spl` or ask your systems administrator. You may need to change the `smp` part in this file.
+
+> _Tip_: Adjust the `local-cores` and `cores` to reflect your cluster.
+
+Once you have set this up, you can run the same snakemake command as before a lot simpler:
+
+```bash
+mkdir sge_out sge_err
+snakemake -s snakemake/workflow/Snakefile --configfile config/sample_config.yaml --profile sge
+```
+
+#### Slurm profile
+
+For `slurm` we will make a file called `config.yaml` in the slurm directory:
 
 ```bash
 mkdir -p ~/.config/snakemake/slurm/
@@ -156,8 +199,6 @@ Once you have set this up, you can run the same snakemake command as before a lo
 mkdir logs_slurm
 snakemake -s snakemake/workflow/Snakefile --configfile config/sample_config.yaml --profile slurm
 ```
-
-
 
 ## The config file
 
