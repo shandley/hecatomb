@@ -49,7 +49,7 @@ rule create_seqtable_db:
     output:
         os.path.join(AA_OUT, "seqtable_query.db")
     benchmark:
-        "benchmarks/create_seqtable_db}.txt"
+        "benchmarks/create_seqtable_db.txt"
     resources:
         mem_mb=20000,
     conda:
