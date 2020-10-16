@@ -225,6 +225,6 @@ rule concatenate_singletons:
         r1 = os.path.join(QC, "step_8", PATTERN_R1 + ".bacteria_unmapped.fastq"),
         s1 = os.path.join(QC, "step_8", PATTERN_R1 + ".bacteria_unmapped_singletons.fastq")
     output:
-          os.path.join(QC, "step_9", PATTERN_R1 + ".viral_amb.fastq")
+        os.path.join(QC, "step_9", PATTERN_R1 + ".viral_amb.fastq")
     shell:
-         "cat {input} > {output}"
+        "cat {input} > {output}"
