@@ -49,6 +49,10 @@ TMPDIR = config['Paths']['Temp']
 if not os.path.exists(TMPDIR):
     os.makedirs(TMPDIR, exist_ok=True)
 
+
+fatal_errors = False
+fatal_messages = []
+
 # output directories for our amino acid searches
 AA_OUT  = os.path.join(RESULTS, "mmseqs_aa_out")
 AA_OUT_CHECKED  = os.path.join(RESULTS, "mmseqs_aa_checked_out")
@@ -56,24 +60,21 @@ AA_OUT_CHECKED  = os.path.join(RESULTS, "mmseqs_aa_checked_out")
 # paths for our databases
 PROTPATH = os.path.join(DBDIR, "proteins")
 if not os.path.exists(PROTPATH):
-    sys.stderr.write("FATAL: You appear not to have the protein databases. Please download the databases using the download_databases.snakefile\n")
-    sys.exit()
+    fatal_messages.append("protein databases")
+    fatal_errors = True
 
 # The virus database, clustered at 99% with cd-hit and then compiled
 # with mmseqs
 
 VIRDB = os.path.join(PROTPATH, "uniprot_virus_c99.db")
 if not os.path.exists(VIRDB):
-    sys.stderr.write(f"FATAL: {VIRDB} does not exist. Please ensure you")
-    sys.stderr.write(" have installed the databases\n")
-    sys.exit()
+    fatal_messages.append(VIRDB)
+    fatal_errors = True
 
 PHAGE_LINEAGES = os.path.join(DBDIR, "phages", "phage_taxonomic_lineages.txt")
 if not os.path.exists(PHAGE_LINEAGES):
-    sys.stderr.write("FATAL: phages/phage_taxonomic_lineages.txt not ")
-    sys.stderr.write("found in the databases directory. Please check ")
-    sys.stderr.write("you have the latest version of the databases\n")
-    sys.exit()
+    fatal_messages.append("phages/phage_taxonomic_lineages.txt")
+    fatal_errors = True
 
 
 ###################################################################
@@ -85,19 +86,15 @@ if not os.path.exists(PHAGE_LINEAGES):
 URVPATH = os.path.join(PROTPATH, "uniref_plus_virus")
 URVDB = os.path.join(URVPATH, "uniref50_virus.db") # uniref50 + viruses database
 if not os.path.exists(URVDB):
-    sys.stderr.write("FATAL: {URVDB} not found.\n")
-    sys.stderr.write("Please make sure that you have run ")
-    sys.stderr.write("download_databases.snakefile before commencing\n")
-    sys.exit()
+    fatal_messages.append(URVDB)
+    fatal_errors = True
 
 # Nucleotide data
 NUCLPATH = os.path.join(DBDIR, "nucleotides")
 NTDB = os.path.join(NUCLPATH, "refseq_virus_nt_UniVec_masked", "nt.fnaDB")
 if not os.path.exists(NTDB):
-    sys.stderr.write(f"FATAL: You appear not to have the nucleotide ")
-    sys.stderr.write(f"database {NTDB} installed.\n")
-    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
-    sys.exit()
+    fatal_messages.append(f"nucleotide database {NTDB}")
+    fatal_errors = True
 
 NT_OUT = os.path.join(RESULTS, "mmseqs_nt_out")
 if not os.path.exists(NT_OUT):
@@ -117,19 +114,15 @@ if not os.path.exists(NT_CHECKED_OUT):
 TAXPATH  = os.path.join(DBDIR, "taxonomy")
 TAXTAX = os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql")
 if not os.path.exists(TAXTAX):
-    sys.stderr.write(f"FATAL: You appear not to have the taxonomizr ")
-    sys.stderr.write(f"database {TAXTAX} installed.\n")
-    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
-    sys.exit()
+    fatal_messages.append(f"taxonomizr database {TAXTAX}")
+    fatal_errors = True
 
 # Bacterial virus masked database for section 07 mmseqs pviral check
 
 BVMDB = os.path.join(NUCLPATH, "bac_virus_masked", "nt.fnaDB")
 if not os.path.exists(BVMDB):
-    sys.stderr.write(f"FATAL: You appear not to have the nucleotide ")
-    sys.stderr.write(f"database {BVMDB} installed.\n")
-    sys.stderr.write(f"Please download the databases using the download_databases.snakefile\n")
-    sys.exit()
+    fatal_messages.append(BVMDB)
+    fatal_errors = True
 
 
 ###################################################################
@@ -143,20 +136,40 @@ if not os.path.exists(BVMDB):
 if config['Options']['use_bowtie']:
     for bti in [BACBT2, HOSTBT2]:
         if not os.path.exists(f"{bti}.1.bt2l") and not os.path.exists(f"{bti}.1.bt2"):
-            sys.stderr.write(f"FATAL: You do not appear to have the bowtie2 indexes for {bti}\n")
-            sys.stderr.write("This version of hecatomb uses bowtie to remove host, bacteria, and contaminants\n")
-            sys.stderr.write("Please re-run the alt version of download databases\n")
-            sys.exit()
+            fatal_messages.append(f"bowtie2 indexes for {bti}")
+            fatal_errors = True
 
     if not os.path.exists(os.path.join(CONPATH, "line_sine.1.bt2")):
-        sys.stderr.write("FATAL: You do not appear to have the bowtie2 indexes for the line/sine database\n")
-        sys.stderr.write("This version of hecatomb uses bowtie to remove contaminants\n")
-        sys.stderr.write("Please re-run the alt version of download databases\n")
-        sys.exit()
+        fatal_messages.append("bowtie2 indexes for the line/sine database")
+        fatal_errors = True
 else:
     if not os.path.exists(os.path.join(HOSTPATH, "ref")):
-        sys.stderr.write("FATAL: You appear not to have the host databases. Please download the databases using the download_databases.snakefile\n")
-        sys.exit()
+        fatal_messages.append("host databases")
+        fatal_errors = True
+
+###################################################################
+#                                                                 #
+# Fatal errors should all be resolved by the download databsaes   #
+#                                                                 #
+###################################################################
+
+if fatal_errors:
+    sys.stderr.write("""
+**** FATAL ERRORS ****
+
+We can't proceed because we can't find one or more of the databases.
+You probably need to download the databases before you can continue.
+
+Please use the snakefile: 
+   download_databases.smk
+
+To download and install all the databases.
+
+Here are a list of the databases that are currently missing:
+""")
+    sys.stderr.write("\n".join(fatal_messages))
+    sys.stderr.write("\n\n")
+    sys.exit(5)
 
 ###################################################################
 #                                                                 #

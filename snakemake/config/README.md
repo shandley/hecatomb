@@ -1,6 +1,8 @@
 # Example config files
 
-These example files are provided for your convenience. You will certailnly need to edit them, but they will clue you in on what you need.
+We use the [config](sample_config.yaml) file to set up the folders 
+
+These example files are provided for your convenience. You will certainly need to edit them, but they will clue you in on what you need.
 
 Our database structure looks like this:
 
