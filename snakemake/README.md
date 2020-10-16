@@ -13,4 +13,3 @@ These [snakemake](https://snakemake.readthedocs.io/) implementations are designe
 Please read the [installation notes](../INSTALLATION.md)
 
 
-
