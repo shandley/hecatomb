@@ -194,7 +194,7 @@ rule nonphages_to_pyloseq_table:
         grep -v 'Bacteria;' {input} | \
             grep 'Viruses;' | \
             grep -v -f  {PHAGE_LINEAGES} | cut -f1,5 | \
-            sed 's/:/\t/g' | \
+            sed 's/;/\t/g' | \
                 sort -n -k1 > {output}
         """
 
