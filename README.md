@@ -6,7 +6,7 @@
 
 # hecatomb
 
-A [hecatomb](https://en.wiktionary.org/wiki/hecatomb) is a great sacrifice; a great number of people, animals or things, especially as sacrificed or destroyed. In this case we provide a hecatomb of false-positive viral sequences.
+A [hecatomb](https://en.wiktionary.org/wiki/hecatomb) is a great sacrifice; a great number of people, animals or things, especially as sacrificed or destroyed. In this case we provide a hecatomb of false-positive viral sequences. Hecatomb is desi
 
 # What is `hecatomb`?
 
@@ -17,8 +17,7 @@ Hecatomb is a pipline for culling spurious sequences from viral metagenomes.
 If you have:
 - viral metagenomes
 - sequences that might be viral
-- RoundA/B sequences
-- fastq files
+- RoundA/B (DNA and cDNA from RNA viral genomes) sequences
 
 Then hecatomb is for you!
 
