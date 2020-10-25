@@ -38,7 +38,7 @@ conda install -c conda-forge -c bioconda snakemake mamba
 Simply clone this repo anywhere you want to run hecatomb!
 
 ```
-git clone https://github.com/linsalrob/hecatomb.git
+git clone https://github.com/shandley/hecatomb.git
 ```
 
 ### Step 4. Download the databases
