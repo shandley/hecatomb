@@ -13,15 +13,13 @@ import sys
 
 """
 Summary:
-    # Step 0: Clumpify reads (https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/clumpify-guide/)
-    # Step 1: Remove 5' amplification primer
-    # Step 2: Remove 3' read through contaminant (Reverse complement of amplification primer + 6 bases of the adapter)
-    # Step 3: Remove primer free adapter (both orientations)
-    # Step 4: Remove adapter free primer (both orientations)
-    # Step 5: PhiX Removal and vector contamination removal
+    # Step 1: Clean sequences with PrinSeq
+    # Step 2: Remove 5' amplification primer (e.g. primerB)
+    # Step 3: Remove 3' read through contaminant (Reverse complement of amplification primer + 6 bases of the adapter)
+    # Step 4: Remove remaining adapter (both orientations)
+    # Step 5: PhiX and vector contamination removal
     # Step 6: Host-removal
     # Step 7: Trim low-quality bases
-    # Step 8: Remove bacterial contaminants reserving viral and aambiguous sequences
 """
 
 if not config:
@@ -29,21 +27,19 @@ if not config:
     sys.stderr.write("examples are provided in the Git repo\n")
     sys.exit()
 
+# base databases directory from config
+	DBDIR = config['Paths']['Databases']
 
-DBDIR = config['Paths']['Databases']
+# host directory path
+	HOST = config['Paths']['Host']
 
 # paths for our databases
-BACPATH = os.path.join(DBDIR, "bac_giant_unique_species")
-HOSTPATH = os.path.join(DBDIR, "human_masked")
-CONPATH = os.path.join(DBDIR, "contaminants")
-
-BACBT2 = os.path.join(DBDIR, "bac_giant_unique_species", "bac_uniquespecies_giant.masked_Ns_removed")
-HOSTBT2 = os.path.join(DBDIR, "human_masked", "human_virus_masked")
+	HOSTPATH = os.path.join(DBDIR, "host", "HOST")
+	CONPATH = os.path.join(DBDIR, "contaminants")
 
 # paths for our data. This is where we will read and put things
-READDIR = config['Paths']['Reads']
-CLUMPED = config['Output']["Clumped"]
-QC = config['Output']['QC']
+	READDIR = config['Paths']['Reads']
+	QC = config['Output']['QC']
 RESULTS = config['Output']['Results']
 TMPDIR = config['Paths']['Temp']
 if not os.path.exists(TMPDIR):
