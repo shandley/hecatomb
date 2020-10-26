@@ -1,0 +1,40 @@
+---
+Paths:
+  # The Database directory is where to save the databases. 
+  # You can install them using download_databases.snakefile 
+ 
+  Databases: databases
+
+  # Temp is a temporary directory. By default we make 
+  # subdirectories in here for each application
+  Temp: tmp
+ 
+  # The Reads directory has your input fastq files that you want
+  # to process through hecatomb
+  Reads: test_data/fastq
+
+DatabaseFiles:
+  # These are our predefined databases that we screen against, but you may want to replace host with e.g. mouse
+  bacteria: bac_uniquespecies_giant.masked_Ns_removed.fasta
+  host: human_virus_masked.fasta
+  contaminants: vector_contaminants.fa.gz
+
+Options:
+  # These are options that control the flow of the pipeline and add additional
+  # processing steps. Set these to True to include them or False to ignore them
+  # run_prinseq first cleans the reads with prinseq++
+  run_prinseq: True
+  # use_bowtie substitutes bowtie2 and samtools for bbmap
+  use_bowtie: True
+
+Output:
+  # Clumped is where the clumpify output of the original reads is written. QC is the output for all the QC steps
+  Clumped: clumped
+  QC: QC
+  Results: results
+
+System:
+  # How much memory you want to allocate to java
+  Memory: -Xmx128g
+
+
