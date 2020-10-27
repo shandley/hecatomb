@@ -1,0 +1,260 @@
+Family	Baltimore	Baltimore Group
+Abyssoviridae	ssRNA(+)	IV
+Ackermannviridae	dsDNA	I
+Adenoviridae	dsDNA	I
+Adintoviridae	dsDNA	I
+Adomaviridae	dsDNA	I
+Alloherpesviridae	dsDNA	I
+Alphaflexiviridae	ssRNA(+)	IV
+Alphasatellitidae	ssDNA	II
+Alphatetraviridae	ssRNA(+)	IV
+Alvernaviridae	ssRNA(+)	IV
+Amalgaviridae	dsRNA	III
+Amnoonviridae	ssRNA(-)	V
+Ampullaviridae	dsDNA	I
+Anelloviridae	ssDNA	II
+Arenaviridae	ssRNA(-)	V
+Arteriviridae	ssRNA(+)	IV
+Artoviridae	ssRNA(-)	V
+Ascoviridae	dsDNA	I
+Asfarviridae	dsDNA	I
+Aspiviridae	ssRNA(-)	V
+Astroviridae	ssRNA(+)	IV
+Autographiviridae	dsDNA	I
+Autolykiviridae	dsDNA	I
+Avsunviroidae	ssRNA(+)	IV
+Bacilladnaviridae	ssDNA	II
+Baculoviridae	dsDNA	I
+Barnaviridae	ssRNA(+)	IV
+Belpaoviridae	ssRNA-RT	VI
+Benyviridae	ssRNA(+)	IV
+Betaflexiviridae	ssRNA(+)	IV
+Bicaudaviridae	dsDNA	I
+Bidnaviridae	ssDNA	II
+Birnaviridae	dsRNA	III
+Bornaviridae	ssRNA(-)	V
+Botourmiaviridae	ssRNA(+)	IV
+Botybirnavirus	dsRNA	III
+Bromoviridae	ssRNA(+)	IV
+Caliciviridae	ssRNA(+)	IV
+Carmotetraviridae	ssRNA(+)	IV
+Caudovirales_undefined_family	dsDNA	I
+Caudoviricetes_undefined_order_undefined_family	dsDNA	I
+Caulimoviridae	dsDNA-RT	VII
+Chaseviridae	dsDNA	I
+Chrysoviridae	dsRNA	III
+Chuviridae	ssRNA(-)	V
+Circoviridae	ssDNA	II
+Clavaviridae	dsDNA	I
+Closteroviridae	ssRNA(+)	IV
+Coronaviridae	ssRNA(+)	IV
+Corticoviridae	dsDNA	I
+Cremegaviridae	ssRNA(+)	IV
+Cruciviridae	ssDNA	II
+Cruliviridae	ssRNA(-)	V
+Cystoviridae	dsRNA	III
+Deltaflexiviridae	ssRNA(+)	IV
+Deltavirus	ssRNA(-)	V
+Demerecviridae	dsDNA	I
+Dicistroviridae	ssRNA(+)	IV
+Drexlerviridae	dsDNA	I
+Endornaviridae	ssRNA(+)	IV
+Euroniviridae	ssRNA(+)	IV
+Filoviridae	ssRNA(-)	V
+Fimoviridae	ssRNA(-)	V
+Finnlakeviridae	ssDNA	II
+Flaviviridae	ssRNA(+)	IV
+Fusariviridae	ssRNA(+)	IV
+Fuselloviridae	dsDNA	I
+Gammaflexiviridae	ssRNA(+)	IV
+Geminiviridae	ssDNA	II
+Genomoviridae	ssDNA	II
+Globuloviridae	dsDNA	I
+Gresnaviridae	ssRNA(+)	IV
+Guttaviridae	dsDNA	I
+Halspiviridae	dsDNA	I
+Hantaviridae	ssRNA(-)	V
+Hepadnaviridae	dsDNA-RT	VII
+Hepeviridae	ssRNA(+)	IV
+Herelleviridae	dsDNA	I
+Herpesviridae	dsDNA	I
+Hypoviridae	ssRNA(+)	IV
+Hytrosaviridae	dsDNA	I
+Iflaviridae	ssRNA(+)	IV
+Inoviridae	ssDNA	II
+Iridoviridae	dsDNA	I
+Kitaviridae	ssRNA(+)	IV
+Lavidaviridae	dsDNA	I
+Leishbunyaviridae	ssRNA(-)	V
+Leishbuviridae	ssRNA(-)	V
+Leviviridae	ssRNA(+)	IV
+Ligamenvirales_undefined_family	dsDNA	I
+Lipothrixviridae	dsDNA	I
+Lispiviridae	ssRNA(-)	V
+Luteoviridae	ssRNA(+)	IV
+Malacoherpesviridae	dsDNA	I
+Marnaviridae	ssRNA(+)	IV
+Marseilleviridae	dsDNA	I
+Matonaviridae	ssRNA(+)	IV
+Mayoviridae	ssRNA(+)	IV
+Medioniviridae	ssRNA(+)	IV
+Megabirnaviridae	dsRNA	III
+Mesoniviridae	ssRNA(+)	IV
+Metaviridae	ssRNA-RT	VI
+Microviridae	ssDNA	II
+Mimiviridae	dsDNA	I
+Mitoviridae	ssRNA(+)	IV
+Mononiviridae	ssRNA(+)	IV
+Mymonaviridae	ssRNA(-)	V
+Myoviridae	dsDNA	I
+Mypoviridae	ssRNA(-)	V
+Nairoviridae	ssRNA(-)	V
+Nanghoshaviridae	ssRNA(+)	IV
+Nanhypoviridae	ssRNA(+)	IV
+Nanoviridae	ssDNA	II
+Narnaviridae	ssRNA(+)	IV
+Nimaviridae	dsDNA	I
+Nodaviridae	ssRNA(+)	IV
+Nudiviridae	dsDNA	I
+Nyamiviridae	ssRNA(-)	V
+Olifoviridae	ssRNA(+)	IV
+Orthomyxoviridae	ssRNA(-)	V
+Ovaliviridae	dsDNA	I
+Papillomaviridae	dsDNA	I
+Paramyxoviridae	ssRNA(-)	V
+Partitiviridae	dsRNA	III
+Parvoviridae	ssDNA	II
+Peribunyaviridae	ssRNA(-)	V
+Permutotetraviridae	ssRNA(+)	IV
+Phasmaviridae	ssRNA(-)	V
+Phenuiviridae	ssRNA(-)	V
+Phycodnaviridae	dsDNA	I
+Picobirnaviridae	dsRNA	III
+Picornaviridae	ssRNA(+)	IV
+Pithoviridae	dsDNA	I
+Plasmaviridae	dsDNA	I
+Plectroviridae	ssDNA	II
+Pleolipoviridae	ssDNA	II
+Pneumoviridae	ssRNA(-)	V
+Podoviridae	dsDNA	I
+Polycipiviridae	ssRNA(+)	IV
+Polydnaviridae	dsDNA	I
+Polymycoviridae	dsRNA	III
+Polyomaviridae	dsDNA	I
+Portogloboviridae	dsDNA	I
+Pospiviroidae	ssRNA(+)	IV
+Potyviridae	ssRNA(+)	IV
+Poxviridae	dsDNA	I
+Pseudoviridae	ssRNA-RT	VI
+Qinviridae	ssRNA(-)	V
+Quadriviridae	dsRNA	III
+Redondoviridae	ssDNA	II
+Reoviridae	dsRNA	III
+Retroviridae	ssRNA-RT	VI
+Rhabdoviridae	ssRNA(-)	V
+Roniviridae	ssRNA(+)	IV
+Rudiviridae	dsDNA	I
+Sarthroviridae	ssRNA(+)	IV
+Secoviridae	ssRNA(+)	IV
+Sinhaliviridae	ssRNA(+)	IV
+Siphoviridae	dsDNA	I
+Smacoviridae	ssDNA	II
+Solemoviridae	ssRNA(+)	IV
+Solinviviridae	ssRNA(+)	IV
+Sphaerolipoviridae	dsDNA	I
+Spiraviridae	ssDNA	II
+Sunviridae	ssRNA(-)	V
+Tectiviridae	dsDNA	I
+Thaspiviridae	dsDNA	I
+Tobaniviridae	ssRNA(+)	IV
+Togaviridae	ssRNA(+)	IV
+Tolecusatellitidae	ssDNA	II
+Tombusviridae	ssRNA(+)	IV
+Tospoviridae	ssRNA(-)	V
+Totiviridae	dsRNA	III
+Tristromaviridae	dsDNA	I
+Tubulavirales_undefined_family	ssDNA	II
+Turriviridae	dsDNA	I
+Tymoviridae	ssRNA(+)	IV
+Virgaviridae	ssRNA(+)	IV
+Wupedeviridae	ssRNA(-)	V
+Xinmoviridae	ssRNA(-)	V
+Yueviridae	ssRNA(-)	V
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
