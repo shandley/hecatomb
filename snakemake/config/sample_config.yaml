@@ -1,4 +1,10 @@
 ---
+# !! You must check/change the following items !!
+# Databases: (change to the path of your hecatomb databases)
+# Host: (change to the name of the directory containing your masked host database)
+# Reads: (change to the location of your projects input reads)
+# System: Memory: Change to the max amount of memory used by bbtools (likely your max system memory)
+
 Paths:
   # The Database directory is where to save the databases. 
   # You can install them using download_databases.snakefile 
@@ -6,7 +12,7 @@ Paths:
   Databases: /mnt/data1/databases/hecatomb
   
   # Host directory name
-  # e.g. human, mouse, dog, etc. Needs to be the name of the dir with the virus masked reference data
+  # e.g. human, mouse, dog, etc. Needs to be the name of the directory with the virus masked reference data
 
   Host: macaque
 
@@ -15,39 +21,30 @@ Paths:
 
   Temp: tmp
  
-  # The reads directory has your input fastq files that you want
-  # to process through hecatomb
+  # The reads directory has your input fastq files
 
-  Reads: /mnt/data1/databases/hecatomb/test_data
-
-DatabaseFiles:
-  # These are our predefined databases that we screen against, but you may want to replace host with e.g. mouse
-
-  host: human_virus_masked.fasta
-  contaminants: vector_contaminants.fa.gz
-
-Output:
-  # Directory where all files will be kept throughout the QC process
+  Reads: /mnt/data1/databases/hecatomb/test_data/raw_data/subsampled
   
-  QC: QC
-
-  # Directory where results are stored
-
-  Results: results
-
 System:
   # How much memory you want to allocate to java (required for bbtools steps)
   
   Memory: -Xmx128g
 
-Options:
-  # These are options that control the flow of the pipeline and add additional
-  # processing steps. Set these to True to include them or False to ignore them
+DatabaseFiles:
+  # These are our predefined databases that we screen against, but you may want to replace host with e.g. mouse
 
-  # run_prinseq first cleans the reads with prinseq++
-  # run_prinseq: True
+  host: human_virus_masked.fasta
 
-  # use_bowtie substitutes bowtie2 and samtools for bbmap
-  # use_bowtie: True
+Output:
+  QC: CLEANED
+  STATS: STATS
+  LOGS: LOGS
+  RESULTS: RESULTS
 
+### Additional tuning parameters ###
+### Advise not to change and keep default, but included here for fine-tuning to ones own dataset ###
 
+# contaminant_removal.smk rule optional parameters
+QSCORE: 35
+MINLENGTH: 100
+  
