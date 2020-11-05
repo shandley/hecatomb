@@ -192,22 +192,7 @@ if len(SAMPLES) == 0:
     sys.stderr.write("You should complain to Rob\n")
     sys.exit()
 
-
-# if we don't run prinseq, this is our input to the first step of 00_contaminant_removal.smk
-#remove_leftmost_primerB_r1_input = os.path.join(READDIR, PATTERN_R1 + file_extension),
-#remove_leftmost_primerB_r2_input = os.path.join(READDIR, PATTERN_R2 + file_extension),
-
-#if config['Options']['run_prinseq']:
-#    include: "rules/00_prinseq.smk"
-#    remove_leftmost_primerB_r1_input = os.path.join(QC, "step_0", PATTERN_R1 + ".good_out.s0.fastq"),
-#    remove_leftmost_primerB_r2_input = os.path.join(QC, "step_0", PATTERN_R2 + ".good_out.s0.fastq"),
-
-
 include: "rules/00_contaminant_removal.smk"
-#if config['Options']['use_bowtie']:
-#    include: "rules/01_contaminant_removal_hosts_alt.smk"
-#else:
-#    include: "rules/01_contaminant_removal_hosts.smk"
 #include: "rules/02_cluster_count.smk"
 #include: "rules/03_seqtable.smk"
 #include: "rules/04_mmseqs_pviral_aa.smk"
@@ -215,40 +200,9 @@ include: "rules/00_contaminant_removal.smk"
 #include: "rules/06_mmseqs_pviral_nt.smk"
 #include: "rules/07_mmseqs_pviral_nt_check.smk"
 #include: "rules/08_concatenate_results.smk"
-
-   
+  
 rule all:
     input:
-        # output of contaminant_removal.smk
-        expand(os.path.join(QC, PATTERN_R1 + ".clean.out.fastq"), sample=SAMPLES),
-        expand(os.path.join(QC, PATTERN_R2 + ".clean.out.fastq"), sample=SAMPLES)
-        # output of 01_host_removal.smk
-        # output of 02_cluster_count.smk
-        #expand(os.path.join(QC, "counts", "{sample}_seqtable.txt"), sample=SAMPLES),
-        # these two inputs are the outputs from 03_seqtable.smk
-        #os.path.join(RESULTS, "seqtable_all.tsv"),
-        #os.path.join(RESULTS, "seqtable.tab2fx"),
-        # output from 04_mmseqs_pviral_aa
-        #os.path.join(AA_OUT, "phage_tax_table.tsv"),
-        #os.path.join(AA_OUT, "viruses_tax_table.tsv"),
-        #os.path.join(AA_OUT, "pviral_aa_unclassified_seqs.fasta"),
-        # output from section 05_mmseqs_pviral_aa_check
-        #os.path.join(AA_OUT_CHECKED, "taxonomyResult.firsthit.m8"),
-        #os.path.join(AA_OUT_CHECKED, "taxonomyResult.report"),
-        #os.path.join(AA_OUT_CHECKED, "viruses_checked_aa_table.tsv"),
-        #os.path.join(AA_OUT_CHECKED, "viruses_checked_aa_tax_table.tsv"),
-        #os.path.join(AA_OUT_CHECKED, "unclassified_checked_aa_seqs.fasta"),
-        # output from section 06_mmseqs_pviral_nt
-        #os.path.join(NT_OUT, "resultDB.firsthit.m8"),
-        #os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_lineage.tsv"),
-        # output from section 07_mmseqs_pviral_nt_check
-        #os.path.join(NT_CHECKED_OUT, "phage_nt_seqs.fasta"),
-        #os.path.join(NT_CHECKED_OUT, "pviral_virus_nt_seqs.fasta"),
-        #os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_checked_lineage.tsv"),
-        # output from section 08_concatenate_results
-        #os.path.join(RESULTS, "viruses_tax_table.tsv"),
-        #os.path.join(RESULTS, "phage_tax_table.tsv"),
-        #os.path.join(RESULTS, "aa.aln.m8"),
-        #os.path.join(RESULTS, "nt.aln.m8"),
-        #"family_reads"
-
+        # output of 00_contaminant_removal.smk
+        expand(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"), sample=SAMPLES),
+        expand(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq"), sample=SAMPLES)

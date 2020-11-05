@@ -45,6 +45,6 @@ Output:
 ### Advise not to change and keep default, but included here for fine-tuning to ones own dataset ###
 
 # contaminant_removal.smk rule optional parameters
-QSCORE: 35
+QSCORE: 15
 MINLENGTH: 100
   
