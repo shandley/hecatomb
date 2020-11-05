@@ -10,10 +10,11 @@ import os
 
 # NOTE: bbtools uses "threads=auto" by default that typically uses all threads, so no need to specify. 
 # -Xmx is used to specify the memory allocation for bbtools operations
+# Set your -Xmx specifications in your configuration file 
 
 rule remove_leftmost_primerB:
     """
-    Step 01: Remove leftmost primerB. Not the reverse complements
+    Step 01: Remove leftmost primerB
     """
     input:
         r1 = os.path.join(READDIR, PATTERN_R1 + file_extension),
@@ -197,3 +198,97 @@ rule remove_low_quality:
             trimq={config[QSCORE]} \
             minlength={config[MINLENGTH]} 2> {log} 
         """
+
+rule host_mapping:
+    """
+    Step 07a: Host removal. Must define host in config file (see Host: ). Host should be masked of viral sequence
+    """
+    input:
+        r1 = os.path.join(QC, PATTERN_R1 + ".clean.out.fastq"),
+        r2 = os.path.join(QC, PATTERN_R2 + ".clean.out.fastq"),
+        hostpath = HOSTPATH
+    output:
+        sam = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".sam")
+    benchmark:
+        "benchmarks/host_mapping_{sample}.txt"
+    resources:
+        mem_mb=100000,
+        cpus=8
+    conda:
+        "../envs/minimap2.yaml"
+    shell:
+        """
+        minimap2 -ax sr -t 64 {input.hostpath} {input.r1} {input.r2} | \
+        samtools view -F 2048 -h | \
+        samtools view -f 4 -h > {output.sam};
+        """
+
+rule nonhost_read_parsing:
+    """
+    Step 07b: Extract unmapped fastq files from sam files
+    """
+    input:
+        sam = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".sam")
+    output:
+        r1 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.fastq")),
+        r2 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".unmapped.fastq")),
+        singletons = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.singletons.fastq"))
+    benchmark:
+        "benchmarks/nonhost_read_parsing_{sample}.txt"
+    resources:
+        mem_mb=100000,
+        cpus=8
+    conda:
+        "../envs/minimap2.yaml"
+    shell:
+        """
+        samtools fastq -NO -1 {output.r1} -2 {output.r2} \
+        -0 /dev/null \
+        -s {output.singletons} \
+        {input.sam}
+        """
+
+rule nonhost_read_repair:
+    """
+    Step 07c: Parse R1/R2 singletons (if singletons at all)
+    """
+    input:
+        singletons = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.singletons.fastq")
+    output:
+        r1 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq")),
+        r2 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq"))
+    benchmark:
+        "benchmarks/nonhost_read_repair_{sample}.txt"
+    resources:
+        mem_mb=100000,
+        cpus=8
+    conda:
+        "../envs/bbmap.yaml"
+    shell:
+        """
+        reformat.sh in={input.singletons} out={output.r1} out2={output.r2}
+        """
+
+rule nonhost_read_combine:
+    """
+    Step 07d: Combine R1+R1_singletons and R2+R2_singletons
+    """
+    input:
+        r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.fastq"),
+        r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".unmapped.fastq"),
+        r1s = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
+        r2s = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq")
+    output:
+        r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"),
+        r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq")
+    benchmark:
+        "benchmarks/singleton_read_parsing_{sample}.txt"
+    resources:
+        mem_mb=100000,
+        cpus=8
+    shell:
+        """
+        cat {input.r1} {input.r1s} > {output.r1};
+        cat {input.r2} {input.r2s} > {output.r2}
+        """
+    
