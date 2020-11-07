@@ -291,4 +291,27 @@ rule nonhost_read_combine:
         cat {input.r1} {input.r1s} > {output.r1};
         cat {input.r2} {input.r2s} > {output.r2}
         """
-    
+
+rule remove_exact_dups:
+    """
+    Step 08: Remove exact duplicates
+    """
+    input:
+        os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq")
+    output:
+        os.path.join(QC, "CLUSTERED", PATTERN_R1 + ".deduped.out.fastq")
+    benchmark:
+        "benchmarks/remove_exact_dups_{sample}.txt"
+    resources:
+        mem_mb=20000,
+        cpus=8
+    conda:
+        "../envs/bbmap.yaml"
+    shell:
+        """
+        dedupe.sh in={input} \
+                out={output} \
+                ac=f  ow=t \
+                -Xmx{resources.mem_mb}m
+        """
+

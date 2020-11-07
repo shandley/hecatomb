@@ -204,5 +204,6 @@ include: "rules/00_contaminant_removal.smk"
 rule all:
     input:
         # output of 00_contaminant_removal.smk
-        expand(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"), sample=SAMPLES),
-        expand(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq"), sample=SAMPLES)
+        #expand(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"), sample=SAMPLES),
+        #expand(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq"), sample=SAMPLES),
+        expand(os.path.join(QC, "CLUSTERED", PATTERN_R1 + ".deduped.out.fastq"), sample=SAMPLES)
