@@ -193,7 +193,6 @@ if len(SAMPLES) == 0:
     sys.exit()
 
 include: "rules/00_contaminant_removal.smk"
-#include: "rules/02_cluster_count.smk"
 #include: "rules/03_seqtable.smk"
 #include: "rules/04_mmseqs_pviral_aa.smk"
 #include: "rules/05_mmseqs_pviral_aa_check.smk"
@@ -203,7 +202,7 @@ include: "rules/00_contaminant_removal.smk"
   
 rule all:
     input:
-        # output of 00_contaminant_removal.smk
-        #expand(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"), sample=SAMPLES),
-        #expand(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq"), sample=SAMPLES),
-        expand(os.path.join(QC, "CLUSTERED", PATTERN_R1 + ".deduped.out.fastq"), sample=SAMPLES)
+        expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_rep_seq.fasta"), sample=SAMPLES),
+        expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_cluster.tsv"), sample=SAMPLES),
+        expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_all_seqs.fasta"), sample=SAMPLES)
+        
