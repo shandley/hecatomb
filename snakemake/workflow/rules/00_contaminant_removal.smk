@@ -176,8 +176,8 @@ rule remove_low_quality:
         r1 = os.path.join(TMPDIR, "step_05", PATTERN_R1 + ".s5.out.fastq"),
         r2 = os.path.join(TMPDIR, "step_05", PATTERN_R2 + ".s5.out.fastq")
     output:
-        r1 = os.path.join(QC, PATTERN_R1 + ".clean.out.fastq"),
-        r2 = os.path.join(QC, PATTERN_R2 + ".clean.out.fastq"),
+        r1 = temp(os.path.join(TMPDIR, PATTERN_R1 + ".clean.out.fastq")),
+        r2 = temp(os.path.join(TMPDIR, PATTERN_R2 + ".clean.out.fastq")),
         stats = os.path.join(STATS, "step_06", "{sample}.s6.stats.tsv")
     benchmark:
         "benchmarks/remove_low_quality_{sample}.txt"
@@ -204,13 +204,15 @@ rule host_mapping:
     Step 07a: Host removal. Must define host in config file (see Host: ). Host should be masked of viral sequence
     """
     input:
-        r1 = os.path.join(QC, PATTERN_R1 + ".clean.out.fastq"),
-        r2 = os.path.join(QC, PATTERN_R2 + ".clean.out.fastq"),
+        r1 = os.path.join(TMPDIR, PATTERN_R1 + ".clean.out.fastq"),
+        r2 = os.path.join(TMPDIR, PATTERN_R2 + ".clean.out.fastq"),
         hostpath = HOSTPATH
     output:
         sam = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".sam")
     benchmark:
         "benchmarks/host_mapping_{sample}.txt"
+    log:
+        "LOGS/host_removal/{sample}.host_removal.log"
     resources:
         mem_mb=100000,
         cpus=8
@@ -218,7 +220,7 @@ rule host_mapping:
         "../envs/minimap2.yaml"
     shell:
         """
-        minimap2 -ax sr -t 64 {input.hostpath} {input.r1} {input.r2} | \
+        minimap2 -ax sr -t 64 {input.hostpath} {input.r1} {input.r2} 2> {log} | \
         samtools view -F 2048 -h | \
         samtools view -f 4 -h > {output.sam};
         """
@@ -302,6 +304,8 @@ rule remove_exact_dups:
         os.path.join(QC, "CLUSTERED", PATTERN_R1 + ".deduped.out.fastq")
     benchmark:
         "benchmarks/remove_exact_dups_{sample}.txt"
+    log:
+        "LOGS/clustering/{sample}.dedupe.log"
     resources:
         mem_mb=20000,
         cpus=8
@@ -312,6 +316,36 @@ rule remove_exact_dups:
         dedupe.sh in={input} \
                 out={output} \
                 ac=f  ow=t \
-                -Xmx{resources.mem_mb}m
+                -Xmx{resources.mem_mb}m 2> {log}
         """
-
+          
+rule cluster_similar_sequences:
+    """
+    Step 09: Cluster similar sequences
+    """
+    input:
+        os.path.join(QC, "CLUSTERED", PATTERN_R1 + ".deduped.out.fastq")
+    output:
+        os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_rep_seq.fasta"),
+        os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_cluster.tsv"),
+        temporary(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_all_seqs.fasta"))
+    params:
+        respath=os.path.join(QC, "CLUSTERED", "LINCLUST"),
+        tmppath=os.path.join(QC, "CLUSTERED", "LINCLUST", "TMP"),
+        prefix=PATTERN_R1
+    benchmark:
+        "benchmark/cluster_similar_seqs_{sample}.txt"
+    log:
+        "LOGS/clustering/{sample}.linclust.log"
+    resources:
+        mem_mb=64000,
+        cpus=24
+    conda:
+        "../envs/mmseqs2.yaml"
+    shell:
+        """ 
+        mmseqs easy-linclust {input} {params.respath}/{params.prefix} {params.tmppath} \
+        --kmer-per-seq-scale 0.3 \
+        -c 0.95 --cov-mode 1 --threads {resources.cpus} &>> {log}
+        """
+    
