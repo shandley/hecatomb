@@ -1,3 +1,4 @@
+name: prinseq-plus
 channels:
     - conda-forge
     - bioconda

@@ -1,3 +1,4 @@
+name: curl
 channels:
     - anaconda
 dependencies:

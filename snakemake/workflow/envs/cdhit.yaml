@@ -1,3 +1,4 @@
+name: cdhit
 channels:
     - conda-forge
     - bioconda
