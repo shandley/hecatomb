@@ -184,6 +184,7 @@ if not EXTENSIONS:
 
 file_extension = EXTENSIONS[0]
 # a convenience so we don't need to use '{sample}_R1' all the time
+PATTERN = '{sample}'
 PATTERN_R1 = '{sample}_R1'
 PATTERN_R2 = '{sample}_R2'
 
@@ -192,17 +193,20 @@ if len(SAMPLES) == 0:
     sys.stderr.write("You should complain to Rob\n")
     sys.exit()
 
-include: "rules/00_contaminant_removal.smk"
-#include: "rules/03_seqtable.smk"
+include: "rules/00_preprocessing.smk"
 #include: "rules/04_mmseqs_pviral_aa.smk"
 #include: "rules/05_mmseqs_pviral_aa_check.smk"
 #include: "rules/06_mmseqs_pviral_nt.smk"
 #include: "rules/07_mmseqs_pviral_nt_check.smk"
 #include: "rules/08_concatenate_results.smk"
-  
+
 rule all:
     input:
-        expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_rep_seq.fasta"), sample=SAMPLES),
-        expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_cluster.tsv"), sample=SAMPLES),
-        expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_all_seqs.fasta"), sample=SAMPLES)
+        #expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + ".seqs"), sample=SAMPLES),
+        #expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + ".counts"), sample=SAMPLES),
+        #expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + ".seqtable"), sample=SAMPLES)
+        expand(os.path.join(RESULTS, "seqtable_all.tsv"), sample=SAMPLES),
+        expand(os.path.join(RESULTS, "seqtable.tab2fx"), sample=SAMPLES)
+        
+        
         
