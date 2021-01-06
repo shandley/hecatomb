@@ -26,7 +26,7 @@ rule remove_leftmost_primerB:
         r2 = temp(os.path.join(TMPDIR, "step_01", PATTERN_R2 + ".s1.out.fastq")),
         stats = os.path.join(STATS, "step_01", "{sample}.s1.stats.tsv")
     benchmark:
-        "benchmarks/removeprimerB_{sample}.txt"
+        "BENCHMARKS/removeprimerB_{sample}.txt"
     log:
         "LOGS/step_01/{sample}.s1.log"
     resources:
@@ -58,7 +58,7 @@ rule remove_3prime_contaminant:
         r2 = temp(os.path.join(TMPDIR, "step_02", PATTERN_R2 + ".s2.out.fastq")),
         stats = os.path.join(STATS, "step_02", "{sample}.s2.stats.tsv")
     benchmark:
-        "benchmarks/remove_3prime_contaminant_{sample}.txt"
+        "BENCHMARKS/remove_3prime_contaminant_{sample}.txt"
     log:
         "LOGS/step_02/{sample}.s2.log"
     resources:
@@ -89,7 +89,7 @@ rule remove_primer_free_adapter:
         r2 = temp(os.path.join(TMPDIR, "step_03", PATTERN_R2 + ".s3.out.fastq")),
         stats = os.path.join(STATS, "step_03", "{sample}.s3.stats.tsv")
     benchmark:
-        "benchmarks/remove_primer_free_adapter_{sample}.txt"
+        "BENCHMARKS/remove_primer_free_adapter_{sample}.txt"
     log:
         "LOGS/step_03/{sample}.s3.log"
     resources:
@@ -120,7 +120,7 @@ rule remove_adapter_free_primer:
         r2 = temp(os.path.join(TMPDIR, "step_04", PATTERN_R2 + ".s4.out.fastq")),
         stats = os.path.join(STATS, "step_04", "{sample}.s4.stats.tsv")
     benchmark:
-        "benchmarks/remove_adapter_free_primer_{sample}.txt"
+        "BENCHMARKS/remove_adapter_free_primer_{sample}.txt"
     log:
         "LOGS/step_04/{sample}.s4.log"
     resources:
@@ -151,7 +151,7 @@ rule remove_vector_contamination:
         r2 = temp(os.path.join(TMPDIR, "step_05", PATTERN_R2 + ".s5.out.fastq")),
         stats = os.path.join(STATS, "step_05", "{sample}.s5.stats.tsv")
     benchmark:
-        "benchmarks/remove_vector_contamination_{sample}.txt"
+        "BENCHMARKS/remove_vector_contamination_{sample}.txt"
     log:
         "LOGS/step_05/{sample}.s5.log"
     resources:
@@ -181,7 +181,7 @@ rule remove_low_quality:
         r2 = temp(os.path.join(TMPDIR, PATTERN_R2 + ".clean.out.fastq")),
         stats = os.path.join(STATS, "step_06", "{sample}.s6.stats.tsv")
     benchmark:
-        "benchmarks/remove_low_quality_{sample}.txt"
+        "BENCHMARKS/remove_low_quality_{sample}.txt"
     log:
         "LOGS/step_06/{sample}.s6.log"
     resources:
@@ -196,6 +196,7 @@ rule remove_low_quality:
             stats={output.stats} \
             ordered=t \
             qtrim=r maxns=2 \
+            entropy=0.4 \
             trimq={config[QSCORE]} \
             minlength={config[MINLENGTH]} 2> {log} 
         """
@@ -211,7 +212,7 @@ rule host_mapping:
     output:
         sam = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".sam")
     benchmark:
-        "benchmarks/host_mapping_{sample}.txt"
+        "BENCHMARKS/host_mapping_{sample}.txt"
     log:
         "LOGS/host_removal/{sample}.host_removal.log"
     resources:
@@ -237,7 +238,7 @@ rule nonhost_read_parsing:
         r2 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".unmapped.fastq")),
         singletons = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.singletons.fastq"))
     benchmark:
-        "benchmarks/nonhost_read_parsing_{sample}.txt"
+        "BENCHMARKS/nonhost_read_parsing_{sample}.txt"
     resources:
         mem_mb=100000,
         cpus=8
@@ -261,7 +262,7 @@ rule nonhost_read_repair:
         r1 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq")),
         r2 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq"))
     benchmark:
-        "benchmarks/nonhost_read_repair_{sample}.txt"
+        "BENCHMARKS/nonhost_read_repair_{sample}.txt"
     resources:
         mem_mb=100000,
         cpus=8
@@ -285,7 +286,7 @@ rule nonhost_read_combine:
         r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"),
         r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq")
     benchmark:
-        "benchmarks/singleton_read_parsing_{sample}.txt"
+        "BENCHMARKS/singleton_read_parsing_{sample}.txt"
     resources:
         mem_mb=100000,
         cpus=8
@@ -304,7 +305,7 @@ rule remove_exact_dups:
     output:
         os.path.join(QC, "CLUSTERED", PATTERN_R1 + ".deduped.out.fastq")
     benchmark:
-        "benchmarks/remove_exact_dups_{sample}.txt"
+        "BENCHMARKS/remove_exact_dups_{sample}.txt"
     log:
         "LOGS/clustering/{sample}.dedupe.log"
     resources:
@@ -335,7 +336,7 @@ rule cluster_similar_sequences:
         tmppath=os.path.join(QC, "CLUSTERED", "LINCLUST", "TMP"),
         prefix=PATTERN_R1
     benchmark:
-        "benchmarks/cluster_similar_seqs_{sample}.txt"
+        "BENCHMARKS/cluster_similar_seqs_{sample}.txt"
     log:
         "LOGS/clustering/{sample}.linclust.log"
     resources:
@@ -364,7 +365,7 @@ rule create_individual_seqtables:
     params:
         prefix=PATTERN
     benchmark:
-        "benchamrks/individual_seq_tables_{sample}.txt"
+        "BENCHMARKS/individual_seq_tables_{sample}.txt"
     log:
         "LOGS/clustering/{sample}.individual_seqtable.log"
     resources:
@@ -398,11 +399,11 @@ rule merge_individual_seqtables:
         files = expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + ".seqtable"), sample=SAMPLES)
     output:
         seqtable = os.path.join(RESULTS, "seqtable_all.tsv"),
-        tab2fx = os.path.join(RESULTS, "seqtable.tab2fx")
+        tab2fx = temporary(os.path.join(RESULTS, "seqtable.tab2fx"))
     params:
         resultsdir = directory(RESULTS),
     benchmark:
-        "benchmarks/merge_seq_table.txt"
+        "BENCHMARKS/merge_seq_table.txt"
     resources:
         mem_mb=20000,
         cpus=8
@@ -412,3 +413,39 @@ rule merge_individual_seqtables:
         "../envs/R.yaml"
     script:
         "../scripts/seqtable_merge.R"
+
+rule convert_seqtable:
+    input:
+        os.path.join(RESULTS, "seqtable.tab2fx")
+    output:
+        os.path.join(RESULTS, "seqtable.fasta")
+    conda:
+        "../envs/seqkit.yaml"
+    shell:
+        """
+        seqkit tab2fx {input} -w 5000 -t dna -o {output}
+        """
+
+rule create_seqtable_index:
+    input:
+        os.path.join(RESULTS, "seqtable.fasta")
+    output:
+        os.path.join(RESULTS, "seqtable.faidx")
+    conda:
+        "../envs/samtools.yaml"
+    shell:
+        """
+        samtools faidx {input} -o {output}
+        """
+
+rule calculate_seqtable_sequence_properties:
+    input:
+        os.path.join(RESULTS, "seqtable.fasta")
+    output:
+        os.path.join(RESULTS, "seqtable_properties.tsv")
+    conda:
+        "../envs/seqkit.yaml"
+    shell:
+        """
+        seqkit fx2tab --gc -H {input} | cut -f1,4 > {output}
+        """
