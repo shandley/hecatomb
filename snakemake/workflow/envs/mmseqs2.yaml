@@ -4,4 +4,9 @@ channels:
     - bioconda
 dependencies:
     - mmseqs2
+    - samtools
+    - seqkit
+    - csvtk
+    - taxonkit
+    
 
