@@ -16,7 +16,7 @@
 # System: Memory: Change to the max amount of memory used by bbtools (likely your max system memory)
 
 Paths:
-  # The base Database directory
+  # The base database directory
   # You can install them using download_databases.snakefile 
  
   Databases: /mnt/data1/databases/hecatomb
@@ -41,15 +41,17 @@ Paths:
 
 System:
   # How much memory you want to allocate to java (required for bbtools steps)
+  # This is in gigabytes of memory (e.g 2 would use 2GB, 128 would use 128GB)
   
-  Memory: -Xmx128g
+  Memory: 100
   
-  # Threads for non-bbtools specific processes
+  # Number of threads to use (system dependent)
   Threads: 64
   
 Output:
   
   # Various output directories. You probably do not need to change these and just go with the defaults
+  ASSEMBLY: ASSEMBLY
   QC: CLEANED
   STATS: STATS
   LOGS: LOGS
