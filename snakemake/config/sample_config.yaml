@@ -16,10 +16,14 @@
 # System: Memory: Change to the max amount of memory used by bbtools (likely your max system memory)
 
 Paths:
-  # The Database directory is where to save the databases. 
+  # The base Database directory
   # You can install them using download_databases.snakefile 
  
   Databases: /mnt/data1/databases/hecatomb
+  
+  # The reads directory has your input fastq files
+
+  Reads: /mnt/data1/databases/hecatomb/test_data/raw_data/subsampled
   
   # Host directory name
   # e.g. human, mouse, dog, etc. Needs to be the name of the directory with the virus masked reference data
@@ -30,11 +34,11 @@ Paths:
   # subdirectories in here for each application
 
   Temp: .tmp
- 
-  # The reads directory has your input fastq files
-
-  Reads: /mnt/data1/databases/hecatomb/test_data/raw_data/subsampled
   
+  # Selected UniRef secondary amino acid validation database (options: UniRef50, UniRef90, UniRef100)
+  
+  Secondary_AA: UniRef50
+
 System:
   # How much memory you want to allocate to java (required for bbtools steps)
   
@@ -43,23 +47,23 @@ System:
   # Threads for non-bbtools specific processes
   Threads: 64
   
-DatabaseFiles:
-  # These are our predefined databases that we screen against, but you may want to replace host with e.g. mouse
-
-  host: human_virus_masked.fasta
-
 Output:
+  
+  # Various output directories. You probably do not need to change these and just go with the defaults
   QC: CLEANED
   STATS: STATS
   LOGS: LOGS
   RESULTS: RESULTS
 
-### Additional tuning parameters ###
-### Advise not to change and keep default, but included here for fine-tuning to ones own dataset ###
+############################
+# Optional Rule Parameters #                  
+############################
+### Tuning parameters
+### Advise not to change and keep default, but included here for fine-tuning to ones own dataset
+### See documentation for each individual program for detailed explanation (ie. for QSCORE review the bbduk.sh manual)
 
-####################################################
-# contaminant_removal.smk rule optional parameters
-####################################################
-QSCORE: 15
-MINLENGTH: 100
+QSCORE: 15 # Read quality trimming score (rule remove_low_quality in 00_preprocessing.smk)
+MINLENGTH: 100 # Read minimum length (rule remove_low_quality in 00_preprocessing.smk)
+ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 00_preprocessing.smk)
+CLUSTERID: 0.95 # Linclust read clustering percent identity (rule cluster_similar_sequences: in 00_preprocessing.smk)
   
