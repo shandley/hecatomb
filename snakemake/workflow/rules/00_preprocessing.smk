@@ -1,9 +1,14 @@
 """
+Rule file to preprocess Illumina sequence data in preperation for taxonomic assignment.
 
-Snakefile based on [contaminant_removal.sh](../base/contaminant_removal.sh)
+    - Non-biological sequence removal (primers, adapters)
+    
+
 
 Rob Edwards, Jan 2020
 Updated: Scott Handley, Nov 2020
+
+- Updated Snakefile based on [contaminant_removal.sh](../base/contaminant_removal.sh)
 """
 
 import os
@@ -30,8 +35,7 @@ rule remove_leftmost_primerB:
     log:
         "LOGS/step_01/{sample}.s1.log"
     resources:
-        mem_mb=20000,
-        cpus=8
+        cpus=64
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -42,7 +46,7 @@ rule remove_leftmost_primerB:
             stats={output.stats} \
             k=16 hdist=1 mink=11 ktrim=l restrictleft=20 \
             removeifeitherbad=f trimpolya=10 ordered=t rcomp=f ow=t \
-            -Xmx{resources.mem_mb}m 2> {log}
+            -Xmx{config[System][Memory]}g 2> {log}
         """
 
 rule remove_3prime_contaminant:
@@ -62,8 +66,8 @@ rule remove_3prime_contaminant:
     log:
         "LOGS/step_02/{sample}.s2.log"
     resources:
-        mem_mb=20000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -93,8 +97,8 @@ rule remove_primer_free_adapter:
     log:
         "LOGS/step_03/{sample}.s3.log"
     resources:
-        mem_mb=20000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -124,8 +128,8 @@ rule remove_adapter_free_primer:
     log:
         "LOGS/step_04/{sample}.s4.log"
     resources:
-        mem_mb=20000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -155,8 +159,8 @@ rule remove_vector_contamination:
     log:
         "LOGS/step_05/{sample}.s5.log"
     resources:
-        mem_mb=20000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -185,8 +189,8 @@ rule remove_low_quality:
     log:
         "LOGS/step_06/{sample}.s6.log"
     resources:
-        mem_mb=20000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -196,14 +200,14 @@ rule remove_low_quality:
             stats={output.stats} \
             ordered=t \
             qtrim=r maxns=2 \
-            entropy=0.4 \
+            entropy={config[ENTROPY]} \
             trimq={config[QSCORE]} \
             minlength={config[MINLENGTH]} 2> {log} 
         """
 
-rule host_mapping:
+rule host_removal:
     """
-    Step 07a: Host removal. Must define host in config file (see Host: ). Host should be masked of viral sequence
+    Step 07a: Host removal. Must define host in config file (see Paths: Host: in config.yaml). Host should be masked of viral sequence. 
     """
     input:
         r1 = os.path.join(TMPDIR, PATTERN_R1 + ".clean.out.fastq"),
@@ -216,8 +220,8 @@ rule host_mapping:
     log:
         "LOGS/host_removal/{sample}.host_removal.log"
     resources:
-        mem_mb=100000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/minimap2.yaml"
     shell:
@@ -240,8 +244,8 @@ rule nonhost_read_parsing:
     benchmark:
         "BENCHMARKS/nonhost_read_parsing_{sample}.txt"
     resources:
-        mem_mb=100000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/minimap2.yaml"
     shell:
@@ -264,8 +268,8 @@ rule nonhost_read_repair:
     benchmark:
         "BENCHMARKS/nonhost_read_repair_{sample}.txt"
     resources:
-        mem_mb=100000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -288,17 +292,79 @@ rule nonhost_read_combine:
     benchmark:
         "BENCHMARKS/singleton_read_parsing_{sample}.txt"
     resources:
-        mem_mb=100000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     shell:
         """
         cat {input.r1} {input.r1s} > {output.r1};
         cat {input.r2} {input.r2s} > {output.r2}
         """
 
+rule kmer_normalization:
+    """
+    Step 08a: Kmer normalization data reduction for assembly improvement
+    """
+    input: 
+        r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.fastq"),
+        r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".unmapped.fastq"),
+        r1s = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
+        r2s = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq")
+    output:
+        r1_norm = os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
+        r2_norm = os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq")
+    benchmark:
+        "BENCHMARKS/kmer_normalization_{sample}.txt"
+    log:
+        "LOGS/assembly/{sample}.kmer_normalization.log"
+    resources:
+        mem_mb=64000,
+        cpus=64
+    conda:
+        "../envs/bbmap.yaml"
+    shell:
+        """
+        bbnorm.sh in={input.r1} in2={input.r2} \
+        extra={input.r1s},{input.r2s} \
+        out={output.r1_norm} out2={output.r2_norm} \
+        target=100 \
+        ow=t;
+    """
+    
+rule sample_assembly:
+    """
+    Step 08b: Individual sample assemblies
+    """
+    input:
+        r1_norm = os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
+        r2_norm = os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq"),
+        r1s = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
+        r2s = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq")
+    output:
+        contigs=os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa")
+    params:
+        mh_dir=directory(os.path.join(ASSEMBLY, '{sample}')),
+        contig_dic=directory(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY"))
+    benchmark:
+        "BENCHMARKS/megahit_{sample}.txt"
+    log:
+        "LOGS/assembly/{sample}.megahit.log"
+    resources:
+        mem_mb=64000,
+        cpus=64
+    conda:
+        "../envs/megahit.yaml"
+    shell:
+        """
+        rmdir {params.mh_dir};
+        
+        megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
+        -o {params.mh_dir} --out-prefix {wildcards.sample} \
+        --k-min 45 --k-max 225 --k-step 26 --min-count 2;      
+        """
+        
 rule remove_exact_dups:
     """
-    Step 08: Remove exact duplicates
+    Step ??: Remove exact duplicates
     """
     input:
         os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq")
@@ -309,8 +375,8 @@ rule remove_exact_dups:
     log:
         "LOGS/clustering/{sample}.dedupe.log"
     resources:
-        mem_mb=20000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -323,7 +389,7 @@ rule remove_exact_dups:
           
 rule cluster_similar_sequences:
     """
-    Step 09: Cluster similar sequences
+    Step ??: Cluster similar sequences
     """
     input:
         os.path.join(QC, "CLUSTERED", PATTERN_R1 + ".deduped.out.fastq")
@@ -341,7 +407,7 @@ rule cluster_similar_sequences:
         "LOGS/clustering/{sample}.linclust.log"
     resources:
         mem_mb=64000,
-        cpus=24
+        cpus=64
     conda:
         "../envs/mmseqs2.yaml"
     shell:
@@ -353,7 +419,7 @@ rule cluster_similar_sequences:
         
 rule create_individual_seqtables:
     """
-    Step 10: Create individual seqtables
+    Step ??: Create individual seqtables
     """
     input:
         seqs=os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_rep_seq.fasta"),
@@ -369,8 +435,8 @@ rule create_individual_seqtables:
     log:
         "LOGS/clustering/{sample}.individual_seqtable.log"
     resources:
-        mem_mb=20000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     conda:
         "../envs/seqkit.yaml"
     shell:
@@ -393,7 +459,7 @@ rule create_individual_seqtables:
         
 rule merge_individual_seqtables:
     """
-    Step 11: Merge individual sequence tables into combined seqtable
+    Step ??: Merge individual sequence tables into combined seqtable
     """
     input:
         files = expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + ".seqtable"), sample=SAMPLES)
@@ -405,8 +471,8 @@ rule merge_individual_seqtables:
     benchmark:
         "BENCHMARKS/merge_seq_table.txt"
     resources:
-        mem_mb=20000,
-        cpus=8
+        mem_mb=64000,
+        cpus=64
     params:
         resultsdir = directory(RESULTS),
     conda:
@@ -415,6 +481,9 @@ rule merge_individual_seqtables:
         "../scripts/seqtable_merge.R"
 
 rule convert_seqtable:
+    """
+    Step ??: 
+    """
     input:
         os.path.join(RESULTS, "seqtable.tab2fx")
     output:
@@ -427,6 +496,9 @@ rule convert_seqtable:
         """
 
 rule create_seqtable_index:
+    """
+    Step ??: 
+    """
     input:
         os.path.join(RESULTS, "seqtable.fasta")
     output:
@@ -439,6 +511,9 @@ rule create_seqtable_index:
         """
 
 rule calculate_seqtable_sequence_properties:
+    """
+    Step ??: 
+    """
     input:
         os.path.join(RESULTS, "seqtable.fasta")
     output:
