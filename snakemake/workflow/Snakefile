@@ -13,13 +13,9 @@ import sys
 
 """
 Summary:
-    # Step 1: Prinseq to clean and deduplicate sequences
-    # Step 2: Remove 5' amplification primer
-    # Step 3: Remove 3' read through contaminant (Reverse complement of amplification primer + 6 bases of the adapter)
-    # Step 4: Remove remaining adapter
-    # Step 5: PhiX Removal and vector contamination removal
-    # Step 6: Host-removal
-    # Step 7: Trim remaing low-quality bases
+    # Step 0: Preprocessing (Rule: 00_preprocessing.smk)
+    # Step 1: Taxonomic Assignment (Rule: 01_taxonomic_assignment.smk)
+    # Step 3: Compile Results (Rule: 02_compile_results.smk)
 """
 
 if not config:
@@ -27,16 +23,14 @@ if not config:
     sys.stderr.write("examples are provided in the Git repo\n")
     sys.exit()
 
-# set base database directories
+# Set base database directories
 DBDIR = config['Paths']['Databases']
-HOST = config['Paths']['Host']
 
-# paths for our specific databases
-CONPATH = os.path.join(DBDIR, "contaminants")
-HOSTPATH = os.path.join(DBDIR, "host", HOST)
-
-# paths for our data. This is where we will read and put things
+# Paths for our data. This is where we will read and put things
 READDIR = config['Paths']['Reads']
+
+# Base output directories
+ASSEMBLY = config['Output']['ASSEMBLY']
 QC = config['Output']['QC']
 LOGS = config['Output']['LOGS']
 STATS = config['Output']['STATS']
@@ -44,33 +38,39 @@ RESULTS = config['Output']['RESULTS']
 TMPDIR = config['Paths']['Temp']
 if not os.path.exists(TMPDIR):
     os.makedirs(TMPDIR, exist_ok=True)
-
+    
+# Database sub-directories
+CONPATH = os.path.join(DBDIR, "contaminants")
+HOST = config['Paths']['Host']
+HOSTPATH = os.path.join(DBDIR, "host", HOST)
 
 fatal_errors = False
 fatal_messages = []
 
+###################################################################
+#                                                                 #
+# Protein databases                                               #
+#                                                                 #
+###################################################################
+
+# Base path for protein sequence reference databases
+PROTPATH = os.path.join(DBDIR, "proteins")
+if not os.path.exists(PROTPATH):
+    fatal_messages.append("protein databases")
+    fatal_errors = True
+
+# The virus protein database, clustered at 99% with cd-hit and then compiled with mmseqs    
+UNIVIRDB = os.path.join(PROTPATH, "uniprot_virusDB")
+if not os.path.exists(UNIVIRDB):
+    fatal_messages.append(UNIVIRDB)
+    fatal_errors = True
+    
+# Secondary AA check database. Can be selected from config.yaml
+#AACHECKDB = os.path.join(PROTPATH, config['Paths']['Secondary_AA'])
+
 # output directories for our amino acid searches
-#AA_OUT  = os.path.join(RESULTS, "mmseqs_aa_out")
-#AA_OUT_CHECKED  = os.path.join(RESULTS, "mmseqs_aa_checked_out")
-
-# paths for our protein sequence reference databases
-#PROTPATH = os.path.join(DBDIR, "proteins")
-#if not os.path.exists(PROTPATH):
-#    fatal_messages.append("protein databases")
-#    fatal_errors = True
-
-# The virus database, clustered at 99% with cd-hit and then compiled
-# with mmseqs
-
-#VIRDB = os.path.join(PROTPATH, "uniprot_virus_c99.db")
-#if not os.path.exists(VIRDB):
-#    fatal_messages.append(VIRDB)
-#    fatal_errors = True
-
-#PHAGE_LINEAGES = os.path.join(DBDIR, "phages", "phage_taxonomic_lineages.txt")
-#if not os.path.exists(PHAGE_LINEAGES):
-#    fatal_messages.append("phages/phage_taxonomic_lineages.txt")
-#    fatal_errors = True
+AA_OUT = os.path.join(RESULTS, "MMSEQS_AA_OUT")
+#AA_OUT_CHECKED = os.path.join(RESULTS, "MMSEQS_AA_OUT_CHECKED")
 
 ###################################################################
 #                                                                 #
@@ -105,6 +105,11 @@ fatal_messages = []
 #                                                                 #
 ###################################################################
 
+#PHAGE_LINEAGES = os.path.join(DBDIR, "phages", "phage_taxonomic_lineages.txt")
+#if not os.path.exists(PHAGE_LINEAGES):
+#    fatal_messages.append("phages/phage_taxonomic_lineages.txt")
+#    fatal_errors = True
+
 #TAXPATH  = os.path.join(DBDIR, "taxonomy")
 #TAXTAX = os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql")
 #if not os.path.exists(TAXTAX):
@@ -118,27 +123,6 @@ fatal_messages = []
 #    fatal_messages.append(BVMDB)
 #    fatal_errors = True
 
-###################################################################
-#                                                                 #
-# The bacterial and host bbmap and bowtie2 indexes                #
-#                                                                 #
-###################################################################
-
-# check to see if we have the right versions of the databases for
-# either bowtie or bbmap (default)
-#if config['Options']['use_bowtie']:
-#    for bti in [BACBT2, HOSTBT2]:
-#        if not os.path.exists(f"{bti}.1.bt2l") and not os.path.exists(f"{bti}.1.bt2"):
-#            fatal_messages.append(f"bowtie2 indexes for {bti}")
-#            fatal_errors = True
-
-#    if not os.path.exists(os.path.join(CONPATH, "line_sine.1.bt2")):
-#        fatal_messages.append("bowtie2 indexes for the line/sine database")
-#        fatal_errors = True
-#else:
-#    if not os.path.exists(os.path.join(HOSTPATH, "ref")):
-#        fatal_messages.append("host databases")
-#        fatal_errors = True
 
 ###################################################################
 #                                                                 #
@@ -193,20 +177,33 @@ if len(SAMPLES) == 0:
     sys.stderr.write("You should complain to Rob\n")
     sys.exit()
 
-include: "rules/00_preprocessing.smk"
-#include: "rules/04_mmseqs_pviral_aa.smk"
-#include: "rules/05_mmseqs_pviral_aa_check.smk"
-#include: "rules/06_mmseqs_pviral_nt.smk"
-#include: "rules/07_mmseqs_pviral_nt_check.smk"
-#include: "rules/08_concatenate_results.smk"
+include: "rules/00_preprocessing.smk",
+#include: "rules/01_taxonomic_assignment.smk",
+#include: "rules/02_compile_results.smk"
 
 rule all:
     input:
-        #expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + ".seqs"), sample=SAMPLES),
-        #expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + ".counts"), sample=SAMPLES),
-        #expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + ".seqtable"), sample=SAMPLES)
-        expand(os.path.join(RESULTS, "seqtable_all.tsv"), sample=SAMPLES),
-        expand(os.path.join(RESULTS, "seqtable.tab2fx"), sample=SAMPLES)
+        # Output files from 00_preprocessing.smk
+        os.path.join(RESULTS, "seqtable_all.tsv"),
+        os.path.join(RESULTS, "seqtable.fasta"),
+        os.path.join(RESULTS, "seqtable.faidx"),
+        os.path.join(RESULTS, "seqtable_properties.tsv"),
+        # Assembly out from 00_preprocessing.smk
+        expand(os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa"), sample=SAMPLES),
+        # Output file from 01_mmseqs_pviral_aa.smk
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.tsv"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_report"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_report"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.ids"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted.ids"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.ids"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_classified.fasta"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.fasta"),
+        #os.path.join(AA_OUT, "mmseqs_primary_aa_search_summary.txt")
+
         
-        
-        
+
