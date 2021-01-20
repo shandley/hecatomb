@@ -530,7 +530,7 @@ rule assembly_kmer_normalization:
     Step 15: Kmer normalization. Data reduction for assembly improvement
     
     """
-    input: 
+    input:
         r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.fastq"),
         r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".unmapped.fastq"),
         r1s = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
@@ -650,3 +650,91 @@ rule contig_reformating_and_stats:
         ow=t \
         -Xmx{config[System][Memory]}g 2> {log};
         """
+
+rule population_assembly:
+    """
+    
+    Step 19: Create 'contig dictionary' of all unique contigs present in the study (population assembly)
+    
+    """
+    input:
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta")
+    output:
+        assembly = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
+        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats"),
+        sketch = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.sketch")
+    params:
+        flye_out=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE")
+    benchmark:
+        "BENCHMARKS/assembly/population_assembly.txt"
+    log:
+        "LOGS/assembly/population_assembly.log"
+    resources:
+        mem_mb=100000,
+        cpus=64
+    conda:
+        "../envs/metaflye.yaml"
+    shell:
+        """
+        flye --subassemblies {input} -t {resources.cpus} --plasmids -o {params.flye_out} -g 1g;
+        
+        statswrapper.sh in={output.assembly} out={output.stats} \
+        format=2 \
+        ow=t;
+        
+        sendsketch.sh in={output.assembly} out={output.sketch} \
+        address=nt mode=sequence format=3 \
+        ow=t \
+        -Xmx{config[System][Memory]}g 2> {log};
+        """
+
+rule coverage_calculations:
+    """
+    
+    Step 20: Calculate contig coverage and extract unmapped reads
+    
+    """
+    input:
+        r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"),
+        r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq"),
+        ref = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
+    output:
+        sam=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".aln.sam.gz"),
+        unmap=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".umapped.fastq"),
+        covstats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats"),
+        rpkm=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"),
+        statsfile=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".statsfile"),
+        scafstats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".scafstats")
+    benchmark:
+        "BENCHMARKS/assembly/coverage_calculations_{sample}.txt"
+    log:
+        "LOGS/assembly/coverage_calculations_{sample}.log"
+    resources:
+        mem_mb=100000,
+        cpus=64
+    conda:
+        "../envs/bbmap.yaml"
+    shell:
+        """
+        bbmap.sh ref={input.ref} in={input.r1} in2={input.r2} \
+        nodisk \
+        out={output.sam} \
+        outu={output.unmap} \
+        ambiguous=random \
+        physcov=t \
+        covstats={output.covstats} \
+        rpkm={output.rpkm} \
+        statsfile={output.statsfile} \
+        scafstats={output.scafstats} \
+        maxindel=100 minid=90 \
+        ow=t 2> \
+        -Xmx{config[System][Memory]}g 2> {log};
+        """
+
+    
+    
+    
+
+
+
+
