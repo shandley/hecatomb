@@ -192,6 +192,10 @@ rule all:
         expand(os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa"), sample=SAMPLES),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.sketch"),
         # Output file from 01_mmseqs_pviral_aa.smk
         #os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.tsv"),
         #os.path.join(AA_OUT, "MMSEQS_AA_OUT_report"),
