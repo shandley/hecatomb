@@ -178,17 +178,17 @@ if len(SAMPLES) == 0:
     sys.exit()
 
 include: "rules/00_preprocessing.smk",
-#include: "rules/01_taxonomic_assignment.smk",
+include: "rules/01_taxonomic_assignment.smk",
 #include: "rules/02_compile_results.smk"
 
 rule all:
     input:
-        # Output files from 00_preprocessing.smk
+        ## Output files from 00_preprocessing.smk
         os.path.join(RESULTS, "seqtable_all.tsv"),
         os.path.join(RESULTS, "seqtable.fasta"),
         os.path.join(RESULTS, "seqtable.faidx"),
         os.path.join(RESULTS, "seqtable_properties.tsv"),
-        # Assembly out from 00_preprocessing.smk
+        ## Assembly out from 00_preprocessing.smk
         expand(os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa"), sample=SAMPLES),
@@ -196,12 +196,21 @@ rule all:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.sketch"),
-        # Output file from 01_mmseqs_pviral_aa.smk
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.tsv"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_report"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_report"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.sketch"),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".aln.sam.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".umapped.fastq"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".statsfile"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".scafstats"), sample=SAMPLES)
+        ## Output file from 01_mmseqs_pviral_aa.smk
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.tsv"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_report"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_report"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted")
         #os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.ids"),
         #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted.ids"),
         #os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.ids"),
