@@ -691,7 +691,7 @@ rule population_assembly:
 rule coverage_calculations:
     """
     
-    Step 20: Calculate contig coverage and extract unmapped reads
+    Step 20a: Calculate contig coverage and extract unmapped reads
     
     """
     input:
@@ -731,7 +731,70 @@ rule coverage_calculations:
         -Xmx{config[System][Memory]}g 2> {log};
         """
 
+rule create_contig_count_table:
+    """
     
+    Step 20b: Filter low coverage contigs
+    
+    """
+    input:
+        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"),
+        covstats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats")
+    output:
+        counts_tmp = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_counts.tmp"),
+        TPM_tmp = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.tmp"),
+        TPM = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM"),
+        TPM_final = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.final"),
+        cov_temp = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp"),
+        count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv")
+    shell:
+        """
+        ## TPM Calculator
+        # Prepare table & calculate RPK
+        tail -n+6 {input.rpkm} > {output.counts_tmp} | \
+        cut -f1,2,5,6,8 | \
+        awk 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $3/($2/1000) }}' > {output.counts_tmp}
+        
+        # Calculate size factor
+        sizef=$(awk 'BEGIN{{ total=0 }} {{ total=total+$6 }} END{{ printf total }}' {output.counts_tmp});
+        
+        # Calculate TPM
+        awk -v awkvar="$sizef" 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $6/awkvar }}' < {output.counts_tmp} > {output.TPM_tmp};
+        
+        # Add sample name
+        awk -v awkvar="{wildcards.sample}" 'BEGIN{{FS=OFS="\t"}} {{ print awkvar, $0 }}' < {output.TPM_tmp} > {output.TPM};
+        
+        # Remove RPK
+        cut -f1-6,8 {output.TPM} > {output.TPM_final};
+        
+        ## Coverage stats modifications
+        tail -n+2 {input.covstats} | cut -f2,4,5,6,9 > {output.cov_temp};
+        
+        ## Combine tables
+        paste {output.TPM_final} {output.cov_temp} > {output.count_tbl};
+        
+        """
+
+rule concatentate_contig_count_tables:
+    """
+    
+    Rule 20c: Concatenate contig count tables
+    Note: this is done as a separate rule due to how snakemake handles i/o files. It does not work well in Rule 20b as the i/o PATTERNS are different.
+    
+    """
+    input:
+        #lambda wildcards: expand(os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa"), sample=SAMPLES)
+        lambda wildcards: expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"), sample=SAMPLES)
+    output:
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv")
+    shell:
+        """
+        
+        cat {input} > {output};
+        
+        sed -i '1i sample_id\tcontig_id\tlength\treads\tRPKM\tFPKM\tTPM\tavg_fold_cov\tcontig_GC\tcov_perc\tcov_bases\tmedian_fold_cov' {output};
+        
+        """
     
     
 
