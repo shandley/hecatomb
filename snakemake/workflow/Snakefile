@@ -178,7 +178,7 @@ if len(SAMPLES) == 0:
     sys.exit()
 
 include: "rules/00_preprocessing.smk",
-include: "rules/01_taxonomic_assignment.smk",
+#include: "rules/01_taxonomic_assignment.smk",
 #include: "rules/02_compile_results.smk"
 
 rule all:
@@ -204,13 +204,20 @@ rule all:
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".statsfile"), sample=SAMPLES),
-        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".scafstats"), sample=SAMPLES)
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".scafstats"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_counts.tmp"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.tmp"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.final"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"), sample=SAMPLES),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv"),
         ## Output file from 01_mmseqs_pviral_aa.smk
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.tsv"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_report"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_report"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted")
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.tsv"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_report"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_report"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln"),
+        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted")
         #os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.ids"),
         #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted.ids"),
         #os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.ids"),
