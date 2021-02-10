@@ -59,14 +59,17 @@ if not os.path.exists(PROTPATH):
     fatal_messages.append("protein databases")
     fatal_errors = True
 
-# The virus protein database, clustered at 99% with cd-hit and then compiled with mmseqs    
+# Primary aa search database: The virus protein database, clustered at 99% with cd-hit and then compiled with mmseqs    
 UNIVIRDB = os.path.join(PROTPATH, "uniprot_virusDB")
 if not os.path.exists(UNIVIRDB):
     fatal_messages.append(UNIVIRDB)
     fatal_errors = True
     
-# Secondary AA check database. Can be selected from config.yaml
-#AACHECKDB = os.path.join(PROTPATH, config['Paths']['Secondary_AA'])
+# Secondary aa search database
+UNIREF50VIR = os.path.join(PROTPATH, "UniRef50_Virus")
+if not os.path.exists(UNIREF50VIR):
+ fatal_messages.append(UNIREF50VIR)
+ fatal_errors = True
 
 # output directories for our amino acid searches
 AA_OUT = os.path.join(RESULTS, "MMSEQS_AA_OUT")
@@ -164,7 +167,7 @@ if not EXTENSIONS:
         and '_R2' in the rev reads
         """)
     sys.exit()
-# we just get the generic extension. This is changed in Step 1
+# we just get the generic extension. This is changed in Step 1/Volumes/Macintosh HD/Users/shandley/Library/Caches/Nova/42111DAF-02/Volumes/Macintosh HD/Users/shandley/Library/Caches/Nova/42111DAF-0218-485F-908B-6E1034888DEE/10.39.174.207/mnt/data3/shandley/dev/hecatomb_v_2/hecatomb/snakemake/workflow/Snakefile18-485F-908B-6E1034888DEE/10.39.174.207/mnt/data3/shandley/dev/hecatomb_v_2/hecatomb/snakemake/workflow/Snakefile
 
 file_extension = EXTENSIONS[0]
 # a convenience so we don't need to use '{sample}_R1' all the time
@@ -178,7 +181,7 @@ if len(SAMPLES) == 0:
     sys.exit()
 
 include: "rules/00_preprocessing.smk",
-#include: "rules/01_taxonomic_assignment.smk",
+include: "rules/01_taxonomic_assignment.smk",
 #include: "rules/02_compile_results.smk"
 
 rule all:
@@ -213,17 +216,17 @@ rule all:
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"), sample=SAMPLES),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv"),
         ## Output file from 01_mmseqs_pviral_aa.smk
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.tsv"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_report"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_report"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted")
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.ids"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted.ids"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.ids"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_classified.fasta"),
-        #os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.fasta"),
-        #os.path.join(AA_OUT, "mmseqs_primary_aa_search_summary.txt")
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.tsv"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_report"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_report"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.ids"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted.ids"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.ids"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_classified.fasta"),
+        os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.fasta"),
+        os.path.join(AA_OUT, "mmseqs_primary_aa_search_summary.txt")
 
         
 
