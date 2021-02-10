@@ -36,10 +36,6 @@ Paths:
   # subdirectories in here for each application
 
   Temp: .tmp
-  
-  # Selected UniRef secondary amino acid validation database (options: UniRef50, UniRef90, UniRef100)
-  
-  Secondary_AA: UniRef50
 
 System:
   # How much memory you want to allocate to java (required for bbtools steps)
