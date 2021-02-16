@@ -49,7 +49,7 @@ fatal_messages = []
 
 ###################################################################
 #                                                                 #
-# Protein databases                                               #
+# REFERENCE DATABASES                                             #
 #                                                                 #
 ###################################################################
 
@@ -59,48 +59,42 @@ if not os.path.exists(PROTPATH):
     fatal_messages.append("protein databases")
     fatal_errors = True
 
-# Primary aa search database: The virus protein database, clustered at 99% with cd-hit and then compiled with mmseqs    
+# Primary aa search database:
+# The virus protein database, clustered at 99% with cd-hit    
 UNIVIRDB = os.path.join(PROTPATH, "uniprot_virusDB")
 if not os.path.exists(UNIVIRDB):
     fatal_messages.append(UNIVIRDB)
     fatal_errors = True
-    
+
 # Secondary aa search database
+# UniRef50 + primary aa search database
 UNIREF50VIR = os.path.join(PROTPATH, "UniRef50_Virus")
 if not os.path.exists(UNIREF50VIR):
  fatal_messages.append(UNIREF50VIR)
  fatal_errors = True
 
 # output directories for our amino acid searches
-AA_OUT = os.path.join(RESULTS, "MMSEQS_AA_OUT")
-#AA_OUT_CHECKED = os.path.join(RESULTS, "MMSEQS_AA_OUT_CHECKED")
+PRIMARY_AA_OUT = os.path.join(RESULTS, "MMSEQS_AA_PRIMARY")
+SECONDARY_AA_OUT = os.path.join(RESULTS, "MMSEQS_AA_SECONDARY")
 
-###################################################################
-#                                                                 #
-# Uniprot databases and related information                       #
-#                                                                 #
-###################################################################
+# Nucleotide databases base path
+NUCLPATH = os.path.join(DBDIR, "nt")
 
-#URVPATH = os.path.join(PROTPATH, "uniref_plus_virus")
-#URVDB = os.path.join(URVPATH, "uniref50_virus.db") # uniref50 + viruses database
-#if not os.path.exists(URVDB):
-#    fatal_messages.append(URVDB)
-#    fatal_errors = True
+# The virus nucleotide database, clustered at 100% with linclust
+NCBIVIRDB = os.path.join(NUCLPATH, "ncbi", "ncbi_virus_genbank_sequences", "tax_added")
+if not os.path.exists(NCBIVIRDB):
+ fatal_messages.append(NCBIVIRDB)
+ fatal_errors = True
+ 
+# Polymicrobial + plant + virus database
+POLYMICRODB = os.path.join(NUCLPATH, "refseq", "polymicrobial_plant")
+if not os.path.exists(POLYMICRODB):
+   fatal_messages.append(f"nucleotide database {POLYMICRODB}")
+   fatal_errors = True
 
-# Nucleotide data
-#NUCLPATH = os.path.join(DBDIR, "nucleotides")
-#NTDB = os.path.join(NUCLPATH, "refseq_virus_nt_UniVec_masked", "nt.fnaDB")
-#if not os.path.exists(NTDB):
-#    fatal_messages.append(f"nucleotide database {NTDB}")
-#    fatal_errors = True
-
-#NT_OUT = os.path.join(RESULTS, "mmseqs_nt_out")
-#if not os.path.exists(NT_OUT):
-#    os.makedirs(NT_OUT)
-
-#NT_CHECKED_OUT = os.path.join(RESULTS, "mmseqs_nt_checked_out")
-#if not os.path.exists(NT_CHECKED_OUT):
-#    os.makedirs(NT_CHECKED_OUT)
+# output directories for our amino acid searches
+PRIMARY_NT_OUT = os.path.join(RESULTS, "PRIMARY_NT_OUT")
+SECONDARY_NT_OUT = os.path.join(RESULTS, "SECONDARY_NT_OUT")
 
 ###################################################################
 #                                                                 #
@@ -133,23 +127,23 @@ AA_OUT = os.path.join(RESULTS, "MMSEQS_AA_OUT")
 #                                                                 #
 ###################################################################
 
-if fatal_errors:
-    sys.stderr.write("""
-**** FATAL ERRORS ****
+#if fatal_errors:
+#    sys.stderr.write("""
+#**** FATAL ERRORS ****
 
-We can't proceed because we can't find one or more of the databases.
-You probably need to download the databases before you can continue.
+#We can't proceed because we can't find one or more of the databases.
+#You probably need to download the databases before you can continue.
 
-Please use the snakefile: 
-   download_databases.smk
+#Please use the snakefile: 
+#   download_databases.smk
 
-To download and install all the databases.
+#To download and install all the databases.
 
-Here are a list of the databases that are currently missing:
-""")
-    sys.stderr.write("\n".join(fatal_messages))
-    sys.stderr.write("\n\n")
-    sys.exit(5)
+#Here are a list of the databases that are currently missing:
+#""")
+#    sys.stderr.write("\n".join(fatal_messages))
+#    sys.stderr.write("\n\n")
+#    sys.exit(5)
 
 ###################################################################
 #                                                                 #
@@ -186,7 +180,7 @@ include: "rules/01_taxonomic_assignment.smk",
 
 rule all:
     input:
-        ## Output files from 00_preprocessing.smk
+        #### Output files from 00_preprocessing.smk
         os.path.join(RESULTS, "seqtable_all.tsv"),
         os.path.join(RESULTS, "seqtable.fasta"),
         os.path.join(RESULTS, "seqtable.faidx"),
@@ -215,18 +209,36 @@ rule all:
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"), sample=SAMPLES),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv"),
-        ## Output file from 01_mmseqs_pviral_aa.smk
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.tsv"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_report"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_report"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_lca.ids"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_tophit_aln_sorted.ids"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.ids"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_classified.fasta"),
-        os.path.join(AA_OUT, "MMSEQS_AA_OUT_unclassified.fasta"),
-        os.path.join(AA_OUT, "mmseqs_primary_aa_search_summary.txt")
+        #### Output file from 01_taxonomic_assignment.smk
+        ## Primary (virus protein database) translated (nt-to-aa) search
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_report"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_report"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.ids"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted.ids"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.ids"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
+        os.path.join(RESULTS, "SEARCH_SUMMARY", "MMSEQS_AA_PRIMARY_summary.txt"),
+        os.path.join(RESULTS, "SEARCH_SUMMARY", "MMSEQS_AA_PRIMARY_virus_family_summary.txt"),
+        os.path.join(RESULTS, "SEARCH_SUMMARY", "MMSEQS_AA_PRIMARY_incomplete_lineage.txt"),
+        ## Secondary (likely viral to transkingdom database) translated (nt-to-aa) search
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_report"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_report"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln_sorted"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.ids"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln_sorted.ids"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_unclassified.ids"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_classified.fasta"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_unclassified.fasta"),
+        os.path.join(RESULTS, "SEARCH_SUMMARY", "MMSEQS_AA_SECONDARY_summary.txt"),
+        os.path.join(RESULTS, "SEARCH_SUMMARY", "MMSEQS_AA_SECONDARY_virus_family_summary.txt"),
+        os.path.join(RESULTS, "SEARCH_SUMMARY", "MMSEQS_AA_SECONDARY_incomplete_lineage.txt")
+        ## Output from untranslated (nt-to-nt) search against polymicrobial + plant database
 
         
 
