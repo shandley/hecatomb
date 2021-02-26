@@ -475,7 +475,8 @@ rule mmseqs_AA_diagnostics:
         prim_class_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
         tophit_aln = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
         secondary_class_seqs = os.path.join(SECONDARY_AA_OUT, "lca_aa_final_protein_annotated.tsv"),
-        db = TAX
+        db = TAX,
+        baltimore = os.path.join(TABLES, "2020_07_27_Viral_classification_table_ICTV2019.txt")
     output:
         prim_class_ids = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta.ids"),
         primary_AA_classified_tophit_aln = os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.tophit.aln"),
@@ -494,7 +495,8 @@ rule mmseqs_AA_diagnostics:
         order_compare = os.path.join(PRIMARY_AA_OUT, "order.compare"),
         family_compare = os.path.join(PRIMARY_AA_OUT, "family.compare"),
         genus_compare = os.path.join(PRIMARY_AA_OUT, "genus.compare"),
-        species_compare = os.path.join(PRIMARY_AA_OUT, "species.compare")
+        species_compare = os.path.join(PRIMARY_AA_OUT, "species.compare"),
+        family_compare_baltimore = os.path.join(PRIMARY_AA_OUT, "family.compare.baltimore")
     benchmark:
         "BENCHMARKS/mmseqs_diagnostics.txt"
     log:
@@ -541,35 +543,43 @@ rule mmseqs_AA_diagnostics:
         # Order summary
         tail -n+2 {input.secondary_class_seqs} | \
             cut -f5 | sort | uniq -c | \
-            sed 's/^\\s*//' | sed 's/ /\\t/' > {output.secondary_AA_order_summary};
+            sed 's/^\\s*//' | sed 's/ /\\t/' | sort -k1 -nr | \
+            awk -F '\t' '{{ print$2"\t"$1 }}' > {output.secondary_AA_order_summary};
         
         # Family summary
         tail -n+2 {input.secondary_class_seqs} | \
             cut -f6 | sort | uniq -c | \
-            sed 's/^\\s*//' | sed 's/ /\\t/' > {output.secondary_AA_family_summary};
+            sed 's/^\\s*//' | sed 's/ /\\t/' | sort -k1 -nr | \
+            awk -F '\t' '{{ print$2"\t"$1 }}' > {output.secondary_AA_family_summary};
             
         # Genus summary
         tail -n+2 {input.secondary_class_seqs} | \
             cut -f7 | sort | uniq -c | \
-            sed 's/^\\s*//' | sed 's/ /\\t/' > {output.secondary_AA_genus_summary};
+            sed 's/^\\s*//' | sed 's/ /\\t/' | sort -k1 -nr | \
+            awk -F '\t' '{{ print$2"\t"$1 }}' > {output.secondary_AA_genus_summary};
             
         # Species summary
         tail -n+2 {input.secondary_class_seqs} | \
             cut -f8 | sort | uniq -c | \
-            sed 's/^\\s*//' | sed 's/ /\\t/' > {output.secondary_AA_species_summary};
+            sed 's/^\\s*//' | sed 's/ /\\t/' | sort -k1 -nr | \
+            awk -F '\t' '{{ print$2"\t"$1 }}' > {output.secondary_AA_species_summary};
             
         # Join to compare primary to secondary
         # Order
-        csvtk join -f1 {output.primary_AA_order_summary} {output.secondary_AA_order_summary} -t -T > {output.order_compare}
+        csvtk join -f1 {output.primary_AA_order_summary} {output.secondary_AA_order_summary} -t -T > {output.order_compare};
         
         # Family
-        csvtk join -f1 {output.primary_AA_family_summary} {output.secondary_AA_family_summary} -t -T > {output.family_compare}
+        csvtk join -f1 {output.primary_AA_family_summary} {output.secondary_AA_family_summary} -t -T > {output.family_compare};
         
         # Genus
-        csvtk join -f1 {output.primary_AA_genus_summary} {output.secondary_AA_genus_summary} -t -T > {output.genus_compare}
+        csvtk join -f1 {output.primary_AA_genus_summary} {output.secondary_AA_genus_summary} -t -T > {output.genus_compare};
         
         # Species
-        csvtk join -f1 {output.primary_AA_species_summary} {output.secondary_AA_species_summary} -t -T > {output.species_compare}
+        csvtk join -f1 {output.primary_AA_species_summary} {output.secondary_AA_species_summary} -t -T > {output.species_compare};
+        
+        # Add Baltimore classification to family comparison
+        sed -i '1i Family\tPrimary\tSecondary' {output.family_compare};
+        csvtk join -f 1 {output.family_compare} {input.baltimore} -t -T --left-join --na "NA" > {output.family_compare_baltimore};
         """
 
 rule seqtable_untranslated_taxonomy_PRIMARY_search:
