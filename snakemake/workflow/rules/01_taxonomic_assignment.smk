@@ -402,9 +402,6 @@ rule SECONDARY_AA_LCA_refactor:
         csvtk join -f1 {output.lca_final_tsv} {output.protein_annotations} -t -T > {output.lca_aa_final_protein_annotated};
         """
     
-
-
-
 rule SECONDARY_AA_taxonomy_tabulation:
     """
     
@@ -467,7 +464,113 @@ Input    $INPUT    NA    Number of sequences input into SECONDARY mmseqs amino a
 Viral LCA    $LCA_VIRAL    $pLCA_VIRAL    Number and % of sequences with a viral lineage (== d_Viruses) after LCA calculation
 Nonviral LCA    $LCA_NONVIRAL    $pLCA_NONVIRAL    Number and % of sequences without a viral lineage (!= d_Viruses) after LCA calculation        
         """
-
+        
+rule mmseqs_AA_diagnostics:
+    """
+    
+    TBD
+    
+    """
+    input:
+        prim_class_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
+        tophit_aln = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
+        secondary_class_seqs = os.path.join(SECONDARY_AA_OUT, "lca_aa_final_protein_annotated.tsv"),
+        db = TAX
+    output:
+        prim_class_ids = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta.ids"),
+        primary_AA_classified_tophit_aln = os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.tophit.aln"),
+        primary_AA_classified_tophit_aln_taxids = os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.tophit.aln.taxIDs"),
+        primary_AA_classified_tophit_aln_seq_taxids = os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.tophit.aln.seq_taxIDs"),
+        primary_AA_classified_lineage = os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.lineage"),
+        primary_AA_classified_lineage_reformated = os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.lineage.reformated"),
+        primary_AA_order_summary = os.path.join(PRIMARY_AA_OUT, "primary_AA_order.summary"),
+        primary_AA_family_summary = os.path.join(PRIMARY_AA_OUT, "primary_AA_family.summary"),
+        primary_AA_genus_summary = os.path.join(PRIMARY_AA_OUT, "primary_AA_genus.summary"),
+        primary_AA_species_summary = os.path.join(PRIMARY_AA_OUT, "primary_AA_species.summary"),
+        secondary_AA_order_summary = os.path.join(PRIMARY_AA_OUT, "secondary_AA_order.summary"),
+        secondary_AA_family_summary = os.path.join(PRIMARY_AA_OUT, "secondary_AA_family.summary"),
+        secondary_AA_genus_summary = os.path.join(PRIMARY_AA_OUT, "secondary_AA_genus.summary"),
+        secondary_AA_species_summary = os.path.join(PRIMARY_AA_OUT, "secondary_AA_species.summary"),
+        order_compare = os.path.join(PRIMARY_AA_OUT, "order.compare"),
+        family_compare = os.path.join(PRIMARY_AA_OUT, "family.compare"),
+        genus_compare = os.path.join(PRIMARY_AA_OUT, "genus.compare"),
+        species_compare = os.path.join(PRIMARY_AA_OUT, "species.compare")
+    benchmark:
+        "BENCHMARKS/mmseqs_diagnostics.txt"
+    log:
+        "../LOGS/mmseqs/mmseqs_diagnostics.log"
+    conda:
+        "../envs/seqkit.yaml"
+    shell:
+        """
+        # Pull all Primary AA search classified seqIDs
+        seqkit seq -n {input.prim_class_seqs} > {output.prim_class_ids};
+        
+        # Join with alignment statistics
+        csvtk join -f 1 {output.prim_class_ids} {input.tophit_aln} -H -t -T > {output.primary_AA_classified_tophit_aln};
+        
+        # Pull taxIDs
+        cut -f20 {output.primary_AA_classified_tophit_aln} > {output.primary_AA_classified_tophit_aln_taxids};
+        
+        # Combine
+        paste {output.prim_class_ids} {output.primary_AA_classified_tophit_aln_taxids} > {output.primary_AA_classified_tophit_aln_seq_taxids}
+        
+        # Add lineage information
+        taxonkit lineage {output.primary_AA_classified_tophit_aln_seq_taxids} --data-dir {input.db} -i 2 > {output.primary_AA_classified_lineage};
+        
+        # Reformat lineage information
+        taxonkit reformat --data-dir {input.db} {output.primary_AA_classified_lineage} -i 3 \
+                -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank | \
+                cut --complement -f2,3 > {output.primary_AA_classified_lineage_reformated};
+                
+        ### Generate summaries at different taxonomic levels
+        ### Primary AA Summaries
+        # Order summary
+        cut -f5 {output.primary_AA_classified_lineage_reformated} | sort | uniq -c | sed 's/^\s*//' | sed 's/ /\t/' | sort -k1 -nr | awk -F '\t' '{{ print$2"\t"$1 }}' > {output.primary_AA_order_summary};
+        
+        # Family summary
+        cut -f6 {output.primary_AA_classified_lineage_reformated} | sort | uniq -c | sed 's/^\s*//' | sed 's/ /\t/' | sort -k1 -nr | awk -F '\t' '{{ print$2"\t"$1 }}' > {output.primary_AA_family_summary};
+        
+        # Genus summary
+        cut -f7 {output.primary_AA_classified_lineage_reformated} | sort | uniq -c | sed 's/^\s*//' | sed 's/ /\t/' | sort -k1 -nr | awk -F '\t' '{{ print$2"\t"$1 }}' > {output.primary_AA_genus_summary};
+        
+        # Species summary
+        cut -f8 {output.primary_AA_classified_lineage_reformated} | sort | uniq -c | sed 's/^\s*//' | sed 's/ /\t/' | sort -k1 -nr | awk -F '\t' '{{ print$2"\t"$1 }}' > {output.primary_AA_species_summary};
+        
+        ### Secondary AA Summaries
+        # Order summary
+        tail -n+2 {input.secondary_class_seqs} | \
+            cut -f5 | sort | uniq -c | \
+            sed 's/^\\s*//' | sed 's/ /\\t/' > {output.secondary_AA_order_summary};
+        
+        # Family summary
+        tail -n+2 {input.secondary_class_seqs} | \
+            cut -f6 | sort | uniq -c | \
+            sed 's/^\\s*//' | sed 's/ /\\t/' > {output.secondary_AA_family_summary};
+            
+        # Genus summary
+        tail -n+2 {input.secondary_class_seqs} | \
+            cut -f7 | sort | uniq -c | \
+            sed 's/^\\s*//' | sed 's/ /\\t/' > {output.secondary_AA_genus_summary};
+            
+        # Species summary
+        tail -n+2 {input.secondary_class_seqs} | \
+            cut -f8 | sort | uniq -c | \
+            sed 's/^\\s*//' | sed 's/ /\\t/' > {output.secondary_AA_species_summary};
+            
+        # Join to compare primary to secondary
+        # Order
+        csvtk join -f1 {output.primary_AA_order_summary} {output.secondary_AA_order_summary} -t -T > {output.order_compare}
+        
+        # Family
+        csvtk join -f1 {output.primary_AA_family_summary} {output.secondary_AA_family_summary} -t -T > {output.family_compare}
+        
+        # Genus
+        csvtk join -f1 {output.primary_AA_genus_summary} {output.secondary_AA_genus_summary} -t -T > {output.genus_compare}
+        
+        # Species
+        csvtk join -f1 {output.primary_AA_species_summary} {output.secondary_AA_species_summary} -t -T > {output.species_compare}
+        """
 
 rule seqtable_untranslated_taxonomy_PRIMARY_search:
     """
