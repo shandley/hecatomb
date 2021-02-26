@@ -43,6 +43,7 @@ if not os.path.exists(TMPDIR):
 CONPATH = os.path.join(DBDIR, "contaminants")
 HOST = config['Paths']['Host']
 HOSTPATH = os.path.join(DBDIR, "host", HOST)
+TAX = os.path.join(DBDIR, "tax", "taxonomy")
 
 fatal_errors = False
 fatal_messages = []
@@ -231,14 +232,45 @@ rule all:
         os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
         os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln_sorted"),
         os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.ids"),
-        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln_sorted.ids"),
-        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_unclassified.ids"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_classified.ids"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_unclassified.ids"),
         os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_classified.fasta"),
         os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_unclassified.fasta"),
         os.path.join(RESULTS, "SEARCH_SUMMARY", "MMSEQS_AA_SECONDARY_summary.txt"),
         os.path.join(RESULTS, "SEARCH_SUMMARY", "MMSEQS_AA_SECONDARY_virus_family_summary.txt"),
-        os.path.join(RESULTS, "SEARCH_SUMMARY", "MMSEQS_AA_SECONDARY_incomplete_lineage.txt")
+        os.path.join(SECONDARY_AA_OUT, "tophit.seq.ids"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.tax.ids"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.seq_tax.ids"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.lineage.vir"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.lineage.vir.reformated"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.vir.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "lca_virus_root.seq.ids"),
+        os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "lca_virus_root.nonvir.seq.ids"),
+        os.path.join(SECONDARY_AA_OUT, "lca_unclass.seq.ids"),
+        os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "lca_unclass.nonvir.seq.ids"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_no_virus_root.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.filtered.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "lca.filtered.seq.ids"),
+        os.path.join(SECONDARY_AA_OUT, "lca.filtered.tax.ids"),
+        os.path.join(SECONDARY_AA_OUT, "lca.filtered.seq_tax.ids"),
+        os.path.join(SECONDARY_AA_OUT, "lca.filtered.lineage"),
+        os.path.join(SECONDARY_AA_OUT, "lca.filtered.lineage.reformated"),
+        os.path.join(SECONDARY_AA_OUT, "lca_aa.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "lca_concat_aa.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "aa_unannotated.ids"),
+        os.path.join(SECONDARY_AA_OUT, "viroDB.headers"),
+        os.path.join(SECONDARY_AA_OUT, "viroDB.ids"),
+        os.path.join(SECONDARY_AA_OUT, "uniref.headers"),
+        os.path.join(SECONDARY_AA_OUT, "uniref.ids"),
+        os.path.join(SECONDARY_AA_OUT, "viroDB.proteins"),
+        os.path.join(SECONDARY_AA_OUT, "viroDB.proteins.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "uniref.proteins"),
+        os.path.join(SECONDARY_AA_OUT, "uniref.proteins.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "protein.annotations.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "lca_aa_final_protein_annotated.tsv")
         ## Output from untranslated (nt-to-nt) search against polymicrobial + plant database
-
+        #os.path.join(PRIMARY_NT_OUT, "aa_unclassified.fasta")
         
 
