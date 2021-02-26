@@ -269,7 +269,23 @@ rule all:
         os.path.join(SECONDARY_AA_OUT, "uniref.proteins"),
         os.path.join(SECONDARY_AA_OUT, "uniref.proteins.tsv"),
         os.path.join(SECONDARY_AA_OUT, "protein.annotations.tsv"),
-        os.path.join(SECONDARY_AA_OUT, "lca_aa_final_protein_annotated.tsv")
+        os.path.join(SECONDARY_AA_OUT, "lca_aa_final_protein_annotated.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta.ids"),
+        os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.tophit.aln"),
+        os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.tophit.aln.taxIDs"),
+        os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.tophit.aln.seq_taxIDs"),
+        os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.lineage"),
+        os.path.join(PRIMARY_AA_OUT, "primary_AA_classified.lineage.reformated"),
+        os.path.join(PRIMARY_AA_OUT, "primary_AA_family.summary"),
+        os.path.join(PRIMARY_AA_OUT, "primary_AA_genus.summary"),
+        os.path.join(PRIMARY_AA_OUT, "secondary_AA_order.summary"),
+        os.path.join(PRIMARY_AA_OUT, "secondary_AA_family.summary"),
+        os.path.join(PRIMARY_AA_OUT, "secondary_AA_genus.summary"),
+        os.path.join(PRIMARY_AA_OUT, "secondary_AA_species.summary"),
+        os.path.join(PRIMARY_AA_OUT, "order.compare"),
+        os.path.join(PRIMARY_AA_OUT, "family.compare"),
+        os.path.join(PRIMARY_AA_OUT, "genus.compare"),
+        os.path.join(PRIMARY_AA_OUT, "species.compare")
         ## Output from untranslated (nt-to-nt) search against polymicrobial + plant database
         #os.path.join(PRIMARY_NT_OUT, "aa_unclassified.fasta")
         
