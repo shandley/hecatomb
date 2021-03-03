@@ -67,6 +67,6 @@ Output:
 QSCORE: 15 # Read quality trimming score (rule remove_low_quality in 00_preprocessing.smk)
 MINLENGTH: 100 # Read minimum length (rule remove_low_quality in 00_preprocessing.smk)
 ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 00_preprocessing.smk)
-CLUSTERID: 0.95 # Linclust read clustering percent identity (rule cluster_similar_sequences: in 00_preprocessing.smk)
+CLUSTERID: 0.97 # Linclust read clustering percent identity (rule cluster_similar_sequences: in 00_preprocessing.smk)
 CONTIG_SIZE_THRESH: 500 # Minimum allowable contig size
   
