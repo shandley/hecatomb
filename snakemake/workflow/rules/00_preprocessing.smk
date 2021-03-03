@@ -1,20 +1,26 @@
 """
-Snakemake rule file to preprocess Illumina sequence data in preperation for taxonomic assignment.
+Snakemake rule file to preprocess Illumina sequence data for virome analysis.
 
 What is accomplished with this script?
     - Non-biological sequence removal (primers, adapters)
+    - Host sequence removal
+    - Removal of redundant sequences (clustering)
+        - Creation of sequence count table
+        - Calculation of sequence properties (e.g. GC content, tetramer frequencies)
+    - Assembly
+        - Sample assembly
+        - Population assembly
+        - Contig abundance esitmation
 
 Additional Reading:
     - Hecatomb GitHub: https://github.com/shandley/hecatomb
     - Official Snakemake documentation: https://snakemake.readthedocs.io/en/stable/
 
-Historical Notes:
+Version Notes:
 - Updated Snakefile based on [contaminant_removal.sh](../base/contaminant_removal.sh)
 
 Rob Edwards, Jan 2020
-Updated: Scott Handley, Jan 2021
-
-
+Updated: Scott Handley, March 2021
 """
 
 import os
@@ -24,12 +30,13 @@ import sys
 # -Xmx is used to specify the memory allocation for bbtools operations
 # Set your -Xmx specifications in your configuration file 
 
-rule remove_leftmost_primerB:
+rule remove_5prime_primer:
     """
     
-    Step 01: Remove leftmost primer.
+    Step 01: Remove 5' primer.
     
     Primer sequences used in the Handley lab are included (primerB.fa). If your lab uses other primers you will need to place them in CONPATH (defined in the Snakefile) and change the file name from primerB.fa to your file name below.
+    
     
     """
     input:
@@ -57,7 +64,7 @@ rule remove_leftmost_primerB:
             stats={output.stats} \
             k=16 hdist=1 mink=11 ktrim=l restrictleft=20 \
             removeifeitherbad=f trimpolya=10 ordered=t rcomp=f ow=t \
-            -Xmx{config[System][Memory]}g 2> {log}
+            -Xmx{config[System][Memory]}g 2> {log};
         """
 
 rule remove_3prime_contaminant:
@@ -90,7 +97,7 @@ rule remove_3prime_contaminant:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=1 mink=11 ktrim=r removeifeitherbad=f ordered=t rcomp=f ow=t \
-            -Xmx{config[System][Memory]}g 2> {log}
+            -Xmx{config[System][Memory]}g 2> {log};
         """
 
 rule remove_primer_free_adapter:
@@ -123,7 +130,7 @@ rule remove_primer_free_adapter:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=1 mink=10 ktrim=r removeifeitherbad=f ordered=t rcomp=t ow=t \
-            -Xmx{config[System][Memory]}g 2> {log}
+            -Xmx{config[System][Memory]}g 2> {log};
         """
 
 rule remove_adapter_free_primer:
@@ -156,7 +163,7 @@ rule remove_adapter_free_primer:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=0 removeifeitherbad=f ordered=t rcomp=t ow=t \
-            -Xmx{config[System][Memory]}g 2> {log}
+            -Xmx{config[System][Memory]}g 2> {log};
         """
 
 rule remove_vector_contamination:
@@ -189,7 +196,7 @@ rule remove_vector_contamination:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=31 hammingdistance=1 ordered=t ow=t \
-            -Xmx{config[System][Memory]}g 2> {log}
+            -Xmx{config[System][Memory]}g 2> {log};
         """
         
 rule remove_low_quality:
@@ -224,7 +231,7 @@ rule remove_low_quality:
             entropy={config[ENTROPY]} \
             trimq={config[QSCORE]} \
             minlength={config[MINLENGTH]} \
-            -Xmx{config[System][Memory]}g 2> {log} 
+            -Xmx{config[System][Memory]}g 2> {log};
         """
 
 rule host_removal_mapping:
@@ -254,9 +261,12 @@ rule host_removal_mapping:
         "../envs/minimap2.yaml"
     shell:
         """
+        # Map with minimap
+        # Remove supplementary alignments (-F 2048)
+        # Isolate unmapped (non-host) reads (-f 4)
         minimap2 -ax sr -t {config[System][Threads]} {input.hostpath} {input.r1} {input.r2} 2> {log} | \
-        samtools view -F 2048 -h | \
-        samtools view -f 4 -h > {output.sam} 2> {log};
+        samtools view -F 2048 -h --threads {resources.cpus} | \
+        samtools view -f 4 -h --threads {resources.cpus} > {output.sam} 2> {log};
         """
 
 rule extract_host_unmapped:
@@ -282,10 +292,10 @@ rule extract_host_unmapped:
         "../envs/minimap2.yaml"
     shell:
         """
-        samtools fastq -NO -1 {output.r1} -2 {output.r2} \
+        samtools fastq --threads {resources.cpus} -NO -1 {output.r1} -2 {output.r2} \
         -0 /dev/null \
         -s {output.singletons} \
-        {input.sam} 2> {log}
+        {input.sam} 2> {log};
         """
 
 rule nonhost_read_repair:
@@ -311,7 +321,7 @@ rule nonhost_read_repair:
     shell:
         """
         reformat.sh in={input.singletons} out={output.r1} out2={output.r2} \
-        -Xmx{config[System][Memory]}g 2> {log}
+        -Xmx{config[System][Memory]}g 2> {log};
         """
 
 rule nonhost_read_combine:
@@ -336,7 +346,7 @@ rule nonhost_read_combine:
     shell:
         """
         cat {input.r1} {input.r1s} > {output.r1};
-        cat {input.r2} {input.r2s} > {output.r2}
+        cat {input.r2} {input.r2s} > {output.r2};
         """
 
 rule remove_exact_dups:
@@ -344,11 +354,14 @@ rule remove_exact_dups:
     
     Step 08: Remove exact duplicates
     
+    - Exact duplicates are considered PCR artifacts and not accounted for in the count table (seqtable_all.tsv)
+    
     """
     input:
         os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq")
     output:
         os.path.join(QC, "CLUSTERED", PATTERN_R1 + ".deduped.out.fastq")
+    priority: 5
     benchmark:
         "BENCHMARKS/preprocessing/step_08/remove_exact_dups_{sample}.txt"
     log:
@@ -362,7 +375,7 @@ rule remove_exact_dups:
         """
         dedupe.sh in={input} out={output} \
         ac=f ow=t \
-        -Xmx{config[System][Memory]}g 2> {log}
+        -Xmx{config[System][Memory]}g 2> {log};
         """
           
 rule cluster_similar_sequences:
@@ -377,6 +390,7 @@ rule cluster_similar_sequences:
         os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_rep_seq.fasta"),
         os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_cluster.tsv"),
         temporary(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + "_all_seqs.fasta"))
+    priority: 1
     params:
         respath=os.path.join(QC, "CLUSTERED", "LINCLUST"),
         tmppath=os.path.join(QC, "CLUSTERED", "LINCLUST", "TMP"),
@@ -394,13 +408,13 @@ rule cluster_similar_sequences:
         """ 
         mmseqs easy-linclust {input} {params.respath}/{params.prefix} {params.tmppath} \
         --kmer-per-seq-scale 0.3 \
-        -c 0.95 --cov-mode 1 --threads {config[System][Threads]} &>> {log}
+        -c {config[CLUSTERID]} --cov-mode 1 --threads {config[System][Threads]} &>> {log};
         """
         
 rule create_individual_seqtables:
     """
     
-    Step 10: Create individual seqtables. A seqtable is a count table with each feature (sequence) as a row, each column as a sample and each cell the counts of each sequence per sample
+    Step 10: Create individual seqtables. A seqtable is a count table with each feature (sequence) as a row, each column as a sample and each cell the counts of each sequence per sample.
     
     """
     input:
@@ -425,16 +439,16 @@ rule create_individual_seqtables:
         seqkit fx2tab -j {config[System][Threads]} -w 5000 -t dna | \
         sed 's/\\t\\+$//' | \
         cut -f2,3 | \
-        sed '1i sequence' > {output.seqs}
+        sed '1i sequence' > {output.seqs};
         
         cut -f1 {input.counts} | \
         sort | \
         uniq -c | \
         awk -F ' ' '{{print$2"\\t"$1}}' | \
         cut -f2 | \
-        sed "1i {params.prefix}" > {output.counts}
+        sed "1i {params.prefix}" > {output.counts};
         
-        paste {output.seqs} {output.counts} > {output.seqtable}
+        paste {output.seqs} {output.counts} > {output.seqtable};
         """
         
 rule merge_individual_seqtables:
@@ -462,14 +476,16 @@ rule merge_individual_seqtables:
     script:
         "../scripts/seqtable_merge.R"
 
-rule convert_seqtable_tab_2_fasta:
+rule convert_seqtable_tab_to_fasta:
     """
-    Step 12: Convert tabular seqtable output to fasta
+    Step 12: Convert tabular seqtable output to fasta and create index
     """
     input:
         os.path.join(RESULTS, "seqtable.tab2fx")
     output:
-        os.path.join(RESULTS, "seqtable.fasta")
+        seqtable = os.path.join(RESULTS, "seqtable.fasta"),
+        stats = os.path.join(RESULTS, "seqtable.stats"),
+        idx = os.path.join(RESULTS, "seqtable.faidx")
     benchmark:
         "BENCHMARKS/preprocessing/step_10/convert_seqtable_tab_2_fasta.txt"
     resources:
@@ -479,49 +495,51 @@ rule convert_seqtable_tab_2_fasta:
         "../envs/seqkit.yaml"
     shell:
         """
-        seqkit tab2fx {input} -j {config[System][Threads]} -w 5000 -t dna -o {output}
-        """
-
-rule create_seqtable_index:
-    """
-    
-    Step 13: Index seqtable.fasta for rapid samtools access in later steps
-    
-    """
-    input:
-        os.path.join(RESULTS, "seqtable.fasta")
-    output:
-        os.path.join(RESULTS, "seqtable.faidx")
-    resources:
-        mem_mb=100000,
-        cpus=64
-    conda:
-        "../envs/samtools.yaml"
-    shell:
-        """
-        samtools faidx {input} -o {output}
+        # Convert
+        seqkit tab2fx {input} -j {config[System][Threads]} -w 5000 -t dna -o {output.seqtable};
+        
+        # Calculate seqtable statistics
+        seqkit stats {output.seqtable} -j {config[System][Threads]} -T > {output.stats};
+        
+        # Create seqtable index
+        samtools faidx {output.seqtable} -o {output.idx};
         """
 
 rule calculate_seqtable_sequence_properties:
     """
     
-    Step 14: Calculate additional sequence properties (ie. GC-content) per sequence
+    Step 13: Calculate additional sequence properties (ie. GC-content, tetramer frequencies) per sequence
     
     """
     input:
         os.path.join(RESULTS, "seqtable.fasta")
     output:
-        os.path.join(RESULTS, "seqtable_properties.tsv")
+        gc = os.path.join(RESULTS, "seqtable_properties.gc"),
+        tetramer = os.path.join(RESULTS, "seqtable_properties.tetramer"),
+        seq_properties = os.path.join(RESULTS, "seqtable_properties.tsv")
     benchmark:
         "BENCHMARKS/preprocessing/step_14/calculate_seqtable_sequence_properties.txt"
     resources:
         mem_mb=100000,
         cpus=64
     conda:
-        "../envs/seqkit.yaml"
+        "../envs/preprocessing.yaml"
     shell:
         """
-        seqkit fx2tab -j {config[System][Threads]} --gc -H {input} | cut -f1,4 > {output}
+        # Calcualate per sequence GC content
+        countgc.sh in={input} format=2 ow=t | awk 'NF' > {output.gc};
+        sed -i '1i id\tGC' {output.gc};
+        
+        # Calculate per sequence tetramer frequency
+        tetramerfreq.sh in={input} w=0 ow=t | \
+        tail -n+2 | \
+        cut --complement -f2 > {output.tetramer};
+        
+        sed -i 's/scaffold/id/' {output.tetramer};
+        
+        # Combine
+        csvtk join -f 1 {output.gc} {output.tetramer} -t -T > {output.seq_properties};
+        
         """
 
 rule assembly_kmer_normalization:
@@ -561,6 +579,8 @@ rule individual_sample_assembly:
     """
     
     Step 16: Individual sample assemblies
+    
+    - Megahit: https://github.com/voutcn/megahit
     
     """
     input:
@@ -622,7 +642,7 @@ rule contig_reformating_and_stats:
         stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats"),
         sketch = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.sketch")
     benchmark:
-        "BENCHMARKS/preprocessing/contig_reformating.txt"
+        "BENCHMARKS/assembly/contig_reformating.txt"
     log:
         "LOGS/assembly/contig_reformating.log"
     resources:
@@ -727,14 +747,14 @@ rule coverage_calculations:
         statsfile={output.statsfile} \
         scafstats={output.scafstats} \
         maxindel=100 minid=90 \
-        ow=t 2> \
+        ow=t \
         -Xmx{config[System][Memory]}g 2> {log};
         """
 
 rule create_contig_count_table:
     """
     
-    Step 20b: Filter low coverage contigs
+    Step 20b: Transcript Per Million (TPM) calculator
     
     """
     input:
@@ -747,13 +767,15 @@ rule create_contig_count_table:
         TPM_final = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.final"),
         cov_temp = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp"),
         count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv")
+    benchmark:
+        "BENCHMARKS/assembly/tpm_caluclator_{sample}.txt"
     shell:
         """
         ## TPM Calculator
         # Prepare table & calculate RPK
         tail -n+6 {input.rpkm} > {output.counts_tmp} | \
         cut -f1,2,5,6,8 | \
-        awk 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $3/($2/1000) }}' > {output.counts_tmp}
+        awk 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $3/($2/1000) }}' > {output.counts_tmp};
         
         # Calculate size factor
         sizef=$(awk 'BEGIN{{ total=0 }} {{ total=total+$6 }} END{{ printf total }}' {output.counts_tmp});
@@ -778,8 +800,8 @@ rule create_contig_count_table:
 rule concatentate_contig_count_tables:
     """
     
-    Rule 20c: Concatenate contig count tables
-    Note: this is done as a separate rule due to how snakemake handles i/o files. It does not work well in Rule 20b as the i/o PATTERNS are different.
+    Step 20c: Concatenate contig count tables
+    Note: this is done as a separate rule due to how snakemake handles i/o files. It does not work well in Step 20b as the i/o PATTERNS are different.
     
     """
     input:
@@ -787,6 +809,8 @@ rule concatentate_contig_count_tables:
         lambda wildcards: expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"), sample=SAMPLES)
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv")
+    benchmark:
+        "BENCHMARKS/assembly/concat_count_tables.txt"
     shell:
         """
         
@@ -795,9 +819,40 @@ rule concatentate_contig_count_tables:
         sed -i '1i sample_id\tcontig_id\tlength\treads\tRPKM\tFPKM\tTPM\tavg_fold_cov\tcontig_GC\tcov_perc\tcov_bases\tmedian_fold_cov' {output};
         
         """
+
+rule calculate_contig_dictionary_properties:
+    """
     
+    Step 21: Calculate contig sequence properties properties (ie. GC-content, tetramer frequencies) per sequence
     
-
-
-
-
+    """
+    input:
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
+    output:
+        gc = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.gc"),
+        tetramer = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.tetramer"),
+        seq_properties = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.tsv")
+    benchmark:
+        "BENCHMARKS/preprocessing/step_14/calculate_contig_dictionary_properties.txt"
+    resources:
+        mem_mb=100000,
+        cpus=64
+    conda:
+        "../envs/preprocessing.yaml"
+    shell:
+        """
+        # Calcualate per sequence GC content
+        countgc.sh in={input} format=2 ow=t | awk 'NF' > {output.gc};
+        sed -i '1i id\tGC' {output.gc};
+        
+        # Calculate per sequence tetramer frequency
+        tetramerfreq.sh in={input} w=0 ow=t | \
+        tail -n+2 | \
+        cut --complement -f2 > {output.tetramer};
+        
+        sed -i 's/scaffold/id/' {output.tetramer};
+        
+        # Combine
+        csvtk join -f 1 {output.gc} {output.tetramer} -t -T > {output.seq_properties};
+        
+        """
