@@ -214,6 +214,9 @@ rule all:
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"), sample=SAMPLES),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.gc"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.tetramer"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.tsv"),
         #### Output file from 01_taxonomic_assignment.smk
         ## Primary (virus protein database) translated (nt-to-aa) search
         os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
