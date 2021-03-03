@@ -185,7 +185,10 @@ rule all:
         #### Output files from 00_preprocessing.smk
         os.path.join(RESULTS, "seqtable_all.tsv"),
         os.path.join(RESULTS, "seqtable.fasta"),
+        os.path.join(RESULTS, "seqtable.stats"),
         os.path.join(RESULTS, "seqtable.faidx"),
+        os.path.join(RESULTS, "seqtable_properties.gc"),
+        os.path.join(RESULTS, "seqtable_properties.tetramer"),
         os.path.join(RESULTS, "seqtable_properties.tsv"),
         ## Assembly out from 00_preprocessing.smk
         expand(os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"), sample=SAMPLES),
