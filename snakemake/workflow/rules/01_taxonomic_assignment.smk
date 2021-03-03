@@ -33,15 +33,15 @@ rule mmseqs_pviral_aa:
 
 rule PRIMARY_AA_taxonomy_assignment:
     """
-    Assign taxonomy to RESULTS/seqtable.fasta sequences using mmseqs2 to query a viral protein reference databases.
+    1) Assign taxonomy to RESULTS/seqtable.fasta sequences using mmseqs2 to query a viral protein (all UniProt viral (UNIVIRDB)) reference database.
     
-    This is a nt-to-aa translated search, similar to blastX.
+    - This is a nt-to-aa translated search, similar to blastX.
     
-    All sequences assigned to a viral lineage will be reserved for the secondary query against a trans-kingdom database to confirm their viral lineage.
+    - All sequences assigned to a viral lineage will be reserved for the secondary query against a trans-kingdom database to confirm their viral lineage.
     
-    Reference database: All Uniprot viral proteins clustered at 99% identity.
+    - Reference database: All Uniprot viral proteins clustered at 99% identity.
     
-    Note: The sequences checked in the next step are taken from the tophit_aln file. This means they will not have LCA assigned taxonomy, but it is the most inclusive group to send to the next step where any false-positives will be sorted out. For now, we want to capture anything that potentially looks viral.
+    - The sequences checked in the next step are selected if their tophit is in a viral lineage (tophit_aln file). This means they will not have LCA assigned taxonomy, but it is the most inclusive group to send to the next step (secondary search) where any false-positives will be sorted out. For now, we want to capture anything that potentially looks viral.
 
     """
     input:
@@ -82,7 +82,7 @@ rule PRIMARY_AA_taxonomy_assignment:
         
 rule PRIMARY_AA_taxonomy_tabulation:
     """
-    1) Parse potential viral and unclassified sequences
+    1) Parse primary AA search results for viral and unclassified sequences
     
     2) Tabulate some statistics
         - Number of input sequences: seqtable.fasta
@@ -90,11 +90,11 @@ rule PRIMARY_AA_taxonomy_tabulation:
         - Number of sequences having no inidication of having a viral lineage: MMSEQS_AA_PRIMARY_unclassified.fasta
         - Number of sequences with a viral LCA lineage
         - Number of sequences with a viral tophit lineage
-        - etc.
+        - Potentially more can be added
         
-    MMSEQS_AA_PRIMARY_classified.fasta will be subjected to a secondary translated search against a trans-kingdom database to confirm true virality.
+    - MMSEQS_AA_PRIMARY_classified.fasta will be subjected to a secondary translated search (rule SECONDARY_AA_taxonomy_assignment:) against a trans-kingdom database (UniRef50 + to confirm true virality.
     
-    MMSEQS_AA_PRIMARY_unclassified.fasta will be queried against a viral nucleotide database to detect similarity to non-coding regions of viral genomes or to sequences not represented in the UniProt protein databases.
+    - MMSEQS_AA_PRIMARY_unclassified.fasta will be queried against a viral nucleotide database to detect similarity to non-coding regions of viral genomes or to sequences not represented in the UniProt protein databases.
         
     """
     input:
