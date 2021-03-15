@@ -1,0 +1,9 @@
+name: bbmap
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - bbmap
+  - seqkit
+  - csvtk
