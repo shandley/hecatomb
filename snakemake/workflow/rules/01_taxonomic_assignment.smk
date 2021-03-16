@@ -1,13 +1,7 @@
 """
-Snakefile to query target amino acid sequence database with reduced (seqtab) clustered sequences from merge_seqtable.sh using mmseqs2
+Snakefile to query target amino acid sequence database with reduced (seqtab) clustered sequences from merge_seqtable.sh using mmseqs2                                                             
 
-This is based on [mmseqs_pviral_aa.sh](../base/mmseqs_pviral_aa.sh)
-
-REQUIRES that targetDB has already been indexed
-If it has not been index then run the following script in the directory of your choice: uniprot_viral_DB_build.sh (found in /accessory)                                                                  
-Note: mmseqs2 taxonomy is currently most useful if you have UniProt formatted fasta databases
-more details about database building can be found at: https://github.com/soedinglab/mmseqs2/wiki#taxonomy-assignment-using-mmseqs-taxonomy                                                               
-
+Historiy: This is based on [mmseqs_pviral_aa.sh](../base/mmseqs_pviral_aa.sh)
 
 Rob Edwards, March 2020
 
@@ -16,20 +10,6 @@ Rob Edwards, March 2020
 import os
 import sys
 
-
-rule mmseqs_pviral_aa:
-    input:
-        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
-        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_report"),
-        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_report"),
-        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
-        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted")
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.ids"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted.ids"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.ids"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
-        #os.path.join(PRIMARY_AA_OUT, "mmseqs_primary_aa_search_summary.txt")
 
 rule PRIMARY_AA_taxonomy_assignment:
     """
