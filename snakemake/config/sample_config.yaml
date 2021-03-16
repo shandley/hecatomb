@@ -22,8 +22,15 @@ Paths:
   Databases: /mnt/data1/databases/hecatomb
   
   # The reads directory has your input fastq files
+  # Note: All of your results will go into this directory
 
-  Reads: /mnt/data1/databases/hecatomb/test_data/raw_data/subsampled
+  Reads: /mnt/data1/databases/hecatomb/test_data/raw_data/subsampled_25000/
+  
+  # Where do you want the results stored?
+  # Recommended that you make a specific based dir (e.g. heactomb_runs) followed by project specific (e.g. test_data) for all of your runs
+  #This should not be a subdirectory to where your Reads are located!
+  
+  Results: /mnt/data3/shandley/hecatomb_runs/test_data
   
   # Host directory name
   # e.g. human, mouse, dog, etc.
@@ -40,22 +47,14 @@ Paths:
 System:
   # How much memory you want to allocate to java (required for bbtools steps)
   
-  # This is in gigabytes of memory (e.g 2 would use 2GB, 128 would use 128GB)
+  # This is in gigabytes of memory (e.g 2GB would use 2, 128GB would use 128)
   
   Memory: 100
   
-  # Number of threads to use (system dependent)
+  # Number of threads to use
   
   Threads: 64
-  
-Output:
-  
-  # Various output directories. You probably do not need to change these and just go with the defaults
-  ASSEMBLY: ASSEMBLY
-  QC: CLEANED
-  STATS: STATS
-  LOGS: LOGS
-  RESULTS: RESULTS
+
 
 ############################
 # Optional Rule Parameters #                  
