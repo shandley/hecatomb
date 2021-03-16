@@ -15,7 +15,7 @@ import sys
 Summary:
     # Step 0: Preprocessing (Rule: 00_preprocessing.smk)
     # Step 1: Taxonomic Assignment (Rule: 01_taxonomic_assignment.smk)
-    # Step 3: Compile Results (Rule: 02_compile_results.smk)
+    # Step 2: Compile Results (Rule: 02_compile_results.smk)
 """
 
 if not config:
@@ -29,15 +29,20 @@ DBDIR = config['Paths']['Databases']
 # Paths for our data. This is where we will read and put things
 READDIR = config['Paths']['Reads']
 
-# Base output directories
-ASSEMBLY = config['Output']['ASSEMBLY']
-QC = config['Output']['QC']
-LOGS = config['Output']['LOGS']
-STATS = config['Output']['STATS']
-RESULTS = config['Output']['RESULTS']
+# Results directory
+# Should not be a subdirectory to READDIR. Put it somewhere else!
+RESULTS = config['Paths']['Results']
+
+# Base RESULTS directories
+ASSEMBLY = os.path.join(RESULTS, "ASSEMBLY")
+QC = os.path.join(RESULTS, "QC")
+LOGS = os.path.join(RESULTS, "LOGS")
+STATS = os.path.join(RESULTS, "STATS")
+RESULTS = os.path.join(RESULTS, "RESULTS")
+BENCH = os.path.join(RESULTS, "BENCHMARKS")
 TMPDIR = config['Paths']['Temp']
-if not os.path.exists(TMPDIR):
-    os.makedirs(TMPDIR, exist_ok=True)
+#if not os.path.exists(TMPDIR):
+#    os.makedirs(TMPDIR, exist_ok=True)
     
 # Database sub-directories
 CONPATH = os.path.join(DBDIR, "contaminants")
@@ -197,10 +202,8 @@ rule all:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.sketch"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.sketch"),
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".aln.sam.gz"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".umapped.fastq"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats"), sample=SAMPLES),
@@ -214,9 +217,9 @@ rule all:
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"), sample=SAMPLES),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.gc"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.tetramer"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary_properties.gc"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary_properties.tetramer"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary_properties.tsv"),
         #### Output file from 01_taxonomic_assignment.smk
         ## Primary (virus protein database) translated (nt-to-aa) search
         os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
