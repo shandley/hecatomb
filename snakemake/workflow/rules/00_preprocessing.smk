@@ -25,7 +25,7 @@ Updated: Scott Handley, March 2021
 
 import os
 import sys
-
+    
 # NOTE: bbtools uses "threads=auto" by default that typically uses all threads, so no need to specify. 
 # -Xmx is used to specify the memory allocation for bbtools operations
 # Set your -Xmx specifications in your configuration file 
@@ -48,9 +48,9 @@ rule remove_5prime_primer:
         r2 = temp(os.path.join(TMPDIR, "step_01", PATTERN_R2 + ".s1.out.fastq")),
         stats = os.path.join(STATS, "step_01", "{sample}.s1.stats.tsv")
     benchmark:
-        "BENCHMARKS/preprocessing/step_01/removeprimerB_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s01.removeprimerB_{sample}.txt")
     log:
-        "LOGS/step_01/{sample}.s1.log"
+        log = os.path.join(LOGS, "step_01", "s01_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -82,9 +82,9 @@ rule remove_3prime_contaminant:
         r2 = temp(os.path.join(TMPDIR, "step_02", PATTERN_R2 + ".s2.out.fastq")),
         stats = os.path.join(STATS, "step_02", "{sample}.s2.stats.tsv")
     benchmark:
-        "BENCHMARKS/preprocessing/step_02/remove_3prime_contaminant_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s02.remove_3prime_contaminant_{sample}.txt")
     log:
-        "LOGS/step_02/{sample}.s2.log"
+        log = os.path.join(LOGS, "step_02", "s02_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -115,9 +115,9 @@ rule remove_primer_free_adapter:
         r2 = temp(os.path.join(TMPDIR, "step_03", PATTERN_R2 + ".s3.out.fastq")),
         stats = os.path.join(STATS, "step_03", "{sample}.s3.stats.tsv")
     benchmark:
-        "BENCHMARKS/preprocessing/step_03/remove_primer_free_adapter_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s03.remove_primer_free_adapter_{sample}.txt")
     log:
-        "LOGS/step_03/{sample}.s3.log"
+        log = os.path.join(LOGS, "step_03", "s3_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -148,9 +148,9 @@ rule remove_adapter_free_primer:
         r2 = temp(os.path.join(TMPDIR, "step_04", PATTERN_R2 + ".s4.out.fastq")),
         stats = os.path.join(STATS, "step_04", "{sample}.s4.stats.tsv")
     benchmark:
-        "BENCHMARKS/preprocessing/step_04/remove_adapter_free_primer_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s04.remove_adapter_free_primer_{sample}.txt")
     log:
-        "LOGS/step_04/{sample}.s4.log"
+        log = os.path.join(LOGS, "step_04", "s4_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -181,9 +181,9 @@ rule remove_vector_contamination:
         r2 = temp(os.path.join(TMPDIR, "step_05", PATTERN_R2 + ".s5.out.fastq")),
         stats = os.path.join(STATS, "step_05", "{sample}.s5.stats.tsv")
     benchmark:
-        "BENCHMARKS/preprocessing/step_05/remove_vector_contamination_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s05.remove_vector_contamination_{sample}.txt")
     log:
-        "LOGS/step_05/{sample}.s5.log"
+        log = os.path.join(LOGS, "step_05", "s5_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -213,9 +213,9 @@ rule remove_low_quality:
         r2 = temp(os.path.join(TMPDIR, PATTERN_R2 + ".clean.out.fastq")),
         stats = os.path.join(STATS, "step_06", "{sample}.s6.stats.tsv")
     benchmark:
-        "BENCHMARKS/preprocessing/step_06/remove_low_quality_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s06.remove_low_quality_{sample}.txt")
     log:
-        "LOGS/step_06/{sample}.s6.log"
+        log = os.path.join(LOGS, "step_06", "s6_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -251,9 +251,9 @@ rule host_removal_mapping:
     output:
         sam = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".sam")
     benchmark:
-        "BENCHMARKS/preprocessing/step_07/host_removal_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s07.host_removal_{sample}.txt")
     log:
-        "LOGS/host_removal/{sample}.host_removal.log"
+        log = os.path.join(LOGS, "step_07a", "s7a_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -282,9 +282,10 @@ rule extract_host_unmapped:
         r2 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".unmapped.fastq")),
         singletons = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.singletons.fastq"))
     benchmark:
-        "BENCHMARKS/preprocessing/step_07/extract_host_unmapped_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s07b.extract_host_unmapped_{sample}.txt")
     log:
-        "LOGS/host_removal/{sample}.extract_host_unmapped.log"
+        log = os.path.join(LOGS, "step_07b", "s07b_{sample}.log")
+
     resources:
         mem_mb=100000,
         cpus=64
@@ -310,9 +311,9 @@ rule nonhost_read_repair:
         r1 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq")),
         r2 = temp(os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq"))
     benchmark:
-        "BENCHMARKS/preprocessing/step_07/nonhost_read_repair_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s07c.nonhost_read_repair_{sample}.txt")
     log:
-        "LOGS/host_removal/{sample}.nonhost_read_repair.log"
+        log = os.path.join(LOGS, "step_07c", "s07c_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -339,7 +340,7 @@ rule nonhost_read_combine:
         r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"),
         r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq")
     benchmark:
-        "BENCHMARKS/preprocessing/step_07/nonhost_read_combine_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s07d.nonhost_read_combine_{sample}.txt")
     resources:
         mem_mb=100000,
         cpus=64
@@ -363,9 +364,9 @@ rule remove_exact_dups:
         os.path.join(QC, "CLUSTERED", PATTERN_R1 + ".deduped.out.fastq")
     priority: 5
     benchmark:
-        "BENCHMARKS/preprocessing/step_08/remove_exact_dups_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s08.remove_exact_dupes_{sample}.txt")
     log:
-        "LOGS/clustering/{sample}.dedupe.log"
+        log = os.path.join(LOGS, "step_08", "s08_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -396,9 +397,9 @@ rule cluster_similar_sequences:
         tmppath=os.path.join(QC, "CLUSTERED", "LINCLUST", "TMP"),
         prefix=PATTERN_R1
     benchmark:
-        "BENCHMARKS/preprocessing/step_08/cluster_similar_seqs_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s09.cluster_similar_seqs_{sample}.txt")
     log:
-        "LOGS/clustering/{sample}.linclust.log"
+        log = os.path.join(LOGS, "step_09", "s09_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -427,7 +428,9 @@ rule create_individual_seqtables:
     params:
         prefix=PATTERN
     benchmark:
-        "BENCHMARKS/preprocessing/step_10/individual_seq_tables_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s10.individual_seq_tables_{sample}.txt")
+    log:
+        log = os.path.join(LOGS, "step_10", "s10_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -465,7 +468,9 @@ rule merge_individual_seqtables:
     params:
         resultsdir = directory(RESULTS),
     benchmark:
-        "BENCHMARKS/preprocessing/step_10/merge_seq_table.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s11.merge_seq_tables.txt")
+    log:
+        log = os.path.join(LOGS, "step_11", "s11.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -478,7 +483,9 @@ rule merge_individual_seqtables:
 
 rule convert_seqtable_tab_to_fasta:
     """
+    
     Step 12: Convert tabular seqtable output to fasta and create index
+    
     """
     input:
         os.path.join(RESULTS, "seqtable.tab2fx")
@@ -487,7 +494,9 @@ rule convert_seqtable_tab_to_fasta:
         stats = os.path.join(RESULTS, "seqtable.stats"),
         idx = os.path.join(RESULTS, "seqtable.faidx")
     benchmark:
-        "BENCHMARKS/preprocessing/step_10/convert_seqtable_tab_2_fasta.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s12.convert_seqtable_tab_2_fasta.txt")
+    log:
+        log = os.path.join(LOGS, "step_12", "s12.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -518,7 +527,10 @@ rule calculate_seqtable_sequence_properties:
         tetramer = os.path.join(RESULTS, "seqtable_properties.tetramer"),
         seq_properties = os.path.join(RESULTS, "seqtable_properties.tsv")
     benchmark:
-        "BENCHMARKS/preprocessing/step_14/calculate_seqtable_sequence_properties.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s13.calculate_seqtable_sequence_properties.txt")
+    log:
+        log1 = os.path.join(LOGS, "step_13", "s13.gc.log"),
+        log2 = os.path.join(LOGS, "step_13", "s13.tetramer.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -528,12 +540,12 @@ rule calculate_seqtable_sequence_properties:
         """
         # Calcualate per sequence GC content
         countgc.sh in={input} format=2 ow=t | awk 'NF' > {output.gc};
-        sed -i '1i id\tGC' {output.gc};
+        sed -i '1i id\tGC' {output.gc} 2> {log1};
         
         # Calculate per sequence tetramer frequency
         tetramerfreq.sh in={input} w=0 ow=t | \
         tail -n+2 | \
-        cut --complement -f2 > {output.tetramer};
+        cut --complement -f2 > {output.tetramer} 2> {log2};
         
         sed -i 's/scaffold/id/' {output.tetramer};
         
@@ -545,7 +557,7 @@ rule calculate_seqtable_sequence_properties:
 rule assembly_kmer_normalization:
     """
     
-    Step 15: Kmer normalization. Data reduction for assembly improvement
+    Step 14: Kmer normalization. Data reduction for assembly improvement
     
     """
     input:
@@ -557,9 +569,9 @@ rule assembly_kmer_normalization:
         r1_norm = os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
         r2_norm = os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq")
     benchmark:
-        "BENCHMARKS/preprocessing/assembly/kmer_normalization_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s14.kmer_normalization_{sample}.txt")
     log:
-        "LOGS/assembly/{sample}.kmer_normalization.log"
+        log = os.path.join(LOGS, "step_14", "s14_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -578,7 +590,7 @@ rule assembly_kmer_normalization:
 rule individual_sample_assembly:
     """
     
-    Step 16: Individual sample assemblies
+    Step 15: Individual sample assemblies
     
     - Megahit: https://github.com/voutcn/megahit
     
@@ -594,9 +606,9 @@ rule individual_sample_assembly:
         mh_dir=directory(os.path.join(ASSEMBLY, '{sample}')),
         contig_dic=directory(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY"))
     benchmark:
-        "BENCHMARKS/preprocessing/assembly/megahit_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s15.megahit_{sample}.txt")
     log:
-        "LOGS/assembly/{sample}.megahit.log"
+        log = os.path.join(LOGS, "step_15", "s15_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -608,19 +620,23 @@ rule individual_sample_assembly:
         
         megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
         -o {params.mh_dir} --out-prefix {wildcards.sample} \
-        --k-min 45 --k-max 225 --k-step 26 --min-count 2 &>> {log}      
+        --k-min 45 --k-max 225 --k-step 26 --min-count 2 &>> {log};
         """
         
 rule concatenate_contigs:
     """
     
-    Step 17: Concatenate individual assembly outputs (contigs) into a single file
+    Step 16: Concatenate individual assembly outputs (contigs) into a single file
     
     """
     input:
         lambda wildcards: expand(os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa"), sample=SAMPLES)
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
+    benchmark:
+        os.path.join(BENCH, "PREPROCESSING", "s16.concatenate_assemblies.txt")
+    log:
+        log = os.path.join(LOGS, "step_16", "s16.log")
     shell:
         """
         
@@ -631,7 +647,7 @@ rule concatenate_contigs:
 rule contig_reformating_and_stats:
     """
     
-    Step 18: Remove short contigs (Default: 500). Defined in config[CONTIG_SIZE_THRESH]
+    Step 17: Remove short contigs (Default: 500). Defined in config[CONTIG_SIZE_THRESH]
     
     """
     input:
@@ -639,12 +655,13 @@ rule contig_reformating_and_stats:
     output:
         rename = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.renamed.fasta")),
         size = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta"),
-        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats"),
-        sketch = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.sketch")
+        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats")
     benchmark:
-        "BENCHMARKS/assembly/contig_reformating.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s17.contig_reformating.txt")
     log:
-        "LOGS/assembly/contig_reformating.log"
+        log1 = os.path.join(LOGS, "step_17", "s17.rename.log"),
+        log2 = os.path.join(LOGS, "step_17", "s17.reformat.log"),
+        log3 = os.path.join(LOGS, "step_17", "s17.stats.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -654,41 +671,37 @@ rule contig_reformating_and_stats:
         """
         rename.sh in={input} out={output.rename} \
         ow=t \
-        -Xmx{config[System][Memory]}g;
+        -Xmx{config[System][Memory]}g 2> {log1};
         
         reformat.sh in={output.rename} out={output.size} \
         ml={config[MINLENGTH]} \
         ow=t \
-        -Xmx{config[System][Memory]}g;
+        -Xmx{config[System][Memory]}g 2> {log2};
         
         statswrapper.sh in={input} out={output.stats} \
         format=2 \
-        ow=t;
+        ow=t 2> {log3};
         
-        sendsketch.sh in={output.size} out={output.sketch} \
-        address=nt mode=sequence format=3 \
-        ow=t \
-        -Xmx{config[System][Memory]}g 2> {log};
         """
 
 rule population_assembly:
     """
     
-    Step 19: Create 'contig dictionary' of all unique contigs present in the study (population assembly)
+    Step 18: Create 'contig dictionary' of all unique contigs present in the study (population assembly)
     
     """
     input:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta")
     output:
         assembly = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
-        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats"),
-        sketch = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.sketch")
+        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats")
     params:
         flye_out=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE")
     benchmark:
-        "BENCHMARKS/assembly/population_assembly.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s18.population_assembly.txt")
     log:
-        "LOGS/assembly/population_assembly.log"
+        log1 = os.path.join(LOGS, "step_18", "s18.flye.log"),
+        log2 = os.path.join(LOGS, "step_18", "s18.stats.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -696,22 +709,17 @@ rule population_assembly:
         "../envs/metaflye.yaml"
     shell:
         """
-        flye --subassemblies {input} -t {resources.cpus} --plasmids -o {params.flye_out} -g 1g;
+        flye --subassemblies {input} -t {resources.cpus} --plasmids -o {params.flye_out} -g 1g &>> {log};
         
         statswrapper.sh in={output.assembly} out={output.stats} \
         format=2 \
-        ow=t;
-        
-        sendsketch.sh in={output.assembly} out={output.sketch} \
-        address=nt mode=sequence format=3 \
-        ow=t \
-        -Xmx{config[System][Memory]}g 2> {log};
+        ow=t 2> {log2};
         """
 
 rule coverage_calculations:
     """
     
-    Step 20a: Calculate contig coverage and extract unmapped reads
+    Step 19: Calculate contig coverage and extract unmapped reads
     
     """
     input:
@@ -726,9 +734,9 @@ rule coverage_calculations:
         statsfile=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".statsfile"),
         scafstats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".scafstats")
     benchmark:
-        "BENCHMARKS/assembly/coverage_calculations_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s19.coverage_calculations_{sample}.txt")
     log:
-        "LOGS/assembly/coverage_calculations_{sample}.log"
+        log = os.path.join(LOGS, "step_16", "s16_{sample}.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -754,7 +762,7 @@ rule coverage_calculations:
 rule create_contig_count_table:
     """
     
-    Step 20b: Transcript Per Million (TPM) calculator
+    Step 20: Transcript Per Million (TPM) calculator
     
     """
     input:
@@ -768,7 +776,9 @@ rule create_contig_count_table:
         cov_temp = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp"),
         count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv")
     benchmark:
-        "BENCHMARKS/assembly/tpm_caluclator_{sample}.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s20.tpm_caluclator_{sample}.txt")
+    log:
+        log = os.path.join(LOGS, "step_20", "s20_{sample}.log")
     shell:
         """
         ## TPM Calculator
@@ -800,7 +810,7 @@ rule create_contig_count_table:
 rule concatentate_contig_count_tables:
     """
     
-    Step 20c: Concatenate contig count tables
+    Step 21: Concatenate contig count tables
     Note: this is done as a separate rule due to how snakemake handles i/o files. It does not work well in Step 20b as the i/o PATTERNS are different.
     
     """
@@ -810,7 +820,9 @@ rule concatentate_contig_count_tables:
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv")
     benchmark:
-        "BENCHMARKS/assembly/concat_count_tables.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s21.concat_contig_count_tables.txt")
+    log:
+        log = os.path.join(LOGS, "step_21", "s21.log")
     shell:
         """
         
@@ -823,17 +835,20 @@ rule concatentate_contig_count_tables:
 rule calculate_contig_dictionary_properties:
     """
     
-    Step 21: Calculate contig sequence properties properties (ie. GC-content, tetramer frequencies) per sequence
+    Step 22: Calculate contig sequence properties properties (ie. GC-content, tetramer frequencies) per sequence
     
     """
     input:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
     output:
-        gc = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.gc"),
-        tetramer = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.tetramer"),
-        seq_properties = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE",, "contig_dictionary_properties.tsv")
+        gc = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary_properties.gc"),
+        tetramer = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary_properties.tetramer"),
+        seq_properties = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary_properties.tsv")
     benchmark:
-        "BENCHMARKS/preprocessing/step_14/calculate_contig_dictionary_properties.txt"
+        os.path.join(BENCH, "PREPROCESSING", "s22.calculate_contig_dictionary_properties.txt")
+    log:
+        log1 = os.path.join(LOGS, "step_20", "s20.gc.log"),
+        log2 = os.path.join(LOGS, "step_20", "s20.tetramer.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -843,12 +858,12 @@ rule calculate_contig_dictionary_properties:
         """
         # Calcualate per sequence GC content
         countgc.sh in={input} format=2 ow=t | awk 'NF' > {output.gc};
-        sed -i '1i id\tGC' {output.gc};
+        sed -i '1i id\tGC' {output.gc} 2> {log1};
         
         # Calculate per sequence tetramer frequency
         tetramerfreq.sh in={input} w=0 ow=t | \
         tail -n+2 | \
-        cut --complement -f2 > {output.tetramer};
+        cut --complement -f2 > {output.tetramer} 2> {log2};
         
         sed -i 's/scaffold/id/' {output.tetramer};
         
