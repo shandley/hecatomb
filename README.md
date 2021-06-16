@@ -27,8 +27,10 @@ Hecatomb is currently designed to only work with paired-end reads. We have consi
 
 Hecatomb relies on [conda](https://docs.conda.io/en/latest/) to ensure portability and ease of installation. So the only two dependencies you will need to install are [Snakemake](https://snakemake.readthedocs.io/en/stable/#) and [conda](https://docs.conda.io/en/latest/).
 
+We highly recommend you use [mamba](https://github.com/mamba-org/mamba) as it is _a lot_ faster than the base conda.
+
 ```bash
-conda install -c bioconda -c conda-forge snakemake
+conda install -c conda-forge -c bioconda snakemake mamba
 ```
 
 Once you have Snakemake and Conda installed you will need to complete the following 4-steps prior to running hecatomb. Of note, Steps 1 and 2 will only need to be run once.
@@ -69,7 +71,7 @@ There are additional notes in the provided sample_config.yaml on each of these t
 Snakemake enables a good deal of customization from the [command line](https://snakemake.readthedocs.io/en/stable/executing/cli.html). An example launch command is below. In this case the command is launched from the directory where the Snakefile is located (/workflow).
 
 ```bash
-snakemake --snakefile ./Snakefile --configfile ../config/my_config.yaml --resources mem_mb=100000 --cores 64 --use-conda
+snakemake --snakefile ./Snakefile --configfile ../config/my_config.yaml --resources mem_mb=100000 --cores 64 --use-conda --conda-frontend mamba
 ```
 
 With this command we are:
