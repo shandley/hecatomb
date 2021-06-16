@@ -35,7 +35,7 @@ rule remove_5prime_primer:
     
     Step 01: Remove 5' primer.
     
-    Primer sequences used in the Handley lab are included (primerB.fa). If your lab uses other primers you will need to place them in CONPATH (defined in the Snakefile) and change the file name from primerB.fa to your file name below.
+    Default RdA/B Primer sequences are provided in  the file primerB.fa. If your lab uses other primers you will need to place them in CONPATH (defined in the Snakefile) and change the file name from primerB.fa to your file name below.
     
     """
     input:
