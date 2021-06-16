@@ -25,13 +25,13 @@ Paths:
   # The reads directory has your input fastq files
   # Note: All of your results will go into this directory
 
-  Reads: /mnt/data1/databases/hecatomb/example_data
+  Reads: ../../test_data
   
   # Where do you want the results stored?
   # Recommended that you make a specific based dir (e.g. heactomb_runs) followed by project specific (e.g. test_data) for all of your runs
   #This should not be a subdirectory to where your Reads are located!
   
-  Results: /mnt/data3/shandley/hecatomb_runs/example_data
+  Results: test_data_results
   
   # Host directory name
   # e.g. human, mouse, dog, etc.
