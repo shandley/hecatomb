@@ -11,8 +11,7 @@ seqtable.all <- files %>%
   map(read_tsv) %>%
   reduce(full_join, by = "sequence") %>%
   mutate(id = row_number() - 1) %>%
-  select(id, everything()) %>%
-  mutate_if(is.numeric, as.integer)
+  select(id, everything())
 
 # Write count table
 dir.create(path = snakemake@params[["resultsdir"]], showWarnings = FALSE)
