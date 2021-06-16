@@ -4,4 +4,5 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - flye
+  - flye=2.7.1-b1590
+  - bbmap=38.90
