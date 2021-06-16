@@ -1,3 +1,5 @@
+!!! MOST OF THESE ARE HERE FOR HISTORICAL REASONS AND CAN BE IGNORED
+
 # Miscellaneous scripts
 
 This directory contains optional scripts useful for pre or post-processing data produced by the Snakemake workflow or managing reference databases.
