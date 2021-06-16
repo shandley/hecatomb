@@ -37,7 +37,6 @@ rule remove_5prime_primer:
     
     Primer sequences used in the Handley lab are included (primerB.fa). If your lab uses other primers you will need to place them in CONPATH (defined in the Snakefile) and change the file name from primerB.fa to your file name below.
     
-    
     """
     input:
         r1 = os.path.join(READDIR, PATTERN_R1 + file_extension),
@@ -70,7 +69,7 @@ rule remove_5prime_primer:
 rule remove_3prime_contaminant:
     """
     
-    Step 02: Remove 3' read through contaminant
+    Step 02: Remove 3' read through contaminant. This is sequence that occurs if the library fragment is shorter than 250 bases and the sequencer reads through the the 3' end. We use the full length of primerB plus 6 bases of the adapter to detect this event and remove everything to the right of that molecule when detected.
     
     """
     input:
@@ -103,7 +102,7 @@ rule remove_3prime_contaminant:
 rule remove_primer_free_adapter:
     """
     
-    Step 03: Remove primer free adapter (both orientations)
+    Step 03: Remove primer free adapter (both orientations). Rarely the adapter will be seen in the molecule indpendent of the primer. This removes those instances as well as everything to the right of the detected primer-free adapter.
     
     """
     input:
@@ -136,7 +135,7 @@ rule remove_primer_free_adapter:
 rule remove_adapter_free_primer:
     """
     
-    Step 04: Remove adapter free primer (both orientations)
+    Step 04: Remove adapter free primer (both orientations). Rarely the primer is detected without the primer. This removes those instances as well as everything to the right of the detected adapter-free primer. 
     
     """
     input:
@@ -202,7 +201,7 @@ rule remove_vector_contamination:
 rule remove_low_quality:
     """
     
-    Step 06: Remove remaining low-quality bases and short reads
+    Step 06: Remove remaining low-quality bases and short reads. Quality score can be modified in config.yaml (QSCORE).
     
     """
     input:
@@ -230,7 +229,7 @@ rule remove_low_quality:
             qtrim=r maxns=2 \
             entropy={config[ENTROPY]} \
             trimq={config[QSCORE]} \
-            minlength={config[MINLENGTH]} \
+            minlength={config[READ_MINLENGTH]} \
             -Xmx{config[System][Memory]}g 2> {log};
         """
 
@@ -272,7 +271,7 @@ rule host_removal_mapping:
 rule extract_host_unmapped:
     """
     
-    Step 07b: Extract unmapped fastq files from sam files
+    Step 07b: Extract unmapped (non-host) sequences from sam files
     
     """
     input:
@@ -290,7 +289,7 @@ rule extract_host_unmapped:
         mem_mb=100000,
         cpus=64
     conda:
-        "../envs/minimap2.yaml"
+        "../envs/samtools.yaml"
     shell:
         """
         samtools fastq --threads {resources.cpus} -NO -1 {output.r1} -2 {output.r2} \
@@ -328,7 +327,7 @@ rule nonhost_read_repair:
 rule nonhost_read_combine:
     """
     
-    Step 07d: Combine R1+R1_singletons and R2+R2_singletons
+    Step 07d: Combine R1+R1_singletons and R2+R2_singletons to create single R1 and R2 sequence files.
     
     """
     input:
@@ -355,7 +354,7 @@ rule remove_exact_dups:
     
     Step 08: Remove exact duplicates
     
-    - Exact duplicates are considered PCR artifacts and not accounted for in the count table (seqtable_all.tsv)
+    - Exact duplicates are considered PCR generated and not accounted for in the count table (seqtable_all.tsv)
     
     """
     input:
@@ -404,7 +403,7 @@ rule cluster_similar_sequences:
         mem_mb=100000,
         cpus=64
     conda:
-        "../envs/mmseqs2.yaml"
+        "../envs/linclust.yaml"
     shell:
         """ 
         mmseqs easy-linclust {input} {params.respath}/{params.prefix} {params.tmppath} \
@@ -415,7 +414,7 @@ rule cluster_similar_sequences:
 rule create_individual_seqtables:
     """
     
-    Step 10: Create individual seqtables. A seqtable is a count table with each feature (sequence) as a row, each column as a sample and each cell the counts of each sequence per sample.
+    Step 10: Create individual seqtables. A seqtable is a count table with each sequence as a row, each column as a sample and each cell the counts of each sequence per sample.
     
     """
     input:
@@ -492,7 +491,7 @@ rule convert_seqtable_tab_to_fasta:
     output:
         seqtable = os.path.join(RESULTS, "seqtable.fasta"),
         stats = os.path.join(RESULTS, "seqtable.stats"),
-        idx = os.path.join(RESULTS, "seqtable.faidx")
+        idx = os.path.join(RESULTS, "seqtable.fasta.fai")
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s12.convert_seqtable_tab_2_fasta.txt")
     log:
@@ -501,7 +500,7 @@ rule convert_seqtable_tab_to_fasta:
         mem_mb=100000,
         cpus=64
     conda:
-        "../envs/seqkit.yaml"
+        "../envs/samtools.yaml"
     shell:
         """
         # Convert
@@ -512,6 +511,7 @@ rule convert_seqtable_tab_to_fasta:
         
         # Create seqtable index
         samtools faidx {output.seqtable} -o {output.idx};
+        
         """
 
 rule calculate_seqtable_sequence_properties:
@@ -535,17 +535,17 @@ rule calculate_seqtable_sequence_properties:
         mem_mb=100000,
         cpus=64
     conda:
-        "../envs/preprocessing.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         # Calcualate per sequence GC content
         countgc.sh in={input} format=2 ow=t | awk 'NF' > {output.gc};
-        sed -i '1i id\tGC' {output.gc} 2> {log1};
+        sed -i '1i id\tGC' {output.gc} 2> {log.log1};
         
         # Calculate per sequence tetramer frequency
         tetramerfreq.sh in={input} w=0 ow=t | \
         tail -n+2 | \
-        cut --complement -f2 > {output.tetramer} 2> {log2};
+        cut --complement -f2 > {output.tetramer} 2> {log.log2};
         
         sed -i 's/scaffold/id/' {output.tetramer};
         
@@ -585,7 +585,7 @@ rule assembly_kmer_normalization:
         target=100 \
         ow=t \
         -Xmx{config[System][Memory]}g 2> {log}
-    """
+        """
 
 rule individual_sample_assembly:
     """
@@ -647,7 +647,7 @@ rule concatenate_contigs:
 rule contig_reformating_and_stats:
     """
     
-    Step 17: Remove short contigs (Default: 500). Defined in config[CONTIG_SIZE_THRESH]
+    Step 17: Remove short contigs (Default: 1000). Defined in config[CONTIG_MINLENGTH]
     
     """
     input:
@@ -670,24 +670,25 @@ rule contig_reformating_and_stats:
     shell:
         """
         rename.sh in={input} out={output.rename} \
+        prefix=contig_ \
         ow=t \
-        -Xmx{config[System][Memory]}g 2> {log1};
+        -Xmx{config[System][Memory]}g 2> {log.log1};
         
         reformat.sh in={output.rename} out={output.size} \
-        ml={config[MINLENGTH]} \
+        ml={config[CONTIG_MINLENGTH]} \
         ow=t \
-        -Xmx{config[System][Memory]}g 2> {log2};
+        -Xmx{config[System][Memory]}g 2> {log.log2};
         
         statswrapper.sh in={input} out={output.stats} \
         format=2 \
-        ow=t 2> {log3};
+        ow=t 2> {log.log3};
         
         """
 
 rule population_assembly:
     """
     
-    Step 18: Create 'contig dictionary' of all unique contigs present in the study (population assembly)
+    Step 18: Create 'contig dictionary' of all unique contigs present in the study (aka: population assembly)
     
     """
     input:
@@ -709,17 +710,17 @@ rule population_assembly:
         "../envs/metaflye.yaml"
     shell:
         """
-        flye --subassemblies {input} -t {resources.cpus} --plasmids -o {params.flye_out} -g 1g &>> {log};
+        flye --subassemblies {input} -t {resources.cpus} --plasmids -o {params.flye_out} -g 1g &>> {log.log1};
         
         statswrapper.sh in={output.assembly} out={output.stats} \
         format=2 \
-        ow=t 2> {log2};
+        ow=t 2> {log.log2};
         """
 
 rule coverage_calculations:
     """
     
-    Step 19: Calculate contig coverage and extract unmapped reads
+    Step 19: Calculate per sample contig coverage and extract unmapped reads
     
     """
     input:
@@ -728,7 +729,7 @@ rule coverage_calculations:
         ref = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
     output:
         sam=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".aln.sam.gz"),
-        unmap=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".umapped.fastq"),
+        unmap=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".unmapped.fastq"),
         covstats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats"),
         rpkm=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"),
         statsfile=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".statsfile"),
@@ -749,6 +750,7 @@ rule coverage_calculations:
         out={output.sam} \
         outu={output.unmap} \
         ambiguous=random \
+        slow=t \
         physcov=t \
         covstats={output.covstats} \
         rpkm={output.rpkm} \
@@ -764,16 +766,18 @@ rule create_contig_count_table:
     
     Step 20: Transcript Per Million (TPM) calculator
     
+    * Useful resource: https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/
+    
     """
     input:
         rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"),
         covstats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats")
     output:
-        counts_tmp = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_counts.tmp"),
-        TPM_tmp = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.tmp"),
-        TPM = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM"),
-        TPM_final = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.final"),
-        cov_temp = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp"),
+        counts_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_counts.tmp")),
+        TPM_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.tmp")),
+        TPM = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM")),
+        TPM_final = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.final")),
+        cov_temp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp")),
         count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv")
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s20.tpm_caluclator_{sample}.txt")
@@ -783,12 +787,12 @@ rule create_contig_count_table:
         """
         ## TPM Calculator
         # Prepare table & calculate RPK
-        tail -n+6 {input.rpkm} > {output.counts_tmp} | \
+        tail -n+6 {input.rpkm} | \
         cut -f1,2,5,6,8 | \
         awk 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $3/($2/1000) }}' > {output.counts_tmp};
         
-        # Calculate size factor
-        sizef=$(awk 'BEGIN{{ total=0 }} {{ total=total+$6 }} END{{ printf total }}' {output.counts_tmp});
+        # Calculate size factor (per million)
+        sizef=$(awk 'BEGIN{{ total=0 }} {{ total=total+$6/1000000 }} END{{ printf total }}' {output.counts_tmp});
         
         # Calculate TPM
         awk -v awkvar="$sizef" 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $6/awkvar }}' < {output.counts_tmp} > {output.TPM_tmp};
@@ -797,7 +801,7 @@ rule create_contig_count_table:
         awk -v awkvar="{wildcards.sample}" 'BEGIN{{FS=OFS="\t"}} {{ print awkvar, $0 }}' < {output.TPM_tmp} > {output.TPM};
         
         # Remove RPK
-        cut -f1-6,8 {output.TPM} > {output.TPM_final};
+        cut --complement -f 7 {output.TPM} > {output.TPM_final};
         
         ## Coverage stats modifications
         tail -n+2 {input.covstats} | cut -f2,4,5,6,9 > {output.cov_temp};
@@ -815,7 +819,6 @@ rule concatentate_contig_count_tables:
     
     """
     input:
-        #lambda wildcards: expand(os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa"), sample=SAMPLES)
         lambda wildcards: expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"), sample=SAMPLES)
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv")
@@ -853,17 +856,17 @@ rule calculate_contig_dictionary_properties:
         mem_mb=100000,
         cpus=64
     conda:
-        "../envs/preprocessing.yaml"
+        "../envs/bbmap.yaml"
     shell:
         """
         # Calcualate per sequence GC content
         countgc.sh in={input} format=2 ow=t | awk 'NF' > {output.gc};
-        sed -i '1i id\tGC' {output.gc} 2> {log1};
+        sed -i '1i id\tGC' {output.gc} 2> {log.log1};
         
         # Calculate per sequence tetramer frequency
         tetramerfreq.sh in={input} w=0 ow=t | \
         tail -n+2 | \
-        cut --complement -f2 > {output.tetramer} 2> {log2};
+        cut --complement -f2 > {output.tetramer} 2> {log.log2};
         
         sed -i 's/scaffold/id/' {output.tetramer};
         
