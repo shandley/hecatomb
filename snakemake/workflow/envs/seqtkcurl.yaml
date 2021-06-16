@@ -1,9 +1,0 @@
-name: seqtkcurl
-channels:
-  - bioconda
-  - anaconda
-  - conda-forge
-  - defaults
-dependencies:
-  - seqtk
-  - curl
