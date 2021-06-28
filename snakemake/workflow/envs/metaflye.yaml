@@ -1,0 +1,8 @@
+name: bbmap
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - flye=2.7.1
+  - bbmap=38.90

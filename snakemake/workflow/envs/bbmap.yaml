@@ -4,4 +4,6 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - bbmap
+  - bbmap=38.90
+  - seqkit=0.16.1
+  - csvtk=0.23.0
