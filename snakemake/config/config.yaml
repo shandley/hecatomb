@@ -1,0 +1,97 @@
+#####################################################
+## | |__   ___  ___ __ _| |_ ___  _ __ ___ | |__   ##
+## | '_ \ / _ \/ __/ _` | __/ _ \| '_ ` _ \| '_ \  ##
+## | | | |  __/ (_| (_| | || (_) | | | | | | |_) | ##
+## |_| |_|\___|\___\__,_|\__\___/|_| |_| |_|_.__/  ##
+#####################################################
+
+
+# For more information see: https://github.com/shandley/hecatomb
+
+---
+
+
+##################
+# Run Parameters #
+##################
+
+# !! check/change the following items !!
+# Database installation location, leave blank = use hecatomb install location
+Databases:
+
+# Maximum available memory in gigabytes (e.g 128GB = 128)
+Mem: 100
+
+# Number of threads to use
+Threads: 64
+
+
+############################
+# Optional Rule Parameters #
+############################
+
+# Tuning parameters
+# Advise not to change and keep default, but included here for fine-tuning to ones own dataset
+# See documentation for each individual program for detailed explanation (ie. for QSCORE review the bbduk.sh manual)
+
+# Preprocessing
+QSCORE: 15 # Read quality trimming score (rule remove_low_quality in 01_preprocessing.smk)
+READ_MINLENGTH: 100 # Minimum read length during QC steps (rule remove_low_quality in 01_preprocessing.smk)
+CONTIG_MINLENGTH: 1000 # Read minimum length (rule contig_reformating_and_stats in 01_preprocessing.smk)
+ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 01_preprocessing.smk)
+CLUSTERID: 0.97 # Linclust read clustering percent identity (rule cluster_similar_sequences: in 01_preprocessing.smk)
+
+# Taxonomic assignment (translated)
+PRIMAAE: 0.1 # Primary translated (nt-vs-aa) e-value
+SECAAE: 0.01 # Secondary translated (nt-vs-aa) e-value
+
+# Taxonomic assignment (untranslated)
+PRIMNTE: 0.01 # Primary untranslated (nt-vs-nt) e-value
+SECNTE: 0.001 # Secondary untranslated (nt-vs-nt) e-value
+
+
+######################
+# Database URLs etc. #
+######################
+
+# Filenames, URLs and checksums for databases. Don't touch.
+
+bacteria: bac_uniquespecies_giant.masked_Ns_removed.fasta
+contaminants: vector_contaminants.fa.gz
+human: human_virus_masked.fasta
+
+url:
+  hecatomb:
+    filename: "hecatomb.databases.tar.zst"
+    tar:      "https://cloudstor.aarnet.edu.au/plus/s/A4Swxf13wES8Uez/download"
+    md5:      "https://cloudstor.aarnet.edu.au/plus/s/vnilMkcFLQTDqB4/download"
+  uniprot_virus:
+    filename: "uniprot_virus_c99.tar.zst"
+    tar:      "https://cloudstor.aarnet.edu.au/plus/s/PLoGhe47HmFgosv/download"
+    md5:      "https://cloudstor.aarnet.edu.au/plus/s/UigsJNrKF8tvjC6/download"
+  uniref50:
+    "ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz"
+  id_map:
+    filename: "uniprot_ncbi_mapping.dat.zst"
+    zst:      "https://cloudstor.aarnet.edu.au/plus/s/nASd4zM3RfDvbux/download"
+    md5:      "https://cloudstor.aarnet.edu.au/plus/s/pgCGnu7pei4pHOC/download"
+  hecatomb_nucl:
+    filename: "hecatomb.nucleotide.databases.tar.zst"
+    tar:      "https://cloudstor.aarnet.edu.au/plus/s/30agxBFKqlj3bm3/download"
+    md5:      "https://cloudstor.aarnet.edu.au/plus/s/WjLjPMkkR59AaQE/download"
+  taxonomizer:
+    filename: "taxonomizr_accessionTaxa.sql.zst"
+    zst:      "https://cloudstor.aarnet.edu.au/plus/s/ox7yIlWxhwpmGUy/download"
+    md5:      "https://cloudstor.aarnet.edu.au/plus/s/aR4VCCF0cA4l2R4/download"
+  taxdump:
+    filename: "taxdump.tar.gz"
+    tar:      "ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz"
+    md5:      "ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz.md5"
+  ntacc2tax:
+    filename: "nucl_gb.accession2taxid.gz"
+    gz:       "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz"
+    md5:      "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz.md5"
+  lineSine:
+    filename: "line_sine.fasta.zst"
+    zst:      "https://cloudstor.aarnet.edu.au/plus/s/wXyN3AJX47hEDnF/download"
+    md5:      "https://cloudstor.aarnet.edu.au/plus/s/EiQQOKJ3jByD482/download"
