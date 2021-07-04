@@ -53,7 +53,7 @@ TBD
 
 ```bash
 cd /hecatomb/snakemake/config
-cp sample_config.yaml my_config.yaml
+cp system.yaml my_config.yaml
 nano my_config.yaml
 ```
 
@@ -71,7 +71,7 @@ There are additional notes in the provided sample_config.yaml on each of these t
 Snakemake enables a good deal of customization from the [command line](https://snakemake.readthedocs.io/en/stable/executing/cli.html). An example launch command is below. In this case the command is launched from the directory where the Snakefile is located (/workflow).
 
 ```bash
-snakemake --snakefile ./Snakefile --configfile ../config/my_config.yaml --resources mem_mb=100000 --cores 64 --use-conda --conda-frontend mamba
+snakemake --snakefile ./Hecatomb.smk --configfile ../config/my_config.yaml --resources mem_mb=100000 --cores 64 --use-conda --conda-frontend mamba
 ```
 
 With this command we are:
