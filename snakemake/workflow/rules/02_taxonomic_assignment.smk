@@ -1,5 +1,5 @@
 """
-Snakefile to query target amino acid sequence database with reduced (seqtab) clustered sequences from merge_seqtable.sh using mmseqs2                                                             
+Hecatomb.smk to query target amino acid sequence database with reduced (seqtab) clustered sequences from merge_seqtable.sh using mmseqs2
 
 History: This is based on [mmseqs_pviral_aa.sh](../base/mmseqs_pviral_aa.sh)
 
@@ -12,17 +12,16 @@ import sys
 
 
 rule PRIMARY_AA_taxonomy_assignment:
-    """
-    Assign taxonomy to RESULTS/seqtable.fasta sequences using mmseqs2 
+    """Assign taxonomy to RESULTS/seqtable.fasta sequences using mmseqs2 
     
     - Reference database: all UniProt viral (UNIVIRDB) protein sequences clustered at 99% ID
-        
     - This is a nt-to-aa translated search, similar to blastX
-    
-    - All sequences assigned to a viral lineage will be reserved for the secondary query against a trans-kingdom database (UniRef50 + UNIVIRDB) to confirm their viral lineage
-    
-    - The sequences checked in the next step are selected if their tophit is in a viral lineage (tophit_aln file). This means they may not have LCA assigned taxonomy, but it is the most inclusive group to send to the next step (secondary search) where any false-positives will be sorted out. For now, we want to capture anything that potentially looks viral
-
+    - All sequences assigned to a viral lineage will be reserved for the secondary query against a trans-kingdom database 
+      (UniRef50 + UNIVIRDB) to confirm their viral lineage
+    - The sequences checked in the next step are selected if their tophit is in a viral lineage (tophit_aln file). This 
+      means they may not have LCA assigned taxonomy, but it is the most inclusive group to send to the next step 
+      (secondary search) where any false-positives will be sorted out. For now, we want to capture anything that 
+      potentially looks viral.
     """
     input:
         seqs = os.path.join(RESULTS, "seqtable.fasta"),
@@ -39,22 +38,22 @@ rule PRIMARY_AA_taxonomy_assignment:
     benchmark:
         os.path.join(BENCH, "MMSEQS", "mmseqs_primary_AA.txt")
     log:
-        log = os.path.join(LOGS, "MMSEQS", "mmseqs_primary_AA.log")
+        log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_AA.log")
     resources:
         mem_mb=64000,
-        cpus=64
+        cpus=16
     conda:
         "../envs/mmseqs2.yaml"
-    shell:
+    shell: # run easy taxonomy, add header
         """
         # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
-        -a --start-sens 1 --sens-steps 3 -s 7 \
-        --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
-        --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
-        --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
-        --tax-lineage 1 \
-        -e {config[PRIMAAE]} &>> {log};
+            -a --start-sens 1 --sens-steps 3 -s 7 \
+            --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
+            --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
+            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
+            --tax-lineage 1 \
+            -e {config[PRIMAAE]} &>> {log};
         
         # Add headers
         sort -k1 -n {output.aln} | \
@@ -62,14 +61,13 @@ rule PRIMARY_AA_taxonomy_assignment:
         """
         
 rule PRIMARY_AA_parsing:
-    """
-    
-    Parse primary AA search results for classified (potentially viral) and unclassified sequences
+    """Parse primary AA search results for classified (potentially viral) and unclassified sequences
         
-    - MMSEQS_AA_PRIMARY_classified.fasta will be subjected to a secondary translated search (rule SECONDARY_AA_taxonomy_assignment:) against a trans-kingdom database (UniRef50 + UNIVIRDB) to confirm true viral lineage
-    
-    - MMSEQS_AA_PRIMARY_unclassified.fasta will be queried against a viral nucleotide database (nt-to-nt) to detect similarity to non-coding regions of viral genomes or to sequences not represented in the UniProt protein databases
-        
+    - MMSEQS_AA_PRIMARY_classified.fasta will be subjected to a secondary translated search (rule 
+      SECONDARY_AA_taxonomy_assignment:) against a trans-kingdom database (UniRef50 + UNIVIRDB) to confirm true 
+      viral lineage
+    - MMSEQS_AA_PRIMARY_unclassified.fasta will be queried against a viral nucleotide database (nt-to-nt) to detect 
+      similarity to non-coding regions of viral genomes or to sequences not represented in the UniProt protein databases
     """
     input:
         lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
@@ -83,7 +81,7 @@ rule PRIMARY_AA_parsing:
         unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
     conda:
         "../envs/samtools.yaml"
-    shell:
+    shell: # make two FASTA files: classified sequences (MMSEQS_AA_PRIMARY_tophit_aln_sorted), unclassified (all minus classified seqs)
         """
         # Extract full entry ID list (all sequences)
         # Note: the lca output table has one entry per input sequence
@@ -110,16 +108,15 @@ rule PRIMARY_AA_parsing:
         """
 
 rule PRIMARY_AA_summary:
-    """
-    Tabulate some summary statistics from the primary AA mmseqs search against virusDB
+    """Tabulate some summary statistics from the primary AA mmseqs search against virusDB
     
-        - Number of input sequences: seqtable.fasta
-        - Number and % of sequences classified as having a viral lineage: MMSEQS_AA_PRIMARY_classified.fasta
-        - Number and % of sequences having no inidication of having a viral lineage: MMSEQS_AA_PRIMARY_unclassified.fasta
-        - Number and % of sequences with a viral LCA lineage
-        - Number and % of sequences with a viral tophit lineage
-        - Number and % of seqeunces with a TopHit lineage but lacking an LCA lineage
-        - Potentially more to be added
+    - Number of input sequences: seqtable.fasta
+    - Number and % of sequences classified as having a viral lineage: MMSEQS_AA_PRIMARY_classified.fasta
+    - Number and % of sequences having no inidication of having a viral lineage: MMSEQS_AA_PRIMARY_unclassified.fasta
+    - Number and % of sequences with a viral LCA lineage
+    - Number and % of sequences with a viral tophit lineage
+    - Number and % of seqeunces with a TopHit lineage but lacking an LCA lineage
+    - Potentially more to be added
     """
     input:
         lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
@@ -139,7 +136,7 @@ rule PRIMARY_AA_summary:
         summary = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_summary.tsv")
     conda:
         "../envs/seqkit.yaml"
-    shell:
+    shell: # collect some counts at different taxon levels. This should be part of the shiny app.
         """
         # Viral order summary
         grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$4 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Order_Frequency' > {output.virord};
@@ -220,20 +217,15 @@ rule PRIMARY_AA_summary:
  
         # Prettify
         csvtk pretty -t {output.tmpsummary} > {output.summary};
-        
-        
         """
 
-rule SECONDARY_AA_taxonomy_assignment:
-    """
-    Check taxonomic assignments in MMSEQS_AA_PRIMARY_classified.fasta using mmseqs2
+rule SECONDARY_AA_taxonomy_assignment: 
+    """Check taxonomic assignments in MMSEQS_AA_PRIMARY_classified.fasta using mmseqs2
     
-    - Reference database: UniRef50 + UNIVIRDB. All UniProtKB protein entries (all domains of life) clustered at 50% ID (https://www.uniprot.org/help/uniref) concatenated to UNIVIRDB
-    
+    - Reference database: UniRef50 + UNIVIRDB. All UniProtKB protein entries (all domains of life) clustered at 50% ID 
+      (https://www.uniprot.org/help/uniref) concatenated to UNIVIRDB
     - This is a nt-to-aa translated search, similar to blastX.
-    
     - All sequences assiged to a viral lineage will be reserved as our final translated taxonomic calls
-    
     - All sequences not classified as viral will be subjected to an untranslated search (nt-vs-nt) in later rules
     """
     input:
@@ -251,22 +243,22 @@ rule SECONDARY_AA_taxonomy_assignment:
     benchmark:
         os.path.join(BENCH, "MMSEQS", "mmseqs_secondary_AA.txt")
     log:
-        log = os.path.join(LOGS, "MMSEQS", "mmseqs_secondary_AA.log")
+        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_AA.log")
     resources:
-        mem_mb=64000,
-        cpus=64
+        mem_mb=128000,
+        cpus=32
     conda:
         "../envs/mmseqs2.yaml"
-    shell:
+    shell: # secondary easy-tax search, add header
         """
         # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
-        -a --start-sens 1 --sens-steps 3 -s 7 \
-        --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
-        --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
-        --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
-        --tax-lineage 1 \
-        -e {config[SECAAE]} &>> {log};
+            -a --start-sens 1 --sens-steps 3 -s 7 \
+            --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
+            --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
+            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
+            --tax-lineage 1 --split-memory-limit 1G \
+            -e {config[SECAAE]} &>> {log};
         
         # Add headers
         sort -k1 -n {output.aln} | \
@@ -274,18 +266,14 @@ rule SECONDARY_AA_taxonomy_assignment:
         """
         
 rule SECONDARY_AA_tophit_refactor:
-    """
+    """Add/reformat tophit viral lineages with up-to-date* NCBI taxonomy
     
-    Add/reformat tophit viral lineages with up-to-date* NCBI taxonomy
-    
-    - UniRef50 (https://www.uniprot.org/help/uniref) and other UniRef databases are a mixture of protein entries from UniProtKB (https://www.uniprot.org/help/uniprotkb) and UniParc (https://www.uniprot.org/help/uniparc)
-    
+    - UniRef50 (https://www.uniprot.org/help/uniref) and other UniRef databases are a mixture of protein entries from 
+      UniProtKB (https://www.uniprot.org/help/uniprotkb) and UniParc (https://www.uniprot.org/help/uniparc)
     - The taxonomic lineage assignment algorithm of mmseqs2 will not provide full annotation of UniParc entries
-    
     - We can updated those here using taxonkit lineage
-    
-    - This is also to ensure that the taxa are annotated based on the NCBI taxonomy which you can rapidly update in the databases/tax/taxonomy directory
-    
+    - This is also to ensure that the taxa are annotated based on the NCBI taxonomy which you can rapidly update in the 
+      databases/tax/taxonomy directory
     """
     input:
         db = TAX,
@@ -317,7 +305,7 @@ rule SECONDARY_AA_tophit_refactor:
     conda:
         "../envs/seqkit.yaml"
     log:
-        log = os.path.join(LOGS, "MMSEQS", "mmseqs_secondary_tophit_refactor.log")
+        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_tophit_refactor.log")
     shell:
         """
         # Make a list of all sequence IDs represented in TopHit table
@@ -328,6 +316,7 @@ rule SECONDARY_AA_tophit_refactor:
         
         # Combine sequence IDs with taxIDs
         paste {output.tophit_seqids} {output.tophit_taxids} > {output.tophit_seq_taxids};
+        ################### cut -f1,20 {input.tophit} > {output.tophit_seq_taxids}###########################################
         
         # Add NCBI lineage information and collect all sequences with a viral lineage
         taxonkit lineage --data-dir {input.db} {output.tophit_seq_taxids} -i 2 | \
@@ -345,7 +334,7 @@ rule SECONDARY_AA_tophit_refactor:
         csvtk join -f1 {output.tophit_tmp} {output.tophit_lineage_refomated} -H -t -T > {output.tophit_tmp_updated} 2> {log};
         
         ## Summarize kingdom frequency information
-            
+            ###################################################### everything below here -> shiny app ################################################
         # Create table of kingdom frequencies
         cut -f21 {output.tophit_tmp_updated} | csvtk freq -H -n -r -T -t > {output.tophit_kingdom_freq};
         
@@ -438,13 +427,11 @@ rule SECONDARY_AA_tophit_refactor:
         """
     
 rule SECONDARY_AA_LCA_virus_root_refactor:
-    """
-    Update LCA virus root taxonomy to tophit taxonomy.
+    """Update LCA virus root taxonomy to tophit taxonomy.
     
-    - Some LCA virus taxonomies will default to: Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses
-    
+    - Some LCA virus taxonomies will default to: 
+      Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses
     - We call this issue 'virus root taxonomy'
-    
     - These sequences will be defaulted to their tophit taxonomy and marked accordingly
     """
     input:
@@ -456,7 +443,7 @@ rule SECONDARY_AA_LCA_virus_root_refactor:
     conda:
         "../envs/seqkit.yaml"
     log:
-        log = os.path.join(LOGS, "MMSEQS", "mmseqs_secondary_lca_virus_root_refactor.log")
+        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_virus_root_refactor.log")
     shell:
         """
         # Isolate sequences pushed to virus root by LCA (Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses)
@@ -468,11 +455,10 @@ rule SECONDARY_AA_LCA_virus_root_refactor:
         """
 
 rule SECONDARY_AA_LCA_virus_unclassified_refactor:
-    """
-    Update LCA unclassified taxonomy to tophit taxonomy.
+    """Update LCA unclassified taxonomy to tophit taxonomy.
     
-    - There are a variety of reasons that a sequence may be assigned a tophit viral taxonomic lineage and not an LCA taxonomy (e.g. the LCA of a sequence assigned to a bacteria and a virus is 'root')
-    
+    - There are a variety of reasons that a sequence may be assigned a tophit viral taxonomic lineage and not an LCA 
+      taxonomy (e.g. the LCA of a sequence assigned to a bacteria and a virus is 'root')
     - These sequences will be defaulted to their tophit taxonomy and marked accordingly.
     """
     input:
@@ -486,7 +472,7 @@ rule SECONDARY_AA_LCA_virus_unclassified_refactor:
     conda:
         "../envs/seqkit.yaml"
     log:
-        log = os.path.join(LOGS, "MMSEQS", "mmseqs_secondary_lca_unclassified_refactor.log")
+        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_unclassified_refactor.log")
     shell:
         """
         # Isolate unclassified sequences from LCA
@@ -502,11 +488,7 @@ rule SECONDARY_AA_LCA_virus_unclassified_refactor:
         """
 
 rule SECONDARY_AA_refactor_finalize:
-    """
-    
-    Remove sequences to be refactored from LCA table and recombine with updated taxonomies.
-    
-    """
+    """Remove sequences to be refactored from LCA table and recombine with updated taxonomies."""
     input:
         db = TAX,
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
@@ -532,7 +514,7 @@ rule SECONDARY_AA_refactor_finalize:
     conda:
         "../envs/seqkit.yaml"
     log:
-        log = os.path.join(LOGS, "MMSEQS", "mmseqs_secondary_lca_refactor_final.log")
+        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_refactor_final.log")
     shell:
         """
         ## Create new base LCA table. Which will be recombined with the updated taxonomy tables from the previous refactoring rules
@@ -592,11 +574,7 @@ rule SECONDARY_AA_refactor_finalize:
         """
 
 rule SECONDARY_AA_parsing:
-    """
-    
-    Parse out all sequences that remain unclassified following the Secondary AA search and refactoring.
-        
-    """
+    """Parse out all sequences that remain unclassified following the Secondary AA search and refactoring."""
     input:
         lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
         translated_final = os.path.join(SECONDARY_AA_OUT, "translated_final.tsv"),
@@ -609,7 +587,7 @@ rule SECONDARY_AA_parsing:
     conda:
         "../envs/samtools.yaml"
     log:
-        "LOGS/mmseqs/mmseqs_SECONDARY_aa_parsing.log"
+        os.path.join(STDERR, 'mmseqs', 'mmseqs_SECONDARY_aa_parsing.log')
     shell:
         """
         # Extract full entry ID list (all sequences)
@@ -646,10 +624,10 @@ rule PRIMARY_NT_taxonomic_assignment:
     benchmark:
             os.path.join(BENCH, "MMSEQS", "mmseqs_primary_NT.txt")
     log:
-        log = os.path.join(LOGS, "MMSEQS", "mmseqs_primary_NT.log")
+        log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_NT.log")
     resources:
         mem_mb=64000,
-        cpus=64
+        cpus=16
     conda:
         "../envs/mmseqs2.yaml"
     shell:
@@ -693,7 +671,7 @@ rule PRIMARY_NT_summary:
     conda:
         "../envs/samtools.yaml"
     log:
-        "LOGS/mmseqs/mmseqs_PRIMARY_nt_summary.log"
+        os.path.join(STDERR, 'MMSEQS', 'mmseqs_PRIMARY_nt_summary.log')
     shell:
         """
         # Filter TopHit results
@@ -767,10 +745,10 @@ rule PRIMARY_NT_parsing:
     conda:
         "../envs/samtools.yaml"
     log:
-        "LOGS/mmseqs/mmseqs_PRIMARY_nt_parsing.log"
+        os.path.join(STDERR, 'MMSEQS', 'mmseqs_PRIMARY_nt_parsing.log')
     resources:
         mem_mb=64000,
-        cpus=64
+        cpus=16
     shell:
         """
         # Extract full entry ID list (all sequences)
@@ -808,10 +786,10 @@ rule SECONDARY_NT_taxonomic_assignment:
     benchmark:
             os.path.join(BENCH, "MMSEQS", "mmseqs_secondary_NT.txt")
     log:
-        log = os.path.join(LOGS, "MMSEQS", "mmseqs_secondary_NT.log")
+        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_NT.log")
     resources:
         mem_mb=64000,
-        cpus=64
+        cpus=16
     conda:
         "../envs/mmseqs2.yaml"
     shell:
@@ -854,11 +832,11 @@ rule SECONDARY_NT_summary:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "tophit")
     resources:
         mem_mb=64000,
-        cpus=64
+        cpus=16
     conda:
         "../envs/samtools.yaml"
     log:
-        "LOGS/mmseqs/mmseqs_SECONDARY_nt_summary.log"
+        os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_summary.log')
     shell:
         """
         # Filter TopHit results
@@ -928,11 +906,11 @@ rule SECONDARY_NT_calculate_LCA:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result")
     resources:
         mem_mb=64000,
-        cpus=64
+        cpus=16
     conda:
         "../envs/mmseqs2.yaml"
     log:
-        "LOGS/mmseqs/mmseqs_SECONDARY_nt_lca.log"
+        os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_lca.log')
     shell:
         """
         # Convert to alignments

@@ -17,9 +17,9 @@ rule concatenate_results_first:
 
 rule jive_aa_annotation:
     input:
-        os.path.join(AA_OUT_CHECKED, "viruses_checked_aa_table.tsv")
+        os.path.join(SECONDARY_AA_OUT, "viruses_checked_aa_table.tsv")
     output:
-        os.path.join(AA_OUT_CHECKED, "viruses_checked_aa_table_edited.tsv")
+        os.path.join(SECONDARY_AA_OUT, "viruses_checked_aa_table_edited.tsv")
     shell:
         """
         sed 's/uc_//g' {input} > {output}
@@ -27,9 +27,9 @@ rule jive_aa_annotation:
 
 rule jive_nt_annotation:
     input:
-        os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_checked_lineage.tsv")
+        os.path.join(SECONDARY_NT_OUT, "mmseqs_pviral_nt_checked_lineage.tsv")
     output:
-        os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_checked_lineage_edited.tsv")
+        os.path.join(SECONDARY_NT_OUT, "mmseqs_pviral_nt_checked_lineage_edited.tsv")
     shell:
         """
         tail -n +2 {input} | sed 's/NA/unknown/g; s/uc_//g' > {output}
@@ -38,8 +38,8 @@ rule jive_nt_annotation:
 # this is the name of the rule in concatenate_results.sh and it is too cute to change
 rule happily_marry_outputs:
     input:
-        aa = os.path.join(AA_OUT_CHECKED, "viruses_checked_aa_table_edited.tsv"),
-        nt = os.path.join(NT_CHECKED_OUT, "mmseqs_pviral_nt_checked_lineage_edited.tsv")
+        aa = os.path.join(SECONDARY_AA_OUT, "viruses_checked_aa_table_edited.tsv"),
+        nt = os.path.join(SECONDARY_NT_OUT, "mmseqs_pviral_nt_checked_lineage_edited.tsv")
     output:
         temporary(os.path.join(RESULTS, "viruses_tax_table_tmp.tsv"))
     shell:
@@ -60,7 +60,7 @@ rule add_crown_to_marriage:
 
 rule fix_phage_names:
     input:
-        tsv = os.path.join(AA_OUT, "phage_table.tsv")
+        tsv = os.path.join(PRIMARY_AA_OUT, "phage_table.tsv")
     output:
         temporary(os.path.join(RESULTS, "phage_tax_table_temp.tsv"))
     shell:
@@ -90,7 +90,7 @@ rule add_phage_title:
 
 rule add_aa_tax_header:
     input:
-        os.path.join(AA_OUT_CHECKED, "taxonomyResult.firsthit.m8")
+        os.path.join(SECONDARY_AA_OUT, "taxonomyResult.firsthit.m8")
     output:
         os.path.join(RESULTS, "aa.aln.m8")
     shell:
@@ -101,7 +101,7 @@ rule add_aa_tax_header:
 
 rule add_nt_tax_header:
     input:
-        os.path.join(NT_OUT, "resultDB.firsthit.m8")
+        os.path.join(PRIMARY_NT_OUT, "resultDB.firsthit.m8")
     output:
         os.path.join(RESULTS, "nt.aln.m8")
     shell:
