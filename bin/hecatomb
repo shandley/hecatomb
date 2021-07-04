@@ -1,0 +1,243 @@
+#!/usr/bin/env python
+
+"""
+Command-line interface for installing and running hecatomb.
+
+Michael Roach, Q2 2021
+"""
+
+
+import argparse
+import sys
+import os
+import subprocess
+import pathlib
+import time
+import yaml
+import glob
+from shutil import copyfile
+from subprocess import call
+
+
+### VERSION
+BINDIR = os.path.dirname(os.path.realpath(__file__))
+vFH = open(os.path.join(BINDIR, '../', 'VERSION'), 'r')
+VERSION = vFH.readline()
+vFH.close()
+
+
+### PARSE COMMAND LINE ARGUMENTS
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=("\n"
+                 "██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗ \n"
+                 "██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗\n"
+                 "███████║█████╗  ██║     ███████║   ██║   ██║   ██║██╔████╔██║██████╔╝\n"
+                 "██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗\n"
+                 "██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝\n"
+                 "╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝ \n"                                                   
+                 f"\nVersion {VERSION}\n"
+                 "\n"
+                 "Commands:\n"
+                 "    install     Download and install the databases (only have to do once)\n"
+                 "    run         Run the Hecatomb pipeline\n"
+                 "    listHosts   List the available host genomes for contaminant removal\n"
+                 "    addHost     Process and add a new host genome for contaminant removal\n"
+                 "\n"),
+    epilog= ("\n"
+             "To Run hecatomb:\n"
+             "hecatomb run --reads fastq/\n"
+             "\n"
+             "The Hecatomb pipeline is powered by Snakemake. Pass multiple additional arguments to Snakemake with --snake:\n"
+             "hecatomb run --snake=--dry-run --snake=--touch\n"
+             "\n"
+             "Wrap the --snake arguments in quotes when passing whitespace:\n"
+             "hecatomb run --snake=\"--force --cleanup-metadata seqtable.fasta\"\n"
+             "\n"
+             "Override default config settings:\n"
+             "hecatomb run --snake=\"--config QSCORE=12 READ_MINLENGTH=50\n"
+             "\n"
+             "To run hecatomb on a HPC cluster (e.g. slurm or sge):\n"
+             "hecatomb run --cluster slurm\n\n"
+             "For more information on using Snakemake profiles refer to the Snakemake documentation: \n"
+             "https://snakemake.readthedocs.io/ as well as the example configs in the Hecatomb config directory \n"
+             "https://github.com/shandley/hecatomb/tree/master/snakemake/config\n\n"
+             )
+)
+parser.add_argument('command', choices=['install', 'run', 'listHosts', 'addHost'])
+parser.add_argument('--reads', help='Directory containing seq data')
+parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
+parser.add_argument('--host', help='Host name for contaminant removal', default='human')
+parser.add_argument('--hostfa', help='Host reference (when adding a new host genome)')
+parser.add_argument('--entropy', help='Host masking entropy (when adding a new host genome)', default='0.7')
+parser.add_argument('--profile', help='Snakemake profile for use on cluster')
+parser.add_argument('--threads', help='Number of threads to use (ignored if using --profile)', default='16')
+parser.add_argument('--snake',
+                    help='Pass one or more commands to Snakemake e.g. --snake=--dry-run',
+                    action='append')
+args = parser.parse_args()
+
+
+### GLOBAL VARIABLES
+SNEKDIR = os.path.normpath(os.path.join(BINDIR, '../', 'snakemake', 'workflow'))
+CONDDIR = os.path.normpath(os.path.join(SNEKDIR, 'conda'))
+EDITOR = os.environ.get('EDITOR','nano')
+# read the config file
+with open(os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml'), 'r') as stream:
+    config = yaml.safe_load(stream)
+
+
+def initialiseSnakeCommand():
+    """
+    Initialise the Snakemake command (add profile or threads args, default args, and additional snake args)
+    :return command: string for use with subprocess.run()
+    """
+    if args.profile:
+        runJobs = f'--profile {args.profile}'
+    else:
+        runJobs = f'-j {args.threads}'
+    # Decorate the Snakemake run command
+    command = f"snakemake {runJobs} --use-conda --conda-frontend mamba --rerun-incomplete " \
+              f"--nolock --conda-prefix {CONDDIR} "
+    # Additional Snakemake commands
+    if args.snake:
+        command = command + ' '.join(c for c in args.snake)
+    return command
+
+
+# def initialiseCluster(cluster):
+#     """
+#     Initialise the slurm or sge profile yaml file for running hecatomb on a cluster
+#     :param profile: args.profile, either 'slurm' or 'sge'
+#     :return:
+#     """
+#     clustConf = os.path.expanduser(f'~/.config/snakemake/{cluster}/config.yaml')
+#     if pathlib.Path(clustConf).is_file():
+#         sys.stderr.write(f"Found {cluster} profile {clustConf}\n")
+#         # sys.stderr.write(f'Update {cluster} profile before continuing? [y/N]: ')
+#         # YN = input()
+#         # if 'y' in YN or 'Y' in YN:
+#         #     call([EDITOR, clustConf])
+#     else:
+#         clustSampleConf = os.path.join(SNEKDIR, f'config/sample_{cluster}.yaml')
+#         clustConfDest = os.path.dirname(clustConf)
+#         pathlib.Path(clustConfDest).mkdir(parents=True, exist_ok=True)
+#         copyfile(clustSampleConf, clustConf)
+#         sys.stderr.write(f"Created a config.yaml profile for {cluster} in {clustConfDest}\n")
+#         sys.stderr.write("\n--------------------\n\n")
+#         f = open(clustConf, 'r')
+#         for line in f:
+#             sys.stderr.write(line)
+#         f.close()
+#         sys.stderr.write(f"\n\n--------------------\n\nEdit {cluster}.yaml in nano before continuing? [y/N]: ")
+#         YN = input()
+#         if 'y' in YN or 'Y' in YN:
+#             call([EDITOR, clustConf])
+#     return
+
+
+def runSnakeSys(command, msg):
+    """
+    Function to run snakemake and confirm success
+
+    :param command: The snakemake command to run
+    :param msg: Success message if it runs fine
+    :return: none
+    """
+    sys.stderr.write(f'Running snakemake command:\n{command}\n')
+    if subprocess.run(command.split()).returncode==0:
+        sys.stderr.write(msg)
+    else:
+        sys.stderr.write("ERROR: Snakemake command failed\n")
+        exit(1)
+    return
+
+
+# Functions for installing and running hecatomb
+def install():
+    """
+    The install function. This will run the download and install database snakemake pipeline.
+    :return:
+    """
+    snakeCommand = initialiseSnakeCommand()
+    sys.stderr.write("Checking and downloading database files\n")
+    snekFile = os.path.normpath(os.path.join(SNEKDIR, 'DownloadDB.smk'))
+    runCommand = f'{snakeCommand} -s {snekFile} '
+    successMsg = "Database installation finished successfully\n"
+    runSnakeSys(runCommand, successMsg)
+    return
+
+
+def run():
+    """
+    The run function. This will run the hecatome snakemake pipeline itself.
+    :return:
+    """
+    if not args.reads:
+        sys.stderr.write('ERROR: please specify the directory with sequencing reads with --reads')
+        exit(1)
+    snakeCommand = initialiseSnakeCommand()
+    sys.stderr.write("Running Hecatomb\n")
+    snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
+    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={args.reads} Host={args.host} Output={args.results}'
+    successMsg = "Hecatomb finished successfully\n"
+    runSnakeSys(runCommand, successMsg)
+    return
+
+
+def addHost():
+    """
+    Add a new host to the Hecatomb database
+    :return:
+    """
+    if not args.hostfa:
+        sys.stderr.write('ERROR: Host fasta file required when adding new host genome\n')
+        exit(1)
+    sys.stderr.write('Adding new virus-masked host for use with hecatomb\n')
+    if args.host == 'human':
+        sys.stderr.write(f'Enter host name [{args.host}]:')
+        host = input()
+        host = host.rstrip()
+        if host == '':
+            host = args.host
+    else:
+        host = args.host
+    snakeCommand = initialiseSnakeCommand()
+    snekFile = os.path.normpath(os.path.join(SNEKDIR, 'AddHost.smk'))
+    runCommand = f'{snakeCommand} -s {snekFile} -C HostFa={args.hostfa} HostName={host} Entropy={args.entropy}'
+    successMsg = "Host genome successfully added\n"
+    runSnakeSys(runCommand, successMsg)
+    return
+
+
+def listHosts():
+    """
+    Print the list of available host genomes and exit
+    :return:
+    """
+    # check DB location
+    if config['Databases'] is None:
+        DBDIR = os.path.join(BINDIR, '../databases')
+    else:
+        DBDIR = config['Databases']
+    # print host genomes
+    sys.stdout.write('Available host genomes:\n')
+    HOSTPATH = os.path.join(DBDIR, "hosts")
+    hostFastas = [os.path.basename(x) for x in glob.glob(os.path.join(HOSTPATH, '*_virus_masked.fasta'))]
+    for h in hostFastas:
+        h = h.replace('_virus_masked.fasta','')
+        sys.stdout.write(f'{h}\n')
+    sys.stdout.write('\n')
+    return
+
+
+# Run the program
+# if args.profile:
+#     initialiseCluster(args.profile)
+
+commands = {'install':install, 'run':run, 'addHost':addHost, 'listHosts':listHosts}
+commands[args.command]()
+
+time.sleep(1)
+exit(0)
+
