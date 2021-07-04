@@ -219,7 +219,7 @@ rule PRIMARY_AA_summary:
         csvtk pretty -t {output.tmpsummary} > {output.summary};
         """
 
-rule SECONDARY_AA_taxonomy_assignment: 
+rule SECONDARY_AA_taxonomy_assignment:
     """Check taxonomic assignments in MMSEQS_AA_PRIMARY_classified.fasta using mmseqs2
     
     - Reference database: UniRef50 + UNIVIRDB. All UniProtKB protein entries (all domains of life) clustered at 50% ID 
