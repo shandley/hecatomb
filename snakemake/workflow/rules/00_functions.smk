@@ -85,6 +85,16 @@ rule zip:
     shell:
         "gzip {input}"
 
+rule zstd_decomp:
+    input:
+        '{file}.zst'
+    output:
+        '{file}'
+    conda:
+        "../envs/curl.yaml"
+    shell:
+        'zstd -qd {input}'
+
 ### FUNCTIONS
 def stream_tsv(tsvFile):
     """Read a file line-by-line and split by whitespace"""
