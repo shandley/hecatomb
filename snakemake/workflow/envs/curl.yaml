@@ -3,4 +3,4 @@ channels:
     - anaconda
 dependencies:
     - curl
-    - zstandard
+    - zstd
