@@ -89,27 +89,27 @@ rule download_nucleotide_databases:
 #     shell:
 #         "cd {params.wd} && bbmap.sh -Xmx{resources.mem_mb}m threads={resources.cpus} ref={params.fa}"
 
-rule make_bac_bt_idx:
-    """
-    Generate bacteria bowtie2 index
-    """
-    input:
-        os.path.join(BACPATH,config['bacteria'])
-    output:
-        expand(os.path.join(BACPATH,"bac_uniquespecies_giant.masked_Ns_removed.{n}.bt2l"),n=[1, 2, 3, 4])
-    benchmark:
-        "benchmarks/make_bac_bt_idx.txt"
-    resources:
-        mem_mb=50000,
-        cpus=16
-    params:
-        wd=BACPATH,
-        fa=config['bacteria'],
-        bt="bac_uniquespecies_giant.masked_Ns_removed"
-    conda:
-        "../envs/bowtie2.yaml"
-    shell:
-        "cd {params.wd} && bowtie2-build --threads {resources.cpus} --large-index {params.fa} {params.bt}"
+# rule make_bac_bt_idx:
+#     """
+#     Generate bacteria bowtie2 index
+#     """
+#     input:
+#         os.path.join(BACPATH,config['bacteria'])
+#     output:
+#         expand(os.path.join(BACPATH,"bac_uniquespecies_giant.masked_Ns_removed.{n}.bt2l"),n=[1, 2, 3, 4])
+#     benchmark:
+#         "benchmarks/make_bac_bt_idx.txt"
+#     resources:
+#         mem_mb=50000,
+#         cpus=16
+#     params:
+#         wd=BACPATH,
+#         fa=config['bacteria'],
+#         bt="bac_uniquespecies_giant.masked_Ns_removed"
+#     conda:
+#         "../envs/bowtie2.yaml"
+#     shell:
+#         "cd {params.wd} && bowtie2-build --threads {resources.cpus} --large-index {params.fa} {params.bt}"
 
 # rule make_host_databases:
 #     """
@@ -468,35 +468,35 @@ rule mmseqs_urv_taxonomy:
 #         mmseqs createdb {input} {params.db} --dbtype 2 --shuffle 0
 #         """
 
-rule line_sine_download:
-    """
-    A database of LINES and SINES that we screen against to 
-    remove contaminants.
-
-    LINES: "http://sines.eimb.ru/banks/SINEs.bnk"
-    SINES: "http://sines.eimb.ru/banks/LINEs.bnk"
-
-    Note that the current version has two ids with the same name
-    but different sequences, so we used seqtk to rename them
-    """
-    output:
-        os.path.join(CONPATH,"line_sine.fasta")
-    conda:
-        "../envs/curl.yaml"
-    params:
-        wd=CONPATH,
-        filename=config["url"]["lineSine"]["filename"],
-        zst=config["url"]["lineSine"]["zst"],
-        md5=config["url"]["lineSine"]["md5"]
-    shell:
-        """
-        cd {params.wd};
-        curl -Lgo {params.filename} "{params.zst}";
-        curl -Lgo {params.filename}.md5 "{params.md5}";
-        md5sum -c {params.filename}.md5;
-        rm {params.filename}.md5;
-        zstd -d {params.filename} --rm
-        """
+# rule line_sine_download:
+#     """
+#     A database of LINES and SINES that we screen against to
+#     remove contaminants.
+#
+#     LINES: "http://sines.eimb.ru/banks/SINEs.bnk"
+#     SINES: "http://sines.eimb.ru/banks/LINEs.bnk"
+#
+#     Note that the current version has two ids with the same name
+#     but different sequences, so we used seqtk to rename them
+#     """
+#     output:
+#         os.path.join(CONPATH,"line_sine.fasta")
+#     conda:
+#         "../envs/curl.yaml"
+#     params:
+#         wd=CONPATH,
+#         filename=config["url"]["lineSine"]["filename"],
+#         zst=config["url"]["lineSine"]["zst"],
+#         md5=config["url"]["lineSine"]["md5"]
+#     shell:
+#         """
+#         cd {params.wd};
+#         curl -Lgo {params.filename} "{params.zst}";
+#         curl -Lgo {params.filename}.md5 "{params.md5}";
+#         md5sum -c {params.filename}.md5;
+#         rm {params.filename}.md5;
+#         zstd -d {params.filename} --rm
+#         """
 
 # rule line_sine_format:
 #     """
