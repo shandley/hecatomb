@@ -11,6 +11,9 @@ rule fasta_index:
         "{file}.fasta.fai"
     conda:
         "../envs/samtools.yaml"
+    resources:
+        cpus=2,
+        mem_mb=16000
     shell:
         """
         samtools faidx {input} -o {output}
@@ -26,6 +29,9 @@ rule calculate_gc:
         os.path.join(BENCH,"calculate_gc.{file}.txt")
     log:
         os.path.join(STDERR,"calculate_gc.{file}.log")
+    resources:
+        cpus=2,
+        mem_mb=16000
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -44,6 +50,9 @@ rule calculate_tet_freq:
         os.path.join(BENCH,"calculate_tet.{file}.txt")
     log:
         os.path.join(STDERR,"calculate_tet.{file}.log")
+    resources:
+        cpus=2,
+        mem_mb=16000
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -62,6 +71,9 @@ rule seq_properties_table:
         os.path.join(RESULTS,"{file}.properties.tsv")
     benchmark:
         os.path.join(BENCH,"seq_properties_table.{file}.txt")
+    resources:
+        cpus=2,
+        mem_mb=16000
     run:
         gc = {}
         for l in stream_tsv(input.gc):
@@ -77,29 +89,34 @@ rule seq_properties_table:
             out.write('\n')
         out.close()
 
-rule zip:
-    input:
-        '{file}'
-    output:
-        '{file}.gz'
-    shell:
-        "gzip {input}"
-
-rule zstd_decomp:
-    input:
-        '{file}.zst'
-    output:
-        '{file}'
-    conda:
-        "../envs/curl.yaml"
-    shell:
-        'zstd -qd {input}'
+# rule zip:
+#     input:
+#         '{file}'
+#     output:
+#         '{file}.gz'
+#     wildcard_constraints:
+#         file=".*\.(?!gz$)\w*$"
+#     shell:
+#         "gzip {input}"
+#
+# rule zstd_decomp:
+#     input:
+#         '{file}.zst'
+#     output:
+#         '{file}'
+#     wildcard_constraints:
+#         file=".*\.(?!zst$)\w*$"
+#     conda:
+#         "../envs/curl.yaml"
+#     shell:
+#         'zstd -qd {input}'
 
 ### FUNCTIONS
 def stream_tsv(tsvFile):
     """Read a file line-by-line and split by whitespace"""
     filehandle = open(tsvFile, 'r')
     for line in filehandle:
-        l = line.split()
+        line = line.strip()
+        l = line.split('\t')
         yield l
     filehandle.close()
