@@ -10,6 +10,9 @@ Michael Roach, Q2 2021
 import os
 import sys
 
+### DEFAULT CONFIG FILE
+configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
+
 # IMPORT DIRECTORIES
 include: "rules/00_directories.smk"
 
