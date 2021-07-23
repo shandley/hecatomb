@@ -204,7 +204,7 @@ def addHost():
         host = args.host
     snakeCommand = initialiseSnakeCommand()
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'AddHost.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C HostFa={args.hostfa} HostName={host} Entropy={args.entropy}'
+    runCommand = f'{snakeCommand} -s {snekFile} -C HostFa={args.hostfa} HostName={host} Entropy={args.entropy} Output={args.results}'
     successMsg = "Host genome successfully added\n"
     runSnakeSys(runCommand, successMsg)
     return
