@@ -40,8 +40,8 @@ rule PRIMARY_AA_taxonomy_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_AA.log")
     resources:
-        mem_mb=64000,
-        cpus=16
+        mem_mb=128000,
+        cpus=64
     conda:
         "../envs/mmseqs2.yaml"
     shell: # run easy taxonomy, add header
@@ -52,7 +52,8 @@ rule PRIMARY_AA_taxonomy_assignment:
             --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
             --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
-            --tax-lineage 1 \
+            --tax-lineage 1 --min-length 15 \
+            --threads {resources.cpus} --split-memory-limit 48G \
             -e {config[PRIMAAE]} &>> {log};
         
         # Add headers
@@ -81,6 +82,9 @@ rule PRIMARY_AA_parsing:
         unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
     conda:
         "../envs/samtools.yaml"
+    resources:
+        mem_mb=16000,
+        cpus=2
     shell: # make two FASTA files: classified sequences (MMSEQS_AA_PRIMARY_tophit_aln_sorted), unclassified (all minus classified seqs)
         """
         # Extract full entry ID list (all sequences)
@@ -136,7 +140,10 @@ rule PRIMARY_AA_summary:
         summary = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_summary.tsv")
     conda:
         "../envs/seqkit.yaml"
-    shell: # collect some counts at different taxon levels. This should be part of the shiny app.
+    resources:
+        mem_mb=16000,
+        cpus=2
+    shell:
         """
         # Viral order summary
         grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$4 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Order_Frequency' > {output.virord};
@@ -246,7 +253,7 @@ rule SECONDARY_AA_taxonomy_assignment:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_AA.log")
     resources:
         mem_mb=128000,
-        cpus=32
+        cpus=64
     conda:
         "../envs/mmseqs2.yaml"
     shell: # secondary easy-tax search, add header
@@ -257,7 +264,8 @@ rule SECONDARY_AA_taxonomy_assignment:
             --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
             --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
-            --tax-lineage 1 --split-memory-limit 1G \
+            --tax-lineage 1 --split-memory-limit 48G --min-length 15 \
+            --threads {resources.cpus} \
             -e {config[SECAAE]} &>> {log};
         
         # Add headers
@@ -265,7 +273,7 @@ rule SECONDARY_AA_taxonomy_assignment:
             sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
         """
         
-rule SECONDARY_AA_tophit_refactor:
+rule SECONDARY_AA_tophit_lineage:
     """Add/reformat tophit viral lineages with up-to-date* NCBI taxonomy
     
     - UniRef50 (https://www.uniprot.org/help/uniref) and other UniRef databases are a mixture of protein entries from 
@@ -279,153 +287,149 @@ rule SECONDARY_AA_tophit_refactor:
         db = TAX,
         tophit = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln")
     output:
-        tophit_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.seq.ids")),
-        tophit_taxids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.tax.ids")),
+        # tophit_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.seq.ids")),
+        # tophit_taxids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.tax.ids")),
         tophit_seq_taxids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.seq_tax.ids")),
         tophit_lineage = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.lineage")),
-        tophit_lineage_refomated = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.lineage.reformated")),
-        tophit_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.lineage.vir.reformated")),
-        tophit_tmp_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv"),
-        tophit_kingdom_freq = os.path.join(SECONDARY_AA_OUT, "tophit.kingdom.freq"),
-        uncl_superkingdom_freq = os.path.join(SECONDARY_AA_OUT, "tophit.unclass_superkingdom.freq"),
-        tophit_keyword_nonviral_ids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.ids")),
-        tophit_keyword_nonviral_freq = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.freq"),
-        tophit_keyword_nonviral_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.tmp")),
-        tophit_keyword_nonviral_list = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.list"),
-        tophit_keyword_bac_freq = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_bac.freq"),
-        tophit_keyword_vir_freq_tr_ids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_tr.ids")),
-        tophit_keyword_vir_freq_tr_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_tr.tmp")),
-        tophit_keyword_vir_freq_tr = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_tr.freq")),
-        tophit_keyword_vir_freq_sp_ids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_sp.ids")),
-        tophit_keyword_vir_freq_sp_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_sp.tmp")),
-        tophit_keyword_vir_freq_sp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_sp.freq")),
-        tophit_keyword_vir_freq = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir.freq"),
-        tophit_keyword_vir_list = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir.list"),
-        tophit_keyword_all_list = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_all.list")
+        tophit_lineage_refomated = os.path.join(SECONDARY_AA_OUT, "tophit.lineage.reformated"),
+        # tophit_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.lineage.vir.reformated")),
+        # tophit_tmp_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv"),
+        # tophit_kingdom_freq = os.path.join(SECONDARY_AA_OUT, "tophit.kingdom.freq"),
+        # uncl_superkingdom_freq = os.path.join(SECONDARY_AA_OUT, "tophit.unclass_superkingdom.freq"),
+        # tophit_keyword_nonviral_ids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.ids")),
+        # tophit_keyword_nonviral_freq = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.freq"),
+        # tophit_keyword_nonviral_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.tmp")),
+        # tophit_keyword_nonviral_list = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.list"),
+        # tophit_keyword_bac_freq = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_bac.freq"),
+        # tophit_keyword_vir_freq_tr_ids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_tr.ids")),
+        # tophit_keyword_vir_freq_tr_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_tr.tmp")),
+        # tophit_keyword_vir_freq_tr = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_tr.freq")),
+        # tophit_keyword_vir_freq_sp_ids = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_sp.ids")),
+        # tophit_keyword_vir_freq_sp_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_sp.tmp")),
+        # tophit_keyword_vir_freq_sp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir_sp.freq")),
+        # tophit_keyword_vir_freq = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir.freq"),
+        # tophit_keyword_vir_list = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir.list"),
+        # tophit_keyword_all_list = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_all.list")
     conda:
         "../envs/seqkit.yaml"
+    resources:
+        mem_mb=16000,
+        cpus=2
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_tophit_refactor.log")
     shell:
         """
-        # Make a list of all sequence IDs represented in TopHit table
-        cut -f1 {input.tophit} > {output.tophit_seqids};
-        
-        # Pull all UniProt TaxIDs from TopHit table
-        cut -f20 {input.tophit} > {output.tophit_taxids};
-        
-        # Combine sequence IDs with taxIDs
-        paste {output.tophit_seqids} {output.tophit_taxids} > {output.tophit_seq_taxids};
-        ################### cut -f1,20 {input.tophit} > {output.tophit_seq_taxids}###########################################
+        # Make a table: SeqID <tab> taxID
+        cut -f1,20 {input.tophit} > {output.tophit_seq_taxids}
         
         # Add NCBI lineage information and collect all sequences with a viral lineage
         taxonkit lineage --data-dir {input.db} {output.tophit_seq_taxids} -i 2 | \
-        cut --complement -f2 > {output.tophit_lineage};
+            cut --complement -f2 > {output.tophit_lineage};
         
         # Reformat TopHit viral lineage information
         taxonkit reformat --data-dir {input.db} {output.tophit_lineage} -i 2 \
-        -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
-        cut --complement -f2 > {output.tophit_lineage_refomated};
-        
-        # Remove redundant lineage information
-        cut --complement -f21,22 {input.tophit} > {output.tophit_tmp};
-        
-        # Create final TopHit viral sequence table with alignment information
-        csvtk join -f1 {output.tophit_tmp} {output.tophit_lineage_refomated} -H -t -T > {output.tophit_tmp_updated} 2> {log};
-        
-        ## Summarize kingdom frequency information
-            ###################################################### everything below here -> shiny app ################################################
-        # Create table of kingdom frequencies
-        cut -f21 {output.tophit_tmp_updated} | csvtk freq -H -n -r -T -t > {output.tophit_kingdom_freq};
-        
-        sed -i '1i kingdom\tfrequency' {output.tophit_kingdom_freq};
-        
-        # Create unclassified superkingdom frequency table
-        grep 'unclassified unclassified entries superkingdom' {output.tophit_tmp_updated} | \
-            cut -f27 | \
-            csvtk freq -H -n -r -T -t > {output.uncl_superkingdom_freq};
-            
-        sed -i '1i description\tfrequency' {output.uncl_superkingdom_freq};
-        
-        ## Identify and tag provirus sequences based on UniRef protein name annotations
-        # Separate all TopHit non-viral and viral sequences
-        # Add column indicating there classification
-        
-        # Create frequency table of reference database key words for all nonviral TopHit entries
-        awk -F '\t' '$21 != "Viruses"' {output.tophit_tmp_updated} | \
-            cut -f19 | \
-            sed 's/ n=[0-9]//g' | \
-            awk -F "|" '{{ print $3 }}' | \
-            awk -F "OS=" '{{ print$1 }}' > {output.tophit_keyword_nonviral_freq};
-        
-        sed -i '1i keyword\tfrequency' {output.tophit_keyword_nonviral_freq};
-        
-        # Create TopHit keyword list for all TopHit nonviral entries
-        # Create id list
-        awk -F '\t' '$21 != "Viruses"' {output.tophit_tmp_updated} | \
-        cut -f1 > {output.tophit_keyword_nonviral_ids};
-        
-        awk -F '\t' '$21 != "Viruses"' {output.tophit_tmp_updated} | \
-            cut -f19 | \
-            sed 's/ n=[0-9]//g' | \
-            awk -F "|" '{{ print $3 }}' | \
-            awk -F "OS=" '{{ print$1 }}' > {output.tophit_keyword_nonviral_tmp};
-            
-        paste {output.tophit_keyword_nonviral_ids} {output.tophit_keyword_nonviral_tmp} > {output.tophit_keyword_nonviral_list};
-        
-        # Create frequency table of reference database key words for all TopHit bacteria
-        awk -F '\t' '$21 == "Bacteria"' {output.tophit_tmp_updated} | \
-            sed 's/ n=[0-9]//g' | \
-            cut -f19 | \
-            awk -F "|" '{{ print $3 }}' | \
-            awk -F "OS=" '{{ print$1 }}' | \
-            csvtk freq -H -n -r -T -t > {output.tophit_keyword_bac_freq};
-            
-        sed -i '1i keyword\tfrequency' {output.tophit_keyword_bac_freq};
-            
-        # Create frequency table of reference database key words for all TopHit viruses
-        # First for the 'tr|' annotated viruses
-        awk -F '\t' '$21 == "Viruses"' {output.tophit_tmp_updated} | \
-            grep 'tr|' | \
-            cut -f1 > {output.tophit_keyword_vir_freq_tr_ids};
-            
-        awk -F '\t' '$21 == "Viruses"' {output.tophit_tmp_updated} | \
-            sed 's/ n=[0-9]//g' | \
-            grep 'tr|' | \
-            cut -f19 | \
-            awk -F "OS=" '{{ print$1 }}' | \
-            sed 's/ /:/' | \
-            awk -F ":" '{{ print$2 }}' > {output.tophit_keyword_vir_freq_tr_tmp};
-            
-        paste {output.tophit_keyword_vir_freq_tr_ids} {output.tophit_keyword_vir_freq_tr_tmp} > {output.tophit_keyword_vir_freq_tr};
-        
-        # Next for the 'sp|' annotated viruses
-        awk -F '\t' '$21 == "Viruses"' {output.tophit_tmp_updated} | \
-            grep 'sp|' | \
-            cut -f1 > {output.tophit_keyword_vir_freq_sp_ids};
-        
-        awk -F '\t' '$21 == "Viruses"' {output.tophit_tmp_updated} | \
-            sed 's/ n=[0-9]//g' | \
-            grep 'sp|' | \
-            cut -f19 | \
-            awk -F "|" '{{ print$3 }}' | \
-            awk -F "OS=" '{{ print$1 }}' > {output.tophit_keyword_vir_freq_sp_tmp};
-        
-        paste {output.tophit_keyword_vir_freq_sp_ids} {output.tophit_keyword_vir_freq_sp_tmp} > {output.tophit_keyword_vir_freq_sp};
-            
-        cat {output.tophit_keyword_vir_freq_tr} {output.tophit_keyword_vir_freq_sp} > {output.tophit_keyword_vir_list};
-            
-        # Summarize viral keyword frequency table
-        cat {output.tophit_keyword_vir_freq_tr} {output.tophit_keyword_vir_freq_sp} | \
-        csvtk freq -H -n -r -T -t > {output.tophit_keyword_vir_freq};
-            
-        sed -i '1i keyword\tfrequency' {output.tophit_keyword_vir_freq};
-        
-        # Create all entry keyword list
-        cat {output.tophit_keyword_vir_list} {output.tophit_keyword_nonviral_list} > {output.tophit_keyword_all_list};
-        
+            -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank |
+            cut --complement -f2 | awk 'NF>1' > {output.tophit_lineage_refomated};
         """
-    
+        # ### new rule / not needed ###
+        # cut --complement -f21,22 {input.tophit} > {output.tophit_tmp};
+        #
+        # ## new rule ### # Create final TopHit viral sequence table with alignment information
+        # csvtk join -f1 {output.tophit_tmp} {output.tophit_lineage_refomated} -H -t -T > {output.tophit_tmp_updated} 2> {log};
+        #
+        #
+        # ## turning off for now -- move to new rule or leave for shiny app ###
+        #
+        # # Summarize kingdom frequency information
+        # # Create table of kingdom frequencies
+        # cut -f21 {output.tophit_tmp_updated} | csvtk freq -H -n -r -T -t > {output.tophit_kingdom_freq};
+        #
+        # sed -i '1i kingdom\tfrequency' {output.tophit_kingdom_freq};
+        #
+        # # Create unclassified superkingdom frequency table
+        # grep 'unclassified unclassified entries superkingdom' {output.tophit_tmp_updated} | \
+        #     cut -f27 | \
+        #     csvtk freq -H -n -r -T -t > {output.uncl_superkingdom_freq};
+        #
+        # sed -i '1i description\tfrequency' {output.uncl_superkingdom_freq};
+        #
+        # ## Identify and tag provirus sequences based on UniRef protein name annotations
+        # # Separate all TopHit non-viral and viral sequences
+        # # Add column indicating there classification
+        #
+        # # Create frequency table of reference database key words for all nonviral TopHit entries
+        # awk -F '\t' '$21 != "Viruses"' {output.tophit_tmp_updated} | \
+        #     cut -f19 | \
+        #     sed 's/ n=[0-9]//g' | \
+        #     awk -F "|" '{{ print $3 }}' | \
+        #     awk -F "OS=" '{{ print$1 }}' > {output.tophit_keyword_nonviral_freq};
+        #
+        # sed -i '1i keyword\tfrequency' {output.tophit_keyword_nonviral_freq};
+        #
+        # # Create TopHit keyword list for all TopHit nonviral entries
+        # # Create id list
+        # awk -F '\t' '$21 != "Viruses"' {output.tophit_tmp_updated} | \
+        # cut -f1 > {output.tophit_keyword_nonviral_ids};
+        #
+        # awk -F '\t' '$21 != "Viruses"' {output.tophit_tmp_updated} | \
+        #     cut -f19 | \
+        #     sed 's/ n=[0-9]//g' | \
+        #     awk -F "|" '{{ print $3 }}' | \
+        #     awk -F "OS=" '{{ print$1 }}' > {output.tophit_keyword_nonviral_tmp};
+        #
+        # paste {output.tophit_keyword_nonviral_ids} {output.tophit_keyword_nonviral_tmp} > {output.tophit_keyword_nonviral_list};
+        #
+        # # Create frequency table of reference database key words for all TopHit bacteria
+        # awk -F '\t' '$21 == "Bacteria"' {output.tophit_tmp_updated} | \
+        #     sed 's/ n=[0-9]//g' | \
+        #     cut -f19 | \
+        #     awk -F "|" '{{ print $3 }}' | \
+        #     awk -F "OS=" '{{ print$1 }}' | \
+        #     csvtk freq -H -n -r -T -t > {output.tophit_keyword_bac_freq};
+        #
+        # sed -i '1i keyword\tfrequency' {output.tophit_keyword_bac_freq};
+        #
+        # # Create frequency table of reference database key words for all TopHit viruses
+        # # First for the 'tr|' annotated viruses
+        # awk -F '\t' '$21 == "Viruses"' {output.tophit_tmp_updated} | \
+        #     grep 'tr|' | \
+        #     cut -f1 > {output.tophit_keyword_vir_freq_tr_ids};
+        #
+        # awk -F '\t' '$21 == "Viruses"' {output.tophit_tmp_updated} | \
+        #     sed 's/ n=[0-9]//g' | \
+        #     grep 'tr|' | \
+        #     cut -f19 | \
+        #     awk -F "OS=" '{{ print$1 }}' | \
+        #     sed 's/ /:/' | \
+        #     awk -F ":" '{{ print$2 }}' > {output.tophit_keyword_vir_freq_tr_tmp};
+        #
+        # paste {output.tophit_keyword_vir_freq_tr_ids} {output.tophit_keyword_vir_freq_tr_tmp} > {output.tophit_keyword_vir_freq_tr};
+        #
+        # # Next for the 'sp|' annotated viruses
+        # awk -F '\t' '$21 == "Viruses"' {output.tophit_tmp_updated} | \
+        #     grep 'sp|' | \
+        #     cut -f1 > {output.tophit_keyword_vir_freq_sp_ids};
+        #
+        # awk -F '\t' '$21 == "Viruses"' {output.tophit_tmp_updated} | \
+        #     sed 's/ n=[0-9]//g' | \
+        #     grep 'sp|' | \
+        #     cut -f19 | \
+        #     awk -F "|" '{{ print$3 }}' | \
+        #     awk -F "OS=" '{{ print$1 }}' > {output.tophit_keyword_vir_freq_sp_tmp};
+        #
+        # paste {output.tophit_keyword_vir_freq_sp_ids} {output.tophit_keyword_vir_freq_sp_tmp} > {output.tophit_keyword_vir_freq_sp};
+        #
+        # cat {output.tophit_keyword_vir_freq_tr} {output.tophit_keyword_vir_freq_sp} > {output.tophit_keyword_vir_list};
+        #
+        # # Summarize viral keyword frequency table
+        # cat {output.tophit_keyword_vir_freq_tr} {output.tophit_keyword_vir_freq_sp} | \
+        # csvtk freq -H -n -r -T -t > {output.tophit_keyword_vir_freq};
+        #
+        # sed -i '1i keyword\tfrequency' {output.tophit_keyword_vir_freq};
+        #
+        # # Create all entry keyword list
+        # cat {output.tophit_keyword_vir_list} {output.tophit_keyword_nonviral_list} > {output.tophit_keyword_all_list};
+
 rule SECONDARY_AA_LCA_virus_root_refactor:
     """Update LCA virus root taxonomy to tophit taxonomy.
     
@@ -436,10 +440,10 @@ rule SECONDARY_AA_LCA_virus_root_refactor:
     """
     input:
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
-        tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv")
+        # tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv")
     output:
-        lca_virus_root_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "lca_virus_root.seq.ids")),
-        lca_virus_root_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv")
+        lca_virus_root_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "lca_10239.ids")),
+        # lca_virus_root_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv")
     conda:
         "../envs/seqkit.yaml"
     log:
@@ -447,12 +451,10 @@ rule SECONDARY_AA_LCA_virus_root_refactor:
     shell:
         """
         # Isolate sequences pushed to virus root by LCA (Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses)
-        awk '$2 == 10239' {input.lca} | cut -f1 > {output.lca_virus_root_seqids};
-        
-        # Join LCA-root sequnece IDs to updated virus tophit table
-        csvtk join -f1 {output.lca_virus_root_seqids} {input.tophit_updated} -H -t -T > {output.lca_virus_root_vir_tsv};
-        
+        awk '$2 == 10239 {{print $1}}' {input.lca} > {output.lca_virus_root_seqids};
         """
+        # Join LCA-root sequnece IDs to updated virus tophit table
+        # csvtk join -f1 {output.lca_virus_root_seqids} {input.tophit_updated} -H -t -T > {output.lca_virus_root_vir_tsv};
 
 rule SECONDARY_AA_LCA_virus_unclassified_refactor:
     """Update LCA unclassified taxonomy to tophit taxonomy.
@@ -463,12 +465,12 @@ rule SECONDARY_AA_LCA_virus_unclassified_refactor:
     """
     input:
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
-        tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv")
+        #tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv")
     output:
-        lca_unclass_seqids_0 = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.seq.ids_0")),
-        lca_unclass_seqids_1 = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.seq.ids_1")),
-        lca_unclass_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.seq.ids")),
-        lca_unclass_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv")
+        lca_unclass_seqids_0 = temporary(os.path.join(SECONDARY_AA_OUT, "lca_0.ids")),
+        lca_unclass_seqids_1 = temporary(os.path.join(SECONDARY_AA_OUT, "lca_1.ids")),
+        # lca_unclass_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.seq.ids")),
+        # lca_unclass_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv")
     conda:
         "../envs/seqkit.yaml"
     log:
@@ -476,43 +478,45 @@ rule SECONDARY_AA_LCA_virus_unclassified_refactor:
     shell:
         """
         # Isolate unclassified sequences from LCA
-        awk '$2 == 0' {input.lca} | cut -f1 > {output.lca_unclass_seqids_0};
-        awk '$2 == 1' {input.lca} | cut -f1 > {output.lca_unclass_seqids_1};
-        
-        cat {output.lca_unclass_seqids_0} {output.lca_unclass_seqids_1} | cut -f1 > {output.lca_unclass_seqids};
-        
-        # Join unclassified LCA sequence IDs to virus tophit viral table
-        # Save only the potential viral hits
-        csvtk join -f1 {output.lca_unclass_seqids} {input.tophit_updated} -H -t -T > {output.lca_unclass_vir_tsv};
-          
+        awk '$2 == 0 {{print $1}}' {input.lca} > {output.lca_unclass_seqids_0};
+        awk '$2 == 1 {{print $1}}' {input.lca} > {output.lca_unclass_seqids_1};
         """
+        #
+        # cat {output.lca_unclass_seqids_0} {output.lca_unclass_seqids_1} | cut -f1 > {output.lca_unclass_seqids};
+        #
+        # # Join unclassified LCA sequence IDs to virus tophit viral table
+        # # Save only the potential viral hits
+        # csvtk join -f1 {output.lca_unclass_seqids} {input.tophit_updated} -H -t -T > {output.lca_unclass_vir_tsv};
 
 rule SECONDARY_AA_refactor_finalize:
     """Remove sequences to be refactored from LCA table and recombine with updated taxonomies."""
     input:
         db = TAX,
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
-        tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv"),
-        tophit_keyword_all_list = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_all.list"),
-        lca_virus_root_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv"),
-        lca_unclass_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv")
+        # tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv"),
+        # tophit_keyword_all_list = os.path.join(SECONDARY_AA_OUT, "tophit.keyword_all.list"),
+        # lca_virus_root_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv"),
+        # lca_unclass_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv")
     output:
         lca_filt = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.tmp")),
         lca_filt_lineage = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.lineage")),
-        lca_filt_linegage_reformated = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.reformated")),
-        tophit_updated_filt = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.filt")),
-        tophit_lca_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit_lca.tmp")),
-        tophit_lca_key = temporary(os.path.join(SECONDARY_AA_OUT, "tophit_lca.key")),
-        tophit_kingdom = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.kingdom")),
-        tophit_lca_tsv = temporary(os.path.join(SECONDARY_AA_OUT, "tophit_lca.tsv")),
-        lca_root_key = temporary(os.path.join(SECONDARY_AA_OUT, "lca_root.key")),
-        lca_root_king = temporary(os.path.join(SECONDARY_AA_OUT, "lca_root.kingdom")),
-        lca_unclass_key = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.key")),
-        lca_unclass_king = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.kingdom")),
-        translated_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "translated_final.tmp")),
-        translated_final = os.path.join(SECONDARY_AA_OUT, "translated_final.tsv")
+        lca_filt_linegage_reformated = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.reformated"),
+        # tophit_updated_filt = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.filt")),
+        # tophit_lca_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit_lca.tmp")),
+        # tophit_lca_key = temporary(os.path.join(SECONDARY_AA_OUT, "tophit_lca.key")),
+        # tophit_kingdom = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.kingdom")),
+        # tophit_lca_tsv = temporary(os.path.join(SECONDARY_AA_OUT, "tophit_lca.tsv")),
+        # lca_root_key = temporary(os.path.join(SECONDARY_AA_OUT, "lca_root.key")),
+        # lca_root_king = temporary(os.path.join(SECONDARY_AA_OUT, "lca_root.kingdom")),
+        # lca_unclass_key = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.key")),
+        # lca_unclass_king = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.kingdom")),
+        # translated_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "translated_final.tmp")),
+        # translated_final = os.path.join(SECONDARY_AA_OUT, "translated_final.tsv")
     conda:
         "../envs/seqkit.yaml"
+    resources:
+        mem_mb=16000,
+        cpus=2
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_refactor_final.log")
     shell:
@@ -527,57 +531,138 @@ rule SECONDARY_AA_refactor_finalize:
             taxonkit lineage --data-dir {input.db} -i 2 > {output.lca_filt_lineage};
             
         cut --complement -f2 {output.lca_filt_lineage} | taxonkit reformat --data-dir {input.db} -i 2 \
-        -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank | \
-        cut --complement -f2 > {output.lca_filt_linegage_reformated};
-        
-        # Combine TopHit alignment information with updated LCA lineage information
-        cut --complement -f21- {input.tophit_updated} > {output.tophit_updated_filt}; 
-        
-        csvtk join -f1 {output.tophit_updated_filt} {output.lca_filt_linegage_reformated} -T -t -H > {output.tophit_lca_tmp};
-        
-        # Add keyword to tophit_lca.tsv
-        csvtk join -f1 {output.tophit_lca_tmp} {input.tophit_keyword_all_list} -T -t -H > {output.tophit_lca_key};
-        
-        # Add tophit kingdom category to tophit_lca.tsv
-        cut -f1,21 {input.tophit_updated} | awk -F"\t" '{{ print$0"\t""tophit_"$2 }}' | \
-            cut -f1,3 > {output.tophit_kingdom};
-        
-        csvtk join -f1 {output.tophit_lca_key} {output.tophit_kingdom} -T -t -H > {output.tophit_lca_tsv};
-        
-        sed -i 's/$/\\tlca_aa_classified/' {output.tophit_lca_tsv};
-        
-        ## Add keyword & tophit kingdom category to update lca files
-        # First for LCA virus-root
-        # Add keyword
-        csvtk join -f1 {input.lca_virus_root_vir_tsv} {input.tophit_keyword_all_list} -T -t -H > {output.lca_root_key};
-        
-        # Add TopHit kingdom
-        csvtk join -f1 {output.lca_root_key} {output.tophit_kingdom} -T -t -H > {output.lca_root_king};
-        
-        sed -i 's/$/\\tlca_aa_virus_root_updated/' {output.lca_root_king};
-        
-        # Second for lca unclassified
-        # Add keyword
-        csvtk join -f1 {input.lca_unclass_vir_tsv} {input.tophit_keyword_all_list} -T -t -H > {output.lca_unclass_key};
-        
-        csvtk join -f1 {output.lca_unclass_key} {output.tophit_kingdom} -T -t -H > {output.lca_unclass_king};
-        
-        sed -i 's/$/\\tlca_aa_unclassified_updated/' {output.lca_unclass_king};
-        
-        # Combine into final AA table
-        cat {output.tophit_lca_tsv} {output.lca_root_king} {output.lca_unclass_king} > {output.translated_tmp};
-        
-        sed -i 's/$/\\ttranslated/' {output.translated_tmp};
-        
-        sort -k1 -n {output.translated_tmp} | \
-            sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatches\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tquery_header\ttarget_header\ttaxID\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies\tprotein_name\ttophit_kingdom\tclassification\tquery_type' > {output.translated_final};
+            -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank | \
+            cut --complement -f2 > {output.lca_filt_linegage_reformated};
         """
+        # # Combine TopHit alignment information with updated LCA lineage information
+        # cut --complement -f21- {input.tophit_updated} > {output.tophit_updated_filt};
+        #
+        # csvtk join -f1 {output.tophit_updated_filt} {output.lca_filt_linegage_reformated} -T -t -H > {output.tophit_lca_tmp};
+        #
+        # # Add keyword to tophit_lca.tsv
+        # csvtk join -f1 {output.tophit_lca_tmp} {input.tophit_keyword_all_list} -T -t -H > {output.tophit_lca_key};
+        #
+        # # Add tophit kingdom category to tophit_lca.tsv
+        # cut -f1,21 {input.tophit_updated} | awk -F"\t" '{{ print$0"\t""tophit_"$2 }}' | \
+        #     cut -f1,3 > {output.tophit_kingdom};
+        #
+        # csvtk join -f1 {output.tophit_lca_key} {output.tophit_kingdom} -T -t -H > {output.tophit_lca_tsv};
+        #
+        # sed -i 's/$/\\tlca_aa_classified/' {output.tophit_lca_tsv};
+        #
+        # ## Add keyword & tophit kingdom category to update lca files
+        # # First for LCA virus-root
+        # # Add keyword
+        # csvtk join -f1 {input.lca_virus_root_vir_tsv} {input.tophit_keyword_all_list} -T -t -H > {output.lca_root_key};
+        #
+        # # Add TopHit kingdom
+        # csvtk join -f1 {output.lca_root_key} {output.tophit_kingdom} -T -t -H > {output.lca_root_king};
+        #
+        # sed -i 's/$/\\tlca_aa_virus_root_updated/' {output.lca_root_king};
+        #
+        # # Second for lca unclassified
+        # # Add keyword
+        # csvtk join -f1 {input.lca_unclass_vir_tsv} {input.tophit_keyword_all_list} -T -t -H > {output.lca_unclass_key};
+        #
+        # csvtk join -f1 {output.lca_unclass_key} {output.tophit_kingdom} -T -t -H > {output.lca_unclass_king};
+        #
+        # sed -i 's/$/\\tlca_aa_unclassified_updated/' {output.lca_unclass_king};
+        #
+        # # Combine into final AA table
+        # cat {output.tophit_lca_tsv} {output.lca_root_king} {output.lca_unclass_king} > {output.translated_tmp};
+        #
+        # sed -i 's/$/\\ttranslated/' {output.translated_tmp};
+        #
+        # sort -k1 -n {output.translated_tmp} | \
+        #     sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatches\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tquery_header\ttarget_header\ttaxID\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies\tprotein_name\ttophit_kingdom\tclassification\tquery_type' > {output.translated_final};
+
+rule SECONDARY_AA_generate_output_table:
+    """Join sequence info, tophit align info, and LCA or tophit lineage info into the output format table"""
+    input:
+        counts = os.path.join(RESULTS,"seqtable.counts.tsv"),
+        lca_10239 = os.path.join(SECONDARY_AA_OUT,"lca_10239.ids"),
+        lca_0 = os.path.join(SECONDARY_AA_OUT, "lca_0.ids"),
+        lca_1 = os.path.join(SECONDARY_AA_OUT, "lca_1.ids"),
+        tophit=os.path.join(SECONDARY_AA_OUT,"MMSEQS_AA_SECONDARY_tophit_aln"),
+        lca_linegage_reformated = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.reformated"),
+        tophit_lineage_refomated=os.path.join(SECONDARY_AA_OUT,"tophit.lineage.reformated"),
+    output:
+        os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
+    run:
+        # slurp the seq samples and counts
+        smpl = {}
+        cnts = {}
+        for l in stream_tsv(input.counts):
+            smpl[l[0]] = l[1]
+            cnts[l[0]] = l[2]
+        # create dict of seqs IDs to use the tophit taxonomy in place of the LCA taxonomy
+        useTop = {}
+        for f in [input.lca_10239, input.lca_0, input.lca_1]:
+            for l in stream_tsv(f):
+                useTop[l[0]]=1
+        # slurp only the relevant tophit taxonomy
+        topLin = {}
+        for l in stream_tsv(input.tophit_lineage_refomated):
+            try:
+                useTop[l[0]]
+                topLin[l[0]] = '\t'.join((l[1:]))
+            except KeyError:
+                continue
+        # slurp the LCA taxonomy
+        lcaLin = {}
+        for l in stream_tsv(input.lca_linegage_reformated):
+            lcaLin[l[0]] = '\t'.join((l[1:]))
+        # iterate the tophit alignments and print the table on the fly
+        out = open(output[0],'w')
+        out.write('\t'.join(('seqID',
+                             'sampleID',
+                             'count',
+                             'alnType',     # aa or nt
+                             'target',
+                             'evalue',
+                             'pident',
+                             'fident',
+                             'nident',
+                             'mismatches',
+                             'qcov',
+                             'tcov',
+                             'qstart',
+                             'qend',
+                             'qlen',
+                             'tstart',
+                             'tend',
+                             'tlen',
+                             'alnlen',
+                             'bits',
+                             'taxMethod',
+                             'kingdom',
+                             'phylum',
+                             'class',
+                             'order',
+                             'family',
+                             'genus',
+                             'species')))
+        out.write('\n')
+        # parse the alignments and attach appropriate info
+        for l in stream_tsv(input.tophit):
+            try:
+                taxOut = 'LCA\t' + lcaLin[l[0]]
+            except KeyError:
+                try:
+                    taxOut = 'TopHit\t' + topLin[l[0]]
+                except KeyError:
+                    taxOut = '\t'.join((['NA'] * 8))
+            seqOut = '\t'.join((l[0], smpl[l[0]], cnts[l[0]]))
+            alnOut = 'aa\t' + '\t'.join((l[1:17]))
+            out.write('\t'.join((seqOut, alnOut, taxOut)))
+            out.write('\n')
+        out.close()
 
 rule SECONDARY_AA_parsing:
     """Parse out all sequences that remain unclassified following the Secondary AA search and refactoring."""
     input:
         lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
-        translated_final = os.path.join(SECONDARY_AA_OUT, "translated_final.tsv"),
+        translated_final = os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
         seqs = os.path.join(RESULTS, "seqtable.fasta")
     output:
         allseq_ids = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.ids")),
@@ -586,6 +671,9 @@ rule SECONDARY_AA_parsing:
         unclass_seqs = os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta")
     conda:
         "../envs/samtools.yaml"
+    resources:
+        mem_mb=16000,
+        cpus=2
     log:
         os.path.join(STDERR, 'mmseqs', 'mmseqs_SECONDARY_aa_parsing.log')
     shell:
@@ -603,15 +691,10 @@ rule SECONDARY_AA_parsing:
         
         # Extract unclassified sequences from seocndary translated search
         xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
-             
         """
         
 rule PRIMARY_NT_taxonomic_assignment:
-    """
-    
-    TBD
-
-    """
+    """Primary nucleotide search of unclassified viral-like sequences from aa search"""
     input:
         seqs = os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta"),
         db = os.path.join(NCBIVIRDB, "sequenceDB")
@@ -626,8 +709,8 @@ rule PRIMARY_NT_taxonomic_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_NT.log")
     resources:
-        mem_mb=64000,
-        cpus=16
+        mem_mb=128000,
+        cpus=64
     conda:
         "../envs/mmseqs2.yaml"
     shell:
@@ -637,19 +720,14 @@ rule PRIMARY_NT_taxonomic_assignment:
         
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-        --start-sens 2 -s 7 --sens-steps 3 \
-        --search-type 3 \
-        -e {config[PRIMNTE]} &>> {log};
-    
+            --start-sens 2 -s 7 --sens-steps 3 \
+            --search-type 3 \
+            --threads {resources.cpus} --split-memory-limit 48G\
+            -e {config[PRIMNTE]} &>> {log};
         """
         
-rule PRIMARY_NT_summary:
-    """
-    
-    TBD
-
-
-    """
+rule PRIMARY_NT_reformat:
+    """Collect some summary statistics on primay nucleotide search"""
     input:
         queryDB = os.path.join(PRIMARY_NT_OUT, "queryDB"),
         db = os.path.join(NCBIVIRDB, "sequenceDB"),
@@ -657,19 +735,22 @@ rule PRIMARY_NT_summary:
     output:
         result = os.path.join(PRIMARY_NT_OUT, "results", "firsthit.index"),
         align = os.path.join(PRIMARY_NT_OUT, "results", "result.m8"),
-        lineage = temporary(os.path.join(PRIMARY_NT_OUT, "primary_nt.lineage")),
+        lineage = os.path.join(PRIMARY_NT_OUT, "primary_nt.lineage"),
         reformated = os.path.join(PRIMARY_NT_OUT, "primary_nt.tsv"),
-        phyl_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_phylum_summary.tsv"),
-        class_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_class_summary.tsv"),
-        ord_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_order_summary.tsv"),
-        fam_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_family_summary.tsv"),
-        gen_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_genus_summary.tsv"),
-        spe_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_species_summary.tsv")
+        # phyl_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_phylum_summary.tsv"),
+        # class_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_class_summary.tsv"),
+        # ord_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_order_summary.tsv"),
+        # fam_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_family_summary.tsv"),
+        # gen_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_genus_summary.tsv"),
+        # spe_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_species_summary.tsv")
     params:
         inputpath = os.path.join(PRIMARY_NT_OUT, "results", "result"),
         respath = os.path.join(PRIMARY_NT_OUT, "results", "firsthit")
     conda:
-        "../envs/samtools.yaml"
+        "../envs/mmseqs2.yaml"
+    resources:
+        mem_mb=16000,
+        cpus=2
     log:
         os.path.join(STDERR, 'MMSEQS', 'mmseqs_PRIMARY_nt_summary.log')
     shell:
@@ -687,51 +768,44 @@ rule PRIMARY_NT_summary:
             
         # Reformat TopHit viral lineage information
         taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 2 \
-        -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
-        cut --complement -f2 > {output.reformated};
-        
-        ## Generate summary tables
-        # Phylum
-        cut -f3 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Phylum\tPrimary_NT_Phylum_Frequency'> {output.phyl_sum};
-            
-        # Class
-        cut -f4 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Class\tPrimary_NT_Class_Frequency'> {output.class_sum};
-        
-        # Order
-        cut -f5 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Order\tPrimary_NT_Order_Frequency'> {output.ord_sum};
-            
-        # Family
-        cut -f6 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Family\tPrimary_NT_Family_Frequency'> {output.fam_sum};
-        
-        # Genus
-        cut -f7 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Genus\tPrimary_NT_Genus_Frequency'> {output.gen_sum};
-            
-        # Species
-        cut -f3 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Species\tPrimary_NT_Species_Frequency'> {output.spe_sum};
+            -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
+            cut --complement -f2 > {output.reformated};
         """
+        # ## Generate summary tables
+        # # Phylum
+        # cut -f3 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Phylum\tPrimary_NT_Phylum_Frequency'> {output.phyl_sum};
+        #
+        # # Class
+        # cut -f4 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Class\tPrimary_NT_Class_Frequency'> {output.class_sum};
+        #
+        # # Order
+        # cut -f5 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Order\tPrimary_NT_Order_Frequency'> {output.ord_sum};
+        #
+        # # Family
+        # cut -f6 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Family\tPrimary_NT_Family_Frequency'> {output.fam_sum};
+        #
+        # # Genus
+        # cut -f7 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Genus\tPrimary_NT_Genus_Frequency'> {output.gen_sum};
+        #
+        # # Species
+        # cut -f3 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Species\tPrimary_NT_Species_Frequency'> {output.spe_sum};
         
 rule PRIMARY_NT_parsing:
-    """
+    """Extract unclassified sequences from secondary translated search
     
-    TBD
-
-    
-    # Extract unclassified sequences from seocndary translated search
     xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
-
-    
     """
     input:
         seqs = os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta"),
@@ -746,9 +820,6 @@ rule PRIMARY_NT_parsing:
         "../envs/samtools.yaml"
     log:
         os.path.join(STDERR, 'MMSEQS', 'mmseqs_PRIMARY_nt_parsing.log')
-    resources:
-        mem_mb=64000,
-        cpus=16
     shell:
         """
         # Extract full entry ID list (all sequences)
@@ -765,15 +836,10 @@ rule PRIMARY_NT_parsing:
         
         # Extract unclassified sequences from seocndary translated search
         xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
-        
         """
 
 rule SECONDARY_NT_taxonomic_assignment:
-    """
-    
-    TBD
-    
-    """
+    """Secondary nucleotide search of viral hits from primary nucleotide search"""
     input:
         seqs = os.path.join(PRIMARY_NT_OUT, "classified_seqs.fasta"),
         db = os.path.join(POLYMICRODB, "sequenceDB")
@@ -788,8 +854,8 @@ rule SECONDARY_NT_taxonomic_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_NT.log")
     resources:
-        mem_mb=64000,
-        cpus=16
+        mem_mb=128000,
+        cpus=64
     conda:
         "../envs/mmseqs2.yaml"
     shell:
@@ -799,19 +865,15 @@ rule SECONDARY_NT_taxonomic_assignment:
         
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-        -a 1 --search-type 3 \
-        --start-sens 2 -s 7 --sens-steps 3 \
-        -e {config[SECNTE]} &>> {log};
+            -a 1 --search-type 3 \
+            --start-sens 2 -s 7 --sens-steps 3 \
+            --threads {resources.cpus} --split-memory-limit 48G \
+            -e {config[SECNTE]} &>> {log};
     
         """
 
 rule SECONDARY_NT_summary:
-    """
-    
-    TBD
-    
-    
-    """
+    """Summary statistics for secondary nucleotide search"""
     input:
         queryDB = os.path.join(SECONDARY_NT_OUT, "queryDB"),
         db = os.path.join(POLYMICRODB, "sequenceDB"),
@@ -819,22 +881,22 @@ rule SECONDARY_NT_summary:
     output:
         result = os.path.join(SECONDARY_NT_OUT, "results", "tophit.index"),
         align = os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
-        lineage = temporary(os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.lineage")),
+        lineage = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.lineage"),
         reformated = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
-        phyl_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_phylum_summary.tsv"),
-        class_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_class_summary.tsv"),
-        ord_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_order_summary.tsv"),
-        fam_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_family_summary.tsv"),
-        gen_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_genus_summary.tsv"),
-        spe_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_species_summary.tsv")
+        # phyl_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_phylum_summary.tsv"),
+        # class_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_class_summary.tsv"),
+        # ord_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_order_summary.tsv"),
+        # fam_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_family_summary.tsv"),
+        # gen_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_genus_summary.tsv"),
+        # spe_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_species_summary.tsv")
     params:
         inputpath = os.path.join(SECONDARY_NT_OUT, "results", "result"),
         respath = os.path.join(SECONDARY_NT_OUT, "results", "tophit")
-    resources:
-        mem_mb=64000,
-        cpus=16
     conda:
-        "../envs/samtools.yaml"
+        "../envs/mmseqs2.yaml"
+    resources:
+        mem_mb=16000,
+        cpus=2
     log:
         os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_summary.log')
     shell:
@@ -844,63 +906,60 @@ rule SECONDARY_NT_summary:
         
         # Convert to alignments
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
-        --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader";
+            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader";
         
         # Assign taxonomy
-        cut -f2 {output.align} | \
-            awk -F '|' '{{ print$2 }}' | \
-            taxonkit lineage --data-dir {input.taxdb} > {output.lineage};
+        cut -f1,2 {output.align} \
+            | sed 's/tid|//' \
+            | sed 's/|.*//' \
+            | taxonkit lineage -i 2 --data-dir {input.taxdb} > {output.lineage};
             
         # Reformat TopHit viral lineage information
-        taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 2 \
-        -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
-        cut --complement -f2 > {output.reformated};
-        
-        ## Generate summary tables
-        # Phylum
-        cut -f3 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Phylum\tSECONDARY_NT_Phylum_Frequency'> {output.phyl_sum};
-            
-        # Class
-        cut -f4 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Class\tSECONDARY_NT_Class_Frequency'> {output.class_sum};
-        
-        # Order
-        cut -f5 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Order\tSECONDARY_NT_Order_Frequency'> {output.ord_sum};
-            
-        # Family
-        cut -f6 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Family\tSECONDARY_NT_Family_Frequency'> {output.fam_sum};
-        
-        # Genus
-        cut -f7 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Genus\tSECONDARY_NT_Genus_Frequency'> {output.gen_sum};
-            
-        # Species
-        cut -f3 {output.reformated} | \
-            csvtk freq -H -n -r -T -t | \
-            sed '1i Species\tSECONDARY_NT_Species_Frequency'> {output.spe_sum};
+        taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 3 \
+            -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank |
+            cut --complement -f3 \
+            > {output.reformated};
         """
+        # ## Generate summary tables
+        # # Phylum
+        # cut -f3 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Phylum\tSECONDARY_NT_Phylum_Frequency'> {output.phyl_sum};
+        #
+        # # Class
+        # cut -f4 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Class\tSECONDARY_NT_Class_Frequency'> {output.class_sum};
+        #
+        # # Order
+        # cut -f5 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Order\tSECONDARY_NT_Order_Frequency'> {output.ord_sum};
+        #
+        # # Family
+        # cut -f6 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Family\tSECONDARY_NT_Family_Frequency'> {output.fam_sum};
+        #
+        # # Genus
+        # cut -f7 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Genus\tSECONDARY_NT_Genus_Frequency'> {output.gen_sum};
+        #
+        # # Species
+        # cut -f3 {output.reformated} | \
+        #     csvtk freq -H -n -r -T -t | \
+        #     sed '1i Species\tSECONDARY_NT_Species_Frequency'> {output.spe_sum};
         
 rule SECONDARY_NT_calculate_LCA:
-    """
-    
-    TBD
-    
-    """
+    """Reformat secondary search LCA taxon assignment"""
     input:
         queryDB = os.path.join(SECONDARY_NT_OUT, "queryDB"),
         db = os.path.join(POLYMICRODB, "sequenceDB"),
         taxdb = TAX
     output:
         align = os.path.join(SECONDARY_NT_OUT, "results", "all.m8"),
-        lca_lineage = temporary(os.path.join(SECONDARY_NT_OUT, "results", "lca.lineage")),
+        lca_lineage = os.path.join(SECONDARY_NT_OUT, "results", "lca.lineage"),
         reformated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result")
@@ -915,24 +974,107 @@ rule SECONDARY_NT_calculate_LCA:
         """
         # Convert to alignments
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
-        --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader";
+            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader";
         
         # Calculate LCA for each sequence
         cut -f1,2 {output.align} | \
             sed 's/tid|//' | \
-            awk -F '|' '{{ print$1 }}' | \
+            sed 's/|.*//' | \
             sort -k1,2 | \
             uniq | \
             csvtk fold -f 1 -v 2 -H -t -s ';' | \
-            taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} | \
+            taxonkit lca -i 2 -s ';' -DU --data-dir {input.taxdb} | \
             cut -f1,3 | \
             taxonkit lineage -i 2 --data-dir {input.taxdb} > {output.lca_lineage}
             
         # Reformat lineages
         awk -F '\t' '$2 != 0' {output.lca_lineage} | \
-        taxonkit reformat --data-dir {input.taxdb} -i 3 \
-        -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
-        cut --complement -f2,3 > {output.reformated};
-        
-        
+            taxonkit reformat --data-dir {input.taxdb} -i 3 \
+                -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank |
+            cut --complement -f3 > {output.reformated};
+        """
+
+rule SECONDARY_NT_generate_output_table:
+    input:
+        cnts = os.path.join(RESULTS, "seqtable.counts.tsv"),
+        aln = os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
+        top = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
+        lca = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
+    output:
+        os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
+    run:
+        # slurp the seq samples and counts
+        smpl = {}
+        cnts = {}
+        for l in stream_tsv(input.cnts):
+            smpl[l[0]] = l[1]
+            cnts[l[0]] = l[2]
+        # slurp the lineage information
+        lcaLin = {}
+        for l in stream_tsv(input.lca):
+            # dont use lca lineage for taxids of 0, 1, or 10239
+            if l[1] != '0' and l[1] != '1' and l[1] != '10239':
+                lcaLin[l[0]] = '\t'.join((l[2:]))
+        topLin = {}
+        for l in stream_tsv(input.top):
+            # skip if using lca lineage
+            try:
+                lcaLin[l[0]]
+            except KeyError:
+                topLin[l[0]] = '\t'.join((l[2:]))
+        # output
+        out = open(output[0],'w')
+        out.write('\t'.join(('seqID',
+                             'sampleID',
+                             'count',
+                             'alnType',     # aa or nt
+                             'target',
+                             'evalue',
+                             'pident',
+                             'fident',
+                             'nident',
+                             'mismatches',
+                             'qcov',
+                             'tcov',
+                             'qstart',
+                             'qend',
+                             'qlen',
+                             'tstart',
+                             'tend',
+                             'tlen',
+                             'alnlen',
+                             'bits',
+                             'taxMethod',
+                             'kingdom',
+                             'phylum',
+                             'class',
+                             'order',
+                             'family',
+                             'genus',
+                             'species')))
+        out.write('\n')
+        for l in stream_tsv(input.aln):
+            try:
+                taxOut = 'LCA\t' + lcaLin[l[0]]
+            except KeyError:
+                try:
+                    taxOut = 'TopHit\t' + topLin[l[0]]
+                except KeyError:
+                    taxOut = '\t'.join((['NA'] * 8))
+            seqOut = '\t'.join((l[0], smpl[l[0]], cnts[l[0]]))
+            alnOut = 'nt\t' + '\t'.join((l[1:17]))
+            out.write('\t'.join((seqOut, alnOut, taxOut)))
+            out.write('\n')
+        out.close()
+
+rule combine_AA_NT:
+    input:
+        aa = os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
+        nt = os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
+    output:
+        os.path.join(RESULTS, "bigtable.tsv")
+    shell:
+        """
+        cat {input.aa} > {output};
+        tail -n+2 {input.nt} >> {output};
         """
