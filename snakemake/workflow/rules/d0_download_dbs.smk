@@ -222,15 +222,15 @@ rule extract_ncbi_taxonomy:
     input:
         os.path.join(TAXPATH,"taxdump.tar.gz")
     output:
-        temp(os.path.join(TAXPATH,"citations.dmp")),
-        temp(os.path.join(TAXPATH,"delnodes.dmp")),
-        temp(os.path.join(TAXPATH,"division.dmp")),
-        temp(os.path.join(TAXPATH,"gc.prt")),
-        temp(os.path.join(TAXPATH,"gencode.dmp")),
-        temp(os.path.join(TAXPATH,"merged.dmp")),
-        temp(os.path.join(TAXPATH,"readme.txt")),
-        temp(os.path.join(TAXPATH,"names.dmp")),
-        temp(os.path.join(TAXPATH,"nodes.dmp")),
+        os.path.join(TAXPATH,"citations.dmp"),
+        os.path.join(TAXPATH,"delnodes.dmp"),
+        os.path.join(TAXPATH,"division.dmp"),
+        os.path.join(TAXPATH,"gc.prt"),
+        os.path.join(TAXPATH,"gencode.dmp"),
+        os.path.join(TAXPATH,"merged.dmp"),
+        os.path.join(TAXPATH,"readme.txt"),
+        os.path.join(TAXPATH,"names.dmp"),
+        os.path.join(TAXPATH,"nodes.dmp"),
     params:
         wd=TAXPATH
     shell:
