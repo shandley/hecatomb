@@ -851,8 +851,8 @@ rule calculate_contig_dictionary_properties:
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s22.calculate_contig_dictionary_properties.txt")
     log:
-        log1 = os.path.join(LOGS, "step_20", "s20.gc.log"),
-        log2 = os.path.join(LOGS, "step_20", "s20.tetramer.log")
+        log1 = os.path.join(LOGS, "step_22", "s20.gc.log"),
+        log2 = os.path.join(LOGS, "step_22", "s20.tetramer.log")
     resources:
         mem_mb=100000,
         cpus=64
@@ -873,5 +873,74 @@ rule calculate_contig_dictionary_properties:
         
         # Combine
         csvtk join -f 1 {output.gc} {output.tetramer} -t -T > {output.seq_properties};
+        
+        """
+        
+rule seqtable_contig_mapping:
+    """
+    
+    Step 23: Mapping seqtable.fasta reads to contig dictionary to extract coordinates.
+    
+    """
+    input:
+        ref = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
+        seqs = os.path.join(RESULTS, "seqtable.fasta")
+    output:
+        aln = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_alignments.sam"),
+        unmapped = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "unmapped.fasta"),
+        filtaln = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "filtered_contig_alignments.sam")
+    benchmark:
+        os.path.join(BENCH, "PREPROCESSING", "s23.seqtable_contig_mapping.txt")
+    log:
+        os.path.join(LOGS, "step_23", "s23.seqtable_contig_mapping.log")
+    resources:
+        mem_mb=100000,
+        cpus=64
+    conda:
+        "../envs/bbmap.yaml"
+    shell:
+        """
+        # Map seqtable sequences (seqtable.fasta) to contig dictionar
+        bbmap.sh ref={input.ref} in={input.seqs} out={output.aln} \
+        nodisk \
+        outu={output.unmapped} \
+        slow=t \
+        noheader=t \
+        lengthtag=t \
+        maxindel=100 minid=90 \
+        ow=t \
+        -Xmx{config[System][Memory]}g 2> {log};
+        
+        awk -F '\t' '$2 != 4' {output.aln} | \
+        awk -F '\t' '$5 > 20' | \
+        cut -f1-5,14 | \
+        sed '1i seqID\tflag\tcontigID\tmap_start\tmap_qual\tlength' > {output.filtaln};
+        
+        """
+
+rule mmseqs_contig_annotation:
+    """
+    
+    Step 24: Annotate contig dictionary with mmseqs.
+    
+    Note: Uses version 13+ of mmseqs which is optimized for contig annotation.
+    
+    """
+    input:
+        ref = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
+    output:
+    
+    benchmark:
+        os.path.join(BENCH, "PREPROCESSING", "s24.mmseqs_contig_annotation.txt")
+    log:
+        os.path.join(LOGS, "step_23", "s24.mmseqs_contig_annotation.log")
+    resources:
+        mem_mb=100000,
+        cpus=64
+    conda:
+        "../envs/mmseqs2_v13.yaml"
+    shell:
+        """
+        
         
         """
