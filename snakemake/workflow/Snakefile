@@ -222,7 +222,9 @@ rule all:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary_properties.tsv"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_alignments.sam"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "unmapped.fasta"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "filtered_contig_alignments.sam")
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "filtered_contig_alignments.sam"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "queryDB"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "result.index")
         #### Output file from 01_taxonomic_assignment.smk
         ## Primary (virus protein database) translated (nt-to-aa) search
         #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),

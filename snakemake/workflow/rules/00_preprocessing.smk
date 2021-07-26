@@ -921,26 +921,38 @@ rule seqtable_contig_mapping:
 rule mmseqs_contig_annotation:
     """
     
-    Step 24: Annotate contig dictionary with mmseqs.
+    Step 24: Assign taxonomy to contigs in contig_dictionary using mmseqs
     
-    Note: Uses version 13+ of mmseqs which is optimized for contig annotation.
+    Database: NCBI virus assembly with taxID added
     
     """
     input:
-        ref = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
+        contigs = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
+        db = os.path.join(NUCLPATH, "virus_assembly_nt", "sequenceDB")
     output:
-    
+        queryDB = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "queryDB"),
+        result = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "result.index")
+    params:
+        respath = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "result"),
+        tmppath = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "mmseqs_nt_tmp")
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s24.mmseqs_contig_annotation.txt")
+            os.path.join(BENCH, "PREPROCESSING", "s24.mmseqs_contig_annotation.txt")
     log:
-        os.path.join(LOGS, "step_23", "s24.mmseqs_contig_annotation.log")
+        log = os.path.join(LOGS, "PREPROCESSING", "s24.mmseqs_contig_annotation.log")
     resources:
-        mem_mb=100000,
+        mem_mb=64000,
         cpus=64
     conda:
-        "../envs/mmseqs2_v13.yaml"
+        "../envs/mmseqs2.yaml"
     shell:
         """
+        # Create query database
+        mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2;
         
-        
+        # mmseqs search
+        mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
+        --start-sens 2 -s 7 --sens-steps 3 \
+        --search-type 3 \
+        -e {config[PRIMNTE]} &>> {log};
+    
         """
