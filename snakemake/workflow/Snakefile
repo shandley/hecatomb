@@ -224,7 +224,16 @@ rule all:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "unmapped.fasta"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "filtered_contig_alignments.sam"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "queryDB"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "result.index")
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "result.index"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "tophit.index"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "tophit.m8"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_phylum_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_class_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_order_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_family_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_genus_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_species_summary.tsv")
         #### Output file from 01_taxonomic_assignment.smk
         ## Primary (virus protein database) translated (nt-to-aa) search
         #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
