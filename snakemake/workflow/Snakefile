@@ -290,6 +290,7 @@ rule all:
         os.path.join(SECONDARY_NT_OUT, "results", "tophit.index"),
         os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
         os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_kingdom_summary.tsv"),
         os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_phylum_summary.tsv"),
         os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_class_summary.tsv"),
         os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_order_summary.tsv"),
@@ -297,7 +298,15 @@ rule all:
         os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_genus_summary.tsv"),
         os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_species_summary.tsv"),
         os.path.join(SECONDARY_NT_OUT, "results", "all.m8"),
-        os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
+        os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "lca_unclassified.ids"),
+        os.path.join(SECONDARY_NT_OUT, "results", "secondary_tophit_viral.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "lca_unclassified_annotated.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca_unclassified_removed.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "lca_remaining_unclassified_removed.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "lca_remaining_unclassified_lineage.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "lca_final_lineages.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "secondary_lca_final.tsv")
         
         
 

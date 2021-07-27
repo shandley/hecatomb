@@ -836,6 +836,7 @@ rule SECONDARY_NT_summary:
         align = os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
         lineage = temporary(os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.lineage")),
         reformated = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
+        king_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_kingdom_summary.tsv"),
         phyl_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_phylum_summary.tsv"),
         class_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_class_summary.tsv"),
         ord_sum = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_order_summary.tsv"),
@@ -862,43 +863,49 @@ rule SECONDARY_NT_summary:
         --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader";
         
         # Assign taxonomy
-        cut -f2 {output.align} | \
-            awk -F '|' '{{ print$2 }}' | \
-            taxonkit lineage --data-dir {input.taxdb} > {output.lineage};
+        cut -f1,2 {output.align} | \
+            awk -F '|' '{{ print$1$2 }}' | \
+            sed 's/tid//g' | \
+            taxonkit lineage --data-dir {input.taxdb} -i 2 > {output.lineage};
             
         # Reformat TopHit viral lineage information
-        taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 2 \
+        taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 3 \
         -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
-        cut --complement -f2 > {output.reformated};
+        cut --complement -f3 > {output.reformated};
         
         ## Generate summary tables
-        # Phylum
+        # Kingdom
         cut -f3 {output.reformated} | \
+            csvtk freq -H -n -r -T -t | \
+            sed '1i Kingdom\tSECONDARY_NT_Kingdom_Frequency'> {output.king_sum};
+        
+        # Phylum
+        cut -f4 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Phylum\tSECONDARY_NT_Phylum_Frequency'> {output.phyl_sum};
             
         # Class
-        cut -f4 {output.reformated} | \
+        cut -f5 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Class\tSECONDARY_NT_Class_Frequency'> {output.class_sum};
         
         # Order
-        cut -f5 {output.reformated} | \
+        cut -f6 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Order\tSECONDARY_NT_Order_Frequency'> {output.ord_sum};
             
         # Family
-        cut -f6 {output.reformated} | \
+        cut -f7 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Family\tSECONDARY_NT_Family_Frequency'> {output.fam_sum};
-        
+            
         # Genus
-        cut -f7 {output.reformated} | \
+        cut -f8 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Genus\tSECONDARY_NT_Genus_Frequency'> {output.gen_sum};
             
         # Species
-        cut -f3 {output.reformated} | \
+        cut -f9 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Species\tSECONDARY_NT_Species_Frequency'> {output.spe_sum};
         """
@@ -912,11 +919,21 @@ rule SECONDARY_NT_calculate_LCA:
     input:
         queryDB = os.path.join(SECONDARY_NT_OUT, "queryDB"),
         db = os.path.join(POLYMICRODB, "sequenceDB"),
+        tophit = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
+        align = os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
         taxdb = TAX
     output:
         align = os.path.join(SECONDARY_NT_OUT, "results", "all.m8"),
         lca_lineage = temporary(os.path.join(SECONDARY_NT_OUT, "results", "lca.lineage")),
-        reformated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
+        reformated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv"),
+        unclass_ids = os.path.join(SECONDARY_NT_OUT, "results", "lca_unclassified.ids"),
+        tophit_viral = os.path.join(SECONDARY_NT_OUT, "results", "secondary_tophit_viral.tsv"),
+        unclass_annot = os.path.join(SECONDARY_NT_OUT, "results", "lca_unclassified_annotated.tsv"),
+        unclass_removed = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca_unclassified_removed.tsv"),
+        remaining_unclass_ids = os.path.join(SECONDARY_NT_OUT, "results", "lca_remaining_unclassified_removed.tsv"),
+        remaining_lineage = os.path.join(SECONDARY_NT_OUT, "results", "lca_remaining_unclassified_lineage.tsv"),
+        lca_final_lin = os.path.join(SECONDARY_NT_OUT, "results", "lca_final_lineages.tsv"),
+        lca_final_aln = os.path.join(SECONDARY_NT_OUT, "results", "secondary_lca_final.tsv")
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result")
     resources:
@@ -949,5 +966,28 @@ rule SECONDARY_NT_calculate_LCA:
         -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
         cut --complement -f2,3 > {output.reformated};
         
+        # Create list of unclassified ids
+        grep "unclassified root" {output.reformated} | cut -f1 > {output.unclass_ids};
+        
+        # Create table of tophit virus sequences
+        awk -F '\t' '$3 == "Viruses"' {input.tophit} | cut --complement -f2 > {output.tophit_viral};
+        
+        # Annotate LCA unclassifieds with tophit viral lineages
+        csvtk join -f1 {output.unclass_ids} {output.tophit_viral} -t -T -H > {output.unclass_annot};
+        
+        # Remove unclassified sequences from lca table
+        grep -v "unclassified root" {output.reformated} > {output.unclass_removed};
+        
+        # Create list of ids that remain unclassified
+        comm -23 <(sort {output.unclass_ids}) <(cut -f1 {output.unclass_annot} | sort) > {output.remaining_unclass_ids};
+        
+        # Extract remaining unclassified lineages
+        csvtk join -f1 {output.remaining_unclass_ids} {output.reformated} -H -t -T > {output.remaining_lineage};
+        
+        # Combine LCA + LCA-tophit assigned + remaining lineages
+        cat {output.unclass_removed} {output.unclass_annot} {output.remaining_lineage} > {output.lca_final_lin};
+        
+        # Combint alignment information with final lineages
+        csvtk join -f1 {input.align} {output.lca_final_lin} -H -T -t > {output.lca_final_aln};
         
         """
