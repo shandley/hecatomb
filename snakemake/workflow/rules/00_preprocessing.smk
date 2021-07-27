@@ -887,7 +887,7 @@ rule seqtable_contig_mapping:
         seqs = os.path.join(RESULTS, "seqtable.fasta")
     output:
         aln = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_alignments.sam"),
-        unmapped = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "unmapped.fasta"),
+        unmapped = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contigs_unmapped.fasta"),
         filtaln = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "filtered_contig_alignments.sam")
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s23.seqtable_contig_mapping.txt")
@@ -971,14 +971,14 @@ rule mmseqs_contig_annotation_summary:
     output:
         result = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "tophit.index"),
         align = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "tophit.m8"),
-        lineage = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt.lineage")),
-        reformated = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt.tsv"),
-        phyl_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_phylum_summary.tsv"),
-        class_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_class_summary.tsv"),
-        ord_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_order_summary.tsv"),
-        fam_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_family_summary.tsv"),
-        gen_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_genus_summary.tsv"),
-        spe_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_species_summary.tsv")
+        lineage = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt.lineage")),
+        reformated = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt.tsv"),
+        phyl_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_phylum_summary.tsv"),
+        class_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_class_summary.tsv"),
+        ord_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_order_summary.tsv"),
+        fam_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_family_summary.tsv"),
+        gen_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_genus_summary.tsv"),
+        spe_sum = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_species_summary.tsv")
     params:
         inputpath = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "result"),
         respath = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "tophit")

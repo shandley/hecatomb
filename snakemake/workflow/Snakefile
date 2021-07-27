@@ -64,7 +64,7 @@ fatal_messages = []
 ###################################################################
 
 # Base path for protein sequence reference databases
-PROTPATH = os.path.join(DBDIR, "proteins")
+PROTPATH = os.path.join(DBDIR, "aa")
 if not os.path.exists(PROTPATH):
     fatal_messages.append("protein databases")
     fatal_errors = True
@@ -93,13 +93,13 @@ SECONDARY_NT_OUT = os.path.join(RESULTS, "MMSEQS_NT_SECONDARY")
 NUCLPATH = os.path.join(DBDIR, "nt")
 
 # The virus nucleotide database, clustered at 100% with linclust
-NCBIVIRDB = os.path.join(NUCLPATH, "nt", "virus_primary_nt")
+NCBIVIRDB = os.path.join(NUCLPATH, "virus_primary_nt")
 if not os.path.exists(NCBIVIRDB):
  fatal_messages.append(NCBIVIRDB)
  fatal_errors = True
  
 # Polymicrobial + plant + virus database
-POLYMICRODB = os.path.join(NUCLPATH, "nt", "virus_secondary_nt")
+POLYMICRODB = os.path.join(NUCLPATH, "virus_secondary_nt")
 if not os.path.exists(POLYMICRODB):
    fatal_messages.append("nucleotide database {POLYMICRODB}")
    fatal_errors = True
@@ -186,8 +186,8 @@ if len(SAMPLES) == 0:
     sys.stderr.write("You should complain to Rob\n")
     sys.exit()
 
-include: "rules/00_preprocessing.smk"
-#include: "rules/01_taxonomic_assignment.smk",
+include: "rules/00_preprocessing.smk",
+include: "rules/01_taxonomic_assignment.smk"
 #include: "rules/02_compile_results.smk"
 
 rule all:
@@ -221,83 +221,83 @@ rule all:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary_properties.tetramer"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary_properties.tsv"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_alignments.sam"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "unmapped.fasta"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contigs_unmapped.fasta"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "filtered_contig_alignments.sam"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "queryDB"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "result.index"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "tophit.index"),
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "results", "tophit.m8"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt.tsv"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_phylum_summary.tsv"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_class_summary.tsv"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_order_summary.tsv"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_family_summary.tsv"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_genus_summary.tsv"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "SECONDARY_nt_species_summary.tsv")
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_phylum_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_class_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_order_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_family_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_genus_summary.tsv"),
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "CONTIGS_nt_species_summary.tsv"),
         #### Output file from 01_taxonomic_assignment.smk
         ## Primary (virus protein database) translated (nt-to-aa) search
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_report"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_report"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_order_summary.tsv"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_family_summary.tsv"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_genus_summary.tsv"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_species_summary.tsv"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_only.tsv"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_broken_taxID.tsv"),
-        #os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_summary.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_report"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_report"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_order_summary.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_family_summary.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_genus_summary.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_species_summary.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_only.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_broken_taxID.tsv"),
+        os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_summary.tsv"),
         ## Secondary (likely viral to transkingdom database) translated (nt-to-aa) search
-        #os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
-        #os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_report"),
-        #os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_report"),
-        #os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
-        #os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln_sorted"),
-        #os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv"),
-        #os.path.join(SECONDARY_AA_OUT, "tophit.kingdom.freq"),
-        #os.path.join(SECONDARY_AA_OUT, "tophit.unclass_superkingdom.freq"),
-        #os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.freq"),
-        #os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.list"),
-        #os.path.join(SECONDARY_AA_OUT, "tophit.keyword_bac.freq"),
-        #os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir.freq"),
-        #os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir.list"),
-        #os.path.join(SECONDARY_AA_OUT, "tophit.keyword_all.list"),
-        #os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv"),
-        #os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv"),
-        #os.path.join(SECONDARY_AA_OUT, "translated_final.tsv"),
-        #os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_report"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_report"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
+        os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln_sorted"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.kingdom.freq"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.unclass_superkingdom.freq"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.freq"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.list"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.keyword_bac.freq"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir.freq"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.keyword_vir.list"),
+        os.path.join(SECONDARY_AA_OUT, "tophit.keyword_all.list"),
+        os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "translated_final.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta"),
         ## Primary untranslated (nt-to-nt) search
-        #os.path.join(PRIMARY_NT_OUT, "queryDB"),
-        #os.path.join(PRIMARY_NT_OUT, "results", "result.index"),
-        #os.path.join(PRIMARY_NT_OUT, "results", "firsthit.index"),
-        #os.path.join(PRIMARY_NT_OUT, "results", "result.m8"),
-        #os.path.join(PRIMARY_NT_OUT, "primary_nt.tsv"),
-        #os.path.join(PRIMARY_NT_OUT, "primary_nt_phylum_summary.tsv"),
-        #os.path.join(PRIMARY_NT_OUT, "primary_nt_class_summary.tsv"),
-        #os.path.join(PRIMARY_NT_OUT, "primary_nt_class_summary.tsv"),
-        #os.path.join(PRIMARY_NT_OUT, "primary_nt_order_summary.tsv"),
-        #os.path.join(PRIMARY_NT_OUT, "primary_nt_family_summary.tsv"),
-        #os.path.join(PRIMARY_NT_OUT, "primary_nt_genus_summary.tsv"),
-        #os.path.join(PRIMARY_NT_OUT, "primary_nt_species_summary.tsv"),
-        #os.path.join(PRIMARY_NT_OUT, "classified_seqs.fasta"),
-        #os.path.join(PRIMARY_NT_OUT, "unclassified_seqs.fasta")
+        os.path.join(PRIMARY_NT_OUT, "queryDB"),
+        os.path.join(PRIMARY_NT_OUT, "results", "result.index"),
+        os.path.join(PRIMARY_NT_OUT, "results", "firsthit.index"),
+        os.path.join(PRIMARY_NT_OUT, "results", "result.m8"),
+        os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt.tsv"),
+        os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_phylum_summary.tsv"),
+        os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_class_summary.tsv"),
+        os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_class_summary.tsv"),
+        os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_order_summary.tsv"),
+        os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_family_summary.tsv"),
+        os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_genus_summary.tsv"),
+        os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_species_summary.tsv"),
+        os.path.join(PRIMARY_NT_OUT, "classified_seqs.fasta"),
+        os.path.join(PRIMARY_NT_OUT, "unclassified_seqs.fasta"),
         ## Secondary untranslated (nt-to-nt) search
-        #os.path.join(SECONDARY_NT_OUT, "queryDB"),
-        #os.path.join(SECONDARY_NT_OUT, "results", "result.index"),
-        #os.path.join(SECONDARY_NT_OUT, "results", "tophit.index"),
-        #os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
-        #os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
-        #os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_phylum_summary.tsv"),
-        #os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_class_summary.tsv"),
-        #os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_order_summary.tsv"),
-        #os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_family_summary.tsv"),
-        #os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_genus_summary.tsv"),
-        #os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_species_summary.tsv"),
-        #os.path.join(SECONDARY_NT_OUT, "results", "all.m8"),
-        #os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
+        os.path.join(SECONDARY_NT_OUT, "queryDB"),
+        os.path.join(SECONDARY_NT_OUT, "results", "result.index"),
+        os.path.join(SECONDARY_NT_OUT, "results", "tophit.index"),
+        os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
+        os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_phylum_summary.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_class_summary.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_order_summary.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_family_summary.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_genus_summary.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt_species_summary.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "all.m8"),
+        os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
         
         
 

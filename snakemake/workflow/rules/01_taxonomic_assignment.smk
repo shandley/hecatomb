@@ -631,8 +631,8 @@ rule SECONDARY_AA_parsing:
 rule PRIMARY_NT_taxonomic_assignment:
     """
     
-    TBD
-
+    For sequences not assigned a translated (aa-to-nt) taxonomy attempt to assing an untranslated (nt-to-nt) taxonomy to a viral nucleic acid database.
+    
     """
     input:
         seqs = os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta"),
@@ -668,7 +668,7 @@ rule PRIMARY_NT_taxonomic_assignment:
 rule PRIMARY_NT_summary:
     """
     
-    TBD
+    Summarize primary untranslated (nt-to-nt) search results.
 
 
     """
@@ -680,18 +680,18 @@ rule PRIMARY_NT_summary:
         result = os.path.join(PRIMARY_NT_OUT, "results", "firsthit.index"),
         align = os.path.join(PRIMARY_NT_OUT, "results", "result.m8"),
         lineage = temporary(os.path.join(PRIMARY_NT_OUT, "primary_nt.lineage")),
-        reformated = os.path.join(PRIMARY_NT_OUT, "primary_nt.tsv"),
-        phyl_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_phylum_summary.tsv"),
-        class_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_class_summary.tsv"),
-        ord_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_order_summary.tsv"),
-        fam_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_family_summary.tsv"),
-        gen_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_genus_summary.tsv"),
-        spe_sum = os.path.join(PRIMARY_NT_OUT, "primary_nt_species_summary.tsv")
+        reformated = os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt.tsv"),
+        phyl_sum = os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_phylum_summary.tsv"),
+        class_sum = os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_class_summary.tsv"),
+        ord_sum = os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_order_summary.tsv"),
+        fam_sum = os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_family_summary.tsv"),
+        gen_sum = os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_genus_summary.tsv"),
+        spe_sum = os.path.join(PRIMARY_NT_OUT, "PRIMARY_nt_species_summary.tsv")
     params:
         inputpath = os.path.join(PRIMARY_NT_OUT, "results", "result"),
         respath = os.path.join(PRIMARY_NT_OUT, "results", "firsthit")
     conda:
-        "../envs/samtools.yaml"
+        "../envs/mmseqs2.yaml"
     log:
         "LOGS/mmseqs/mmseqs_PRIMARY_nt_summary.log"
     shell:
@@ -747,12 +747,7 @@ rule PRIMARY_NT_summary:
 rule PRIMARY_NT_parsing:
     """
     
-    TBD
-
-    
-    # Extract unclassified sequences from seocndary translated search
-    xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
-
+    Parse and summarize primary untranlsated (nt-to-nt) results.
     
     """
     input:
@@ -793,7 +788,7 @@ rule PRIMARY_NT_parsing:
 rule SECONDARY_NT_taxonomic_assignment:
     """
     
-    TBD
+    Confrim primary untranslated (nt-to-nt) taxonomic assignments by checking against a more comprehensive, transkingdom nucleotide database.
     
     """
     input:
@@ -830,8 +825,7 @@ rule SECONDARY_NT_taxonomic_assignment:
 rule SECONDARY_NT_summary:
     """
     
-    TBD
-    
+    Summarize secondary untranslated (nt-to-nt) confirmatory search results.
     
     """
     input:
@@ -856,7 +850,7 @@ rule SECONDARY_NT_summary:
         mem_mb=64000,
         cpus=64
     conda:
-        "../envs/samtools.yaml"
+        "../envs/mmseqs2.yaml"
     log:
         "LOGS/mmseqs/mmseqs_SECONDARY_nt_summary.log"
     shell:
@@ -913,7 +907,7 @@ rule SECONDARY_NT_summary:
 rule SECONDARY_NT_calculate_LCA:
     """
     
-    TBD
+    Calculate LCA from secondary untranslated (nt-to-nt) search results.
     
     """
     input:
