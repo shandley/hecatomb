@@ -5,5 +5,5 @@ channels:
   - defaults
 dependencies:
   - seqkit=0.16.1
-  - taxonkit=0.8.0
+  - taxonkit=0.7.2
   - csvtk=0.23.0
