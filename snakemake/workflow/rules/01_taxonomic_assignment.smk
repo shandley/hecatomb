@@ -670,7 +670,6 @@ rule PRIMARY_NT_summary:
     
     Summarize primary untranslated (nt-to-nt) search results.
 
-
     """
     input:
         queryDB = os.path.join(PRIMARY_NT_OUT, "queryDB"),
