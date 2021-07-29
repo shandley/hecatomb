@@ -21,8 +21,10 @@ rule assembly_kmer_normalization:
     log:
         log=os.path.join(LOGS, "step_14", "s14_{sample}.log")
     resources:
-        mem_mb=64000,
-        cpus=16
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -32,7 +34,7 @@ rule assembly_kmer_normalization:
             out={output.r1_norm} out2={output.r2_norm} \
             target=100 \
             ow=t \
-            -Xmx{resources.mem_mb}m 2> {log}
+            threads={resources.cpus} -Xmx{resources.mem_mb}m 2> {log}
         """
 
 rule individual_sample_assembly:
@@ -55,8 +57,10 @@ rule individual_sample_assembly:
     log:
         log=os.path.join(LOGS, "step_15", "s15_{sample}.log")
     resources:
-        mem_mb=64000,
-        cpus=16
+        mem_mb=MhitMem,
+        cpus=MhitCPU
+    threads:
+        MhitCPU
     conda:
         "../envs/megahit.yaml"
     shell:
@@ -96,8 +100,10 @@ rule contig_reformating_and_stats:
         log2=os.path.join(LOGS, "step_17", "s17.reformat.log"),
         log3=os.path.join(LOGS, "step_17", "s17.stats.log")
     resources:
-        mem_mb=64000,
-        cpus=16
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -133,8 +139,10 @@ rule population_assembly:
         log1=os.path.join(LOGS, "step_18", "s18.flye.log"),
         log2=os.path.join(LOGS, "step_18", "s18.stats.log")
     resources:
-        mem_mb=64000,
-        cpus=16
+        mem_mb=MhitMem,
+        cpus=MhitCPU
+    threads:
+        MhitCPU
     conda:
         "../envs/metaflye.yaml"
     shell:
@@ -173,8 +181,10 @@ rule coverage_calculations:
     log:
         log=os.path.join(LOGS,"step_16","s16_{sample}.log")
     resources:
-        mem_mb=64000,
-        cpus=16
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
