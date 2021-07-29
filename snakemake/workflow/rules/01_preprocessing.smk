@@ -39,8 +39,10 @@ rule remove_5prime_primer:
     log:
         os.path.join(STDERR, "remove_leftmost_primerB.{sample}.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -74,8 +76,10 @@ rule remove_3prime_contaminant:
     log:
         os.path.join(STDERR, "remove_3prime_contaminant.{sample}.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -107,8 +111,10 @@ rule remove_primer_free_adapter:
     log:
         os.path.join(STDERR, "remove_primer_free_adapter.{sample}.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -140,8 +146,10 @@ rule remove_adapter_free_primer:
     log:
         os.path.join(STDERR, "remove_adapter_free_primer.{sample}.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -169,8 +177,10 @@ rule remove_vector_contamination:
     log:
         log = os.path.join(STDERR, "step_05", "s5_{sample}.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -200,8 +210,10 @@ rule remove_low_quality:
     log:
         log = os.path.join(STDERR, "step_06", "s6_{sample}.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -229,8 +241,10 @@ rule create_host_index:
     log:
         os.path.join(STDERR, 'create_host_index.log')
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/minimap2.yaml"
     shell:
@@ -257,8 +271,10 @@ rule host_removal_mapping:
         sv=os.path.join(STDERR, "host_removal_mapping.{sample}.samtoolsView.log"),
         fq=os.path.join(STDERR, "host_removal_mapping.{sample}.samtoolsFastq.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/minimap2.yaml"
     shell:
@@ -306,8 +322,10 @@ rule nonhost_read_repair:
     log:
         log = os.path.join(STDERR, "step_07c", "s07c_{sample}.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -348,8 +366,10 @@ rule remove_exact_dups:
     log:
         os.path.join(STDERR, "remove_exact_dups.{sample}.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -379,8 +399,10 @@ rule cluster_similar_sequences:
     log:
         os.path.join(STDERR, "cluster_similar_sequences.{sample}.log")
     resources:
-        mem_mb=32000,
-        cpus=8
+        mem_mb=MMSeqsMem,
+        cpus=MMSeqsCPU
+    threads:
+        MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
     shell:
@@ -406,8 +428,10 @@ rule create_individual_seqtables:
     benchmark:
         os.path.join(BENCH, "create_individual_seqtables.{sample}.txt")
     resources:
-        mem_mb = 32000,
-        cpus = 8
+        mem_mb=BBToolsMem,
+        cpus=BBToolsCPU
+    threads:
+        BBToolsCPU
     conda:
         "../envs/seqkit.yaml"
     shell:
@@ -497,27 +521,27 @@ rule merge_seq_table:
         expand(os.path.join(QC, "CLUSTERED", "LINCLUST", "{sample}_R1.seqtable"), sample=SAMPLES)
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
-        tsv = os.path.join(RESULTS, "seqtable.counts.tsv")
+        # tsv = os.path.join(RESULTS, "seqtable.counts.tsv")
     params:
         resultsdir = directory(RESULTS),
     benchmark:
         os.path.join(BENCH, "merge_seq_table.txt")
     run:
         outFa = open(output.fa, 'w')
-        outTsv = open(output.tsv, 'w')
-        seqId = 0
+        # outTsv = open(output.tsv, 'w')
         for sample in SAMPLES:
+            seqId = 0
             counts = open(os.path.join(QC, "CLUSTERED", "LINCLUST", f"{sample}_R1.seqtable"), 'r')
             line = counts.readline() # skip header
             for line in counts:
-                id = 's' + str(seqId).zfill(10)
-                seqId = seqId + 1
                 l = line.split()
+                id = ':'.join((sample, l[1], str(seqId))) # fasta header = >sample:count:seqId
+                seqId = seqId + 1
                 outFa.write(f'>{id}\n{l[0]}\n')
-                outTsv.write(f'{id}\t{sample}\t{l[1]}\n')
+                # outTsv.write(f'{id}\t{sample}\t{l[1]}\n')
             counts.close()
         outFa.close()
-        outTsv.close()
+        # outTsv.close()
 
 # rule create_seqtable_index:
 #     """Step 12: Index seqtable.fasta for rapid access with samtools faidx."""
