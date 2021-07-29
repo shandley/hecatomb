@@ -404,7 +404,7 @@ rule cluster_similar_sequences:
         mem_mb=100000,
         cpus=64
     conda:
-        "../envs/linclust.yaml"
+        "../envs/mmseqs2.yaml"
     shell:
         """ 
         mmseqs easy-linclust {input} {params.respath}/{params.prefix} {params.tmppath} \
