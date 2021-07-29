@@ -33,10 +33,16 @@ READDIR = config['Reads']
 HOST = config['Host']
 
 
-### OTHER CONFIG
-sysMem = config['Mem']
-sysThreads = config['Threads']
-
+### RESOURCE CONFIG
+MMSeqsMem = config['MMSeqsMem']
+MMSeqsCPU = config['MMSeqsCPU']
+MMSeqsMemSplit = str(int(0.75 * int(MMSeqsMem))) + 'M'
+BBToolsMem = config['BBToolsMem']
+BBToolsCPU = config['BBToolsCPU']
+MhitMem = config['MhitMem']
+MhitCPU = config['MhitCPU']
+MiscMem = config['MiscMem']
+MiscCPU = config['MiscCPU']
 
 ### DIRECTORIES
 include: "rules/00_directories.smk"
