@@ -4,13 +4,13 @@ All target output files for Hecatomb are declared here
 
 # Preprocessing files
 PreprocessingFiles = [
-    #os.path.join(RESULTS, "seqtable_all.tsv"),
+    # os.path.join(RESULTS, "seqtable_all.tsv"),
     os.path.join(RESULTS, "seqtable.fasta"),
-    os.path.join(RESULTS, "seqtable.counts.tsv"),
-    #os.path.join(RESULTS, "seqtable.stats"),
+    # os.path.join(RESULTS, "seqtable.counts.tsv"),
+    # os.path.join(RESULTS, "seqtable.stats"),
     os.path.join(RESULTS, "seqtable.fasta.fai"),
-    #os.path.join(RESULTS, "seqtable.properties.gc"),
-    #os.path.join(RESULTS, "seqtable.properties.tetramer"),
+    # os.path.join(RESULTS, "seqtable.properties.gc"),
+    # os.path.join(RESULTS, "seqtable.properties.tetramer"),
     os.path.join(RESULTS, "seqtable.properties.tsv")]
 
 # Assembly files
