@@ -871,7 +871,7 @@ rule SECONDARY_NT_summary:
         # Reformat TopHit viral lineage information
         taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 3 \
         -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
-        cut --complement -f3 > {output.reformated};
+        cut --complement -f2,3 > {output.reformated};
         
         ## Generate summary tables
         # Kingdom
@@ -925,15 +925,7 @@ rule SECONDARY_NT_calculate_LCA:
     output:
         align = os.path.join(SECONDARY_NT_OUT, "results", "all.m8"),
         lca_lineage = temporary(os.path.join(SECONDARY_NT_OUT, "results", "lca.lineage")),
-        reformated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv"),
-        unclass_ids = os.path.join(SECONDARY_NT_OUT, "results", "lca_unclassified.ids"),
-        tophit_viral = os.path.join(SECONDARY_NT_OUT, "results", "secondary_tophit_viral.tsv"),
-        unclass_annot = os.path.join(SECONDARY_NT_OUT, "results", "lca_unclassified_annotated.tsv"),
-        unclass_removed = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca_unclassified_removed.tsv"),
-        remaining_unclass_ids = os.path.join(SECONDARY_NT_OUT, "results", "lca_remaining_unclassified_removed.tsv"),
-        remaining_lineage = os.path.join(SECONDARY_NT_OUT, "results", "lca_remaining_unclassified_lineage.tsv"),
-        lca_final_lin = os.path.join(SECONDARY_NT_OUT, "results", "lca_final_lineages.tsv"),
-        lca_final_aln = os.path.join(SECONDARY_NT_OUT, "results", "secondary_lca_final.tsv")
+        reformated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result")
     resources:
@@ -965,29 +957,141 @@ rule SECONDARY_NT_calculate_LCA:
         taxonkit reformat --data-dir {input.taxdb} -i 3 \
         -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
         cut --complement -f2,3 > {output.reformated};
-        
+        """
+
+rule secondary_nt_lca_refactor:
+    """
+    
+    Adopt tophit classifications for lca-unclassified sequences
+    
+    """
+    input:
+        reformated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv"),
+        tophit = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
+        align = os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8")
+    output:
+        lca_unclass_ids = os.path.join(SECONDARY_NT_OUT, "results", "lca_unclassified.ids"),
+        lca_tophit_class = os.path.join(SECONDARY_NT_OUT, "results", "lca_tophit_classified.tsv"),
+        lca_unclass_removed = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca_unclassified_removed.tsv"),
+        lca_unclass_removed_annotated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca_unclassified_removed_annotated.tsv"),
+        lca_reclassified = os.path.join(SECONDARY_NT_OUT, "results", "lca_tophit_reclassified.tsv"),
+        lca_align = os.path.join(SECONDARY_NT_OUT, "results", "lca_align.tsv")
+    resources:
+        mem_mb=64000,
+        cpus=64
+    conda:
+        "../envs/seqkit.yaml"
+    shell:
+        """
         # Create list of unclassified ids
-        grep "unclassified root" {output.reformated} | cut -f1 > {output.unclass_ids};
-        
-        # Create table of tophit virus sequences
-        awk -F '\t' '$3 == "Viruses"' {input.tophit} | cut --complement -f2 > {output.tophit_viral};
+        grep "unclassified root" {input.reformated} | cut -f1 > {output.lca_unclass_ids};
         
         # Annotate LCA unclassifieds with tophit viral lineages
-        csvtk join -f1 {output.unclass_ids} {output.tophit_viral} -t -T -H > {output.unclass_annot};
+        # Add tophit kingdom category
+        # Add classification type column
+        csvtk join -f1 {output.lca_unclass_ids} {input.tophit} -t -T -H | \
+            awk -F "\t" '{{ print$0"\t""tophit_"$2"\t""lca_nt_unclassified_updated" }}' > {output.lca_tophit_class};
         
         # Remove unclassified sequences from lca table
-        grep -v "unclassified root" {output.reformated} > {output.unclass_removed};
+        grep -v "unclassified root" {input.reformated} > {output.lca_unclass_removed};
         
-        # Create list of ids that remain unclassified
-        comm -23 <(sort {output.unclass_ids}) <(cut -f1 {output.unclass_annot} | sort) > {output.remaining_unclass_ids};
+        # Add "NA" for tophit kingdom category since they were not tophit reclassified
+        # Add classification method
+        awk -F "\t" '{{ print$0"\t""NA""\t""lca_nt_classified" }}' {output.lca_unclass_removed} > {output.lca_unclass_removed_annotated};
         
-        # Extract remaining unclassified lineages
-        csvtk join -f1 {output.remaining_unclass_ids} {output.reformated} -H -t -T > {output.remaining_lineage};
+        # Combine LCA + LCA-tophit classified
+        cat {output.lca_unclass_removed_annotated} {output.lca_tophit_class} > {output.lca_reclassified};
         
-        # Combine LCA + LCA-tophit assigned + remaining lineages
-        cat {output.unclass_removed} {output.unclass_annot} {output.remaining_lineage} > {output.lca_final_lin};
-        
-        # Combint alignment information with final lineages
-        csvtk join -f1 {input.align} {output.lca_final_lin} -H -T -t > {output.lca_final_aln};
+        # Combine lineage with alignment information
+        csvtk join -f1 {input.align} {output.lca_reclassified} -t -T -H > {output.lca_align};
         
         """
+
+rule reformat_seconday_nt_table:
+    """
+    
+    Some final tweaks to reformat that nt table to have parity with the final aa table.
+    
+    """
+    input:
+        lca_align = os.path.join(SECONDARY_NT_OUT, "results", "lca_align.tsv"),
+        translated_final = os.path.join(SECONDARY_AA_OUT, "translated_final.tsv")
+    output:
+        seq_ids = temporary(os.path.join(SECONDARY_NT_OUT, "results", "lca_align_seq.ids")),
+        tax_ids = temporary(os.path.join(SECONDARY_NT_OUT, "results", "lca_align_tax.ids")),
+        target_ids = temporary(os.path.join(SECONDARY_NT_OUT, "results", "lca_targets.ids")),
+        primary_lineage = temporary(os.path.join(SECONDARY_NT_OUT, "results", "primary_lineage.tsv")),
+        secondary_lineage = temporary(os.path.join(SECONDARY_NT_OUT, "results", "secondary_lineage.tsv")),
+        lca_align_truncated = temporary(os.path.join(SECONDARY_NT_OUT, "results", "lca_truncated.tsv")),
+        final = os.path.join(SECONDARY_NT_OUT, "untranslated_final.tsv")
+    resources:
+        mem_mb=64000,
+        cpus=64
+    conda:
+        "../envs/seqkit.yaml"
+    shell:
+        """
+        # Sequence id list
+        cut -f1 {input.lca_align} > {output.seq_ids};
+        
+        # Target id list
+        cut -f2 {input.lca_align} | awk -F "|" '{{ print$3 }}' > {output.target_ids};
+        
+        # Remove column 2 (combined taxID and targetID)
+        cut -f3-19 {input.lca_align} > {output.lca_align_truncated};
+        
+        # Taxonomy id list
+        cut -f2 {input.lca_align} | awk -F "|" '{{ print$2 }}' > {output.tax_ids};
+        
+        # Lineage table
+        cut -f20-26 {input.lca_align} > {output.primary_lineage};
+        cut -f27-28 {input.lca_align} > {output.secondary_lineage};
+        
+        # Combine
+        paste {output.seq_ids} {output.target_ids} {output.lca_align_truncated} {output.tax_ids} {output.primary_lineage} {output.target_ids} {output.secondary_lineage} | \
+        awk '{{ print$0"\t""untranslated" }}' > {output.final};
+        
+        """
+        
+rule finalize_mmseqs:
+    input:
+        translated_final = os.path.join(SECONDARY_AA_OUT, "translated_final.tsv"),
+        untranslated_final = os.path.join(SECONDARY_NT_OUT, "untranslated_final.tsv"),
+        primary_unclass_seqs = os.path.join(PRIMARY_NT_OUT, "unclassified_seqs.fasta"),
+        primary_class_seqs = os.path.join(PRIMARY_NT_OUT, "classified_seqs.fasta")
+    output:
+        mmseqs_results = os.path.join(RESULTS, "taxonomic_assignments.tsv"),
+        primary_unclass = temporary(os.path.join(PRIMARY_NT_OUT, "primary_unclassified.ids")),
+        secondary_unclass = temporary(os.path.join(PRIMARY_NT_OUT, "secondary_unclassified.ids")),
+        all_ids = temporary(os.path.join(PRIMARY_NT_OUT, "all_unclassified.ids")),
+        dark_matter = os.path.join(PRIMARY_NT_OUT, "all_unclassified.tsv"),
+        assigned_dark = os.path.join(RESULTS, "taxonomic_assignments_with_dark_matter.tsv")
+    resources:
+        mem_mb=64000,
+        cpus=64
+    conda:
+        "../envs/seqkit.yaml"
+    shell:
+        """
+        # Combine translated and untranslated tables
+        cat {input.translated_final} {input.untranslated_final} > {output.mmseqs_results}
+        
+        # Pull primary unclassified seq ids
+        seqkit seq --name {input.primary_unclass_seqs}  > {output.primary_unclass};
+        
+        # Pull secondary unclassified seq ids
+        comm -23 <(seqkit seq --name {input.primary_class_seqs} | sort) <(cut -f1 {input.untranslated_final} | sort) > {output.secondary_unclass};
+        
+        # Combine all unclassified ids
+        cat {output.primary_unclass} {output.secondary_unclass} > {output.all_ids};
+        
+        # Populate unclassified sequences with corresponding values in classified sequence tables
+        awk '{{ print$0"\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified""\t""hecatomb_unclassified" }}' {output.all_ids} > {output.dark_matter};
+        
+        # Create assigned with unassigned table
+        cat {output.mmseqs_results} {output.dark_matter} > {output.assigned_dark};
+         
+        """
+    
+        
+    

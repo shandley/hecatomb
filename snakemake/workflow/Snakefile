@@ -300,13 +300,15 @@ rule all:
         os.path.join(SECONDARY_NT_OUT, "results", "all.m8"),
         os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv"),
         os.path.join(SECONDARY_NT_OUT, "results", "lca_unclassified.ids"),
-        os.path.join(SECONDARY_NT_OUT, "results", "secondary_tophit_viral.tsv"),
-        os.path.join(SECONDARY_NT_OUT, "results", "lca_unclassified_annotated.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "lca_tophit_classified.tsv"),
         os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca_unclassified_removed.tsv"),
-        os.path.join(SECONDARY_NT_OUT, "results", "lca_remaining_unclassified_removed.tsv"),
-        os.path.join(SECONDARY_NT_OUT, "results", "lca_remaining_unclassified_lineage.tsv"),
-        os.path.join(SECONDARY_NT_OUT, "results", "lca_final_lineages.tsv"),
-        os.path.join(SECONDARY_NT_OUT, "results", "secondary_lca_final.tsv")
+        os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca_unclassified_removed_annotated.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "lca_tophit_reclassified.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "results", "lca_align.tsv"),
+        os.path.join(SECONDARY_NT_OUT, "untranslated_final.tsv"),
+        os.path.join(RESULTS, "taxonomic_assignments.tsv"),
+        os.path.join(PRIMARY_NT_OUT, "all_unclassified.tsv"),
+        os.path.join(RESULTS, "taxonomic_assignments_with_dark_matter.tsv")
         
         
 
