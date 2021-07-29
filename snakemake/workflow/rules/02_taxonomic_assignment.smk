@@ -40,8 +40,10 @@ rule PRIMARY_AA_taxonomy_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_AA.log")
     resources:
-        mem_mb=128000,
-        cpus=64
+        mem_mb=MMSeqsMem,
+        cpus=MMSeqsCPU
+    threads:
+        MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
     shell: # run easy taxonomy, add header
@@ -52,8 +54,8 @@ rule PRIMARY_AA_taxonomy_assignment:
             --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
             --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
-            --tax-lineage 1 --min-length 15 \
-            --threads {resources.cpus} --split-memory-limit 48G \
+            --tax-lineage 1 --min-length {config[AAMINLEN]} \
+            --threads {resources.cpus} --split-memory-limit {MMSeqsMemSplit} \
             -e {config[PRIMAAE]} &>> {log};
         
         # Add headers
@@ -83,8 +85,10 @@ rule PRIMARY_AA_parsing:
     conda:
         "../envs/samtools.yaml"
     resources:
-        mem_mb=16000,
-        cpus=2
+        mem_mb=MiscMem,
+        cpus=MiscCPU
+    threads:
+        MiscCPU
     shell: # make two FASTA files: classified sequences (MMSEQS_AA_PRIMARY_tophit_aln_sorted), unclassified (all minus classified seqs)
         """
         # Extract full entry ID list (all sequences)
@@ -141,8 +145,10 @@ rule PRIMARY_AA_summary:
     conda:
         "../envs/seqkit.yaml"
     resources:
-        mem_mb=16000,
-        cpus=2
+        mem_mb=MiscMem,
+        cpus=MiscCPU
+    threads:
+        MiscCPU
     shell:
         """
         # Viral order summary
@@ -252,8 +258,10 @@ rule SECONDARY_AA_taxonomy_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_AA.log")
     resources:
-        mem_mb=128000,
-        cpus=64
+        mem_mb=MMSeqsMem,
+        cpus=MMSeqsCPU
+    threads:
+        MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
     shell: # secondary easy-tax search, add header
@@ -264,7 +272,7 @@ rule SECONDARY_AA_taxonomy_assignment:
             --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
             --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
-            --tax-lineage 1 --split-memory-limit 48G --min-length 15 \
+            --tax-lineage 1 --split-memory-limit {MMSeqsMemSplit} --min-length {config[AAMINLEN]} \
             --threads {resources.cpus} \
             -e {config[SECAAE]} &>> {log};
         
@@ -313,8 +321,10 @@ rule SECONDARY_AA_tophit_lineage:
     conda:
         "../envs/seqkit.yaml"
     resources:
-        mem_mb=16000,
-        cpus=2
+        mem_mb=MiscMem,
+        cpus=MiscCPU
+    threads:
+        MiscCPU
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_tophit_refactor.log")
     shell:
@@ -430,63 +440,63 @@ rule SECONDARY_AA_tophit_lineage:
         # # Create all entry keyword list
         # cat {output.tophit_keyword_vir_list} {output.tophit_keyword_nonviral_list} > {output.tophit_keyword_all_list};
 
-rule SECONDARY_AA_LCA_virus_root_refactor:
-    """Update LCA virus root taxonomy to tophit taxonomy.
-    
-    - Some LCA virus taxonomies will default to: 
-      Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses
-    - We call this issue 'virus root taxonomy'
-    - These sequences will be defaulted to their tophit taxonomy and marked accordingly
-    """
-    input:
-        lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
-        # tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv")
-    output:
-        lca_virus_root_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "lca_10239.ids")),
-        # lca_virus_root_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv")
-    conda:
-        "../envs/seqkit.yaml"
-    log:
-        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_virus_root_refactor.log")
-    shell:
-        """
-        # Isolate sequences pushed to virus root by LCA (Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses)
-        awk '$2 == 10239 {{print $1}}' {input.lca} > {output.lca_virus_root_seqids};
-        """
-        # Join LCA-root sequnece IDs to updated virus tophit table
-        # csvtk join -f1 {output.lca_virus_root_seqids} {input.tophit_updated} -H -t -T > {output.lca_virus_root_vir_tsv};
+# rule SECONDARY_AA_LCA_virus_root_refactor:
+#     """Update LCA virus root taxonomy to tophit taxonomy.
+#
+#     - Some LCA virus taxonomies will default to:
+#       Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses
+#     - We call this issue 'virus root taxonomy'
+#     - These sequences will be defaulted to their tophit taxonomy and marked accordingly
+#     """
+#     input:
+#         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
+#         # tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv")
+#     output:
+#         lca_virus_root_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "lca_10239.ids")),
+#         # lca_virus_root_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv")
+#     conda:
+#         "../envs/seqkit.yaml"
+#     log:
+#         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_virus_root_refactor.log")
+#     shell:
+#         """
+#         # Isolate sequences pushed to virus root by LCA (Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses;uc_Viruses)
+#         awk '$2 == 10239 {{print $1}}' {input.lca} > {output.lca_virus_root_seqids};
+#         """
+#         # Join LCA-root sequnece IDs to updated virus tophit table
+#         # csvtk join -f1 {output.lca_virus_root_seqids} {input.tophit_updated} -H -t -T > {output.lca_virus_root_vir_tsv};
 
-rule SECONDARY_AA_LCA_virus_unclassified_refactor:
-    """Update LCA unclassified taxonomy to tophit taxonomy.
-    
-    - There are a variety of reasons that a sequence may be assigned a tophit viral taxonomic lineage and not an LCA 
-      taxonomy (e.g. the LCA of a sequence assigned to a bacteria and a virus is 'root')
-    - These sequences will be defaulted to their tophit taxonomy and marked accordingly.
-    """
-    input:
-        lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
-        #tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv")
-    output:
-        lca_unclass_seqids_0 = temporary(os.path.join(SECONDARY_AA_OUT, "lca_0.ids")),
-        lca_unclass_seqids_1 = temporary(os.path.join(SECONDARY_AA_OUT, "lca_1.ids")),
-        # lca_unclass_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.seq.ids")),
-        # lca_unclass_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv")
-    conda:
-        "../envs/seqkit.yaml"
-    log:
-        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_unclassified_refactor.log")
-    shell:
-        """
-        # Isolate unclassified sequences from LCA
-        awk '$2 == 0 {{print $1}}' {input.lca} > {output.lca_unclass_seqids_0};
-        awk '$2 == 1 {{print $1}}' {input.lca} > {output.lca_unclass_seqids_1};
-        """
-        #
-        # cat {output.lca_unclass_seqids_0} {output.lca_unclass_seqids_1} | cut -f1 > {output.lca_unclass_seqids};
-        #
-        # # Join unclassified LCA sequence IDs to virus tophit viral table
-        # # Save only the potential viral hits
-        # csvtk join -f1 {output.lca_unclass_seqids} {input.tophit_updated} -H -t -T > {output.lca_unclass_vir_tsv};
+# rule SECONDARY_AA_LCA_virus_unclassified_refactor:
+#     """Update LCA unclassified taxonomy to tophit taxonomy.
+#
+#     - There are a variety of reasons that a sequence may be assigned a tophit viral taxonomic lineage and not an LCA
+#       taxonomy (e.g. the LCA of a sequence assigned to a bacteria and a virus is 'root')
+#     - These sequences will be defaulted to their tophit taxonomy and marked accordingly.
+#     """
+#     input:
+#         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
+#         #tophit_updated = os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv")
+#     output:
+#         lca_unclass_seqids_0 = temporary(os.path.join(SECONDARY_AA_OUT, "lca_0.ids")),
+#         lca_unclass_seqids_1 = temporary(os.path.join(SECONDARY_AA_OUT, "lca_1.ids")),
+#         # lca_unclass_seqids = temporary(os.path.join(SECONDARY_AA_OUT, "lca_unclass.seq.ids")),
+#         # lca_unclass_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv")
+#     conda:
+#         "../envs/seqkit.yaml"
+#     log:
+#         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_unclassified_refactor.log")
+#     shell:
+#         """
+#         # Isolate unclassified sequences from LCA
+#         awk '$2 == 0 {{print $1}}' {input.lca} > {output.lca_unclass_seqids_0};
+#         awk '$2 == 1 {{print $1}}' {input.lca} > {output.lca_unclass_seqids_1};
+#         """
+#         #
+#         # cat {output.lca_unclass_seqids_0} {output.lca_unclass_seqids_1} | cut -f1 > {output.lca_unclass_seqids};
+#         #
+#         # # Join unclassified LCA sequence IDs to virus tophit viral table
+#         # # Save only the potential viral hits
+#         # csvtk join -f1 {output.lca_unclass_seqids} {input.tophit_updated} -H -t -T > {output.lca_unclass_vir_tsv};
 
 rule SECONDARY_AA_refactor_finalize:
     """Remove sequences to be refactored from LCA table and recombine with updated taxonomies."""
@@ -498,9 +508,9 @@ rule SECONDARY_AA_refactor_finalize:
         # lca_virus_root_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_virus_root.vir.tsv"),
         # lca_unclass_vir_tsv = os.path.join(SECONDARY_AA_OUT, "lca_unclass.vir.tsv")
     output:
-        lca_filt = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.tmp")),
-        lca_filt_lineage = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.lineage")),
-        lca_filt_linegage_reformated = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.reformated"),
+        # lca_filt = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.tmp")),
+        # lca_filt_lineage = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.lineage")),
+        lca_reformated = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.reformated"),
         # tophit_updated_filt = temporary(os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.filt")),
         # tophit_lca_tmp = temporary(os.path.join(SECONDARY_AA_OUT, "tophit_lca.tmp")),
         # tophit_lca_key = temporary(os.path.join(SECONDARY_AA_OUT, "tophit_lca.key")),
@@ -515,24 +525,17 @@ rule SECONDARY_AA_refactor_finalize:
     conda:
         "../envs/seqkit.yaml"
     resources:
-        mem_mb=16000,
-        cpus=2
+        mem_mb=MiscMem,
+        cpus=MiscCPU
+    threads:
+        MiscCPU
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_refactor_final.log")
     shell:
         """
-        ## Create new base LCA table. Which will be recombined with the updated taxonomy tables from the previous refactoring rules
-        
-        # Remove virus root and unclassified entries from virus LCA table
-        awk '$2 != 0' {input.lca} | awk '$2 != 10239' | awk '$2 != 1' > {output.lca_filt};
-        
-        # Pull all sequence and tax ids from filtered LCA table and reformat to updated NCBI taxonomy
-        cut -f1,2 {output.lca_filt} | \
-            taxonkit lineage --data-dir {input.db} -i 2 > {output.lca_filt_lineage};
-            
-        cut --complement -f2 {output.lca_filt_lineage} | taxonkit reformat --data-dir {input.db} -i 2 \
+        cut --complement -f2 {input.lca} | taxonkit reformat --data-dir {input.db} -i 2 \
             -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank | \
-            cut --complement -f2 > {output.lca_filt_linegage_reformated};
+            cut --complement -f2 > {output.lca_reformated};
         """
         # # Combine TopHit alignment information with updated LCA lineage information
         # cut --complement -f21- {input.tophit_updated} > {output.tophit_updated_filt};
@@ -579,39 +582,35 @@ rule SECONDARY_AA_refactor_finalize:
 rule SECONDARY_AA_generate_output_table:
     """Join sequence info, tophit align info, and LCA or tophit lineage info into the output format table"""
     input:
-        counts = os.path.join(RESULTS,"seqtable.counts.tsv"),
-        lca_10239 = os.path.join(SECONDARY_AA_OUT,"lca_10239.ids"),
-        lca_0 = os.path.join(SECONDARY_AA_OUT, "lca_0.ids"),
-        lca_1 = os.path.join(SECONDARY_AA_OUT, "lca_1.ids"),
-        tophit=os.path.join(SECONDARY_AA_OUT,"MMSEQS_AA_SECONDARY_tophit_aln"),
-        lca_linegage_reformated = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_filt.reformated"),
-        tophit_lineage_refomated=os.path.join(SECONDARY_AA_OUT,"tophit.lineage.reformated"),
+        # counts = os.path.join(RESULTS,"seqtable.counts.tsv"),
+        # lca_10239 = os.path.join(SECONDARY_AA_OUT,"lca_10239.ids"),
+        # lca_0 = os.path.join(SECONDARY_AA_OUT, "lca_0.ids"),
+        # lca_1 = os.path.join(SECONDARY_AA_OUT, "lca_1.ids"),
+        aln = os.path.join(SECONDARY_AA_OUT,"MMSEQS_AA_SECONDARY_tophit_aln"),
+        lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.reformated"),
+        top = os.path.join(SECONDARY_AA_OUT,"tophit.lineage.reformated"),
     output:
         os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
     run:
         # slurp the seq samples and counts
-        smpl = {}
-        cnts = {}
-        for l in stream_tsv(input.counts):
-            smpl[l[0]] = l[1]
-            cnts[l[0]] = l[2]
+        # smpl = {}
+        # cnts = {}
+        # for l in stream_tsv(input.counts):
+        #     smpl[l[0]] = l[1]
+        #     cnts[l[0]] = l[2]
         # create dict of seqs IDs to use the tophit taxonomy in place of the LCA taxonomy
-        useTop = {}
-        for f in [input.lca_10239, input.lca_0, input.lca_1]:
-            for l in stream_tsv(f):
-                useTop[l[0]]=1
-        # slurp only the relevant tophit taxonomy
-        topLin = {}
-        for l in stream_tsv(input.tophit_lineage_refomated):
-            try:
-                useTop[l[0]]
-                topLin[l[0]] = '\t'.join((l[1:]))
-            except KeyError:
-                continue
-        # slurp the LCA taxonomy
         lcaLin = {}
-        for l in stream_tsv(input.lca_linegage_reformated):
-            lcaLin[l[0]] = '\t'.join((l[1:]))
+        for l in stream_tsv(input.lca):
+            # dont use lca lineage for taxids of 0, 1, or 10239
+            if l[1] != '0' and l[1] != '1' and l[1] != '10239':
+                lcaLin[l[0]] = '\t'.join((l[2:]))
+        topLin = {}
+        for l in stream_tsv(input.top):
+            # skip if using lca lineage
+            try:
+                lcaLin[l[0]]
+            except KeyError:
+                topLin[l[0]] = '\t'.join((l[2:]))
         # iterate the tophit alignments and print the table on the fly
         out = open(output[0],'w')
         out.write('\t'.join(('seqID',
@@ -644,7 +643,7 @@ rule SECONDARY_AA_generate_output_table:
                              'species')))
         out.write('\n')
         # parse the alignments and attach appropriate info
-        for l in stream_tsv(input.tophit):
+        for l in stream_tsv(input.aln):
             try:
                 taxOut = 'LCA\t' + lcaLin[l[0]]
             except KeyError:
@@ -652,7 +651,8 @@ rule SECONDARY_AA_generate_output_table:
                     taxOut = 'TopHit\t' + topLin[l[0]]
                 except KeyError:
                     taxOut = '\t'.join((['NA'] * 8))
-            seqOut = '\t'.join((l[0], smpl[l[0]], cnts[l[0]]))
+            seqInf = l[0].split(':')        # seq ID = sample:count:seqNum
+            seqOut = '\t'.join((l[0], seqInf[0], seqInf[1]))
             alnOut = 'aa\t' + '\t'.join((l[1:17]))
             out.write('\t'.join((seqOut, alnOut, taxOut)))
             out.write('\n')
@@ -672,8 +672,10 @@ rule SECONDARY_AA_parsing:
     conda:
         "../envs/samtools.yaml"
     resources:
-        mem_mb=16000,
-        cpus=2
+        mem_mb=MiscMem,
+        cpus=MiscCPU
+    threads:
+        MiscCPU
     log:
         os.path.join(STDERR, 'mmseqs', 'mmseqs_SECONDARY_aa_parsing.log')
     shell:
@@ -709,8 +711,10 @@ rule PRIMARY_NT_taxonomic_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_NT.log")
     resources:
-        mem_mb=128000,
-        cpus=64
+        mem_mb=MMSeqsMem,
+        cpus=MMSeqsCPU
+    threads:
+        MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
     shell:
@@ -721,8 +725,8 @@ rule PRIMARY_NT_taxonomic_assignment:
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
             --start-sens 2 -s 7 --sens-steps 3 \
-            --search-type 3 \
-            --threads {resources.cpus} --split-memory-limit 48G\
+            --search-type 3 --min-length {config[NTMINLEN]} \
+            --threads {resources.cpus} --split-memory-limit {MMSeqsMemSplit} \
             -e {config[PRIMNTE]} &>> {log};
         """
         
@@ -749,8 +753,10 @@ rule PRIMARY_NT_reformat:
     conda:
         "../envs/mmseqs2.yaml"
     resources:
-        mem_mb=16000,
-        cpus=2
+        mem_mb=MiscMem,
+        cpus=MiscCPU
+    threads:
+        MiscCPU
     log:
         os.path.join(STDERR, 'MMSEQS', 'mmseqs_PRIMARY_nt_summary.log')
     shell:
@@ -816,6 +822,11 @@ rule PRIMARY_NT_parsing:
         class_seqs = os.path.join(PRIMARY_NT_OUT, "classified_seqs.fasta"),
         unclass_ids = temporary(os.path.join(PRIMARY_NT_OUT, "unclassified.ids")),
         unclass_seqs = os.path.join(PRIMARY_NT_OUT, "unclassified_seqs.fasta")
+    resources:
+        mem_mb=MiscMem,
+        cpus=MiscCPU
+    threads:
+        MiscCPU
     conda:
         "../envs/samtools.yaml"
     log:
@@ -854,8 +865,10 @@ rule SECONDARY_NT_taxonomic_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_NT.log")
     resources:
-        mem_mb=128000,
-        cpus=64
+        mem_mb=MMSeqsMem,
+        cpus=MMSeqsCPU
+    threads:
+        MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
     shell:
@@ -866,8 +879,8 @@ rule SECONDARY_NT_taxonomic_assignment:
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
             -a 1 --search-type 3 \
-            --start-sens 2 -s 7 --sens-steps 3 \
-            --threads {resources.cpus} --split-memory-limit 48G \
+            --start-sens 2 -s 7 --sens-steps 3 --min-length {config[NTMINLEN]} \
+            --threads {resources.cpus} --split-memory-limit {MMSeqsMemSplit} \
             -e {config[SECNTE]} &>> {log};
     
         """
@@ -895,8 +908,10 @@ rule SECONDARY_NT_summary:
     conda:
         "../envs/mmseqs2.yaml"
     resources:
-        mem_mb=16000,
-        cpus=2
+        mem_mb=MiscMem,
+        cpus=MiscCPU
+    threads:
+        MiscCPU
     log:
         os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_summary.log')
     shell:
@@ -964,8 +979,10 @@ rule SECONDARY_NT_calculate_LCA:
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result")
     resources:
-        mem_mb=64000,
-        cpus=16
+        mem_mb=MMSeqsMem,
+        cpus=MMSeqsCPU
+    threads:
+        MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
     log:
@@ -996,7 +1013,7 @@ rule SECONDARY_NT_calculate_LCA:
 
 rule SECONDARY_NT_generate_output_table:
     input:
-        cnts = os.path.join(RESULTS, "seqtable.counts.tsv"),
+        # cnts = os.path.join(RESULTS, "seqtable.counts.tsv"),
         aln = os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
         top = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
         lca = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
@@ -1004,11 +1021,11 @@ rule SECONDARY_NT_generate_output_table:
         os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
     run:
         # slurp the seq samples and counts
-        smpl = {}
-        cnts = {}
-        for l in stream_tsv(input.cnts):
-            smpl[l[0]] = l[1]
-            cnts[l[0]] = l[2]
+        # smpl = {}
+        # cnts = {}
+        # for l in stream_tsv(input.cnts):
+        #     smpl[l[0]] = l[1]
+        #     cnts[l[0]] = l[2]
         # slurp the lineage information
         lcaLin = {}
         for l in stream_tsv(input.lca):
@@ -1023,7 +1040,7 @@ rule SECONDARY_NT_generate_output_table:
             except KeyError:
                 topLin[l[0]] = '\t'.join((l[2:]))
         # output
-        out = open(output[0],'w')
+        out = open(output[0], 'w')
         out.write('\t'.join(('seqID',
                              'sampleID',
                              'count',
@@ -1061,7 +1078,8 @@ rule SECONDARY_NT_generate_output_table:
                     taxOut = 'TopHit\t' + topLin[l[0]]
                 except KeyError:
                     taxOut = '\t'.join((['NA'] * 8))
-            seqOut = '\t'.join((l[0], smpl[l[0]], cnts[l[0]]))
+            seqInf = l[0].split(':')        # seq ID = sample:count:seqNum
+            seqOut = '\t'.join((l[0], seqInf[0], seqInf[1]))
             alnOut = 'nt\t' + '\t'.join((l[1:17]))
             out.write('\t'.join((seqOut, alnOut, taxOut)))
             out.write('\n')
