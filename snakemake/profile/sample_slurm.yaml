@@ -22,4 +22,4 @@ printshellcmds: True
 scheduler: greedy
 use-conda: True
 conda-frontend: mamba
-
+cluster-status: ~/.config/snakemake/slurm/slurm-status.py
