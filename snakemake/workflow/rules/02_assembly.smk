@@ -21,8 +21,7 @@ rule assembly_kmer_normalization:
     log:
         log=os.path.join(LOGS, "step_14", "s14_{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -34,7 +33,7 @@ rule assembly_kmer_normalization:
             out={output.r1_norm} out2={output.r2_norm} \
             target=100 \
             ow=t \
-            threads={resources.cpus} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
         """
 
 rule individual_sample_assembly:
@@ -57,8 +56,7 @@ rule individual_sample_assembly:
     log:
         log=os.path.join(LOGS, "step_15", "s15_{sample}.log")
     resources:
-        mem_mb=MhitMem,
-        cpus=MhitCPU
+        mem_mb=MhitMem
     threads:
         MhitCPU
     conda:
@@ -69,7 +67,7 @@ rule individual_sample_assembly:
 
         megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
             -o {params.mh_dir} --out-prefix {wildcards.sample} \
-            --k-min 45 --k-max 225 --k-step 26 --min-count 2 &>> {log};
+            --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log};
         """
 
 rule concatenate_contigs:
@@ -100,8 +98,7 @@ rule contig_reformating_and_stats:
         log2=os.path.join(LOGS, "step_17", "s17.reformat.log"),
         log3=os.path.join(LOGS, "step_17", "s17.stats.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -139,15 +136,14 @@ rule population_assembly:
         log1=os.path.join(LOGS, "step_18", "s18.flye.log"),
         log2=os.path.join(LOGS, "step_18", "s18.stats.log")
     resources:
-        mem_mb=MhitMem,
-        cpus=MhitCPU
+        mem_mb=MhitMem
     threads:
         MhitCPU
     conda:
         "../envs/metaflye.yaml"
     shell:
         """
-        flye --subassemblies {input} -t {resources.cpus} --plasmids -o {params.flye_out} -g 1g &>> {log.log1};
+        flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} -g 1g &>> {log.log1};
 
         statswrapper.sh in={output.assembly} out={output.stats} \
         format=2 \
@@ -181,8 +177,7 @@ rule coverage_calculations:
     log:
         log=os.path.join(LOGS,"step_16","s16_{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -202,7 +197,7 @@ rule coverage_calculations:
             scafstats={output.scafstats} \
             maxindel=100 minid=90 \
             ow=t \
-            -Xmx{resources.mem_mb}m 2> {log};
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log};
         """
 
 rule create_contig_count_table:

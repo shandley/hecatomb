@@ -39,8 +39,7 @@ rule remove_5prime_primer:
     log:
         os.path.join(STDERR, "remove_leftmost_primerB.{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -53,7 +52,7 @@ rule remove_5prime_primer:
             stats={output.stats} \
             k=16 hdist=1 mink=11 ktrim=l restrictleft=20 \
             removeifeitherbad=f trimpolya=10 ordered=t rcomp=f ow=t \
-            threads={resources.cpus} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
         """
 
 rule remove_3prime_contaminant:
@@ -76,8 +75,7 @@ rule remove_3prime_contaminant:
     log:
         os.path.join(STDERR, "remove_3prime_contaminant.{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -89,7 +87,7 @@ rule remove_3prime_contaminant:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=1 mink=11 ktrim=r removeifeitherbad=f ordered=t rcomp=f ow=t \
-            threads={resources.cpus} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
         """
 
 rule remove_primer_free_adapter:
@@ -111,8 +109,7 @@ rule remove_primer_free_adapter:
     log:
         os.path.join(STDERR, "remove_primer_free_adapter.{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -124,7 +121,7 @@ rule remove_primer_free_adapter:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=1 mink=10 ktrim=r removeifeitherbad=f ordered=t rcomp=t ow=t \
-            threads={resources.cpus} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
         """
 
 rule remove_adapter_free_primer:
@@ -146,8 +143,7 @@ rule remove_adapter_free_primer:
     log:
         os.path.join(STDERR, "remove_adapter_free_primer.{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -159,7 +155,7 @@ rule remove_adapter_free_primer:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=0 removeifeitherbad=f ordered=t rcomp=t ow=t \
-            threads={resources.cpus} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
         """
 
 rule remove_vector_contamination:
@@ -177,8 +173,7 @@ rule remove_vector_contamination:
     log:
         log = os.path.join(STDERR, "step_05", "s5_{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -190,7 +185,7 @@ rule remove_vector_contamination:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=31 hammingdistance=1 ordered=t ow=t \
-            -Xmx{resources.mem_mb}m 2> {log};
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log};
         """
         
 rule remove_low_quality:
@@ -210,8 +205,7 @@ rule remove_low_quality:
     log:
         log = os.path.join(STDERR, "step_06", "s6_{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -226,14 +220,14 @@ rule remove_low_quality:
             entropy={config[ENTROPY]} \
             trimq={config[QSCORE]} \
             minlength={config[READ_MINLENGTH]} \
-            -Xmx{resources.mem_mb}m 2> {log};
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log};
         """
 
 rule create_host_index:
     """Create the minimap2 index for mapping to the host; this will save time."""
     input:
         HOSTPATH,
-        os.path.join(CONPATH, "line_sine.fasta") ########### TODO: check implementation
+        # os.path.join(CONPATH, "line_sine.fasta") ########### TODO: check implementation
     output:
         HOSTINDEX
     benchmark:
@@ -241,8 +235,7 @@ rule create_host_index:
     log:
         os.path.join(STDERR, 'create_host_index.log')
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -271,15 +264,14 @@ rule host_removal_mapping:
         sv=os.path.join(STDERR, "host_removal_mapping.{sample}.samtoolsView.log"),
         fq=os.path.join(STDERR, "host_removal_mapping.{sample}.samtoolsFastq.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
         "../envs/minimap2.yaml"
     shell:
         """
-        minimap2 -ax sr -t {resources.cpus} --secondary=no {input.host} {input.r1} {input.r2} 2> {log.mm} \
+        minimap2 -ax sr -t {threads} --secondary=no {input.host} {input.r1} {input.r2} 2> {log.mm} \
             | samtools view -f 4 -h 2> {log.sv} \
             | samtools fastq -NO -1 {output.r1} -2 {output.r2} -0 /dev/null -s {output.singletons} 2> {log.fq}
         """
@@ -322,8 +314,7 @@ rule nonhost_read_repair:
     log:
         log = os.path.join(STDERR, "step_07c", "s07c_{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -366,8 +357,7 @@ rule remove_exact_dups:
     log:
         os.path.join(STDERR, "remove_exact_dups.{sample}.log")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -376,7 +366,7 @@ rule remove_exact_dups:
         """
         dedupe.sh in={input} out={output} \
             ac=f ow=t \
-            threads={resources.cpus} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
         """
           
 rule cluster_similar_sequences:
@@ -399,8 +389,7 @@ rule cluster_similar_sequences:
     log:
         os.path.join(STDERR, "cluster_similar_sequences.{sample}.log")
     resources:
-        mem_mb=MMSeqsMem,
-        cpus=MMSeqsCPU
+        mem_mb=MMSeqsMem
     threads:
         MMSeqsCPU
     conda:
@@ -409,7 +398,7 @@ rule cluster_similar_sequences:
         """ 
         mmseqs easy-linclust {input} {params.respath}/{params.prefix} {params.tmppath} \
             --kmer-per-seq-scale 0.3 \
-            -c {config[CLUSTERID]} --cov-mode 1 --threads {resources.cpus} &>> {log};
+            -c {config[CLUSTERID]} --cov-mode 1 --threads {threads} &>> {log};
         """
         
 rule create_individual_seqtables:
@@ -428,15 +417,14 @@ rule create_individual_seqtables:
     benchmark:
         os.path.join(BENCH, "create_individual_seqtables.{sample}.txt")
     resources:
-        mem_mb=BBToolsMem,
-        cpus=BBToolsCPU
+        mem_mb=BBToolsMem
     threads:
         BBToolsCPU
     conda:
         "../envs/seqkit.yaml"
     shell:
         """
-        seqkit sort {input.seqs} --quiet -j {resources.cpus} -w 5000 -t dna \
+        seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna \
             | seqkit fx2tab -w 5000 -t dna \
             | sed 's/\\t\\+$//' \
             | cut -f2,3 \

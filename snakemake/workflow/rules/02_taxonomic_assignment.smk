@@ -40,8 +40,7 @@ rule PRIMARY_AA_taxonomy_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_AA.log")
     resources:
-        mem_mb=MMSeqsMem,
-        cpus=MMSeqsCPU
+        mem_mb=MMSeqsMem
     threads:
         MMSeqsCPU
     conda:
@@ -55,7 +54,7 @@ rule PRIMARY_AA_taxonomy_assignment:
             --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
             --tax-lineage 1 --min-length {config[AAMINLEN]} \
-            --threads {resources.cpus} --split-memory-limit {MMSeqsMemSplit} \
+            --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
             -e {config[PRIMAAE]} &>> {log};
         
         # Add headers
@@ -85,8 +84,7 @@ rule PRIMARY_AA_parsing:
     conda:
         "../envs/samtools.yaml"
     resources:
-        mem_mb=MiscMem,
-        cpus=MiscCPU
+        mem_mb=MiscMem
     threads:
         MiscCPU
     shell: # make two FASTA files: classified sequences (MMSEQS_AA_PRIMARY_tophit_aln_sorted), unclassified (all minus classified seqs)
@@ -145,8 +143,7 @@ rule PRIMARY_AA_summary:
     conda:
         "../envs/seqkit.yaml"
     resources:
-        mem_mb=MiscMem,
-        cpus=MiscCPU
+        mem_mb=MiscMem
     threads:
         MiscCPU
     shell:
@@ -258,8 +255,7 @@ rule SECONDARY_AA_taxonomy_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_AA.log")
     resources:
-        mem_mb=MMSeqsMem,
-        cpus=MMSeqsCPU
+        mem_mb=MMSeqsMem
     threads:
         MMSeqsCPU
     conda:
@@ -273,7 +269,7 @@ rule SECONDARY_AA_taxonomy_assignment:
             --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
             --tax-lineage 1 --split-memory-limit {MMSeqsMemSplit} --min-length {config[AAMINLEN]} \
-            --threads {resources.cpus} \
+            --threads {threads} \
             -e {config[SECAAE]} &>> {log};
         
         # Add headers
@@ -321,8 +317,7 @@ rule SECONDARY_AA_tophit_lineage:
     conda:
         "../envs/seqkit.yaml"
     resources:
-        mem_mb=MiscMem,
-        cpus=MiscCPU
+        mem_mb=MiscMem
     threads:
         MiscCPU
     log:
@@ -525,8 +520,7 @@ rule SECONDARY_AA_refactor_finalize:
     conda:
         "../envs/seqkit.yaml"
     resources:
-        mem_mb=MiscMem,
-        cpus=MiscCPU
+        mem_mb=MiscMem
     threads:
         MiscCPU
     log:
@@ -672,8 +666,7 @@ rule SECONDARY_AA_parsing:
     conda:
         "../envs/samtools.yaml"
     resources:
-        mem_mb=MiscMem,
-        cpus=MiscCPU
+        mem_mb=MiscMem
     threads:
         MiscCPU
     log:
@@ -711,8 +704,7 @@ rule PRIMARY_NT_taxonomic_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_NT.log")
     resources:
-        mem_mb=MMSeqsMem,
-        cpus=MMSeqsCPU
+        mem_mb=MMSeqsMem
     threads:
         MMSeqsCPU
     conda:
@@ -726,7 +718,7 @@ rule PRIMARY_NT_taxonomic_assignment:
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
             --start-sens 2 -s 7 --sens-steps 3 \
             --search-type 3 --min-length {config[NTMINLEN]} \
-            --threads {resources.cpus} --split-memory-limit {MMSeqsMemSplit} \
+            --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
             -e {config[PRIMNTE]} &>> {log};
         """
         
@@ -753,8 +745,7 @@ rule PRIMARY_NT_reformat:
     conda:
         "../envs/mmseqs2.yaml"
     resources:
-        mem_mb=MiscMem,
-        cpus=MiscCPU
+        mem_mb=MiscMem
     threads:
         MiscCPU
     log:
@@ -823,8 +814,7 @@ rule PRIMARY_NT_parsing:
         unclass_ids = temporary(os.path.join(PRIMARY_NT_OUT, "unclassified.ids")),
         unclass_seqs = os.path.join(PRIMARY_NT_OUT, "unclassified_seqs.fasta")
     resources:
-        mem_mb=MiscMem,
-        cpus=MiscCPU
+        mem_mb=MiscMem
     threads:
         MiscCPU
     conda:
@@ -865,8 +855,7 @@ rule SECONDARY_NT_taxonomic_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_NT.log")
     resources:
-        mem_mb=MMSeqsMem,
-        cpus=MMSeqsCPU
+        mem_mb=MMSeqsMem
     threads:
         MMSeqsCPU
     conda:
@@ -880,7 +869,7 @@ rule SECONDARY_NT_taxonomic_assignment:
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
             -a 1 --search-type 3 \
             --start-sens 2 -s 7 --sens-steps 3 --min-length {config[NTMINLEN]} \
-            --threads {resources.cpus} --split-memory-limit {MMSeqsMemSplit} \
+            --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
             -e {config[SECNTE]} &>> {log};
     
         """
@@ -908,8 +897,7 @@ rule SECONDARY_NT_summary:
     conda:
         "../envs/mmseqs2.yaml"
     resources:
-        mem_mb=MiscMem,
-        cpus=MiscCPU
+        mem_mb=MiscMem
     threads:
         MiscCPU
     log:
@@ -979,8 +967,7 @@ rule SECONDARY_NT_calculate_LCA:
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result")
     resources:
-        mem_mb=MMSeqsMem,
-        cpus=MMSeqsCPU
+        mem_mb=MMSeqsMem
     threads:
         MMSeqsCPU
     conda:
