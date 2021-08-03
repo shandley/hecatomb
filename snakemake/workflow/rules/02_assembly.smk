@@ -19,7 +19,7 @@ rule assembly_kmer_normalization:
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s14.kmer_normalization_{sample}.txt")
     log:
-        log=os.path.join(LOGS, "step_14", "s14_{sample}.log")
+        log=os.path.join(STDERR, "step_14", "s14_{sample}.log")
     resources:
         mem_mb=BBToolsMem
     threads:
@@ -54,7 +54,7 @@ rule individual_sample_assembly:
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s15.megahit_{sample}.txt")
     log:
-        log=os.path.join(LOGS, "step_15", "s15_{sample}.log")
+        log=os.path.join(STDERR, "step_15", "s15_{sample}.log")
     resources:
         mem_mb=MhitMem
     threads:
@@ -79,7 +79,7 @@ rule concatenate_contigs:
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s16.concatenate_assemblies.txt")
     log:
-        log=os.path.join(LOGS, "step_16", "s16.log")
+        log=os.path.join(STDERR, "step_16", "s16.log")
     shell:
         "cat {input} > {output}"
 
@@ -94,9 +94,9 @@ rule contig_reformating_and_stats:
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s17.contig_reformating.txt")
     log:
-        log1=os.path.join(LOGS, "step_17", "s17.rename.log"),
-        log2=os.path.join(LOGS, "step_17", "s17.reformat.log"),
-        log3=os.path.join(LOGS, "step_17", "s17.stats.log")
+        log1=os.path.join(STDERR, "step_17", "s17.rename.log"),
+        log2=os.path.join(STDERR, "step_17", "s17.reformat.log"),
+        log3=os.path.join(STDERR, "step_17", "s17.stats.log")
     resources:
         mem_mb=BBToolsMem
     threads:
@@ -133,8 +133,8 @@ rule population_assembly:
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s18.population_assembly.txt")
     log:
-        log1=os.path.join(LOGS, "step_18", "s18.flye.log"),
-        log2=os.path.join(LOGS, "step_18", "s18.stats.log")
+        log1=os.path.join(STDERR, "step_18", "s18.flye.log"),
+        log2=os.path.join(STDERR, "step_18", "s18.stats.log")
     resources:
         mem_mb=MhitMem
     threads:
@@ -175,7 +175,7 @@ rule coverage_calculations:
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s19.coverage_calculations_{sample}.txt")
     log:
-        log=os.path.join(LOGS,"step_16","s16_{sample}.log")
+        log=os.path.join(STDERR,"step_16","s16_{sample}.log")
     resources:
         mem_mb=BBToolsMem
     threads:
@@ -217,7 +217,7 @@ rule create_contig_count_table:
     benchmark:
         os.path.join(BENCH,"PREPROCESSING","s20.tpm_caluclator_{sample}.txt")
     log:
-        log=os.path.join(LOGS,"step_20","s20_{sample}.log")
+        log=os.path.join(STDERR,"step_20","s20_{sample}.log")
     shell:
         """
         ## TPM Calculator
@@ -260,7 +260,7 @@ rule concatentate_contig_count_tables:
     benchmark:
         os.path.join(BENCH,"PREPROCESSING","s21.concat_contig_count_tables.txt")
     log:
-        log=os.path.join(LOGS,"step_21","s21.log")
+        log=os.path.join(STDERR,"step_21","s21.log")
     shell:
         """
         cat {input} > {output};
