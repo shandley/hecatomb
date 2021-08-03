@@ -4,6 +4,7 @@ Hecatomb.smk to query target amino acid sequence database with reduced (seqtab) 
 History: This is based on [mmseqs_pviral_aa.sh](../base/mmseqs_pviral_aa.sh)
 
 Rob Edwards, March 2020
+Overhauled - Michael Roach, Q2/Q3 2021
 
 """
 
@@ -72,46 +73,68 @@ rule PRIMARY_AA_parsing:
       similarity to non-coding regions of viral genomes or to sequences not represented in the UniProt protein databases
     """
     input:
-        lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
+        # lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
         alnsort = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted"),
-        seqs = os.path.join(RESULTS, "seqtable.fasta")
+        seqs = os.path.join(RESULTS, "seqtable.fasta"),
+        # req = os.path.join(RESULTS, "seqtable.fasta.fai"),
     output:
-        allseq_ids = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.ids")),
-        tophit_ids = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted.ids")),
-        unclass_ids = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.ids")),
+        # allseq_ids = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.ids")),
+        # tophit_ids = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted.ids")),
+        # unclass_ids = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.ids")),
         class_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
         unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
-    conda:
-        "../envs/samtools.yaml"
+    # conda:
+    #     "../envs/samtools.yaml"
     resources:
         mem_mb=MiscMem
     threads:
         MiscCPU
-    shell: # make two FASTA files: classified sequences (MMSEQS_AA_PRIMARY_tophit_aln_sorted), unclassified (all minus classified seqs)
-        """
-        # Extract full entry ID list (all sequences)
-        # Note: the lca output table has one entry per input sequence
-        sort -k1 -n {input.lca} | cut -f1 > {output.allseq_ids};
-        
-        # Extract tophit entry ids
-        tail -n+2 {input.alnsort} | cut -f1 > {output.tophit_ids};
-        
-        # For the Primary search we want to take anything that looks potentially viral to the Secondary search
-        # There are several reasons in which a sequence may not be classified due to LCA issues (dealt with in subsequent rules
-        # Therefore, we will not rely on LCA to call potential viral hits
-        # And will just extract anything that looks potentially viral as a tophit
-        # LCA will be used more rigorously for the final calls after the Secondary search
-        
-        # Compare tophit ids to all ids to extract ids with no tophits to the virusDB
-        comm -23 <(sort {output.allseq_ids}) <(sort {output.tophit_ids}) | sort -n > {output.unclass_ids};
-        
-        # Extract classified sequences (Antyhing with a tophit. Just any signal it may be viral at this point)
-        xargs samtools faidx {input.seqs} -n 5000 < {output.tophit_ids} > {output.class_seqs};
-        
-        # Extract unclassified sequencess
-        xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
-    
-        """
+    run:
+        topHit = {}
+        for l in stream_tsv(input.alnsort):
+            topHit[l[0]] = 1
+        outClass = open(output.class_seqs, 'w')
+        outUnclass = open(output.unclass_seqs, 'w')
+        inFa = open(input.seqs,'r')
+        for line in inFa:
+            if line.startswith('>'):
+                id = line.strip().replace('>','')
+                seq = inFa.readline().strip()
+                try:
+                    topHit[id]
+                    outClass.write(f'>{id}\n{seq}\n')
+                except KeyError:
+                    outUnclass.write(f'>{id}\n{seq}\n')
+            else:
+                sys.stderr.write(f'malformed {input.seqs} file, complain to Mike.')
+                exit(1)
+        inFa.close()
+        outClass.close()
+        outUnclass.close()
+        # """
+        # # Extract full entry ID list (all sequences)
+        # # Note: the lca output table has one entry per input sequence
+        # sort -k1 -n {input.lca} | cut -f1 > {output.allseq_ids};
+        #
+        # # Extract tophit entry ids
+        # tail -n+2 {input.alnsort} | cut -f1 > {output.tophit_ids};
+        #
+        # # For the Primary search we want to take anything that looks potentially viral to the Secondary search
+        # # There are several reasons in which a sequence may not be classified due to LCA issues (dealt with in subsequent rules
+        # # Therefore, we will not rely on LCA to call potential viral hits
+        # # And will just extract anything that looks potentially viral as a tophit
+        # # LCA will be used more rigorously for the final calls after the Secondary search
+        #
+        # # Compare tophit ids to all ids to extract ids with no tophits to the virusDB
+        # comm -23 <(sort {output.allseq_ids}) <(sort {output.tophit_ids}) | sort -n > {output.unclass_ids};
+        #
+        # # Extract classified sequences (Antyhing with a tophit. Just any signal it may be viral at this point)
+        # xargs samtools faidx {input.seqs} -n 5000 < {output.tophit_ids} > {output.class_seqs};
+        #
+        # # Extract unclassified sequencess
+        # xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
+        #
+        # """
 
 rule PRIMARY_AA_summary:
     """Tabulate some summary statistics from the primary AA mmseqs search against virusDB
@@ -655,38 +678,56 @@ rule SECONDARY_AA_generate_output_table:
 rule SECONDARY_AA_parsing:
     """Parse out all sequences that remain unclassified following the Secondary AA search and refactoring."""
     input:
-        lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
-        translated_final = os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
+        #lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
+        bigtable = os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
         seqs = os.path.join(RESULTS, "seqtable.fasta")
     output:
-        allseq_ids = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.ids")),
-        class_ids = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_classified.ids")),
-        unclass_ids = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_unclassified.ids")),
+        #allseq_ids = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.ids")),
+        #class_ids = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_classified.ids")),
+        #unclass_ids = temporary(os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca_unclassified.ids")),
         unclass_seqs = os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta")
-    conda:
-        "../envs/samtools.yaml"
+    # conda:
+    #     "../envs/samtools.yaml"
     resources:
         mem_mb=MiscMem
     threads:
         MiscCPU
     log:
         os.path.join(STDERR, 'mmseqs', 'mmseqs_SECONDARY_aa_parsing.log')
-    shell:
-        """
-        # Extract full entry ID list (all sequences)
-        # Note: the lca output table has one entry per input sequence
-        # This is a list of all sequence id's that went into the primary search
-        cut -f1 {input.lca} > {output.allseq_ids};
-        
-        # Extract sequences IDs for everything that was classified as virus following the secondary AA search and refactoring
-        tail -n+2 {input.translated_final} | cut -f1 > {output.class_ids};
-        
-        # Compare all classified AA search sequences to input classified sequences to create a list of unclassified sequences
-        comm -23 <(sort {output.allseq_ids}) <(sort {output.class_ids}) | sort -n > {output.unclass_ids};
-        
-        # Extract unclassified sequences from seocndary translated search
-        xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
-        """
+    run:
+        virSeqs = {}
+        for l in stream_tsv(input.bigtable):
+            virSeqs[l[0]] = 1
+        inFa = open(input.seqs, 'r')
+        outFa = open(output.unclass_seqs, 'w')
+        for line in inFa:
+            if line.startswith('>'):
+                id = line.strip().replace('>','')
+                seq = inFa.readline().strip()
+                try:
+                    virSeqs[id]
+                except KeyError:
+                    outFa.write(f'>{id}\n{seq}\n')
+            else:
+                sys.stderr.write(f'malformed {input.seqs} file, complain to Mike')
+                exit(1)
+        outFa.close()
+        inFa.close()
+        # """
+        # # Extract full entry ID list (all sequences)
+        # # Note: the lca output table has one entry per input sequence
+        # # This is a list of all sequence id's that went into the primary search
+        # cut -f1 {input.lca} > {output.allseq_ids};
+        #
+        # # Extract sequences IDs for everything that was classified as virus following the secondary AA search and refactoring
+        # tail -n+2 {input.translated_final} | cut -f1 > {output.class_ids};
+        #
+        # # Compare all classified AA search sequences to input classified sequences to create a list of unclassified sequences
+        # comm -23 <(sort {output.allseq_ids}) <(sort {output.class_ids}) | sort -n > {output.unclass_ids};
+        #
+        # # Extract unclassified sequences from seocndary translated search
+        # xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
+        # """
         
 rule PRIMARY_NT_taxonomic_assignment:
     """Primary nucleotide search of unclassified viral-like sequences from aa search"""
@@ -808,36 +849,58 @@ rule PRIMARY_NT_parsing:
         seqs = os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta"),
         align = os.path.join(PRIMARY_NT_OUT, "results", "result.m8")
     output:
-        allseq_ids = temporary(os.path.join(PRIMARY_NT_OUT, "all_input.ids")),
-        class_ids = temporary(os.path.join(PRIMARY_NT_OUT, "primary_classified.ids")),
+        # allseq_ids = temporary(os.path.join(PRIMARY_NT_OUT, "all_input.ids")),
+        # class_ids = temporary(os.path.join(PRIMARY_NT_OUT, "primary_classified.ids")),
         class_seqs = os.path.join(PRIMARY_NT_OUT, "classified_seqs.fasta"),
-        unclass_ids = temporary(os.path.join(PRIMARY_NT_OUT, "unclassified.ids")),
+        # unclass_ids = temporary(os.path.join(PRIMARY_NT_OUT, "unclassified.ids")),
         unclass_seqs = os.path.join(PRIMARY_NT_OUT, "unclassified_seqs.fasta")
     resources:
         mem_mb=MiscMem
     threads:
         MiscCPU
-    conda:
-        "../envs/samtools.yaml"
-    log:
-        os.path.join(STDERR, 'MMSEQS', 'mmseqs_PRIMARY_nt_parsing.log')
-    shell:
-        """
-        # Extract full entry ID list (all sequences)
-        seqkit seq -n {input.seqs} > {output.allseq_ids};
-        
-        # Extract primary nt hit ids
-        cut -f1 {input.align} > {output.class_ids};
-        
-        # Extract unclassified ids
-        comm -23 <(sort {output.allseq_ids}) <(sort {output.class_ids}) > {output.unclass_ids};
-        
-        # Extract classified sequences from primary untranslated search
-        xargs samtools faidx {input.seqs} -n 5000 < {output.class_ids} > {output.class_seqs};
-        
-        # Extract unclassified sequences from seocndary translated search
-        xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
-        """
+    # conda:
+    #     "../envs/samtools.yaml"
+    # log:
+    #     os.path.join(STDERR, 'MMSEQS', 'mmseqs_PRIMARY_nt_parsing.log')
+    run:
+        hit = {}
+        inAln = open(input.align,'r')
+        for l in stream_tsv(input.align):
+            hit[l[0]] = 1
+        inFa = open(input.seqs, 'r')
+        outClass = open(output.class_seqs, 'w')
+        outUnclass = open(output.unclass_seqs, 'w')
+        for line in inFa:
+            if line.startswith('>'):
+                id = line.strip().replace('>','')
+                seq = inFa.readline().strip()
+                try:
+                    hit[id]
+                    outClass.write(f'>{id}\n{seq}\n')
+                except KeyError:
+                    outUnclass.write(f'>{id}\n{seq}\n')
+            else:
+                sys.stderr.write(f'malformed {input.seqs} file, complain to Mike')
+                exit(1)
+        inFa.close()
+        outClass.close()
+        outUnclass.close()
+        # """
+        # # Extract full entry ID list (all sequences)
+        # seqkit seq -n {input.seqs} > {output.allseq_ids};
+        #
+        # # Extract primary nt hit ids
+        # cut -f1 {input.align} > {output.class_ids};
+        #
+        # # Extract unclassified ids
+        # comm -23 <(sort {output.allseq_ids}) <(sort {output.class_ids}) > {output.unclass_ids};
+        #
+        # # Extract classified sequences from primary untranslated search
+        # xargs samtools faidx {input.seqs} -n 5000 < {output.class_ids} > {output.class_seqs};
+        #
+        # # Extract unclassified sequences from seocndary translated search
+        # xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
+        # """
 
 rule SECONDARY_NT_taxonomic_assignment:
     """Secondary nucleotide search of viral hits from primary nucleotide search"""
