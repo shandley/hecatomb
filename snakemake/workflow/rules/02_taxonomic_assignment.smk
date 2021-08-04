@@ -136,121 +136,121 @@ rule PRIMARY_AA_parsing:
         #
         # """
 
-rule PRIMARY_AA_summary:
-    """Tabulate some summary statistics from the primary AA mmseqs search against virusDB
-    
-    - Number of input sequences: seqtable.fasta
-    - Number and % of sequences classified as having a viral lineage: MMSEQS_AA_PRIMARY_classified.fasta
-    - Number and % of sequences having no inidication of having a viral lineage: MMSEQS_AA_PRIMARY_unclassified.fasta
-    - Number and % of sequences with a viral LCA lineage
-    - Number and % of sequences with a viral tophit lineage
-    - Number and % of seqeunces with a TopHit lineage but lacking an LCA lineage
-    - Potentially more to be added
-    """
-    input:
-        lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
-        tophit = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
-        seqs = os.path.join(RESULTS, "seqtable.fasta"),
-        class_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
-        unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
-    output:
-        virord = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_order_summary.tsv"),
-        virfam = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_family_summary.tsv"),
-        virgen = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_genus_summary.tsv"),
-        virspe = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_species_summary.tsv"),
-        tophit_only_ids = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_only.ids")),
-        tophit_only_tsv = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_only.tsv"),
-        tmpsummary = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_summary.tmp")),
-        tophit_broken = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_broken_taxID.tsv"),
-        summary = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_summary.tsv")
-    conda:
-        "../envs/seqkit.yaml"
-    resources:
-        mem_mb=MiscMem
-    threads:
-        MiscCPU
-    shell:
-        """
-        # Viral order summary
-        grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$4 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Order_Frequency' > {output.virord};
-        
-        # Viral family summary
-        grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$5 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Family_Frequency' > {output.virfam};
-        
-        # Viral genus summary
-        grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$6 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Order_Frequency' > {output.virgen};
-        
-        # Viral species summary
-        grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$7 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Order_Frequency' > {output.virspe};
-        
-        ## Summary table variables
-        # Calculate number of input sequences (INPUT) from seqtable
-        INPUT=$(grep -c ">" {input.seqs})
-        
-        # Calculate the number of LCA calls with viral lineage
-        LCA_ALL=$(wc -l < {input.lca})
-        pLCA_ALL=$(echo "scale=4 ; 100*($LCA_ALL / $INPUT)" | bc)
-        LCA_VIRAL=$(grep -c "d_Viruses" {input.lca})
-        pLCA_VIRAL=$(echo "scale=4 ; 100*($LCA_VIRAL / $INPUT)" | bc)
-        LCA_NONVIRAL=$(grep -cv "d_Viruses" {input.lca})
-        pLCA_NONVIRAL=$(echo "scale=4 ; 100*($LCA_NONVIRAL / $INPUT)" | bc)
-        
-        # Calculate the number of LCA calls that went to the virus root
-        LCA_VIRAL_ROOT=$(awk '$2 == 10239' {input.lca} | wc -l)
-        pLCA_VIRAL_ROOT=$(echo "scale=4 ; 100*($LCA_VIRAL_ROOT / $LCA_VIRAL)" | bc)
-        
-        # Calculate the number of tophits with complete viral lineages
-        TH_ALL=$(wc -l < {input.tophit})
-        pTH_ALL=$(echo "scale=4 ; 100*($TH_ALL / $INPUT)" | bc)
-        TH_VIRAL=$(grep -c "d_Viruses" {input.tophit})
-        pTH_VIRAL=$(echo "scale=4 ; 100*($TH_VIRAL / $INPUT)" | bc)
-        TH_NONVIRAL=$(grep -cv "d_Viruses" {input.tophit})
-        pTH_NONVIRAL=$(echo "scale=6 ; 100*($TH_NONVIRAL / $INPUT)" | bc)
-        
-        # Identify sequences with a tophit, but lost in the lca
-        comm -13 <(grep "d_Viruses" {input.lca} | cut -f1 | sort) <(cut -f1 {input.tophit} | sort) > {output.tophit_only_ids};
-        csvtk join -f1 {output.tophit_only_ids} {input.tophit} -H -t -T > {output.tophit_only_tsv};
-            
-        TH_ONLY=$(wc -l < {output.tophit_only_tsv})
-        pTH_ONLY=$(echo "scale=10 ; 100*($TH_ONLY / $INPUT)" | bc)
-        
-        # Create list of 'broken" NCBI taxon IDs in the tophit table
-        # Broken = lineage information unavailable for this taxon ID (deleted, moved, etc.)
-        grep -v "d_Viruses" {input.tophit} | \
-        cut -f20 | \
-        csvtk freq -H -n -r -T -t | \
-        sed '1i taxID\tFrequency' > {output.tophit_broken};
-        
-        # Calculate number of classified sequences
-        CLASS=$(grep -c ">" {input.class_seqs})
-        
-        # Calculate number of unclassified sequences
-        UNCLASS=$(grep -c ">" {input.unclass_seqs})
-        
-        # Calculate % of classified (pCLASS) and (pUNCLASS) unclassified sequences
-        pCLASS=$(echo "scale=4 ; 100*($CLASS / $INPUT)" | bc)
-        pUNCLASS=$(echo "scale=4 ; 100*($UNCLASS / $INPUT)" | bc)
-        
-        ## Create summary table
-        rm -f {output.tmpsummary};
-        touch {output.tmpsummary};
-        
-        printf "PARAMATER\tCOUNT\tPERCENT\tNOTES\n" >> {output.tmpsummary};
-        printf "Input\t%d\t%s\t%s\n" "$INPUT" "NA" "Sequences input into primary mmseqs2 translated search (# of sequences in seqtable.fasta)" >> {output.tmpsummary};
-        printf "LCA entries \t%d\t%.4f\t%s\n" "$LCA_ALL" "$pLCA_ALL" "# of LCA entries" >> {output.tmpsummary};
-        printf "LCA Viral\t%d\t%.4f\t%s\n" "$LCA_VIRAL" "$pLCA_VIRAL" "Sequences with a viral LCA lineage" >> {output.tmpsummary};
-        printf "LCA Nonviral\t%d\t%.4f\t%s\n" "$LCA_NONVIRAL" "$pLCA_NONVIRAL" "Sequences without a viral LCA lineage" >> {output.tmpsummary};
-        printf "LCA Virus-Root LCA\t%d\t%.4f\t%s\n" "$LCA_VIRAL_ROOT" "$pLCA_VIRAL_ROOT" "Sequences classified to LCA virus-root taxonomy" >> {output.tmpsummary};
-        printf "LCA Nonviral with a TopHit\t%d\t%.4f\t%s\n" "$TH_ONLY" "$pTH_ONLY" "Nonviral LCA but with a viral TopHit (listed in: MMSEQS_AA_PRIMARY_tophit_only.tsv)" >> {output.tmpsummary};
-        printf "TopHit entries \t%d\t%.4f\t%s\n" "$TH_ALL" "$pTH_ALL" "# of TopHit entries" >> {output.tmpsummary};
-        printf "TopHit Viral\t%d\t%.4f\t%s\n" "$TH_VIRAL" "$pTH_VIRAL" "Sequences with a tophit viral lineage" >> {output.tmpsummary};
-        printf "TopHit with broken taxID\t%d\t%.4f\t%s\n" "$TH_NONVIRAL" "$pTH_NONVIRAL" "Sequences with broken lineage information in the reference database" >> {output.tmpsummary};
-        printf "Classified\t%d\t%.4f\t%s\n" "$CLASS" "$pCLASS" "Sequences classified with a viral lineage to be checked in a secondary mmseqs search against a trans-kingdom database" >> {output.tmpsummary};
-        printf "Unclassified\t%d\t%.4f\t%s\n" "$UNCLASS" "$pUNCLASS" "Sequences not classified with a viral lineage. Will be checked in a nt-vs-nt search" >> {output.tmpsummary};
- 
-        # Prettify
-        csvtk pretty -t {output.tmpsummary} > {output.summary};
-        """
+# rule PRIMARY_AA_summary:
+#     """Tabulate some summary statistics from the primary AA mmseqs search against virusDB
+#
+#     - Number of input sequences: seqtable.fasta
+#     - Number and % of sequences classified as having a viral lineage: MMSEQS_AA_PRIMARY_classified.fasta
+#     - Number and % of sequences having no inidication of having a viral lineage: MMSEQS_AA_PRIMARY_unclassified.fasta
+#     - Number and % of sequences with a viral LCA lineage
+#     - Number and % of sequences with a viral tophit lineage
+#     - Number and % of seqeunces with a TopHit lineage but lacking an LCA lineage
+#     - Potentially more to be added
+#     """
+#     input:
+#         lca = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_lca.tsv"),
+#         tophit = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
+#         seqs = os.path.join(RESULTS, "seqtable.fasta"),
+#         class_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
+#         unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
+#     output:
+#         virord = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_order_summary.tsv"),
+#         virfam = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_family_summary.tsv"),
+#         virgen = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_genus_summary.tsv"),
+#         virspe = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_virus_species_summary.tsv"),
+#         tophit_only_ids = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_only.ids")),
+#         tophit_only_tsv = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_only.tsv"),
+#         tmpsummary = temporary(os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_summary.tmp")),
+#         tophit_broken = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_broken_taxID.tsv"),
+#         summary = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_summary.tsv")
+#     conda:
+#         "../envs/seqkit.yaml"
+#     resources:
+#         mem_mb=MiscMem
+#     threads:
+#         MiscCPU
+#     shell:
+#         """
+#         # Viral order summary
+#         grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$4 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Order_Frequency' > {output.virord};
+#
+#         # Viral family summary
+#         grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$5 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Family_Frequency' > {output.virfam};
+#
+#         # Viral genus summary
+#         grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$6 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Order_Frequency' > {output.virgen};
+#
+#         # Viral species summary
+#         grep "d_Viruses" {input.lca} | cut -f5 | awk -F ';' '{{ print$7 }}' | csvtk freq -H -n -r -T -t | sed '1i Family\tPrimary_AA_Order_Frequency' > {output.virspe};
+#
+#         ## Summary table variables
+#         # Calculate number of input sequences (INPUT) from seqtable
+#         INPUT=$(grep -c ">" {input.seqs})
+#
+#         # Calculate the number of LCA calls with viral lineage
+#         LCA_ALL=$(wc -l < {input.lca})
+#         pLCA_ALL=$(echo "scale=4 ; 100*($LCA_ALL / $INPUT)" | bc)
+#         LCA_VIRAL=$(grep -c "d_Viruses" {input.lca})
+#         pLCA_VIRAL=$(echo "scale=4 ; 100*($LCA_VIRAL / $INPUT)" | bc)
+#         LCA_NONVIRAL=$(grep -cv "d_Viruses" {input.lca})
+#         pLCA_NONVIRAL=$(echo "scale=4 ; 100*($LCA_NONVIRAL / $INPUT)" | bc)
+#
+#         # Calculate the number of LCA calls that went to the virus root
+#         LCA_VIRAL_ROOT=$(awk '$2 == 10239' {input.lca} | wc -l)
+#         pLCA_VIRAL_ROOT=$(echo "scale=4 ; 100*($LCA_VIRAL_ROOT / $LCA_VIRAL)" | bc)
+#
+#         # Calculate the number of tophits with complete viral lineages
+#         TH_ALL=$(wc -l < {input.tophit})
+#         pTH_ALL=$(echo "scale=4 ; 100*($TH_ALL / $INPUT)" | bc)
+#         TH_VIRAL=$(grep -c "d_Viruses" {input.tophit})
+#         pTH_VIRAL=$(echo "scale=4 ; 100*($TH_VIRAL / $INPUT)" | bc)
+#         TH_NONVIRAL=$(grep -cv "d_Viruses" {input.tophit})
+#         pTH_NONVIRAL=$(echo "scale=6 ; 100*($TH_NONVIRAL / $INPUT)" | bc)
+#
+#         # Identify sequences with a tophit, but lost in the lca
+#         comm -13 <(grep "d_Viruses" {input.lca} | cut -f1 | sort) <(cut -f1 {input.tophit} | sort) > {output.tophit_only_ids};
+#         csvtk join -f1 {output.tophit_only_ids} {input.tophit} -H -t -T > {output.tophit_only_tsv};
+#
+#         TH_ONLY=$(wc -l < {output.tophit_only_tsv})
+#         pTH_ONLY=$(echo "scale=10 ; 100*($TH_ONLY / $INPUT)" | bc)
+#
+#         # Create list of 'broken" NCBI taxon IDs in the tophit table
+#         # Broken = lineage information unavailable for this taxon ID (deleted, moved, etc.)
+#         grep -v "d_Viruses" {input.tophit} | \
+#         cut -f20 | \
+#         csvtk freq -H -n -r -T -t | \
+#         sed '1i taxID\tFrequency' > {output.tophit_broken};
+#
+#         # Calculate number of classified sequences
+#         CLASS=$(grep -c ">" {input.class_seqs})
+#
+#         # Calculate number of unclassified sequences
+#         UNCLASS=$(grep -c ">" {input.unclass_seqs})
+#
+#         # Calculate % of classified (pCLASS) and (pUNCLASS) unclassified sequences
+#         pCLASS=$(echo "scale=4 ; 100*($CLASS / $INPUT)" | bc)
+#         pUNCLASS=$(echo "scale=4 ; 100*($UNCLASS / $INPUT)" | bc)
+#
+#         ## Create summary table
+#         rm -f {output.tmpsummary};
+#         touch {output.tmpsummary};
+#
+#         printf "PARAMATER\tCOUNT\tPERCENT\tNOTES\n" >> {output.tmpsummary};
+#         printf "Input\t%d\t%s\t%s\n" "$INPUT" "NA" "Sequences input into primary mmseqs2 translated search (# of sequences in seqtable.fasta)" >> {output.tmpsummary};
+#         printf "LCA entries \t%d\t%.4f\t%s\n" "$LCA_ALL" "$pLCA_ALL" "# of LCA entries" >> {output.tmpsummary};
+#         printf "LCA Viral\t%d\t%.4f\t%s\n" "$LCA_VIRAL" "$pLCA_VIRAL" "Sequences with a viral LCA lineage" >> {output.tmpsummary};
+#         printf "LCA Nonviral\t%d\t%.4f\t%s\n" "$LCA_NONVIRAL" "$pLCA_NONVIRAL" "Sequences without a viral LCA lineage" >> {output.tmpsummary};
+#         printf "LCA Virus-Root LCA\t%d\t%.4f\t%s\n" "$LCA_VIRAL_ROOT" "$pLCA_VIRAL_ROOT" "Sequences classified to LCA virus-root taxonomy" >> {output.tmpsummary};
+#         printf "LCA Nonviral with a TopHit\t%d\t%.4f\t%s\n" "$TH_ONLY" "$pTH_ONLY" "Nonviral LCA but with a viral TopHit (listed in: MMSEQS_AA_PRIMARY_tophit_only.tsv)" >> {output.tmpsummary};
+#         printf "TopHit entries \t%d\t%.4f\t%s\n" "$TH_ALL" "$pTH_ALL" "# of TopHit entries" >> {output.tmpsummary};
+#         printf "TopHit Viral\t%d\t%.4f\t%s\n" "$TH_VIRAL" "$pTH_VIRAL" "Sequences with a tophit viral lineage" >> {output.tmpsummary};
+#         printf "TopHit with broken taxID\t%d\t%.4f\t%s\n" "$TH_NONVIRAL" "$pTH_NONVIRAL" "Sequences with broken lineage information in the reference database" >> {output.tmpsummary};
+#         printf "Classified\t%d\t%.4f\t%s\n" "$CLASS" "$pCLASS" "Sequences classified with a viral lineage to be checked in a secondary mmseqs search against a trans-kingdom database" >> {output.tmpsummary};
+#         printf "Unclassified\t%d\t%.4f\t%s\n" "$UNCLASS" "$pUNCLASS" "Sequences not classified with a viral lineage. Will be checked in a nt-vs-nt search" >> {output.tmpsummary};
+#
+#         # Prettify
+#         csvtk pretty -t {output.tmpsummary} > {output.summary};
+#         """
 
 rule SECONDARY_AA_taxonomy_assignment:
     """Check taxonomic assignments in MMSEQS_AA_PRIMARY_classified.fasta using mmseqs2
@@ -550,9 +550,12 @@ rule SECONDARY_AA_refactor_finalize:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_refactor_final.log")
     shell:
         """
-        cut --complement -f2 {input.lca} | taxonkit reformat --data-dir {input.db} -i 2 \
-            -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank | \
-            cut --complement -f2 > {output.lca_reformated};
+        cut -f1,2 {input.lca} \
+            | taxonkit lineage --data-dir {input.db} -i 2 \
+            | taxonkit reformat --data-dir {input.db} -i 3 \
+            -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank \
+            | cut --complement -f3 \
+            > {output.lca_reformated};
         """
         # # Combine TopHit alignment information with updated LCA lineage information
         # cut --complement -f21- {input.tophit_updated} > {output.tophit_updated_filt};
@@ -603,9 +606,9 @@ rule SECONDARY_AA_generate_output_table:
         # lca_10239 = os.path.join(SECONDARY_AA_OUT,"lca_10239.ids"),
         # lca_0 = os.path.join(SECONDARY_AA_OUT, "lca_0.ids"),
         # lca_1 = os.path.join(SECONDARY_AA_OUT, "lca_1.ids"),
-        aln = os.path.join(SECONDARY_AA_OUT,"MMSEQS_AA_SECONDARY_tophit_aln"),
+        aln = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.reformated"),
-        top = os.path.join(SECONDARY_AA_OUT,"tophit.lineage.reformated"),
+        top = os.path.join(SECONDARY_AA_OUT, "tophit.lineage.reformated"),
     output:
         os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
     run:
