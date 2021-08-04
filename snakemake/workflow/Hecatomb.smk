@@ -180,8 +180,8 @@ include: "rules/00_functions.smk"
 include: "rules/00_targets.smk"
 include: "rules/01_preprocessing.smk"
 include: "rules/02_assembly.smk"
-include: "rules/02_taxonomic_assignment.smk",
-#include: "rules/03_compile_results.smk"
+include: "rules/02_taxonomic_assignment.smk"
+include: "rules/03_mapping.smk"
 
 
 rule all:
@@ -198,7 +198,6 @@ rule all:
         ## Primary untranslated (nt-to-nt) search
         PrimarySearchFilesNT,
         ## Secondary untranslated (nt-to-nt) search
-        SecondarySearchFilesNT
-        
-        
-
+        SecondarySearchFilesNT,
+        ## Mapping files (read-based contig id)
+        MappingFiles

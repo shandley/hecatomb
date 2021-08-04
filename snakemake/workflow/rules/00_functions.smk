@@ -16,7 +16,23 @@ rule fasta_index:
         mem_mb=16000
     shell:
         """
-        samtools faidx {input} -o {output}
+        samtools faidx {input}
+        """
+
+rule bam_index:
+    """Index a .bam file for rapid access with samtools."""
+    input:
+        "{file}.bam"
+    output:
+        "{file}.bam.bai"
+    conda:
+        "../envs/samtools.yaml"
+    resources:
+        cpus=2,
+        mem_mb=16000
+    shell:
+        """
+        samtools index {input}
         """
 
 rule calculate_gc:

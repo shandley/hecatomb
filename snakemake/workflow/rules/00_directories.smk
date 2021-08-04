@@ -39,9 +39,10 @@ RESULTS = os.path.join(OUTPUT, 'RESULTS')
 WORKDIR = os.path.join(OUTPUT, 'PROCESSING')
 TMPDIR = os.path.join(WORKDIR, 'TMP')
 STDERR = os.path.join(OUTPUT,'STDERR')
-BENCH = os.path.join(WORKDIR, 'BENCHMARKS')
+BENCH = os.path.join(OUTPUT, 'BENCHMARKS')
 QC = os.path.join(WORKDIR,'QC')
 ASSEMBLY = os.path.join(WORKDIR,'ASSEMBLY')
+MAPPING = os.path.join(WORKDIR, 'MAPPING')
 STATS = os.path.join(WORKDIR,'STATS')
 
 # MMSEQS OUTPUT DIRs

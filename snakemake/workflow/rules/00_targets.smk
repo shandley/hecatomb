@@ -111,3 +111,10 @@ SecondarySearchFilesNT = [
     os.path.join(SECONDARY_NT_OUT, "results","secondary_nt_lca.tsv"),
     os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv"),
     os.path.join(RESULTS, "bigtable.tsv")]
+
+# Mapping files
+MappingFiles = [
+    os.path.join(MAPPING, "assembly.seqtable.bam"),
+    os.path.join(MAPPING, "assembly.seqtable.bam.bai"),
+    os.path.join(RESULTS, "contigSeqTable.tsv")
+]
