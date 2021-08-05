@@ -66,6 +66,7 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('command', choices=['install', 'run', 'listHosts', 'addHost'])
 parser.add_argument('--reads', help='Directory containing seq data')
+parser.add_argument('--assembly', help='Optionally perform an assembly', action='store_true')
 parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
 parser.add_argument('--host', help='Host name for contaminant removal', default='human')
 parser.add_argument('--hostfa', help='Host reference (when adding a new host genome)')
@@ -179,7 +180,7 @@ def run():
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={args.reads} Host={args.host} Output={args.results}'
+    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={args.reads} Host={args.host} Output={args.results} Assembly={args.assembly}'
     successMsg = "Hecatomb finished successfully\n"
     runSnakeSys(runCommand, successMsg)
     return

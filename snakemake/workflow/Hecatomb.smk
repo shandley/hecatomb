@@ -31,6 +31,7 @@ configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 ### LAUNCHER-CONTROLLED CONFIG--"Reads" MUST BE PASSED TO SNAKEMAKE
 READDIR = config['Reads']
 HOST = config['Host']
+doAssembly = config['Assembly']
 
 
 ### RESOURCE CONFIG
