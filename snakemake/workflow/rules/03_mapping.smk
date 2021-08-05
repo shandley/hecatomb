@@ -66,7 +66,7 @@ rule contig_read_taxonomy:
                                 str(read.reference_length),
                                 str(read.mapping_quality)])
             try:
-                taxOut = tax[seqID]
+                taxOut = tax[read.query_name]
             except KeyError:
                 taxOut = '\t'.join((['NA'] * 8))
             outFH.write(f'{infOut}\t{taxOut}\n')
