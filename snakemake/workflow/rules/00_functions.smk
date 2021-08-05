@@ -10,10 +10,11 @@ rule fasta_index:
     output:
         "{file}.fasta.fai"
     conda:
-        "../envs/samtools.yaml"
+        os.path.join("..", "envs", "samtools.yaml")
+    threads:
+        MiscCPU
     resources:
-        cpus=2,
-        mem_mb=16000
+        mem_mb=MiscMem
     shell:
         """
         samtools faidx {input}
@@ -26,10 +27,11 @@ rule bam_index:
     output:
         "{file}.bam.bai"
     conda:
-        "../envs/samtools.yaml"
+        os.path.join("..", "envs", "samtools.yaml")
+    threads:
+        MiscCPU
     resources:
-        cpus=2,
-        mem_mb=16000
+        mem_mb=MiscMem
     shell:
         """
         samtools index {input}
@@ -45,13 +47,16 @@ rule calculate_gc:
         os.path.join(BENCH,"calculate_gc.{file}.txt")
     log:
         os.path.join(STDERR,"calculate_gc.{file}.log")
-    resources:
-        cpus=2,
-        mem_mb=16000
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join("..", "envs", "bbmap.yaml")
+    threads:
+        MiscCPU
+    resources:
+        mem_mb=MiscMem
     shell:
-        "countgc.sh in={input} format=2 ow=t > {output} 2> {log}"
+        """
+        countgc.sh in={input} format=2 ow=t > {output} 2> {log}
+        """
 
 rule calculate_tet_freq:
     """Step 13b: Calculate tetramer frequency
@@ -66,11 +71,12 @@ rule calculate_tet_freq:
         os.path.join(BENCH,"calculate_tet.{file}.txt")
     log:
         os.path.join(STDERR,"calculate_tet.{file}.log")
-    resources:
-        cpus=2,
-        mem_mb=16000
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join("..", "envs", "bbmap.yaml")
+    threads:
+        MiscCPU
+    resources:
+        mem_mb=MiscMem
     shell:
         """
         tetramerfreq.sh in={input} w=0 ow=t \
@@ -87,9 +93,10 @@ rule seq_properties_table:
         os.path.join(RESULTS,"{file}.properties.tsv")
     benchmark:
         os.path.join(BENCH,"seq_properties_table.{file}.txt")
+    threads:
+        MiscCPU
     resources:
-        cpus=2,
-        mem_mb=16000
+        mem_mb=MiscMem
     run:
         gc = {}
         for l in stream_tsv(input.gc):
