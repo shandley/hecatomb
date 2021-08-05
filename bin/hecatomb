@@ -222,7 +222,7 @@ def listHosts():
         DBDIR = config['Databases']
     # print host genomes
     sys.stdout.write('Available host genomes:\n')
-    HOSTPATH = os.path.join(DBDIR, "host")
+    HOSTPATH = os.path.join(DBDIR, "host", "*")
     hostFastas = [os.path.basename(x) for x in glob.glob(HOSTPATH)]
     for h in hostFastas:
         # h = h.replace('_virus_masked.fasta','')
