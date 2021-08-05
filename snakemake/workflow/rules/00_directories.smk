@@ -28,8 +28,8 @@ HOSTPATH = os.path.join(DBDIR, "host")
 
 
 ### MMSEQS DBs
-UNIVIRDB = os.path.join(DBDIR, "proteins", "virus_primary_aa")
-UNIREF50VIR = os.path.join(DBDIR, "proteins", "virus_secondary_aa")
+UNIVIRDB = os.path.join(DBDIR, "aa", "virus_primary_aa")
+UNIREF50VIR = os.path.join(DBDIR, "aa", "virus_secondary_aa")
 NCBIVIRDB = os.path.join(DBDIR, "nt", "virus_primary_nt")
 POLYMICRODB = os.path.join(DBDIR, "nt", "virus_secondary_nt")
 

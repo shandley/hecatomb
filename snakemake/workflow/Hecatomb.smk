@@ -49,7 +49,7 @@ include: "rules/00_directories.smk"
 
 
 ### HOST ORGANISM
-HOSTFA = os.path.join(HOSTPATH, "masked_ref.fa.gz")
+HOSTFA = os.path.join(HOSTPATH, HOST, "masked_ref.fa.gz")
 HOSTINDEX = HOSTFA + '.idx'
 
 
