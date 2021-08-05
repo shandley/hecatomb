@@ -22,8 +22,9 @@ else:
 #BACPATH = os.path.join(DBDIR, "bac_giant_unique_species")
 CONPATH = os.path.join(DBDIR, "contaminants")
 #BACBT2 = os.path.join(DBDIR, "bac_giant_unique_species", "bac_uniquespecies_giant.masked_Ns_removed")
-TAX = os.path.join(DBDIR, "taxonomy")
+TAX = os.path.join(DBDIR, "tax")
 TABLES = os.path.join(DBDIR, "tables")
+HOSTPATH = os.path.join(DBDIR, "host")
 
 
 ### MMSEQS DBs

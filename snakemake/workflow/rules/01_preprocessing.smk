@@ -226,7 +226,7 @@ rule remove_low_quality:
 rule create_host_index:
     """Create the minimap2 index for mapping to the host; this will save time."""
     input:
-        HOSTPATH,
+        HOSTFA,
         # os.path.join(CONPATH, "line_sine.fasta") ########### TODO: check implementation
     output:
         HOSTINDEX

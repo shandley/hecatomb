@@ -49,8 +49,8 @@ include: "rules/00_directories.smk"
 
 
 ### HOST ORGANISM
-HOSTPATH = os.path.join(DBDIR, "hosts", f"{HOST}_virus_masked.fasta")
-HOSTINDEX = os.path.join(DBDIR, "hosts", f"{HOST}_virus_masked.fasta.idx")
+HOSTFA = os.path.join(HOSTPATH, "masked_ref.fa.gz")
+HOSTINDEX = HOSTFA + '.idx'
 
 
 # PREFLIGHT CHECKS

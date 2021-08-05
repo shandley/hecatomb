@@ -34,7 +34,8 @@ rule mask_host:
         ref = hostFasta,
         sam = f'{hostFasta}.sam.gz'
     output:
-        hostOutFasta
+        fa = temp(os.path.join(WORKDIR, 'tmpHost.fa')),
+        gz = hostOutFasta
     conda:
         "../envs/bbmap.yaml"
     resources:
@@ -44,7 +45,8 @@ rule mask_host:
         os.path.join(LOGDIR,'bbmask.log')
     shell:
         """
-        bbmask.sh in={input.ref} out={output} \
+        bbmask.sh in={input.ref} out={output.fa} \
             entropy={entropy} sam={input.sam} ow=t \
             threads={resources.cpus} -Xmx{resources.mem_mb}m
+        gzip -c {output.fa} > {output.gz}
         """

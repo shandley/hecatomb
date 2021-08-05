@@ -17,7 +17,7 @@ configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 include: "rules/00_directories.smk"
 
 # REQUIRED CONFIG
-virShred = os.path.join(DBDIR, 'hosts', 'virus_shred.fasta.gz')
+virShred = os.path.join(HOSTPATH, 'virus_shred.fasta.gz')
 hostFasta = config['HostFa']
 hostName = config['HostName']
 entropy = config['Entropy']
@@ -28,7 +28,8 @@ if not os.path.exists(LOGDIR):
     os.mkdir(LOGDIR)
 
 # OUTPUT HOST FASTA
-hostOutFasta = os.path.join(DBDIR, 'hosts', f'{hostName}_virus_masked.fasta')
+hostOutDir = os.path.join(DBDIR, 'hosts', hostName)
+hostOutFasta = os.path.join(hostOutDir, 'masked_ref.fa.gz')
 
 # IMPORT THE RULES
 include: "rules/a0_mask_host.smk"

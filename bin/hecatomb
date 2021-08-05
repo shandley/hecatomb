@@ -71,7 +71,7 @@ parser.add_argument('--host', help='Host name for contaminant removal', default=
 parser.add_argument('--hostfa', help='Host reference (when adding a new host genome)')
 parser.add_argument('--entropy', help='Host masking entropy (when adding a new host genome)', default='0.7')
 parser.add_argument('--profile', help='Snakemake profile for use on cluster')
-parser.add_argument('--threads', help='Number of threads to use (ignored if using --profile)', default='16')
+parser.add_argument('--threads', help='Number of threads to use (ignored if using --profile)', default='32')
 parser.add_argument('--snake',
                     help='Pass one or more commands to Snakemake e.g. --snake=--dry-run',
                     action='append')
@@ -222,10 +222,10 @@ def listHosts():
         DBDIR = config['Databases']
     # print host genomes
     sys.stdout.write('Available host genomes:\n')
-    HOSTPATH = os.path.join(DBDIR, "hosts")
-    hostFastas = [os.path.basename(x) for x in glob.glob(os.path.join(HOSTPATH, '*_virus_masked.fasta'))]
+    HOSTPATH = os.path.join(DBDIR, "host")
+    hostFastas = [os.path.basename(x) for x in glob.glob(HOSTPATH)]
     for h in hostFastas:
-        h = h.replace('_virus_masked.fasta','')
+        # h = h.replace('_virus_masked.fasta','')
         sys.stdout.write(f'{h}\n')
     sys.stdout.write('\n')
     return
