@@ -120,5 +120,7 @@ SecondarySearchFilesNT = [
     os.path.join(SECONDARY_NT_OUT, "results","lca.lineage"),
     os.path.join(SECONDARY_NT_OUT, "results","secondary_nt_lca.tsv"),
     os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv"),
-    os.path.join(RESULTS, "bigtable.tsv")]
+    os.path.join(RESULTS, "bigtable.tsv"),
+    os.path.join(RESULTS, "kronaText.tsv"),
+    os.path.join(RESULTS, "kronaPlot.html")]
 

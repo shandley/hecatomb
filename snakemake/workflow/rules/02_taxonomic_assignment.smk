@@ -1149,3 +1149,31 @@ rule combine_AA_NT:
         cat {input.aa} > {output};
         tail -n+2 {input.nt} >> {output};
         """
+
+rule krona_text_format:
+    input:
+        os.path.join(RESULTS, "bigtable.tsv")
+    output:
+        os.path.join(RESULTS, "kronaText.tsv")
+    shell:
+        """
+        tail -n+2 {input} \
+            | cut -f22-27 \
+            | sort \
+            | uniq -c \
+            | sed 's/^\s*//' \
+            | sed 's/ /\t/' \
+            > {output}
+        """
+
+rule krona_plot:
+    input:
+        os.path.join(RESULTS,"kronaText.tsv")
+    output:
+        os.path.join(RESULTS, "kronaPlot.html")
+    conda:
+        os.path.join('../', 'envs', 'krona.yaml')
+    shell:
+        """
+        ktImportText {input} -o {output}
+        """
