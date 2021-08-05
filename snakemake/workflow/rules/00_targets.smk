@@ -37,9 +37,11 @@ if doAssembly:
         os.path.join(RESULTS, "assembly.properties.tsv")]
     # Mapping files
     MappingFiles = [
-        os.path.join(MAPPING,"assembly.seqtable.bam"),
-        os.path.join(MAPPING,"assembly.seqtable.bam.bai"),
-        os.path.join(RESULTS,"contigSeqTable.tsv")
+        os.path.join(MAPPING, "assembly.seqtable.bam"),
+        os.path.join(MAPPING, "assembly.seqtable.bam.bai"),
+        os.path.join(RESULTS, "contigSeqTable.tsv"),
+        # os.path.join(RESULTS, "contigKrona.txt"),
+        os.path.join(RESULTS, "contigKrona.html")
     ]
 else:
     AssemblyFiles = []
@@ -71,7 +73,7 @@ SecondarySearchFilesAA = [
     os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
     os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln_sorted"),
     #os.path.join(SECONDARY_AA_OUT, "tophit.tax_tmp_updated.tsv"),
-    os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
+    os.path.join(SECONDARY_AA_OUT, "AA_bigtable.tsv"),
     # os.path.join(SECONDARY_AA_OUT, "tophit.kingdom.freq"),
     # os.path.join(SECONDARY_AA_OUT, "tophit.unclass_superkingdom.freq"),
     # os.path.join(SECONDARY_AA_OUT, "tophit.keyword_nonviral.freq"),
@@ -121,6 +123,6 @@ SecondarySearchFilesNT = [
     os.path.join(SECONDARY_NT_OUT, "results","secondary_nt_lca.tsv"),
     os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv"),
     os.path.join(RESULTS, "bigtable.tsv"),
-    os.path.join(RESULTS, "kronaText.tsv"),
+    # os.path.join(RESULTS, "kronaText.tsv"),
     os.path.join(RESULTS, "kronaPlot.html")]
 

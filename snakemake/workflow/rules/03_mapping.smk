@@ -72,3 +72,31 @@ rule contig_read_taxonomy:
             outFH.write(f'{infOut}\t{taxOut}\n')
         bam.close()
         outFH.close()
+
+rule contig_krona_text_format: # TODO: rewrite to preserve counts
+    input:
+        os.path.join(RESULTS, "contigSeqTable.tsv")
+    output:
+        os.path.join(RESULTS, "contigKrona.txt")
+    shell:
+        """
+        tail -n+2 {input} \
+            | awk '{{print$10"\\t"$11"\\t"$12"\\t"$13"\\t"$14"\\t"$15"\\t"$1}}' \
+            | sort \
+            | uniq -c \
+            | sed 's/^\s*//' \
+            | sed 's/ /\t/' \
+            > {output}
+        """
+
+rule contig_krona_plot:
+    input:
+        os.path.join(RESULTS, "contigKrona.txt")
+    output:
+        os.path.join(RESULTS, "contigKrona.html")
+    conda:
+        os.path.join('../', 'envs', 'krona.yaml')
+    shell:
+        """
+        ktImportText {input} -o {output}
+        """
