@@ -200,5 +200,7 @@ rule all:
         PrimarySearchFilesNT,
         ## Secondary untranslated (nt-to-nt) search
         SecondarySearchFilesNT,
+        ## Contig annotation files from 03_contig_annotation.smk
+        ContigAnnotFiles,
         ## Mapping files (read-based contig id)
         MappingFiles
