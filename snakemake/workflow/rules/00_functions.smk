@@ -9,6 +9,8 @@ rule fasta_index:
         "{file}.fasta"
     output:
         "{file}.fasta.fai"
+    log:
+        "{file}.samtools.stderr"
     conda:
         os.path.join("..", "envs", "samtools.yaml")
     threads:
@@ -17,7 +19,7 @@ rule fasta_index:
         mem_mb=MiscMem
     shell:
         """
-        samtools faidx {input}
+        samtools faidx {input} 2> {log}
         """
 
 rule bam_index:
@@ -26,6 +28,8 @@ rule bam_index:
         "{file}.bam"
     output:
         "{file}.bam.bai"
+    log:
+        "{file}.samtools.stderr"
     conda:
         os.path.join("..", "envs", "samtools.yaml")
     threads:
@@ -34,7 +38,7 @@ rule bam_index:
         mem_mb=MiscMem
     shell:
         """
-        samtools index {input}
+        samtools index {input} 2> {log}
         """
 
 rule calculate_gc:
