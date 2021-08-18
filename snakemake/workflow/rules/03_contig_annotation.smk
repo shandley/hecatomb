@@ -17,10 +17,11 @@ rule mmseqs_contig_annotation:
     log:
         log=os.path.join(LOGS,"PREPROCESSING","s24.mmseqs_contig_annotation.log")
     resources:
-        mem_mb=64000,
-        cpus=64
+        mem_mb=MMSeqsMem
+    threads:
+        MMSeqsCPU
     conda:
-        "../envs/mmseqs2.yaml"
+        os.path.join("../", "envs", "mmseqs2.yaml")
     shell:
         """
         # Create query database
@@ -57,10 +58,11 @@ rule mmseqs_contig_annotation_summary:
     benchmark:
         os.path.join(BENCH,"PREPROCESSING","s25.mmseqs_contig_annotation_summary.txt")
     resources:
-        mem_mb=64000,
-        cpus=64
+        mem_mb=MMSeqsMem
+    threads:
+        MMSeqsCPU
     conda:
-        "../envs/mmseqs2.yaml"
+        os.path.join("../", "envs", "mmseqs2.yaml")
     log:
         log=os.path.join(LOGS,"PREPROCESSING","s25.mmseqs_contig_annotation_summary.log")
     shell:
