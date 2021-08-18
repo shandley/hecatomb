@@ -53,6 +53,7 @@ QSCORE: 15 # Read quality trimming score (rule remove_low_quality in 01_preproce
 READ_MINLENGTH: 90 # Minimum read length during QC steps (rule remove_low_quality in 01_preprocessing.smk)
 CONTIG_MINLENGTH: 1000 # Read minimum length (rule contig_reformating_and_stats in 01_preprocessing.smk)
 ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 01_preprocessing.smk)
+ENTROPYWINDOW: 25 # entropy window for low qual read filter
 CLUSTERID: 0.97 # Linclust read clustering percent identity (rule cluster_similar_sequences: in 01_preprocessing.smk)
 AAMINLEN: 30 # MMSeqs min-len for AA searches - should be <= 1/3 of read_minlen
 NTMINLEN: 90 # ideally should be 3 * aaminlen and <= read_minlen

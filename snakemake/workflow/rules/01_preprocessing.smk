@@ -218,6 +218,7 @@ rule remove_low_quality:
             ordered=t \
             qtrim=r maxns=2 \
             entropy={config[ENTROPY]} \
+            entropywindow={config[ENTROPYWINDOW]} \
             trimq={config[QSCORE]} \
             minlength={config[READ_MINLENGTH]} \
             threads={threads} -Xmx{resources.mem_mb}m 2> {log};
