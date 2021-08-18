@@ -183,6 +183,7 @@ include: "rules/01_preprocessing.smk"
 include: "rules/02_assembly.smk"
 include: "rules/02_taxonomic_assignment.smk"
 include: "rules/03_mapping.smk"
+include: "rules/03_contig_annotation.smk"
 
 
 rule all:
@@ -201,6 +202,6 @@ rule all:
         ## Secondary untranslated (nt-to-nt) search
         SecondarySearchFilesNT,
         ## Contig annotation files from 03_contig_annotation.smk
-        ContigAnnotFiles,
+        # ContigAnnotFiles,
         ## Mapping files (read-based contig id)
         MappingFiles

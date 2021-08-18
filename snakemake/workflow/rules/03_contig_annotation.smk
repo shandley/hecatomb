@@ -5,7 +5,7 @@ rule mmseqs_contig_annotation:
     """
     input:
         contigs=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","assembly.fasta"),
-        db=os.path.join(NUCLPATH,"virus_assembly_nt","sequenceDB")
+        db=os.path.join(DBDIR, "nt", "virus_assembly_nt","sequenceDB")
     output:
         queryDB=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","queryDB"),
         result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result.index")
@@ -39,7 +39,7 @@ rule mmseqs_contig_annotation_summary:
     """Step 25: Summarize mmseqs contig annotation results"""
     input:
         queryDB=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","queryDB"),
-        db=os.path.join(NUCLPATH,"virus_assembly_nt","sequenceDB"),
+        db=os.path.join(DBDIR, "nt", "virus_assembly_nt", "sequenceDB"),
         taxdb=TAX
     output:
         result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit.index"),
