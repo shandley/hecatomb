@@ -51,7 +51,7 @@ rule contig_read_taxonomy:
         inTSV.readline() # skip header
         for line in inTSV:
             l = line.strip().split('\t')
-            tax[l[0]] = '\t'.join((l[2:4], l[20:]))
+            tax[l[0]] = '\t'.join((l[2:4] + l[20:]))
         inTSV.close()
         outFH = open(output[0], 'w')
         outFH.write('contigID\tseqID\tstart\tstop\tlen\tqual\tcount\talnType\ttaxMethod\tkingdom\tphylum\tclass\torder\tfamily\tgenus\tspecies\n')
@@ -73,21 +73,26 @@ rule contig_read_taxonomy:
         bam.close()
         outFH.close()
 
-rule contig_krona_text_format: # TODO: rewrite to preserve counts
+rule contig_krona_text_format:
     input:
         os.path.join(RESULTS, "contigSeqTable.tsv")
     output:
         os.path.join(RESULTS, "contigKrona.txt")
-    shell:
-        """
-        tail -n+2 {input} \
-            | awk '{{print$10"\\t"$11"\\t"$12"\\t"$13"\\t"$14"\\t"$15"\\t"$1}}' \
-            | sort \
-            | uniq -c \
-            | sed 's/^\s*//' \
-            | sed 's/ /\t/' \
-            > {output}
-        """
+    run:
+        counts = {}
+        for l in stream_tsv(input[0]):
+            if l[0] == "contigID":
+                continue
+            t = '\t'.join((l[9:] + [l[0]]))
+            c = l[1].split(':')
+            try:
+                counts[t] += int(c[1])
+            except KeyError:
+                counts[t] = int(c[1])
+        outFH = open(output[0],'w')
+        for k in sorted(counts.keys()):
+            outFH.write(f'{counts[k]}\t{k}\n')
+        outFH.close()
 
 rule contig_krona_plot:
     input:
