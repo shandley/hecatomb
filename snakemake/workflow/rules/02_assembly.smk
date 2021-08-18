@@ -9,19 +9,19 @@ What is accomplished with these rules?
 rule assembly_kmer_normalization:
     """Step 14: Kmer normalization. Data reduction for assembly improvement"""
     input:
-        r1=os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.fastq"),
-        r2=os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".unmapped.fastq"),
-        r1s=os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
-        r2s=os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq")
+        r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.fastq"),
+        r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".unmapped.fastq"),
+        r1s = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
+        r2s = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq")
     output:
-        r1_norm=os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
-        r2_norm=os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq")
+        r1_norm = os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
+        r2_norm = os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq")
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s14.kmer_normalization_{sample}.txt")
     log:
-        log=os.path.join(STDERR, "step_14", "s14_{sample}.log")
+        log = os.path.join(STDERR, "step_14", "s14_{sample}.log")
     resources:
-        mem_mb=BBToolsMem
+        mem_mb = BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -42,21 +42,21 @@ rule individual_sample_assembly:
     Megahit: https://github.com/voutcn/megahit
     """
     input:
-        r1_norm=os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
-        r2_norm=os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq"),
-        r1s=os.path.join(QC,"HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
-        r2s=os.path.join(QC,"HOST_REMOVED", PATTERN_R2 + ".singletons.fastq")
+        r1_norm = os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
+        r2_norm = os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq"),
+        r1s = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
+        r2s = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq")
     output:
-        contigs=os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa")
+        contigs = os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa")
     params:
-        mh_dir=directory(os.path.join(ASSEMBLY,'{sample}')),
-        contig_dic=directory(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY"))
+        mh_dir = directory(os.path.join(ASSEMBLY, '{sample}')),
+        contig_dic = directory(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY"))
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s15.megahit_{sample}.txt")
     log:
-        log=os.path.join(STDERR, "step_15", "s15_{sample}.log")
+        log = os.path.join(STDERR, "step_15", "s15_{sample}.log")
     resources:
-        mem_mb=MhitMem
+        mem_mb = MhitMem
     threads:
         MhitCPU
     conda:
@@ -79,7 +79,7 @@ rule concatenate_contigs:
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s16.concatenate_assemblies.txt")
     log:
-        log=os.path.join(STDERR, "step_16", "s16.log")
+        log = os.path.join(STDERR, "step_16", "s16.log")
     shell:
         "cat {input} > {output}"
 
@@ -88,17 +88,17 @@ rule contig_reformating_and_stats:
     input:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
     output:
-        rename=temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.renamed.fasta")),
-        size=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta"),
-        stats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats")
+        rename = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.renamed.fasta")),
+        size = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta"),
+        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats")
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s17.contig_reformating.txt")
     log:
-        log1=os.path.join(STDERR, "step_17", "s17.rename.log"),
-        log2=os.path.join(STDERR, "step_17", "s17.reformat.log"),
-        log3=os.path.join(STDERR, "step_17", "s17.stats.log")
+        log1 = os.path.join(STDERR, "step_17", "s17.rename.log"),
+        log2 = os.path.join(STDERR, "step_17", "s17.reformat.log"),
+        log3 = os.path.join(STDERR, "step_17", "s17.stats.log")
     resources:
-        mem_mb=BBToolsMem
+        mem_mb = BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -126,17 +126,17 @@ rule population_assembly:
     input:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta")
     output:
-        assembly=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
-        stats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats")
+        assembly = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
+        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats")
     params:
-        flye_out=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE")
+        flye_out = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE")
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s18.population_assembly.txt")
     log:
-        log1=os.path.join(STDERR, "step_18", "s18.flye.log"),
-        log2=os.path.join(STDERR, "step_18", "s18.stats.log")
+        log1 = os.path.join(STDERR, "step_18", "s18.flye.log"),
+        log2 = os.path.join(STDERR, "step_18", "s18.stats.log")
     resources:
-        mem_mb=MhitMem
+        mem_mb = MhitMem
     threads:
         MhitCPU
     conda:
@@ -146,14 +146,14 @@ rule population_assembly:
         flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} -g 1g &>> {log.log1};
 
         statswrapper.sh in={output.assembly} out={output.stats} \
-        format=2 \
-        ow=t 2> {log.log2};
+            format=2 \
+            ow=t 2> {log.log2};
         """
 
 rule link_assembly:
     """Link the final assembly to the RESULTS"""
     input:
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY","FLYE","assembly.fasta")
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
     output:
         os.path.join(RESULTS, "assembly.fasta")
     run:
@@ -162,22 +162,22 @@ rule link_assembly:
 rule coverage_calculations:
     """Step 19: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1=os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"),
-        r2=os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq"),
-        ref=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
+        r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"),
+        r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq"),
+        ref = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
     output:
-        sam=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".aln.sam.gz"),
-        unmap=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".unmapped.fastq"),
-        covstats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats"),
-        rpkm=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"),
-        statsfile=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".statsfile"),
-        scafstats=os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".scafstats")
+        sam = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".aln.sam.gz"),
+        unmap = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".unmapped.fastq"),
+        covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats"),
+        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"),
+        statsfile = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".statsfile"),
+        scafstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".scafstats")
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s19.coverage_calculations_{sample}.txt")
     log:
-        log=os.path.join(STDERR,"step_16","s16_{sample}.log")
+        log = os.path.join(STDERR, "step_16", "s16_{sample}.log")
     resources:
-        mem_mb=BBToolsMem
+        mem_mb = BBToolsMem
     threads:
         BBToolsCPU
     conda:
@@ -205,26 +205,26 @@ rule create_contig_count_table:
 
     Useful resource: https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/"""
     input:
-        rpkm=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING",PATTERN + ".rpkm"),
-        covstats=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING",PATTERN + ".cov_stats")
+        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"),
+        covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats")
     output:
-        counts_tmp=temporary(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING",PATTERN + "_counts.tmp")),
-        TPM_tmp=temporary(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING",PATTERN + "_TPM.tmp")),
-        TPM=temporary(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING",PATTERN + "_TPM")),
-        TPM_final=temporary(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING",PATTERN + "_TPM.final")),
-        cov_temp=temporary(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING",PATTERN + "_cov.tmp")),
-        count_tbl=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING",PATTERN + "_contig_counts.tsv")
+        counts_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_counts.tmp")),
+        TPM_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.tmp")),
+        TPM = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM")),
+        TPM_final = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.final")),
+        cov_temp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp")),
+        count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv")
     benchmark:
-        os.path.join(BENCH,"PREPROCESSING","s20.tpm_caluclator_{sample}.txt")
+        os.path.join(BENCH, "PREPROCESSING", "s20.tpm_caluclator_{sample}.txt")
     log:
-        log=os.path.join(STDERR,"step_20","s20_{sample}.log")
+        log = os.path.join(STDERR,"step_20","s20_{sample}.log")
     shell:
         """
         ## TPM Calculator
         # Prepare table & calculate RPK
         tail -n+6 {input.rpkm} | \
-        cut -f1,2,5,6,8 | \
-        awk 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $3/($2/1000) }}' > {output.counts_tmp};
+            cut -f1,2,5,6,8 | \
+            awk 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $3/($2/1000) }}' > {output.counts_tmp};
 
         # Calculate size factor (per million)
         sizef=$(awk 'BEGIN{{ total=0 }} {{ total=total+$6/1000000 }} END{{ printf total }}' {output.counts_tmp});
@@ -253,14 +253,14 @@ rule concatentate_contig_count_tables:
     the i/o PATTERNS are different.
     """
     input:
-        lambda wildcards: expand(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING",PATTERN + "_contig_counts.tsv"),
+        lambda wildcards: expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"),
             sample=SAMPLES)
     output:
-        os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING","contig_count_table.tsv")
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "contig_count_table.tsv")
     benchmark:
-        os.path.join(BENCH,"PREPROCESSING","s21.concat_contig_count_tables.txt")
+        os.path.join(BENCH, "PREPROCESSING", "s21.concat_contig_count_tables.txt")
     log:
-        log=os.path.join(STDERR,"step_21","s21.log")
+        log = os.path.join(STDERR, "step_21", "s21.log")
     shell:
         """
         cat {input} > {output};
