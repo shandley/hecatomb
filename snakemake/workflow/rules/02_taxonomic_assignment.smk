@@ -515,16 +515,13 @@ rule SECONDARY_NT_summary:
         """
 
         
-rule SECONDARY_NT_calculate_LCA:
+rule SECONDARY_NT_convert:
     """Reformat secondary search LCA taxon assignment"""
     input:
         queryDB = os.path.join(SECONDARY_NT_OUT, "queryDB"),
-        db = os.path.join(POLYMICRODB, "sequenceDB"),
-        taxdb = TAX
+        db = os.path.join(POLYMICRODB, "sequenceDB")
     output:
         align = os.path.join(SECONDARY_NT_OUT, "results", "all.m8"),
-        lca_lineage = os.path.join(SECONDARY_NT_OUT, "results", "lca.lineage"),
-        reformated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result")
     resources:
@@ -534,30 +531,66 @@ rule SECONDARY_NT_calculate_LCA:
     conda:
         "../envs/mmseqs2.yaml"
     log:
-        os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_lca.log')
+        os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_convert.log')
     shell:
         """
         # Convert to alignments
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
-            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader";
+            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader" \
+            2> {log}
+        """
+
+
+rule secondary_nt_lca_table:
+    """Create table for taxonkit lineage for secondary NT search"""
+    input:
+        align = os.path.join(SECONDARY_NT_OUT, "results", "all.m8")
+    output:
+        lin = temp(os.path.join(SECONDARY_NT_OUT, "results", "all.lin"))
+    run:
+        lin = {}
+        for l in stream_tsv(input.align):
+            t = l[1].split('|')     # e.g. tid|2293023|NZ_QUCO01000049.1
+            try:
+                if not t[1] in lin[l[0]]:
+                    lin[l[0]].append(t[1])
+            except KeyError:
+                lin[l[0]] = [t[1]]
+        out = open(output.lin, 'w')
+        for s in lin.keys():
+            tOut = ':'.join(lin[s])
+            out.write(f'{s}\t{tOut}\n')
+        out.close()
+
+
+rule secondary_nt_calc_lca:
+    """Calculate the lca for the secondary NT search"""
+    input:
+        lin = os.path.join(SECONDARY_NT_OUT, "results", "all.lin"),
+        taxdb = TAX
+    output:
+        lca_lineage = os.path.join(SECONDARY_NT_OUT, "results", "lca.lineage"),
+        reformated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
+    resources:
+        mem_mb=MMSeqsMem
+    threads:
+        MMSeqsCPU
+    conda:
+        "../envs/mmseqs2.yaml"
+    log:
+        os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_calc.log')
+    shell:
+        """
+        # calculate lineages
+        taxonkit lineage -i 2 --data-dir {input.taxdb} {input.lin} > {output.lca_lineage} 2> {log}
         
-        # Calculate LCA for each sequence
-        cut -f1,2 {output.align} | \
-            sed 's/tid|//' | \
-            sed 's/|.*//' | \
-            sort -k1,2 | \
-            uniq | \
-            csvtk fold -f 1 -v 2 -H -t -s ';' | \
-            taxonkit lca -i 2 -s ';' -DU --data-dir {input.taxdb} | \
-            cut -f1,3 | \
-            taxonkit lineage -i 2 --data-dir {input.taxdb} > {output.lca_lineage}
-            
         # Reformat lineages
         awk -F '\t' '$2 != 0' {output.lca_lineage} | \
             taxonkit reformat --data-dir {input.taxdb} -i 3 \
-                -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank |
-            cut --complement -f3 > {output.reformated};
+                -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank 2>> {log} |
+            cut --complement -f3 > {output.reformated}
         """
+
 
 rule SECONDARY_NT_generate_output_table:
     input:
@@ -637,21 +670,25 @@ rule combine_AA_NT:
         tail -n+2 {input.nt} >> {output};
         """
 
-rule krona_text_format: # TODO: rewrite to preserve counts
+rule krona_text_format:
     input:
         os.path.join(RESULTS, "bigtable.tsv")
     output:
         os.path.join(RESULTS, "kronaText.tsv")
-    shell:
-        """
-        tail -n+2 {input} \
-            | cut -f22- \
-            | sort \
-            | uniq -c \
-            | sed 's/^\s*//' \
-            | sed 's/ /\t/' \
-            > {output}
-        """
+    run:
+        counts = {}
+        for l in stream_tsv(input[0]):
+            if l[0]=="seqID":
+                continue
+            t = '\t'.join(l[21:])
+            try:
+                counts[t] += int(l[2])
+            except KeyError:
+                counts[t] = int(l[2])
+        outFH = open(output[0],'w')
+        for k in sorted(counts.keys()):
+            outFH.write(f'{counts[k]}\t{k}\n')
+        outFH.close()
 
 rule krona_plot:
     input:
