@@ -1,0 +1,13 @@
+name: mmseqs2_v13
+channels:
+	- conda-forge
+	- bioconda
+	- defaults
+dependencies:
+	- mmseqs2=13.45111-1
+	- samtools=1.12
+	- seqkit=0.16.1
+	- csvtk=0.23.0
+	- taxonkit=0.8.0
+	
+
