@@ -5,7 +5,7 @@ rule mmseqs_contig_annotation:
     """
     input:
         contigs=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","assembly.fasta"),
-        db=os.path.join(DBDIR, "nt", "virus_assembly_nt","sequenceDB")
+        db=os.path.join(NCBIVIRDB, "sequenceDB")
     output:
         queryDB=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","queryDB"),
         result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result.index")
