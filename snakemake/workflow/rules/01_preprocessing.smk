@@ -510,27 +510,29 @@ rule merge_seq_table:
         expand(os.path.join(QC, "CLUSTERED", "LINCLUST", "{sample}_R1.seqtable"), sample=SAMPLES)
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
-        # tsv = os.path.join(RESULTS, "seqtable.counts.tsv")
+        tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
     params:
         resultsdir = directory(RESULTS),
     benchmark:
         os.path.join(BENCH, "merge_seq_table.txt")
     run:
         outFa = open(output.fa, 'w')
-        # outTsv = open(output.tsv, 'w')
+        outTsv = open(output.tsv, 'w')
         for sample in SAMPLES:
             seqId = 0
+            seqCounts = 0
             counts = open(os.path.join(QC, "CLUSTERED", "LINCLUST", f"{sample}_R1.seqtable"), 'r')
             line = counts.readline() # skip header
             for line in counts:
                 l = line.split()
                 id = ':'.join((sample, l[1], str(seqId))) # fasta header = >sample:count:seqId
+                seqCounts += int(l[1])
                 seqId = seqId + 1
                 outFa.write(f'>{id}\n{l[0]}\n')
-                # outTsv.write(f'{id}\t{sample}\t{l[1]}\n')
             counts.close()
+            outTsv.write(f'{sample}\t{seqCounts}\n')
         outFa.close()
-        # outTsv.close()
+        outTsv.close()
 
 # rule create_seqtable_index:
 #     """Step 12: Index seqtable.fasta for rapid access with samtools faidx."""

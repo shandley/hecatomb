@@ -51,7 +51,7 @@ rule contig_read_taxonomy:
         inTSV.readline() # skip header
         for line in inTSV:
             l = line.strip().split('\t')
-            tax[l[0]] = '\t'.join((l[2:4] + l[20:]))
+            tax[l[0]] = '\t'.join((l[2:4] + l[21:]))
         inTSV.close()
         outFH = open(output[0], 'w')
         outFH.write('contigID\tseqID\tstart\tstop\tlen\tqual\tcount\talnType\ttaxMethod\tkingdom\tphylum\tclass\torder\tfamily\tgenus\tspecies\n')

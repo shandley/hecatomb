@@ -223,9 +223,17 @@ rule SECONDARY_AA_generate_output_table:
         aln = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.reformated"),
         top = os.path.join(SECONDARY_AA_OUT, "tophit.lineage.reformated"),
+        counts = os.path.join(RESULTS,"sampleSeqCounts.tsv")
     output:
         os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
     run:
+        from statistics import median
+        counts = []
+        smplCounts = {}
+        for l in stream_tsv(input.counts):
+            counts.append(int(l[1]))
+            smplCounts[l[0]] = int(l[1])
+        medCount = median(counts)
         lcaLin = {}
         for l in stream_tsv(input.lca):
             # dont use lca lineage for taxids of 0, 1, or 10239
@@ -243,6 +251,7 @@ rule SECONDARY_AA_generate_output_table:
         out.write('\t'.join(('seqID',
                              'sampleID',
                              'count',
+                             'normCount',
                              'alnType',     # aa or nt
                              'target',
                              'evalue',
@@ -279,7 +288,8 @@ rule SECONDARY_AA_generate_output_table:
                 except KeyError:
                     taxOut = '\t'.join((['NA'] * 8))
             seqInf = l[0].split(':')        # seq ID = sample:count:seqNum
-            seqOut = '\t'.join((l[0], seqInf[0], seqInf[1]))
+            normCount = str(( int(seqInf[1]) / smplCounts[seqInf[0]] ) * medCount)
+            seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
             alnOut = 'aa\t' + '\t'.join((l[1:17]))
             out.write('\t'.join((seqOut, alnOut, taxOut)))
             out.write('\n')
@@ -596,10 +606,18 @@ rule SECONDARY_NT_generate_output_table:
     input:
         aln = os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
         top = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
-        lca = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
+        lca = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv"),
+        counts = os.path.join(RESULTS,"sampleSeqCounts.tsv")
     output:
         os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
     run:
+        from statistics import median
+        counts = []
+        smplCounts = {}
+        for l in stream_tsv(input.counts):
+            counts.append(int(l[1]))
+            smplCounts[l[0]] = int(l[1])
+        medCount = median(counts)
         lcaLin = {}
         for l in stream_tsv(input.lca):
             # dont use lca lineage for taxids of 0, 1, or 10239
@@ -617,6 +635,7 @@ rule SECONDARY_NT_generate_output_table:
         out.write('\t'.join(('seqID',
                              'sampleID',
                              'count',
+                             'normCount',
                              'alnType',     # aa or nt
                              'target',
                              'evalue',
@@ -652,7 +671,8 @@ rule SECONDARY_NT_generate_output_table:
                 except KeyError:
                     taxOut = '\t'.join((['NA'] * 8))
             seqInf = l[0].split(':')        # seq ID = sample:count:seqNum
-            seqOut = '\t'.join((l[0], seqInf[0], seqInf[1]))
+            normCount = str((int(seqInf[1]) / smplCounts[seqInf[0]]) * medCount)
+            seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
             alnOut = 'nt\t' + '\t'.join((l[1:17]))
             out.write('\t'.join((seqOut, alnOut, taxOut)))
             out.write('\n')
