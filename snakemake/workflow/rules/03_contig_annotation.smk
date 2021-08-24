@@ -39,7 +39,7 @@ rule mmseqs_contig_annotation_summary:
     """Step 25: Summarize mmseqs contig annotation results"""
     input:
         queryDB=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","queryDB"),
-        db=os.path.join(DBDIR, "nt", "virus_assembly_nt", "sequenceDB"),
+        db=os.path.join(NCBIVIRDB, "sequenceDB"),
         taxdb=TAX
     output:
         result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit.index"),
