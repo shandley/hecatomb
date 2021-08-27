@@ -255,9 +255,10 @@ rule host_removal_mapping:
         r2 = os.path.join(TMPDIR, f"{PATTERN_R2}.clean.out.fastq"),
         host = HOSTINDEX
     output:
-        r1=temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.unmapped.fastq")),
-        r2=temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.unmapped.fastq")),
-        singletons=temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.unmapped.singletons.fastq"))
+        r1 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.unmapped.fastq")),
+        r2 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.unmapped.fastq")),
+        s = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.unmapped.singletons.fastq")),
+        o = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.other.singletons.fastq"))
     benchmark:
         os.path.join(BENCH, "host_removal_mapping.{sample}.txt")
     log:
@@ -274,7 +275,7 @@ rule host_removal_mapping:
         """
         minimap2 -ax sr -t {threads} --secondary=no {input.host} {input.r1} {input.r2} 2> {log.mm} \
             | samtools view -f 4 -h 2> {log.sv} \
-            | samtools fastq -NO -1 {output.r1} -2 {output.r2} -0 /dev/null -s {output.singletons} 2> {log.fq}
+            | samtools fastq -NO -1 {output.r1} -2 {output.r2} -0 {output.o} -s {output.s} 2> {log.fq}
         """
 
 # rule extract_host_unmapped:
@@ -306,10 +307,13 @@ rule host_removal_mapping:
 rule nonhost_read_repair:
     """Step 07b: Parse R1/R2 singletons (if singletons at all)"""
     input:
-        singletons = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.unmapped.singletons.fastq")
+        s = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.unmapped.singletons.fastq"),
+        o = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.other.singletons.fastq")
     output:
-        r1 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.singletons.fastq")),
-        r2 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.singletons.fastq"))
+        sr1 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.u.singletons.fastq")),
+        sr2 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.u.singletons.fastq")),
+        or1 = temp(os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R1}.o.singletons.fastq")),
+        or2 = temp(os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R2}.o.singletons.fastq"))
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s07c.nonhost_read_repair_{sample}.txt")
     log:
@@ -322,7 +326,9 @@ rule nonhost_read_repair:
         "../envs/bbmap.yaml"
     shell:
         """
-        reformat.sh in={input.singletons} out={output.r1} out2={output.r2} \
+        reformat.sh in={input.s} out={output.sr1} out2={output.sr2} \
+            -Xmx{resources.mem_mb}m 2> {log};
+        reformat.sh in={input.o} out={output.or1} out2={output.or2} \
             -Xmx{resources.mem_mb}m 2> {log};
         """
 
@@ -331,8 +337,10 @@ rule nonhost_read_combine:
     input:
         r1 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.unmapped.fastq"),
         r2 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.unmapped.fastq"),
-        r1s = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.singletons.fastq"),
-        r2s = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.singletons.fastq")
+        sr1=os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R1}.u.singletons.fastq"),
+        sr2=os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R2}.u.singletons.fastq"),
+        or1=os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R1}.o.singletons.fastq"),
+        or2=os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R2}.o.singletons.fastq")
     output:
         r1 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.all.fastq"),
         r2 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.all.fastq")
@@ -340,8 +348,8 @@ rule nonhost_read_combine:
         os.path.join(BENCH, "PREPROCESSING", "s07d.nonhost_read_combine_{sample}.txt")
     shell:
         """
-        cat {input.r1} {input.r1s} > {output.r1};
-        cat {input.r2} {input.r2s} > {output.r2};
+        cat {input.r1} {input.sr1} {input.or1} > {output.r1};
+        cat {input.r2} {input.sr2} {input.or2} > {output.r2};
         """
 
 rule remove_exact_dups:
