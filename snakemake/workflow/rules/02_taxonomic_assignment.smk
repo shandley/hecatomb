@@ -41,7 +41,8 @@ rule PRIMARY_AA_taxonomy_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_AA.log")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb=MMSeqsMem,
+        time=MMSeqsTimeMin
     threads:
         MMSeqsCPU
     conda:
@@ -134,7 +135,8 @@ rule SECONDARY_AA_taxonomy_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_AA.log")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb=MMSeqsMem,
+        time=MMSeqsTimeMin
     threads:
         MMSeqsCPU
     conda:
@@ -223,11 +225,20 @@ rule SECONDARY_AA_generate_output_table:
         aln = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.reformated"),
         top = os.path.join(SECONDARY_AA_OUT, "tophit.lineage.reformated"),
-        counts = os.path.join(RESULTS,"sampleSeqCounts.tsv")
+        counts = os.path.join(RESULTS,"sampleSeqCounts.tsv"),
+        balt = os.path.join(TABLES, '2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
         os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
     run:
         from statistics import median
+        balt = {}
+        for l in stream_tsv(input.balt):
+            if l[0] == 'Family':
+                continue
+            try:
+                balt[l[0]] = f'{l[1]}\t{l[2]}'
+            except IndexError:
+                break # the end of the file is a bunch of blank lines
         counts = []
         smplCounts = {}
         for l in stream_tsv(input.counts):
@@ -276,7 +287,9 @@ rule SECONDARY_AA_generate_output_table:
                              'order',
                              'family',
                              'genus',
-                             'species')))
+                             'species',
+                             'baltimoreType',
+                             'baltimoreGroup')))
         out.write('\n')
         # parse the alignments and attach appropriate info
         for l in stream_tsv(input.aln):
@@ -291,7 +304,11 @@ rule SECONDARY_AA_generate_output_table:
             normCount = str(( int(seqInf[1]) / smplCounts[seqInf[0]] ) * medCount)
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
             alnOut = 'aa\t' + '\t'.join((l[1:17]))
-            out.write('\t'.join((seqOut, alnOut, taxOut)))
+            try:
+                baltOut = balt[taxOut.split()[5]]
+            except KeyError:
+                baltOut = 'NA\tNA'
+            out.write('\t'.join((seqOut, alnOut, taxOut, baltOut)))
             out.write('\n')
         out.close()
 
@@ -345,7 +362,8 @@ rule PRIMARY_NT_taxonomic_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_NT.log")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb=MMSeqsMem,
+        time=MMSeqsTimeMin
     threads:
         MMSeqsCPU
     conda:
@@ -461,7 +479,8 @@ rule SECONDARY_NT_taxonomic_assignment:
     log:
         log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_NT.log")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb=MMSeqsMem,
+        time=MMSeqsTimeMin
     threads:
         MMSeqsCPU
     conda:
@@ -479,6 +498,7 @@ rule SECONDARY_NT_taxonomic_assignment:
             -e {config[SECNTE]} &>> {log};
     
         """
+
 
 rule SECONDARY_NT_summary:
     """Summary statistics for secondary nucleotide search"""
@@ -568,7 +588,7 @@ rule secondary_nt_lca_table:
                 lin[l[0]] = [t[1]]
         out = open(output.lin, 'w')
         for s in lin.keys():
-            tOut = ':'.join(lin[s])
+            tOut = ';'.join(lin[s])
             out.write(f'{s}\t{tOut}\n')
         out.close()
 
@@ -607,13 +627,22 @@ rule SECONDARY_NT_generate_output_table:
         aln = os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
         top = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
         lca = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv"),
-        counts = os.path.join(RESULTS,"sampleSeqCounts.tsv")
+        counts = os.path.join(RESULTS,"sampleSeqCounts.tsv"),
+        balt = os.path.join(TABLES,'2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
         os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
     run:
         from statistics import median
         counts = []
         smplCounts = {}
+        balt = {}
+        for l in stream_tsv(input.balt):
+            if l[0] == 'Family':
+                continue
+            try:
+                balt[l[0]] = f'{l[1]}\t{l[2]}'
+            except IndexError:
+                break # the end of the file is a bunch of blank lines
         for l in stream_tsv(input.counts):
             counts.append(int(l[1]))
             smplCounts[l[0]] = int(l[1])
@@ -660,7 +689,9 @@ rule SECONDARY_NT_generate_output_table:
                              'order',
                              'family',
                              'genus',
-                             'species')))
+                             'species',
+                             'baltimoreType',
+                             'baltimoreGroup')))
         out.write('\n')
         for l in stream_tsv(input.aln):
             try:
@@ -674,7 +705,11 @@ rule SECONDARY_NT_generate_output_table:
             normCount = str((int(seqInf[1]) / smplCounts[seqInf[0]]) * medCount)
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
             alnOut = 'nt\t' + '\t'.join((l[1:17]))
-            out.write('\t'.join((seqOut, alnOut, taxOut)))
+            try:
+                baltOut = balt[taxOut.split()[5]]
+            except KeyError:
+                baltOut = 'NA\tNA'
+            out.write('\t'.join((seqOut, alnOut, taxOut, baltOut)))
             out.write('\n')
         out.close()
 

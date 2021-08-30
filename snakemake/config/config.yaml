@@ -23,6 +23,8 @@ Databases:
 MMSeqsMem: 64000
 # Threads for MMSeqs (recommend >= 16)
 MMSeqsCPU: 32
+# Max runtime for MMSeqs
+MMSeqsTimeMin: 5760  # 4 days
 
 # Memory for BBTools in megabytes (recommend >= 16000)
 BBToolsMem: 16000

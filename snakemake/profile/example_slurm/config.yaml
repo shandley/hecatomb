@@ -9,7 +9,7 @@ cluster:
     --error=logs/{rule}/{jobid}-{wildcards}.err
 default-resources:
   - mem_mb=2000
-  - time=480
+  - time=1440
 jobs: 100
 latency-wait: 60
 local-cores: 8
