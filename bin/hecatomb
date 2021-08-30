@@ -98,7 +98,7 @@ def initialiseSnakeCommand():
     else:
         runJobs = f'-j {args.threads}'
     # Decorate the Snakemake run command
-    command = f"snakemake {runJobs} --use-conda --conda-frontend mamba --rerun-incomplete " \
+    command = f"snakemake {runJobs} --use-conda --conda-frontend mamba --rerun-incomplete --printshellcmds " \
               f"--nolock --conda-prefix {CONDDIR} "
     # Additional Snakemake commands
     if args.snake:
