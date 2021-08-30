@@ -38,6 +38,7 @@ doAssembly = config['Assembly']
 MMSeqsMem = config['MMSeqsMem']
 MMSeqsCPU = config['MMSeqsCPU']
 MMSeqsMemSplit = str(int(0.75 * int(MMSeqsMem))) + 'M'
+MMSeqsTimeMin = config['MMSeqsTimeMin']
 BBToolsMem = config['BBToolsMem']
 BBToolsCPU = config['BBToolsCPU']
 MhitMem = config['MhitMem']
@@ -45,8 +46,15 @@ MhitCPU = config['MhitCPU']
 MiscMem = config['MiscMem']
 MiscCPU = config['MiscCPU']
 
+
 ### DIRECTORIES
 include: "rules/00_directories.smk"
+
+
+# DIRs TO INITIALIZE
+for dir in [TMPDIR, WORKDIR, STDERR]:
+    if not os.path.exists(dir):
+        os.makedirs(dir, exist_ok=True)
 
 
 ### HOST ORGANISM
@@ -184,6 +192,7 @@ include: "rules/02_assembly.smk"
 include: "rules/02_taxonomic_assignment.smk"
 include: "rules/03_mapping.smk"
 include: "rules/03_contig_annotation.smk"
+include: "rules/04_summaries.smk"
 
 
 rule all:
@@ -204,4 +213,6 @@ rule all:
         ## Contig annotation files from 03_contig_annotation.smk
         ContigAnnotFiles,
         ## Mapping files (read-based contig id)
-        MappingFiles
+        MappingFiles,
+        ## Summary Files
+        SummaryFiles

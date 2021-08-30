@@ -139,3 +139,7 @@ SecondarySearchFilesNT = [
     # os.path.join(RESULTS, "kronaText.tsv"),
     os.path.join(RESULTS, "kronaPlot.html")]
 
+# Summary files
+SummaryFiles = [
+    os.path.join(SUMDIR, "taxonLevelCounts.tsv")
+]

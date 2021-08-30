@@ -41,6 +41,7 @@ WORKDIR = os.path.join(OUTPUT, 'PROCESSING')
 TMPDIR = os.path.join(WORKDIR, 'TMP')
 STDERR = os.path.join(OUTPUT,'STDERR')
 BENCH = os.path.join(OUTPUT, 'BENCHMARKS')
+SUMDIR = os.path.join('hecatomb_report')
 QC = os.path.join(WORKDIR,'QC')
 ASSEMBLY = os.path.join(WORKDIR,'ASSEMBLY')
 MAPPING = os.path.join(WORKDIR, 'MAPPING')
@@ -52,8 +53,3 @@ SECONDARY_AA_OUT = os.path.join(RESULTS, "MMSEQS_AA_SECONDARY")
 PRIMARY_NT_OUT = os.path.join(RESULTS, "MMSEQS_NT_PRIMARY")
 SECONDARY_NT_OUT = os.path.join(RESULTS, "MMSEQS_NT_SECONDARY")
 
-
-# DIRs TO INITIALIZE TODO: check and move to Hecatomb.smk if possible
-for dir in [TMPDIR, WORKDIR, STDERR]:
-    if not os.path.exists(dir):
-        os.makedirs(dir, exist_ok=True)
