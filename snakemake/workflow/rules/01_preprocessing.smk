@@ -378,7 +378,7 @@ rule remove_exact_dups:
             threads={threads} -Xmx{resources.mem_mb}m 2> {log}
         """
           
-rule cluster_similar_sequences:
+rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT AT THIS POINT
     """Step 09: Cluster similar sequences.
      
      Sequences clustered at CLUSTERID in config.yaml.
