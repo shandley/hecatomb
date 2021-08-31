@@ -242,7 +242,7 @@ rule create_host_index:
     conda:
         "../envs/minimap2.yaml"
     shell:
-        "minimap2 -d {output} <(cat {input})"
+        "minimap2 -t {threads} -d {output} <(cat {input})"
 
 rule host_removal_mapping:
     """Step 07a: Host removal: mapping to host. 
