@@ -11,16 +11,12 @@ rule fasta_index:
         "{file}.fasta.fai"
     log:
         "{file}.samtools.stderr"
-    conda:
-        os.path.join("..", "envs", "samtools.yaml")
     threads:
         MiscCPU
     resources:
         mem_mb=MiscMem
-    shell:
-        """
-        samtools faidx {input} 2> {log}
-        """
+    wrapper:
+        "0.77.0/bio/samtools/faidx"
 
 rule bam_index:
     """Index a .bam file for rapid access with samtools."""
@@ -30,16 +26,12 @@ rule bam_index:
         "{file}.bam.bai"
     log:
         "{file}.samtools.stderr"
-    conda:
-        os.path.join("..", "envs", "samtools.yaml")
     threads:
         MiscCPU
     resources:
         mem_mb=MiscMem
-    shell:
-        """
-        samtools index {input} 2> {log}
-        """
+    wrapper:
+        "0.77.0/bio/samtools/index"
 
 rule calculate_gc:
     """Step 13a: Calculate GC content for sequences"""
