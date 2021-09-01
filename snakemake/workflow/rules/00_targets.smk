@@ -6,6 +6,7 @@ All target output files for Hecatomb are declared here
 PreprocessingFiles = [
     # os.path.join(RESULTS, "seqtable_all.tsv"),
     os.path.join(RESULTS, "seqtable.fasta"),
+    os.path.join(RESULTS, "sampleSeqCounts.tsv"),
     # os.path.join(RESULTS, "seqtable.counts.tsv"),
     # os.path.join(RESULTS, "seqtable.stats"),
     os.path.join(RESULTS, "seqtable.fasta.fai"),
@@ -141,5 +142,15 @@ SecondarySearchFilesNT = [
 
 # Summary files
 SummaryFiles = [
-    os.path.join(SUMDIR, "taxonLevelCounts.tsv")
+    #os.path.join(SUMDIR, "taxonLevelCounts.tsv"),
+    os.path.join(SUMDIR,"Step00_counts.tsv"),
+    os.path.join(SUMDIR, "Step01_counts.tsv"),
+    os.path.join(SUMDIR, "Step02_counts.tsv"),
+    os.path.join(SUMDIR, "Step03_counts.tsv"),
+    os.path.join(SUMDIR, "Step04_counts.tsv"),
+    os.path.join(SUMDIR, "Step05_counts.tsv"),
+    os.path.join(SUMDIR, "Step06_counts.tsv"),
+    os.path.join(SUMDIR, "Step07_counts.tsv"),
+    os.path.join(SUMDIR, "Step08_counts.tsv"),
+    os.path.join(SUMDIR, "Step09_counts.tsv"),
 ]

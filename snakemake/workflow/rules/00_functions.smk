@@ -108,27 +108,6 @@ rule seq_properties_table:
             out.write('\n')
         out.close()
 
-# rule zip:
-#     input:
-#         '{file}'
-#     output:
-#         '{file}.gz'
-#     wildcard_constraints:
-#         file=".*\.(?!gz$)\w*$"
-#     shell:
-#         "gzip {input}"
-#
-# rule zstd_decomp:
-#     input:
-#         '{file}.zst'
-#     output:
-#         '{file}'
-#     wildcard_constraints:
-#         file=".*\.(?!zst$)\w*$"
-#     conda:
-#         "../envs/curl.yaml"
-#     shell:
-#         'zstd -qd {input}'
 
 ### FUNCTIONS
 def stream_tsv(tsvFile):
@@ -139,3 +118,24 @@ def stream_tsv(tsvFile):
         l = line.split('\t')
         yield l
     filehandle.close()
+
+def file_len(fname):
+    """Return the number of lines in a file"""
+    if fname.endswith('.gz'):
+        import gzip
+        f = gzip.open(fname, 'rb')
+    else:
+        f = open(fname, 'r')
+    for i, l in enumerate(f):
+        pass
+    f.close()
+    return i + 1
+
+def collect_counts(inPrefix, inSuffix, stepName, outFile):
+    """Collect fastq counts for all samples and print to file"""
+    outfh = open(outFile,'w')
+    outfh.write('sample\tstep\tR1\tR2\n')
+    for sample in SAMPLES:
+        R1c = file_len(os.path.join(inPrefix, f'{sample}_R1{inSuffix}')) / 4
+        R2c = file_len(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')) / 4
+        outfh.write(f'{sample}\t{stepName}\t{R1c}\t{R2c}\n')
