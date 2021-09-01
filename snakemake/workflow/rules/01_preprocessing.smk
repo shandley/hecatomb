@@ -197,8 +197,8 @@ rule remove_low_quality:
         r1 = os.path.join(TMPDIR, "step_05", f"{PATTERN_R1}.s5.out.fastq"),
         r2 = os.path.join(TMPDIR, "step_05", f"{PATTERN_R2}.s5.out.fastq")
     output:
-        r1 = temp(os.path.join(TMPDIR, f"{PATTERN_R1}.clean.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, f"{PATTERN_R2}.clean.out.fastq")),
+        r1 = temp(os.path.join(TMPDIR, "step_06", f"{PATTERN_R1}.s6.out.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "step_06", f"{PATTERN_R2}.s6.out.fastq")),
         stats = os.path.join(STATS, "step_06", "{sample}.s6.stats.tsv")
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s06.remove_low_quality_{sample}.txt")
@@ -251,8 +251,8 @@ rule host_removal_mapping:
     If your reference is not available you need to add it using 'Hecatomb addHost'
     """
     input:
-        r1 = os.path.join(TMPDIR, f"{PATTERN_R1}.clean.out.fastq"),
-        r2 = os.path.join(TMPDIR, f"{PATTERN_R2}.clean.out.fastq"),
+        r1 = os.path.join(TMPDIR, "step_06", f"{PATTERN_R1}.s6.out.fastq"),
+        r2 = os.path.join(TMPDIR, "step_06", f"{PATTERN_R2}.s6.out.fastq"),
         host = HOSTINDEX
     output:
         r1 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.unmapped.fastq")),
@@ -312,8 +312,8 @@ rule nonhost_read_repair:
     output:
         sr1 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.u.singletons.fastq")),
         sr2 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.u.singletons.fastq")),
-        or1 = temp(os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R1}.o.singletons.fastq")),
-        or2 = temp(os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R2}.o.singletons.fastq"))
+        or1 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.o.singletons.fastq")),
+        or2 = temp(os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.o.singletons.fastq"))
     benchmark:
         os.path.join(BENCH, "PREPROCESSING", "s07c.nonhost_read_repair_{sample}.txt")
     log:
@@ -335,21 +335,25 @@ rule nonhost_read_repair:
 rule nonhost_read_combine:
     """Step 07c: Combine paired and singleton reads."""
     input:
-        r1 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.unmapped.fastq"),
-        r2 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.unmapped.fastq"),
-        sr1=os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R1}.u.singletons.fastq"),
-        sr2=os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R2}.u.singletons.fastq"),
-        or1=os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R1}.o.singletons.fastq"),
-        or2=os.path.join(QC,"HOST_REMOVED",f"{PATTERN_R2}.o.singletons.fastq")
+        r1 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R1.unmapped.fastq"),
+        r2 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R2.unmapped.fastq"),
+        sr1 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R1.u.singletons.fastq"),
+        sr2 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R2.u.singletons.fastq"),
+        or1 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R1.o.singletons.fastq"),
+        or2 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R2.o.singletons.fastq")
     output:
-        r1 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R1}.all.fastq"),
-        r2 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN_R2}.all.fastq")
+        t1 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R1.singletons.fastq"),
+        t2 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R2.singletons.fastq"),
+        r1 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R1.all.fastq"),
+        r2 = os.path.join(QC, "HOST_REMOVED", f"{PATTERN}_R2.all.fastq")
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s07d.nonhost_read_combine_{sample}.txt")
+        os.path.join(BENCH, "PREPROCESSING", f"s07d.nonhost_read_combine_{PATTERN}.txt")
     shell:
         """
-        cat {input.r1} {input.sr1} {input.or1} > {output.r1};
-        cat {input.r2} {input.sr2} {input.or2} > {output.r2};
+        cat {input.sr1} {input.or1} > {output.t1};
+        cat {input.sr2} {input.or2} > {output.t2};
+        cat {input.r1} {output.t1} > {output.r1};
+        cat {input.r2} {output.t2} > {output.r2};
         """
 
 rule remove_exact_dups:
@@ -386,12 +390,12 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     input:
         os.path.join(QC, "CLUSTERED", f"{PATTERN_R1}.deduped.out.fastq")
     output:
-        temp(os.path.join(QC, "CLUSTERED", "LINCLUST", f"{PATTERN_R1}_rep_seq.fasta")),
-        temp(os.path.join(QC, "CLUSTERED", "LINCLUST", f"{PATTERN_R1}_cluster.tsv")),
-        temp(os.path.join(QC, "CLUSTERED", "LINCLUST", f"{PATTERN_R1}_all_seqs.fasta"))
+        temp(os.path.join(QC, "CLUSTERED", f"{PATTERN_R1}_rep_seq.fasta")),
+        temp(os.path.join(QC, "CLUSTERED", f"{PATTERN_R1}_cluster.tsv")),
+        temp(os.path.join(QC, "CLUSTERED", f"{PATTERN_R1}_all_seqs.fasta"))
     params:
-        respath=os.path.join(QC, "CLUSTERED", "LINCLUST"),
-        tmppath=os.path.join(QC, "CLUSTERED", "LINCLUST", "{sample}_TMP"),
+        respath=os.path.join(QC, "CLUSTERED"),
+        tmppath=os.path.join(QC, "CLUSTERED", "{sample}_TMP"),
         prefix=PATTERN_R1
     benchmark:
         os.path.join(BENCH, "cluster_similar_sequences.{sample}.txt")
@@ -417,12 +421,12 @@ rule create_individual_seqtables:
     sequence per sample.
     """
     input:
-        seqs = os.path.join(QC, "CLUSTERED", "LINCLUST", f"{PATTERN_R1}_rep_seq.fasta"),
-        counts = os.path.join(QC, "CLUSTERED", "LINCLUST", f"{PATTERN_R1}_cluster.tsv")
+        seqs = os.path.join(QC, "CLUSTERED", f"{PATTERN_R1}_rep_seq.fasta"),
+        counts = os.path.join(QC, "CLUSTERED", f"{PATTERN_R1}_cluster.tsv")
     output:
-        seqs = temp(os.path.join(QC, "CLUSTERED", "LINCLUST", f"{PATTERN_R1}.seqs")),
-        counts = temp(os.path.join(QC, "CLUSTERED", "LINCLUST", f"{PATTERN_R1}.counts")),
-        seqtable = temp(os.path.join(QC, "CLUSTERED", "LINCLUST", f"{PATTERN_R1}.seqtable"))
+        seqs = temp(os.path.join(QC, "CLUSTERED", f"{PATTERN_R1}.seqs")),
+        counts = temp(os.path.join(QC, "CLUSTERED", f"{PATTERN_R1}.counts")),
+        seqtable = temp(os.path.join(QC, "CLUSTERED", f"{PATTERN_R1}.seqtable"))
     benchmark:
         os.path.join(BENCH, "create_individual_seqtables.{sample}.txt")
     resources:
@@ -447,66 +451,6 @@ rule create_individual_seqtables:
         paste {output.seqs} {output.counts} > {output.seqtable};
         """
 
-# rule merge_individual_seqtables:
-#     """
-#
-#     Step 11: Merge individual sequence tables into combined seqtable
-#
-#     """
-#     input:
-#         files = expand(os.path.join(QC, "CLUSTERED", "LINCLUST", PATTERN_R1 + ".seqtable"), sample=SAMPLES)
-#     output:
-#         seqtable = os.path.join(RESULTS, "seqtable_all.tsv"),
-#         tab2fx = temporary(os.path.join(RESULTS, "seqtable.tab2fx"))
-#     params:
-#         resultsdir = directory(RESULTS),
-#     benchmark:
-#         os.path.join(BENCH, "PREPROCESSING", "s11.merge_seq_tables.txt")
-#     log:
-#         log = os.path.join(LOGS, "step_11", "s11.log")
-#     resources:
-#         mem_mb=100000,
-#         cpus=64
-#     params:
-#         resultsdir = directory(RESULTS),
-#     conda:
-#         "../envs/R.yaml"
-#     script:
-#         "../scripts/seqtable_merge.R"
-#
-# rule convert_seqtable_tab_to_fasta:
-#     """
-#
-#     Step 12: Convert tabular seqtable output to fasta and create index
-#
-#     """
-#     input:
-#         os.path.join(RESULTS, "seqtable.tab2fx")
-#     output:
-#         seqtable = os.path.join(RESULTS, "seqtable.fasta"),
-#         stats = os.path.join(RESULTS, "seqtable.stats"),
-#         idx = os.path.join(RESULTS, "seqtable.fasta.fai")
-#     benchmark:
-#         os.path.join(BENCH, "PREPROCESSING", "s12.convert_seqtable_tab_2_fasta.txt")
-#     log:
-#         log = os.path.join(LOGS, "step_12", "s12.log")
-#     resources:
-#         mem_mb=100000,
-#         cpus=64
-#     conda:
-#         "../envs/samtools.yaml"
-#     shell:
-#         """
-#         # Convert
-#         seqkit tab2fx {input} -j {config[System][Threads]} -w 5000 -t dna -o {output.seqtable};
-#
-#         # Calculate seqtable statistics
-#         seqkit stats {output.seqtable} -j {config[System][Threads]} -T > {output.stats};
-#
-#         # Create seqtable index
-#         samtools faidx {output.seqtable} -o {output.idx};
-#
-#         """
 
 rule merge_seq_table:
     """Step 11: Merge seq tables
@@ -515,7 +459,7 @@ rule merge_seq_table:
     the pipline.
     """
     input:
-        expand(os.path.join(QC, "CLUSTERED", "LINCLUST", "{sample}_R1.seqtable"), sample=SAMPLES)
+        expand(os.path.join(QC, "CLUSTERED", "{sample}_R1.seqtable"), sample=SAMPLES)
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
@@ -529,7 +473,7 @@ rule merge_seq_table:
         for sample in SAMPLES:
             seqId = 0
             seqCounts = 0
-            counts = open(os.path.join(QC, "CLUSTERED", "LINCLUST", f"{sample}_R1.seqtable"), 'r')
+            counts = open(os.path.join(QC, "CLUSTERED", f"{sample}_R1.seqtable"), 'r')
             line = counts.readline() # skip header
             for line in counts:
                 l = line.split()
@@ -541,59 +485,4 @@ rule merge_seq_table:
             outTsv.write(f'{sample}\t{seqCounts}\n')
         outFa.close()
         outTsv.close()
-
-# rule create_seqtable_index:
-#     """Step 12: Index seqtable.fasta for rapid access with samtools faidx."""
-#     input:
-#         os.path.join(RESULTS, "seqtable.fasta")
-#     output:
-#         os.path.join(RESULTS, "seqtable.fasta.fai")
-#     conda:
-#         "../envs/samtools.yaml"
-#     benchmark:
-#         os.path.join(BENCH, 'create_seqtable_index.txt')
-#     log:
-#         os.path.join(STDERR, 'create_seqtable_index.log')
-#     resources:
-#         mem_mb=8000
-#     shell:
-#         """
-#         samtools faidx {input} -o {output} 2> {log}
-#         """
-
-# rule calculate_seqtable_sequence_properties:
-#     """Step 13: Calculate additional sequence properties (ie. GC-content, tetramer frequencies) per sequence"""
-#     input:
-#         os.path.join(RESULTS, "seqtable.fasta")
-#     output:
-#         gc = os.path.join(RESULTS, "seqtable_properties.gc"),
-#         tetramer = os.path.join(RESULTS, "seqtable_properties.tetramer"),
-#         seq_properties = os.path.join(RESULTS, "seqtable_properties.tsv")
-#     benchmark:
-#         os.path.join(BENCH, "s13.calculate_seqtable_sequence_properties.txt")
-#     log:
-#         log1 = os.path.join(STDERR, "step_13", "s13.gc.log"),
-#         log2 = os.path.join(STDERR, "step_13", "s13.tetramer.log")
-#     resources:
-#         mem_mb=100000,
-#         cpus=64
-#     conda:
-#         "../envs/bbmap.yaml"
-#     shell:
-#         """
-#         # Calcualate per sequence GC content
-#         countgc.sh in={input} format=2 ow=t | awk 'NF' > {output.gc};
-#         sed -i '1i id\tGC' {output.gc} 2> {log.log1};
-#
-#         # Calculate per sequence tetramer frequency
-#         tetramerfreq.sh in={input} w=0 ow=t | \
-#         tail -n+2 | \
-#         cut --complement -f2 > {output.tetramer} 2> {log.log2};
-#
-#         sed -i 's/scaffold/id/' {output.tetramer};
-#
-#         # Combine
-#         csvtk join -f 1 {output.gc} {output.tetramer} -t -T > {output.seq_properties};
-#         """
-
 
