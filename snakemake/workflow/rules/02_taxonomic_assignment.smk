@@ -576,19 +576,19 @@ rule secondary_nt_lca_table:
     input:
         align = os.path.join(SECONDARY_NT_OUT, "results", "all.m8")
     output:
-        lin = temp(os.path.join(SECONDARY_NT_OUT, "results", "all.lin"))
+        lin = os.path.join(SECONDARY_NT_OUT, "results", "all.lin")
     run:
         lin = {}
         for l in stream_tsv(input.align):
             t = l[1].split('|')     # e.g. tid|2293023|NZ_QUCO01000049.1
             try:
-                if not t[1] in lin[l[0]]:
-                    lin[l[0]].append(t[1])
+                if not int(t[1]) in lin[l[0]]:
+                    lin[l[0]].append(int(t[1]))
             except KeyError:
-                lin[l[0]] = [t[1]]
+                lin[l[0]] = [int(t[1])]
         out = open(output.lin, 'w')
         for s in lin.keys():
-            tOut = ';'.join(lin[s])
+            tOut = ';'.join([str(i) for i in sorted(lin[s])])
             out.write(f'{s}\t{tOut}\n')
         out.close()
 
@@ -611,8 +611,11 @@ rule secondary_nt_calc_lca:
         os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_calc.log')
     shell:
         """
-        # calculate lineages
-        taxonkit lineage -i 2 --data-dir {input.taxdb} {input.lin} > {output.lca_lineage} 2> {log}
+        # calculate lca and lineage
+        taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} | \
+            taxonkit lineage -i 3 --data-dir {input.taxdb} | \
+            cut --complement -f 2 \
+            > {output.lca_lineage} 2> {log}
         
         # Reformat lineages
         awk -F '\t' '$2 != 0' {output.lca_lineage} | \
