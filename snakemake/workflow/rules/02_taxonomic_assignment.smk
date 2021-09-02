@@ -78,7 +78,7 @@ rule PRIMARY_AA_parsing:
         seqs = os.path.join(RESULTS, "seqtable.fasta"),
     output:
         class_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
-        unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
+        # unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
     # conda:
     #     "../envs/samtools.yaml"
     resources:
@@ -90,7 +90,7 @@ rule PRIMARY_AA_parsing:
         for l in stream_tsv(input.alnsort):
             topHit[l[0]] = 1
         outClass = open(output.class_seqs, 'w')
-        outUnclass = open(output.unclass_seqs, 'w')
+        #outUnclass = open(output.unclass_seqs, 'w')
         inFa = open(input.seqs,'r')
         for line in inFa:
             if line.startswith('>'):
@@ -100,13 +100,14 @@ rule PRIMARY_AA_parsing:
                     topHit[id]
                     outClass.write(f'>{id}\n{seq}\n')
                 except KeyError:
-                    outUnclass.write(f'>{id}\n{seq}\n')
+                    # outUnclass.write(f'>{id}\n{seq}\n')
+                    pass
             else:
                 sys.stderr.write(f'malformed {input.seqs} file, complain to Mike.')
                 exit(1)
         inFa.close()
         outClass.close()
-        outUnclass.close()
+        # outUnclass.close()
 
 
 rule SECONDARY_AA_taxonomy_assignment:
@@ -318,7 +319,7 @@ rule SECONDARY_AA_parsing:
         bigtable = os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
         seqs = os.path.join(RESULTS, "seqtable.fasta")
     output:
-        unclass_seqs = os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta")
+        unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
     resources:
         mem_mb=MiscMem
     threads:
@@ -349,7 +350,7 @@ rule SECONDARY_AA_parsing:
 rule PRIMARY_NT_taxonomic_assignment:
     """Primary nucleotide search of unclassified viral-like sequences from aa search"""
     input:
-        seqs = os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta"),
+        seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
         db = os.path.join(NCBIVIRDB, "sequenceDB")
     output:
         queryDB = os.path.join(PRIMARY_NT_OUT, "queryDB"),
@@ -429,7 +430,7 @@ rule PRIMARY_NT_parsing:
     xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
     """
     input:
-        seqs = os.path.join(SECONDARY_AA_OUT, "translated_unclassified.fasta"),
+        seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
         align = os.path.join(PRIMARY_NT_OUT, "results", "result.m8")
     output:
         class_seqs = os.path.join(PRIMARY_NT_OUT, "classified_seqs.fasta"),

@@ -143,7 +143,7 @@ SecondarySearchFilesNT = [
 # Summary files
 SummaryFiles = [
     #os.path.join(SUMDIR, "taxonLevelCounts.tsv"),
-    os.path.join(SUMDIR,"Step00_counts.tsv"),
+    os.path.join(SUMDIR, "Step00_counts.tsv"),
     os.path.join(SUMDIR, "Step01_counts.tsv"),
     os.path.join(SUMDIR, "Step02_counts.tsv"),
     os.path.join(SUMDIR, "Step03_counts.tsv"),
@@ -153,4 +153,9 @@ SummaryFiles = [
     os.path.join(SUMDIR, "Step07_counts.tsv"),
     os.path.join(SUMDIR, "Step08_counts.tsv"),
     os.path.join(SUMDIR, "Step09_counts.tsv"),
+    os.path.join(SUMDIR, "Step10_counts.tsv"),
+    os.path.join(SUMDIR, "Step11_counts.tsv"),
+    os.path.join(SUMDIR, "Step12_counts.tsv"),
+    os.path.join(SUMDIR, "Step13_counts.tsv"),
+    os.path.join(SUMDIR, "Sankey.svg")
 ]

@@ -10,7 +10,7 @@ What is accomplished with these rules?
 
 Rob Edwards, Jan 2020
 Updated: Scott Handley, March 2021
-Updated: Michael Roach, Q2 2021
+Updated: Michael Roach, Q2/3 2021
 """
 
 import os

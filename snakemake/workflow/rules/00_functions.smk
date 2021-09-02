@@ -131,11 +131,43 @@ def file_len(fname):
     f.close()
     return i + 1
 
+def fasta_clust_counts(fname):
+    """Return the sum of seq count values in a fasta file of clustered seqs"""
+    filehandle = open(fname, 'r')
+    count = 0
+    for line in filehandle:
+        if line.startswith('>'):
+            count += int(line.split(':')[1])     # fasta id = >sample:count:seqID
+    filehandle.close()
+    return count
+
 def collect_counts(inPrefix, inSuffix, stepName, outFile):
     """Collect fastq counts for all samples and print to file"""
     outfh = open(outFile,'w')
-    outfh.write('sample\tstep\tR1\tR2\n')
     for sample in SAMPLES:
         R1c = file_len(os.path.join(inPrefix, f'{sample}_R1{inSuffix}')) / 4
         R2c = file_len(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')) / 4
-        outfh.write(f'{sample}\t{stepName}\t{R1c}\t{R2c}\n')
+        outfh.write(f'{sample}\t{stepName}\tR1\t{R1c}\n')
+        outfh.write(f'{sample}\t{stepName}\tR2\t{R2c}\n')
+
+def sum_counts(fname, R1=False):
+    """Collect the sum of all reads for all samples from a summary count file (e.g. from collect_counts)"""
+    count = 0
+    infh = open(fname, 'r')
+    for line in infh:
+        l = line.split()
+        if R1:
+            if l[2] == "R1":
+                count += int(l[3])
+        else:
+            count += int(l[3])
+    infh.close()
+    return count
+
+
+
+
+
+
+
+
