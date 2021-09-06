@@ -226,13 +226,14 @@ rule SECONDARY_AA_generate_output_table:
         aln = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.reformated"),
         top = os.path.join(SECONDARY_AA_OUT, "tophit.lineage.reformated"),
-        counts = os.path.join(RESULTS,"sampleSeqCounts.tsv"),
+        counts = os.path.join(RESULTS, "sampleSeqCounts.tsv"),
         balt = os.path.join(TABLES, '2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
         os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
     run:
+        import re
         from statistics import median
-        balt = {}
+        balt = {}           # read in the baltimore group information, joined on Family name
         for l in stream_tsv(input.balt):
             if l[0] == 'Family':
                 continue
@@ -241,31 +242,28 @@ rule SECONDARY_AA_generate_output_table:
             except IndexError:
                 break # the end of the file is a bunch of blank lines
         counts = []
-        smplCounts = {}
+        smplCounts = {}     # Read in read counts for each sample for normalised counts
         for l in stream_tsv(input.counts):
             counts.append(int(l[1]))
             smplCounts[l[0]] = int(l[1])
         medCount = median(counts)
-        lcaLin = {}
+        lcaLin = {}         # Read in Tax info for LCA-labelled seqs
         for l in stream_tsv(input.lca):
-            # dont use lca lineage for taxids of 0, 1, or 10239
-            if l[1] != '0' and l[1] != '1' and l[1] != '10239':
+            if l[1] != '0' and l[1] != '1' and l[1] != '10239':     # dont use lca lineage for taxids of 0, 1, or 10239
                 lcaLin[l[0]] = '\t'.join((l[2:]))
-        topLin = {}
+        topLin = {}         # Read in Tax info for non-LCA-labelled seqs
         for l in stream_tsv(input.top):
-            # skip if using lca lineage
             try:
                 lcaLin[l[0]]
             except KeyError:
                 topLin[l[0]] = '\t'.join((l[2:]))
-        # iterate the tophit alignments and print the table on the fly
-        out = open(output[0],'w')
+        out = open(output[0],'w')       # iterate the tophit alignments and print the table on the fly
         out.write('\t'.join(('seqID',
                              'sampleID',
                              'count',
                              'normCount',
                              'alnType',     # aa or nt
-                             'target',
+                             'targetID',
                              'evalue',
                              'pident',
                              'fident',
@@ -281,6 +279,7 @@ rule SECONDARY_AA_generate_output_table:
                              'tlen',
                              'alnlen',
                              'bits',
+                             'targetName',
                              'taxMethod',
                              'kingdom',
                              'phylum',
@@ -292,7 +291,6 @@ rule SECONDARY_AA_generate_output_table:
                              'baltimoreType',
                              'baltimoreGroup')))
         out.write('\n')
-        # parse the alignments and attach appropriate info
         for l in stream_tsv(input.aln):
             try:
                 taxOut = 'LCA\t' + lcaLin[l[0]]
@@ -302,6 +300,7 @@ rule SECONDARY_AA_generate_output_table:
                 except KeyError:
                     taxOut = '\t'.join((['NA'] * 8))
             seqInf = l[0].split(':')        # seq ID = sample:count:seqNum
+            tName =  re.sub('.*\||\s+\S+=.*','',l[18])
             normCount = str(( int(seqInf[1]) / smplCounts[seqInf[0]] ) * medCount)
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
             alnOut = 'aa\t' + '\t'.join((l[1:17]))
@@ -309,7 +308,7 @@ rule SECONDARY_AA_generate_output_table:
                 baltOut = balt[taxOut.split()[5]]
             except KeyError:
                 baltOut = 'NA\tNA'
-            out.write('\t'.join((seqOut, alnOut, taxOut, baltOut)))
+            out.write('\t'.join((seqOut, alnOut, tName, taxOut, baltOut)))
             out.write('\n')
         out.close()
 
@@ -354,7 +353,8 @@ rule PRIMARY_NT_taxonomic_assignment:
         db = os.path.join(NCBIVIRDB, "sequenceDB")
     output:
         queryDB = os.path.join(PRIMARY_NT_OUT, "queryDB"),
-        result = os.path.join(PRIMARY_NT_OUT, "results", "result.index")
+        result = os.path.join(PRIMARY_NT_OUT, "results", "result.index"),
+        type = os.path.join(PRIMARY_NT_OUT, "results", "result.dbtype")
     params:
         respath = os.path.join(PRIMARY_NT_OUT, "results", "result"),
         tmppath = os.path.join(PRIMARY_NT_OUT, "mmseqs_aa_tmp")
@@ -372,6 +372,7 @@ rule PRIMARY_NT_taxonomic_assignment:
     shell:
         """
         # Create query database
+        rm -f {output.type}
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2;
         
         # mmseqs search
@@ -471,7 +472,8 @@ rule SECONDARY_NT_taxonomic_assignment:
         db = os.path.join(POLYMICRODB, "sequenceDB")
     output:
         queryDB = os.path.join(SECONDARY_NT_OUT, "queryDB"),
-        result = os.path.join(SECONDARY_NT_OUT, "results", "result.index")
+        result = os.path.join(SECONDARY_NT_OUT, "results", "result.index"),
+        type = os.path.join(SECONDARY_NT_OUT, "results", "result.dbtype")
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result"),
         tmppath = os.path.join(SECONDARY_NT_OUT, "mmseqs_aa_tmp")
@@ -489,7 +491,8 @@ rule SECONDARY_NT_taxonomic_assignment:
     shell:
         """
         # Create query database
-        mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2;
+        rm -f {output.type}
+        mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2
         
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
@@ -670,7 +673,7 @@ rule SECONDARY_NT_generate_output_table:
                              'count',
                              'normCount',
                              'alnType',     # aa or nt
-                             'target',
+                             'targetID',
                              'evalue',
                              'pident',
                              'fident',
@@ -686,6 +689,7 @@ rule SECONDARY_NT_generate_output_table:
                              'tlen',
                              'alnlen',
                              'bits',
+                             'targetName',
                              'taxMethod',
                              'kingdom',
                              'phylum',
@@ -707,13 +711,14 @@ rule SECONDARY_NT_generate_output_table:
                     taxOut = '\t'.join((['NA'] * 8))
             seqInf = l[0].split(':')        # seq ID = sample:count:seqNum
             normCount = str((int(seqInf[1]) / smplCounts[seqInf[0]]) * medCount)
+            tName =  re.sub('.*\||\s+\S+=.*','',l[18])
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
             alnOut = 'nt\t' + '\t'.join((l[1:17]))
             try:
                 baltOut = balt[taxOut.split()[5]]
             except KeyError:
                 baltOut = 'NA\tNA'
-            out.write('\t'.join((seqOut, alnOut, taxOut, baltOut)))
+            out.write('\t'.join((seqOut, alnOut, tName, taxOut, baltOut)))
             out.write('\n')
         out.close()
 

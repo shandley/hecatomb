@@ -15,9 +15,9 @@ rule tax_level_counts:
         MiscCPU
     run:
         # the index position for each tax level in the bigtable.tsv - off by one because we capture the range as l[21:i]
-        tsvIndex = {'kingdom': 23, 'phylum': 24, 'class': 25, 'order': 26, 'family': 27, 'genus': 28, 'species': 29}
-        idxStart = 22
-        short = {'22':'k', '23':'p', '24':'c', '25':'o', '26':'f', '27':'g', '28':'s'}
+        tsvIndex = {'kingdom': 24, 'phylum': 25, 'class': 26, 'order': 27, 'family': 28, 'genus': 29, 'species': 30}
+        idxStart = 23
+        short = {'23':'k', '24':'p', '25':'c', '26':'o', '27':'f', '28':'g', '29':'s'}
         out = open(output[0], 'w')
         out.write('sampleID\ttaxonLevel\ttaxonPath\ttaxonName\tcount\tnormCount\n')
         # re-read the file for each sample to keep the memory happy - this is probably not necessary
@@ -200,7 +200,7 @@ rule step11_counts:
         infh.readline() # skip header
         for line in infh:
             l = line.split('\t')
-            if l[22] == "Viruses":
+            if l[23] == "Viruses":
                 virCnts += int(l[2])
             else:
                 nonVirCnts += int(l[2])
@@ -241,7 +241,7 @@ rule step13_counts:
         infh.readline()     # skip header
         for line in infh:
             l = line.split('\t')
-            if l[22] == "Viruses":
+            if l[23] == "Viruses":
                 virCnts += int(l[2])
             else:
                 nonVirCnts += int(l[2])
@@ -371,7 +371,7 @@ rule sankey_diagram:
             16, 17,     # sAA
             22, 23,     # sAA
             18, 19,     # pNT
-            25,         # pNT
+            24,         # pNT
             20, 21,     # sNT
             22, 23      # sNT
         ]
@@ -395,10 +395,11 @@ rule sankey_diagram:
             sntV, sntU,         # sNT
             sntV, sntU          # sNT
         ]
-        link = dict(source=source,target=target,value=value)
-        data = go.Sankey(link=link)
+        link = dict(source=source,target=target,value=values)
+        node = dict(label=labels, pad=50, thickness=5)
+        data = go.Sankey(link=link, node=node)
         fig = go.Figure(data)
-        fig.write_image(output[0])
+        fig.write_image(output[0], width=2000, height=1000)
 
 
 
