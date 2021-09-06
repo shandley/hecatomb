@@ -158,9 +158,9 @@ def sum_counts(fname, R1=False):
         l = line.split()
         if R1:
             if l[2] == "R1":
-                count += int(l[3])
+                count += float(l[3])
         else:
-            count += int(l[3])
+            count += float(l[3])
     infh.close()
     return count
 
