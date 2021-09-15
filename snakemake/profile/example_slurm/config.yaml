@@ -4,9 +4,9 @@ cluster:
     --cpus-per-task={threads}
     --mem={resources.mem_mb}
     --time={resources.time}
-    --job-name=smk-{rule}-{wildcards}
-    --output=logs/{rule}/{jobid}-{wildcards}.out
-    --error=logs/{rule}/{jobid}-{wildcards}.err
+    --job-name=smk-{rule}
+    --output=logs/{rule}/{jobid}.out
+    --error=logs/{rule}/{jobid}.err
 default-resources:
   - mem_mb=2000
   - time=1440
