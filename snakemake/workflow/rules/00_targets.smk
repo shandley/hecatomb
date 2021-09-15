@@ -9,7 +9,7 @@ PreprocessingFiles = [
     os.path.join(RESULTS, "sampleSeqCounts.tsv"),
     # os.path.join(RESULTS, "seqtable.counts.tsv"),
     # os.path.join(RESULTS, "seqtable.stats"),
-    os.path.join(RESULTS, "seqtable.fasta.fai"),
+    # os.path.join(RESULTS, "seqtable.fasta.fai"),
     # os.path.join(RESULTS, "seqtable.properties.gc"),
     # os.path.join(RESULTS, "seqtable.properties.tetramer"),
     os.path.join(RESULTS, "seqtable.properties.tsv")]
