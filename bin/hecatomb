@@ -163,7 +163,7 @@ def install():
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Checking and downloading database files\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'DownloadDB.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} '
+    runCommand = f'{snakeCommand} -s {snekFile} -C Output={args.results}'
     successMsg = "Database installation finished successfully\n"
     runSnakeSys(runCommand, successMsg)
     return
