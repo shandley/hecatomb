@@ -18,76 +18,53 @@ import sys
 configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 
 
-# Directory paths
-if config['Databases'] is None:
-    DBDIR = os.path.join(workflow.basedir,'../../databases')
-else:
-    DBDIR = config['Databases']
-
-TMPDIR = 'tmp'
-LOG = 'logs'
-# paths for our databases
-BACPATH  = os.path.join(DBDIR, "bac_giant_unique_species")
-HOSTPATH = os.path.join(DBDIR, "hosts")
-CONPATH  = os.path.join(DBDIR, "contaminants")
-PROTPATH = os.path.join(DBDIR, "proteins")
-TAXPATH  = os.path.join(DBDIR, "taxonomy")
-NUCLPATH = os.path.join(DBDIR, "nucleotides")
-
-UNIVIRDB = os.path.join(PROTPATH, "virus_primary_aa")
-#URVPATH = os.path.join(PROTPATH, "uniref_plus_virus") # uniref50 + viruses
-UNIREF50VIR = os.path.join(PROTPATH, "virus_secondary_aa")
+# directories
+include: "rules/00_directories.smk"
 
 
-
-# create directories
-for DIR in [DBDIR, TMPDIR, BACPATH, HOSTPATH, CONPATH, PROTPATH, TAXPATH, NUCLPATH, UNIVIRDB, UNIREF50VIR, LOG]:
-    if not os.path.exists(DIR):
-        os.mkdir(DIR)
+# Mirrors
+mirror1 = config['mirror1']
+mirror2 = config['mirror2']
 
 
-# import the rules
-include: "rules/d0_download_dbs.smk"
-
-
-## bowtie vs bbmap databases
-# inputs = []
-# if config['Options']['use_bowtie']:
-# inputs = [
-#     expand(os.path.join(BACPATH, "bac_uniquespecies_giant.masked_Ns_removed.{n}.bt2l"), n=[1,2,3,4]),
-#     expand(os.path.join(HOSTPATH, "human_virus_masked.{n}.bt2l"), n=[1,2,3,4]),
-#     expand(os.path.join(CONPATH, "line_sine.{n}.bt2"), n=[1,2,3,4]),
-#     expand(os.path.join(CONPATH, "line_sine.rev.{m}.bt2"), m=[1,2])
-# ]
-# else:
-#     inputs = [
-#         os.path.join(BACPATH, "ref"),
-#         os.path.join(HOSTPATH, "ref"),
-#         os.path.join(CONPATH, "line_sine.fasta")
-#     ]
+# targets
+allDbFiles = []
+for f in config['dbFiles']:
+    allDbFiles.append(os.path.join(DBDIR, f))
 
 
 rule all:
     input:
-        # the database directories
-        # inputs,
-        #os.path.join(PROTPATH, "uniprot_virus.faa"),
-        os.path.join(TAXPATH, "uniprot_ncbi_mapping.dat"),
-        os.path.join(NUCLPATH, "refseq_virus_nt_UniVec_masked/nt.fnaDB.dbtype"),
-        os.path.join(NUCLPATH, "bac_virus_masked/nt.fnaDB.dbtype"),
-        os.path.join(NUCLPATH, "refseq_virus_nt_UniVec_masked/nt.fnaDB.index"),
-        os.path.join(NUCLPATH, "bac_virus_masked/nt.fnaDB.index"),
-        os.path.join(HOSTPATH, config["human"]),
-        os.path.join(TAXPATH,"citations.dmp"),
-        os.path.join(TAXPATH,"delnodes.dmp"),
-        os.path.join(TAXPATH,"division.dmp"),
-        os.path.join(TAXPATH,"gc.prt"),
-        os.path.join(TAXPATH,"gencode.dmp"),
-        os.path.join(TAXPATH,"merged.dmp"),
-        os.path.join(TAXPATH,"readme.txt"),
-        os.path.join(TAXPATH,"names.dmp"),
-        os.path.join(TAXPATH,"nodes.dmp"),
-        #os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql"),
-        #multiext(os.path.join(UNIVIRDB, "sequenceDB"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp"),
-        #multiext(os.path.join(UNIREF50VIR, "sequenceDB"), ".db_mapping", ".db_names.dmp", ".db_nodes.dmp", ".db_merged.dmp", ".db_delnodes.dmp")
-################# TODO: FIX UNIVIRDB / UNIREF50VIR RULES
+        allDbFiles
+
+
+rule unpack_db_file:
+    """Generic rule to unpack included files."""
+    input:
+        os.path.join(DBDIR, 'contaminants', '{file}.zst')
+    output:
+        os.path.join(DBDIR, 'contaminants', '{file}')
+    wildcard_constraints:
+        file = '.*(?<!zst)'
+    shell:
+        """zstd -d {input} -o {output}"""
+
+
+rule download_db_file:
+    """Generic rule to download a DB file."""
+    output:
+        os.path.join(DBDIR, '{file}')
+    wildcard_constraints:
+        file = '(?!contaminants).*'
+    run:
+        import urllib.request
+        import urllib.parse
+        import shutil
+        dlUrl1 = urllib.parse.urljoin(mirror1, wildcards.file)
+        dlUrl2 = urllib.parse.urljoin(mirror2, wildcards.file)
+        try:
+            with urllib.request.urlopen(dlUrl1) as r, open(output[0],'wb') as o:
+                shutil.copyfileobj(r,o)
+        except:
+            with urllib.request.urlopen(dlUrl2) as r, open(output[0],'wb') as o:
+                shutil.copyfileobj(r,o)

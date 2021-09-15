@@ -73,44 +73,122 @@ SECNTE: 1e-5 # Secondary untranslated (nt-vs-nt) e-value
 # Database URLs etc. #
 ######################
 
-# Filenames, URLs and checksums for databases. Don't touch.
+# Mirrors
+mirror1: https://htcf.wustl.edu/files/lXraB7eg/hecatomb/
+mirror2: https://htcf.wustl.edu/files/lXraB7eg/hecatomb/
 
-bacteria: bac_uniquespecies_giant.masked_Ns_removed.fasta
-contaminants: vector_contaminants.fa.gz
-human: human_virus_masked.fasta
 
-url:
-  hecatomb:
-    filename: "hecatomb.databases.tar.zst"
-    tar:      "https://cloudstor.aarnet.edu.au/plus/s/A4Swxf13wES8Uez/download"
-    md5:      "https://cloudstor.aarnet.edu.au/plus/s/vnilMkcFLQTDqB4/download"
-  uniprot_virus:
-    filename: "uniprot_virus_c99.tar.zst"
-    tar:      "https://cloudstor.aarnet.edu.au/plus/s/PLoGhe47HmFgosv/download"
-    md5:      "https://cloudstor.aarnet.edu.au/plus/s/UigsJNrKF8tvjC6/download"
-  uniref50:
-    "ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz"
-  id_map:
-    filename: "uniprot_ncbi_mapping.dat.zst"
-    zst:      "https://cloudstor.aarnet.edu.au/plus/s/nASd4zM3RfDvbux/download"
-    md5:      "https://cloudstor.aarnet.edu.au/plus/s/pgCGnu7pei4pHOC/download"
-  hecatomb_nucl:
-    filename: "hecatomb.nucleotide.databases.tar.zst"
-    tar:      "https://cloudstor.aarnet.edu.au/plus/s/30agxBFKqlj3bm3/download"
-    md5:      "https://cloudstor.aarnet.edu.au/plus/s/WjLjPMkkR59AaQE/download"
-  taxonomizer:
-    filename: "taxonomizr_accessionTaxa.sql.zst"
-    zst:      "https://cloudstor.aarnet.edu.au/plus/s/ox7yIlWxhwpmGUy/download"
-    md5:      "https://cloudstor.aarnet.edu.au/plus/s/aR4VCCF0cA4l2R4/download"
-  taxdump:
-    filename: "taxdump.tar.gz"
-    tar:      "ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz"
-    md5:      "ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz.md5"
-  ntacc2tax:
-    filename: "nucl_gb.accession2taxid.gz"
-    gz:       "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz"
-    md5:      "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz.md5"
-  lineSine:
-    filename: "line_sine.fasta.zst"
-    zst:      "https://cloudstor.aarnet.edu.au/plus/s/wXyN3AJX47hEDnF/download"
-    md5:      "https://cloudstor.aarnet.edu.au/plus/s/EiQQOKJ3jByD482/download"
+# database files to download or unpack
+dbFiles:
+ - contaminants/nebnext_adapters.fa
+ - contaminants/primerB.fa
+ - contaminants/rc_primerB_ad6.fa
+ - contaminants/truseq.fa
+ - contaminants/vector_contaminants.fa
+ - aa/virus_primary_aa/sequenceDB
+ - aa/virus_primary_aa/sequenceDB.dbtype
+ - aa/virus_primary_aa/sequenceDB_delnodes.dmp
+ - aa/virus_primary_aa/sequenceDB_h
+ - aa/virus_primary_aa/sequenceDB_h.dbtype
+ - aa/virus_primary_aa/sequenceDB_h.index
+ - aa/virus_primary_aa/sequenceDB.index
+ - aa/virus_primary_aa/sequenceDB.lookup
+ - aa/virus_primary_aa/sequenceDB_mapping
+ - aa/virus_primary_aa/sequenceDB_merged.dmp
+ - aa/virus_primary_aa/sequenceDB_names.dmp
+ - aa/virus_primary_aa/sequenceDB_nodes.dmp
+ - aa/virus_primary_aa/sequenceDB.source
+ - aa/virus_secondary_aa/sequenceDB
+ - aa/virus_secondary_aa/sequenceDB.dbtype
+ - aa/virus_secondary_aa/sequenceDB_delnodes.dmp
+ - aa/virus_secondary_aa/sequenceDB_h
+ - aa/virus_secondary_aa/sequenceDB_h.dbtype
+ - aa/virus_secondary_aa/sequenceDB_h.index
+ - aa/virus_secondary_aa/sequenceDB.index
+ - aa/virus_secondary_aa/sequenceDB.lookup
+ - aa/virus_secondary_aa/sequenceDB_mapping
+ - aa/virus_secondary_aa/sequenceDB_merged.dmp
+ - aa/virus_secondary_aa/sequenceDB_names.dmp
+ - aa/virus_secondary_aa/sequenceDB_nodes.dmp
+ - aa/virus_secondary_aa/sequenceDB.source
+ - host/bat/masked_ref.fa.gz
+ - host/camel/masked_ref.fa.gz
+ - host/cat/masked_ref.fa.gz
+ - host/celegans/masked_ref.fa.gz
+ - host/cow/masked_ref.fa.gz
+ - host/dog/masked_ref.fa.gz
+ - host/human/masked_ref.fa.gz
+ - host/macaque/masked_ref.fa.gz
+ - host/mosquito/masked_ref.fa.gz
+ - host/mouse/masked_ref.fa.gz
+ - host/rat/masked_ref.fa.gz
+ - host/tick/masked_ref.fa.gz
+ - nt/virus_primary_nt/sequenceDB
+ - nt/virus_primary_nt/sequenceDB.dbtype
+ - nt/virus_primary_nt/sequenceDB_h
+ - nt/virus_primary_nt/sequenceDB_h.dbtype
+ - nt/virus_primary_nt/sequenceDB_h.index
+ - nt/virus_primary_nt/sequenceDB.index
+ - nt/virus_primary_nt/sequenceDB.lookup
+ - nt/virus_primary_nt/sequenceDB.source
+ - nt/virus_secondary_nt/sequenceDB
+ - nt/virus_secondary_nt/sequenceDB.dbtype
+ - nt/virus_secondary_nt/sequenceDB_h
+ - nt/virus_secondary_nt/sequenceDB_h.dbtype
+ - nt/virus_secondary_nt/sequenceDB_h.index
+ - nt/virus_secondary_nt/sequenceDB.index
+ - nt/virus_secondary_nt/sequenceDB.lookup
+ - nt/virus_secondary_nt/sequenceDB.source
+ - tables/2020_07_27_Viral_classification_table_ICTV2019.txt
+ - tables/phage_taxonomic_lineages_12102020.txt
+ - tax/taxonomy/citations.dmp
+ - tax/taxonomy/delnodes.dmp
+ - tax/taxonomy/division.dmp
+ - tax/taxonomy/gc.prt
+ - tax/taxonomy/gencode.dmp
+ - tax/taxonomy/merged.dmp
+ - tax/taxonomy/names.dmp
+ - tax/taxonomy/nodes.dmp
+
+#
+## Filenames, URLs and checksums for databases. Don't touch.
+#
+#bacteria: bac_uniquespecies_giant.masked_Ns_removed.fasta
+#contaminants: vector_contaminants.fa.gz
+#human: human_virus_masked.fasta
+#
+#url:
+#  hecatomb:
+#    filename: "hecatomb.databases.tar.zst"
+#    tar:      "https://cloudstor.aarnet.edu.au/plus/s/A4Swxf13wES8Uez/download"
+#    md5:      "https://cloudstor.aarnet.edu.au/plus/s/vnilMkcFLQTDqB4/download"
+#  uniprot_virus:
+#    filename: "uniprot_virus_c99.tar.zst"
+#    tar:      "https://cloudstor.aarnet.edu.au/plus/s/PLoGhe47HmFgosv/download"
+#    md5:      "https://cloudstor.aarnet.edu.au/plus/s/UigsJNrKF8tvjC6/download"
+#  uniref50:
+#    "ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz"
+#  id_map:
+#    filename: "uniprot_ncbi_mapping.dat.zst"
+#    zst:      "https://cloudstor.aarnet.edu.au/plus/s/nASd4zM3RfDvbux/download"
+#    md5:      "https://cloudstor.aarnet.edu.au/plus/s/pgCGnu7pei4pHOC/download"
+#  hecatomb_nucl:
+#    filename: "hecatomb.nucleotide.databases.tar.zst"
+#    tar:      "https://cloudstor.aarnet.edu.au/plus/s/30agxBFKqlj3bm3/download"
+#    md5:      "https://cloudstor.aarnet.edu.au/plus/s/WjLjPMkkR59AaQE/download"
+#  taxonomizer:
+#    filename: "taxonomizr_accessionTaxa.sql.zst"
+#    zst:      "https://cloudstor.aarnet.edu.au/plus/s/ox7yIlWxhwpmGUy/download"
+#    md5:      "https://cloudstor.aarnet.edu.au/plus/s/aR4VCCF0cA4l2R4/download"
+#  taxdump:
+#    filename: "taxdump.tar.gz"
+#    tar:      "ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz"
+#    md5:      "ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz.md5"
+#  ntacc2tax:
+#    filename: "nucl_gb.accession2taxid.gz"
+#    gz:       "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz"
+#    md5:      "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz.md5"
+#  lineSine:
+#    filename: "line_sine.fasta.zst"
+#    zst:      "https://cloudstor.aarnet.edu.au/plus/s/wXyN3AJX47hEDnF/download"
+#    md5:      "https://cloudstor.aarnet.edu.au/plus/s/EiQQOKJ3jByD482/download"
