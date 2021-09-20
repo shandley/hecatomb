@@ -74,7 +74,7 @@ SECNTE: 1e-5 # Secondary untranslated (nt-vs-nt) e-value
 #####################
 
 # Mirrors
-mirror1: https://hecatombdb.s3.us-west-2.amazonaws.com/databases/
+mirror1: https://hecatombdatabases.s3.us-west-2.amazonaws.com/databases/
 mirror2: https://htcf.wustl.edu/files/lXraB7eg/hecatomb/
 
 # files to download or unpack
