@@ -359,12 +359,12 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     input:
         os.path.join(TMPDIR, "p08", f"{PATTERN_R1}.deduped.out.fastq")
     output:
-        temp(os.path.join(TMPDIR, "p08", f"{PATTERN_R1}_rep_seq.fasta")),
-        temp(os.path.join(TMPDIR, "p08", f"{PATTERN_R1}_cluster.tsv")),
-        temp(os.path.join(TMPDIR, "p08", f"{PATTERN_R1}_all_seqs.fasta"))
+        temp(os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_rep_seq.fasta")),
+        temp(os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_cluster.tsv")),
+        temp(os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_all_seqs.fasta"))
     params:
-        respath = os.path.join(TMPDIR, "p08"),
-        tmppath = os.path.join(TMPDIR, "p08", "{sample}_TMP"),
+        respath = os.path.join(TMPDIR, "p09"),
+        tmppath = os.path.join(TMPDIR, "p09", "{sample}_TMP"),
         prefix = PATTERN_R1
     benchmark:
         os.path.join(BENCH, "09_cluster_similar_sequences.{sample}.txt")
@@ -390,12 +390,12 @@ rule create_individual_seqtables:
     sequence per sample.
     """
     input:
-        seqs = os.path.join(TMPDIR, "p08", f"{PATTERN_R1}_rep_seq.fasta"),
-        counts = os.path.join(TMPDIR, "p08", f"{PATTERN_R1}_cluster.tsv")
+        seqs = os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_rep_seq.fasta"),
+        counts = os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_cluster.tsv")
     output:
-        seqs = temp(os.path.join(TMPDIR, "p08", f"{PATTERN_R1}.seqs")),
-        counts = temp(os.path.join(TMPDIR, "p08", f"{PATTERN_R1}.counts")),
-        seqtable = temp(os.path.join(TMPDIR, "p08", f"{PATTERN_R1}.seqtable"))
+        seqs = temp(os.path.join(TMPDIR, "p10", f"{PATTERN_R1}.seqs")),
+        counts = temp(os.path.join(TMPDIR, "p10", f"{PATTERN_R1}.counts")),
+        seqtable = temp(os.path.join(TMPDIR, "p10", f"{PATTERN_R1}.seqtable"))
     benchmark:
         os.path.join(BENCH, "p10_individual_seqtables.{sample}.txt")
     log:
@@ -430,7 +430,7 @@ rule merge_seq_table:
     the pipline.
     """
     input:
-        expand(os.path.join(TMPDIR, "p08", "{sample}_R1.seqtable"), sample=SAMPLES)
+        expand(os.path.join(TMPDIR, "p10", "{sample}_R1.seqtable"), sample=SAMPLES)
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
@@ -444,7 +444,7 @@ rule merge_seq_table:
         for sample in SAMPLES:
             seqId = 0
             seqCounts = 0
-            counts = open(os.path.join(TMPDIR, "p08", f"{sample}_R1.seqtable"), 'r')
+            counts = open(os.path.join(TMPDIR, "p10", f"{sample}_R1.seqtable"), 'r')
             line = counts.readline() # skip header
             for line in counts:
                 l = line.split()
