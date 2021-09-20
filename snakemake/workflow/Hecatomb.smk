@@ -64,7 +64,7 @@ HOSTINDEX = HOSTFA + '.idx'
 
 # Check for Database files
 dbFail = False
-sys.stderr.write('\nChecking database files\n')
+# sys.stderr.write('\nChecking database files\n')
 for f in config['dbFiles']:
     dbFile = os.path.join(DBDIR, f)
     if not os.path.isfile(dbFile):
@@ -73,8 +73,8 @@ for f in config['dbFiles']:
 if dbFail:
     sys.stderr.write('ONE OR MORE DATABASE FILES ARE MISSING\nPlease run "hecatomb install" to download the missing database files\n\n')
     exit(1)
-else:
-    sys.stderr.write('Database files ok!\n')
+# else:
+#     sys.stderr.write('Database files ok!\n')
 
 
 SAMPLES,EXTENSIONS = glob_wildcards(os.path.join(READDIR, '{sample}_R1{extensions}'))
