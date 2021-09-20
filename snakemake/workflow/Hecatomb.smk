@@ -52,9 +52,9 @@ include: "rules/00_directories.smk"
 
 
 # DIRs TO INITIALIZE
-for dir in [TMPDIR, WORKDIR, STDERR]:
-    if not os.path.exists(dir):
-        os.makedirs(dir, exist_ok=True)
+# for dir in [TMPDIR, WORKDIR, STDERR]:
+#     if not os.path.exists(dir):
+#         os.makedirs(dir, exist_ok=True)
 
 
 ### HOST ORGANISM
@@ -62,104 +62,20 @@ HOSTFA = os.path.join(HOSTPATH, HOST, "masked_ref.fa.gz")
 HOSTINDEX = HOSTFA + '.idx'
 
 
-# PREFLIGHT CHECKS
-fatal_errors = False
-fatal_messages = []
+# Check for Database files
+dbFail = False
+sys.stderr.write('\nChecking database files\n')
+for f in config['dbFiles']:
+    dbFile = os.path.join(DBDIR, f)
+    if not os.path.isfile(dbFile):
+        dbFail = True
+        sys.stderr.write(f'ERROR: missing database file {dbFile}\n')
+if dbFail:
+    sys.stderr.write('ONE OR MORE DATABASE FILES ARE MISSING\nPlease run "hecatomb install" to download the missing database files\n\n')
+    exit(1)
+else:
+    sys.stderr.write('Database files ok!\n')
 
-###################################################################
-#                                                                 #
-# REFERENCE DATABASES                                             #
-#                                                                 #
-###################################################################
-
-# Base path for protein sequence reference databases
-# if not os.path.exists(PROTPATH):
-#     fatal_messages.append("protein databases")
-#     fatal_errors = True
-
-# Primary aa search database:
-# The virus protein database, clustered at 99% with cd-hit    
-if not os.path.exists(UNIVIRDB):
-    fatal_messages.append(UNIVIRDB)
-    fatal_errors = True
-
-# Secondary aa search database
-# UniRef50 + primary aa search database
-if not os.path.exists(UNIREF50VIR):
- fatal_messages.append(UNIREF50VIR)
- fatal_errors = True
-
-# Base path for nucleotide sequence reference databases
-#NUCLPATH = os.path.join(DBDIR, "nt")
-
-# The virus nucleotide database, clustered at 100% with linclust
-if not os.path.exists(NCBIVIRDB):
- fatal_messages.append(NCBIVIRDB)
- fatal_errors = True
- 
-# Polymicrobial + plant + virus database
-if not os.path.exists(POLYMICRODB):
-   fatal_messages.append("nucleotide database {POLYMICRODB}")
-   fatal_errors = True
-
-# # output directories for our untranslated (nt-to-nt) searches
-# PRIMARY_NT_OUT = os.path.join(RESULTS, "MMSEQS_NT_PRIMARY")
-# SECONDARY_NT_OUT = os.path.join(RESULTS, "MMSEQS_NT_SECONDARY")
-
-###################################################################
-#                                                                 #
-# Taxonomy databases and related information                      #
-#                                                                 #
-###################################################################
-
-#PHAGE_LINEAGES = os.path.join(DBDIR, "phages", "phage_taxonomic_lineages.txt")
-#if not os.path.exists(PHAGE_LINEAGES):
-#    fatal_messages.append("phages/phage_taxonomic_lineages.txt")
-#    fatal_errors = True
-
-#TAXPATH  = os.path.join(DBDIR, "taxonomy")
-#TAXTAX = os.path.join(TAXPATH, "taxonomizr_accessionTaxa.sql")
-#if not os.path.exists(TAXTAX):
-#    fatal_messages.append(f"taxonomizr database {TAXTAX}")
-#    fatal_errors = True
-
-# Bacterial virus masked database for section 07 mmseqs pviral check
-
-#BVMDB = os.path.join(NUCLPATH, "bac_virus_masked", "nt.fnaDB")
-#if not os.path.exists(BVMDB):
-#    fatal_messages.append(BVMDB)
-#    fatal_errors = True
-
-
-###################################################################
-#                                                                 #
-# Fatal errors should all be resolved by the download databsaes   #
-#                                                                 #
-###################################################################
-
-#if fatal_errors:
-#    sys.stderr.write("""
-#**** FATAL ERRORS ****
-
-#We can't proceed because we can't find one or more of the databases.
-#You probably need to download the databases before you can continue.
-
-#Please use the snakefile: 
-#   download_databases.smk
-
-#To download and install all the databases.
-
-#Here are a list of the databases that are currently missing:
-#""")
-#    sys.stderr.write("\n".join(fatal_messages))
-#    sys.stderr.write("\n\n")
-#    sys.exit(5)
-
-###################################################################
-#                                                                 #
-# Read the sequence files and parse the file names.               #
-#                                                                 #
-###################################################################
 
 SAMPLES,EXTENSIONS = glob_wildcards(os.path.join(READDIR, '{sample}_R1{extensions}'))
 
