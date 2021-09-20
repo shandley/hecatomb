@@ -5,15 +5,11 @@ History: This is based on [mmseqs_pviral_aa.sh](../base/mmseqs_pviral_aa.sh)
 
 Rob Edwards, March 2020
 Overhauled - Michael Roach, Q2/Q3 2021
-
 """
-
-import os
-import sys
 
 
 rule PRIMARY_AA_taxonomy_assignment:
-    """Assign taxonomy to RESULTS/seqtable.fasta sequences using mmseqs2 
+    """Taxon step 01: Assign taxonomy to RESULTS/seqtable.fasta sequences using mmseqs2 
     
     - Reference database: all UniProt viral (UNIVIRDB) protein sequences clustered at 99% ID
     - This is a nt-to-aa translated search, similar to blastX
@@ -37,9 +33,9 @@ rule PRIMARY_AA_taxonomy_assignment:
         alnRes=os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY"),
         tmppath=os.path.join(PRIMARY_AA_OUT, "mmseqs_aa_tmp")
     benchmark:
-        os.path.join(BENCH, "MMSEQS", "mmseqs_primary_AA.txt")
+        os.path.join(BENCH, "t01.mmseqs_primary_AA.txt")
     log:
-        log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_AA.log")
+        os.path.join(STDERR, "t01.mmseqs_primary_AA.log")
     resources:
         mem_mb=MMSeqsMem,
         time=MMSeqsTimeMin
@@ -47,8 +43,9 @@ rule PRIMARY_AA_taxonomy_assignment:
         MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
-    shell: # run easy taxonomy, add header
+    shell:
         """
+        {{
         # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
             -a --start-sens 1 --sens-steps 3 -s 7 \
@@ -57,15 +54,16 @@ rule PRIMARY_AA_taxonomy_assignment:
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
             --tax-lineage 1 --min-length {config[AAMINLEN]} \
             --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
-            -e {config[PRIMAAE]} &>> {log};
+            -e {config[PRIMAAE]};
         
         # Add headers
         sort -k1 -n {output.aln} | \
             sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
+        }} &> {log}
         """
-        
+
 rule PRIMARY_AA_parsing:
-    """Parse primary AA search results for classified (potentially viral) and unclassified sequences
+    """Taxon step 02: Parse primary AA search results for classified (potentially viral) and unclassified sequences
         
     - MMSEQS_AA_PRIMARY_classified.fasta will be subjected to a secondary translated search (rule 
       SECONDARY_AA_taxonomy_assignment:) against a trans-kingdom database (UniRef50 + UNIVIRDB) to confirm true 
@@ -78,9 +76,6 @@ rule PRIMARY_AA_parsing:
         seqs = os.path.join(RESULTS, "seqtable.fasta"),
     output:
         class_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
-        # unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
-    # conda:
-    #     "../envs/samtools.yaml"
     resources:
         mem_mb=MiscMem
     threads:
@@ -90,7 +85,6 @@ rule PRIMARY_AA_parsing:
         for l in stream_tsv(input.alnsort):
             topHit[l[0]] = 1
         outClass = open(output.class_seqs, 'w')
-        #outUnclass = open(output.unclass_seqs, 'w')
         inFa = open(input.seqs,'r')
         for line in inFa:
             if line.startswith('>'):
@@ -100,18 +94,15 @@ rule PRIMARY_AA_parsing:
                     topHit[id]
                     outClass.write(f'>{id}\n{seq}\n')
                 except KeyError:
-                    # outUnclass.write(f'>{id}\n{seq}\n')
                     pass
             else:
                 sys.stderr.write(f'malformed {input.seqs} file, complain to Mike.')
                 exit(1)
         inFa.close()
         outClass.close()
-        # outUnclass.close()
-
 
 rule SECONDARY_AA_taxonomy_assignment:
-    """Check taxonomic assignments in MMSEQS_AA_PRIMARY_classified.fasta using mmseqs2
+    """Taxon step 03: Check taxonomic assignments in MMSEQS_AA_PRIMARY_classified.fasta using mmseqs2
     
     - Reference database: UniRef50 + UNIVIRDB. All UniProtKB protein entries (all domains of life) clustered at 50% ID 
       (https://www.uniprot.org/help/uniref) concatenated to UNIVIRDB
@@ -132,18 +123,19 @@ rule SECONDARY_AA_taxonomy_assignment:
         alnRes=os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY"),
         tmppath=os.path.join(SECONDARY_AA_OUT, "mmseqs_aa_tmp")
     benchmark:
-        os.path.join(BENCH, "MMSEQS", "mmseqs_secondary_AA.txt")
+        os.path.join(BENCH, "t03.mmseqs_secondary_AA.txt")
     log:
-        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_AA.log")
+        os.path.join(STDERR, "t03.mmseqs_secondary_AA.log")
     resources:
-        mem_mb=MMSeqsMem,
-        time=MMSeqsTimeMin
+        mem_mb = MMSeqsMem,
+        time = MMSeqsTimeMin
     threads:
         MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
-    shell: # secondary easy-tax search, add header
+    shell:
         """
+        {{
         # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
             -a --start-sens 1 --sens-steps 3 -s 7 \
@@ -152,15 +144,16 @@ rule SECONDARY_AA_taxonomy_assignment:
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
             --tax-lineage 1 --split-memory-limit {MMSeqsMemSplit} --min-length {config[AAMINLEN]} \
             --threads {threads} \
-            -e {config[SECAAE]} &>> {log};
+            -e {config[SECAAE]};
         
         # Add headers
         sort -k1 -n {output.aln} | \
             sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
+        }} &> {log}
         """
         
 rule SECONDARY_AA_tophit_lineage:
-    """Add/reformat tophit viral lineages with up-to-date* NCBI taxonomy
+    """Taxon step 04: Add/reformat tophit viral lineages with up-to-date* NCBI taxonomy
     
     - UniRef50 (https://www.uniprot.org/help/uniref) and other UniRef databases are a mixture of protein entries from 
       UniProtKB (https://www.uniprot.org/help/uniprotkb) and UniParc (https://www.uniprot.org/help/uniparc)
@@ -180,22 +173,25 @@ rule SECONDARY_AA_tophit_lineage:
         mem_mb=MiscMem
     threads:
         MiscCPU
+    benchmark:
+        os.path.join(BENCH, "t04.taxonkit.txt")
     log:
-        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_tophit_refactor.log")
+        os.path.join(STDERR, "t04.mmseqs_secondary_tophit_refactor.log")
     shell:
         """
+        {{
         # Make a table: SeqID <tab> taxID
         cut -f1,20 {input.tophit} \
             | taxonkit lineage --data-dir {input.db} -i 2 \
             | taxonkit reformat --data-dir {input.db} -i 3 \
                 -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank \
             | cut --complement -f3 \
-            > {output.tophit_lineage_refomated};
+            > {output.tophit_lineage_refomated}; }} &> {log}
         """
 
 
 rule SECONDARY_AA_refactor_finalize:
-    """Remove sequences to be refactored from LCA table and recombine with updated taxonomies."""
+    """Taxon step 05: Remove sequences to be refactored from LCA table and recombine with updated taxonomies."""
     input:
         db = TAX,
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.tsv"),
@@ -204,24 +200,26 @@ rule SECONDARY_AA_refactor_finalize:
     conda:
         "../envs/seqkit.yaml"
     resources:
-        mem_mb=MiscMem
+        mem_mb = MiscMem
     threads:
         MiscCPU
+    benchmark:
+        os.path.join(BENCH, "t05.taxonkit.txt")
     log:
-        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_lca_refactor_final.log")
+        os.path.join(STDERR, "t05.mmseqs_secondary_lca_refactor_final.log")
     shell:
         """
-        cut -f1,2 {input.lca} \
+        {{ cut -f1,2 {input.lca} \
             | taxonkit lineage --data-dir {input.db} -i 2 \
             | taxonkit reformat --data-dir {input.db} -i 3 \
             -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank \
             | cut --complement -f3 \
-            > {output.lca_reformated};
+            > {output.lca_reformated}; }} &> {log}
         """
 
 
 rule SECONDARY_AA_generate_output_table:
-    """Join sequence info, tophit align info, and LCA or tophit lineage info into the output format table"""
+    """Taxon step 06: Join sequence info, tophit align info, and LCA or tophit lineage info into the output format table"""
     input:
         aln = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
         lca = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_lca.reformated"),
@@ -229,7 +227,11 @@ rule SECONDARY_AA_generate_output_table:
         counts = os.path.join(RESULTS, "sampleSeqCounts.tsv"),
         balt = os.path.join(TABLES, '2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
-        os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
+        os.path.join(SECONDARY_AA_OUT, "AA_bigtable.tsv")
+    benchmark:
+        os.path.join(BENCH, "t06.AA_bigtable.txt")
+    log:
+        os.path.join(STDERR, "t06.AA_bigtable.log")
     run:
         import re
         from statistics import median
@@ -313,18 +315,20 @@ rule SECONDARY_AA_generate_output_table:
         out.close()
 
 rule SECONDARY_AA_parsing:
-    """Parse out all sequences that remain unclassified following the Secondary AA search and refactoring."""
+    """Taxon step 07: Parse out all sequences that remain unclassified following the Secondary AA search and refactoring."""
     input:
         bigtable = os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
         seqs = os.path.join(RESULTS, "seqtable.fasta")
     output:
         unclass_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta")
     resources:
-        mem_mb=MiscMem
+        mem_mb = MiscMem
     threads:
         MiscCPU
+    benchmark:
+        os.path.join(BENCH, "t06.mmseq_second_aa_parse.txt")
     log:
-        os.path.join(STDERR, 'mmseqs', 'mmseqs_SECONDARY_aa_parsing.log')
+        os.path.join(STDERR, 't07.mmseqs_SECONDARY_aa_parsing.log')
     run:
         virSeqs = {}
         for l in stream_tsv(input.bigtable):
@@ -344,10 +348,9 @@ rule SECONDARY_AA_parsing:
                 exit(1)
         outFa.close()
         inFa.close()
-
         
 rule PRIMARY_NT_taxonomic_assignment:
-    """Primary nucleotide search of unclassified viral-like sequences from aa search"""
+    """Taxon step 08: Primary nucleotide search of unclassified viral-like sequences from aa search"""
     input:
         seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
         db = os.path.join(NCBIVIRDB, "sequenceDB")
@@ -359,18 +362,19 @@ rule PRIMARY_NT_taxonomic_assignment:
         respath = os.path.join(PRIMARY_NT_OUT, "results", "result"),
         tmppath = os.path.join(PRIMARY_NT_OUT, "mmseqs_aa_tmp")
     benchmark:
-            os.path.join(BENCH, "MMSEQS", "mmseqs_primary_NT.txt")
+        os.path.join(BENCH, "t08.mmseqs_primary_NT.txt")
     log:
-        log = os.path.join(STDERR, "MMSEQS", "mmseqs_primary_NT.log")
+        os.path.join(STDERR, "t08.mmseqs_primary_NT.log")
     resources:
-        mem_mb=MMSeqsMem,
-        time=MMSeqsTimeMin
+        mem_mb = MMSeqsMem,
+        time = MMSeqsTimeMin
     threads:
         MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
     shell:
         """
+        {{
         # Create query database
         rm -f {output.type}
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2;
@@ -380,11 +384,12 @@ rule PRIMARY_NT_taxonomic_assignment:
             --start-sens 2 -s 7 --sens-steps 3 \
             --search-type 3 --min-length {config[NTMINLEN]} \
             --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
-            -e {config[PRIMNTE]} &>> {log};
+            -e {config[PRIMNTE]};
+        }} &> {log}
         """
         
 rule PRIMARY_NT_reformat:
-    """Collect some summary statistics on primay nucleotide search"""
+    """Taxon step 09: Collect some summary statistics on primay nucleotide search"""
     input:
         queryDB = os.path.join(PRIMARY_NT_OUT, "queryDB"),
         db = os.path.join(NCBIVIRDB, "sequenceDB"),
@@ -400,13 +405,16 @@ rule PRIMARY_NT_reformat:
     conda:
         "../envs/mmseqs2.yaml"
     resources:
-        mem_mb=MiscMem
+        mem_mb = MiscMem
     threads:
         MiscCPU
+    benchmark:
+        os.path.join(BENCH, "t09.pNT_stat.txt")
     log:
-        os.path.join(STDERR, 'MMSEQS', 'mmseqs_PRIMARY_nt_summary.log')
+        os.path.join(STDERR, 't09.mmseqs_PRIMARY_nt_summary.log')
     shell:
         """
+        {{
         # Filter TopHit results
         mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1;
         
@@ -422,11 +430,12 @@ rule PRIMARY_NT_reformat:
         taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 2 \
             -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
             cut --complement -f2 > {output.reformated};
+        }} &> {log}
         """
 
         
 rule PRIMARY_NT_parsing:
-    """Extract unclassified sequences from secondary translated search
+    """Taxon step 10: Extract unclassified sequences from secondary translated search
     
     xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
     """
@@ -440,6 +449,10 @@ rule PRIMARY_NT_parsing:
         mem_mb=MiscMem
     threads:
         MiscCPU
+    benchmark:
+        os.path.join(BENCH, "t10.pNT_parse.txt")
+    log:
+        os.path.join(STDERR, 't10.pNT_parse.log')
     run:
         hit = {}
         inAln = open(input.align,'r')
@@ -466,7 +479,7 @@ rule PRIMARY_NT_parsing:
 
 
 rule SECONDARY_NT_taxonomic_assignment:
-    """Secondary nucleotide search of viral hits from primary nucleotide search"""
+    """Taxon step 11: Secondary nucleotide search of viral hits from primary nucleotide search"""
     input:
         seqs = os.path.join(PRIMARY_NT_OUT, "classified_seqs.fasta"),
         db = os.path.join(POLYMICRODB, "sequenceDB")
@@ -478,9 +491,9 @@ rule SECONDARY_NT_taxonomic_assignment:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result"),
         tmppath = os.path.join(SECONDARY_NT_OUT, "mmseqs_aa_tmp")
     benchmark:
-            os.path.join(BENCH, "MMSEQS", "mmseqs_secondary_NT.txt")
+        os.path.join(BENCH, "t11.mmseqs_secondary_NT.txt")
     log:
-        log = os.path.join(STDERR, "MMSEQS", "mmseqs_secondary_NT.log")
+        log = os.path.join(STDERR, "t11.mmseqs_secondary_NT.log")
     resources:
         mem_mb=MMSeqsMem,
         time=MMSeqsTimeMin
@@ -490,6 +503,7 @@ rule SECONDARY_NT_taxonomic_assignment:
         "../envs/mmseqs2.yaml"
     shell:
         """
+        {{
         # Create query database
         rm -f {output.type}
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2
@@ -499,13 +513,13 @@ rule SECONDARY_NT_taxonomic_assignment:
             -a 1 --search-type 3 \
             --start-sens 2 -s 7 --sens-steps 3 --min-length {config[NTMINLEN]} \
             --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
-            -e {config[SECNTE]} &>> {log};
-    
+            -e {config[SECNTE]};
+        }} &> {log}
         """
 
 
 rule SECONDARY_NT_summary:
-    """Summary statistics for secondary nucleotide search"""
+    """Taxon step 12: Summary statistics for secondary nucleotide search"""
     input:
         queryDB = os.path.join(SECONDARY_NT_OUT, "queryDB"),
         db = os.path.join(POLYMICRODB, "sequenceDB"),
@@ -521,13 +535,16 @@ rule SECONDARY_NT_summary:
     conda:
         "../envs/mmseqs2.yaml"
     resources:
-        mem_mb=MiscMem
+        mem_mb = MiscMem
     threads:
         MiscCPU
+    benchmark:
+        os.path.join(BENCH, "t12.second_nt_summary.txt")
     log:
-        os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_summary.log')
+        os.path.join(STDERR, 't12.mmseqs_SECONDARY_nt_summary.log')
     shell:
         """
+        {{
         # Filter TopHit results
         mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1;
         
@@ -546,11 +563,12 @@ rule SECONDARY_NT_summary:
             -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank |
             cut --complement -f3 \
             > {output.reformated};
+        }} &> {log}
         """
 
         
 rule SECONDARY_NT_convert:
-    """Reformat secondary search LCA taxon assignment"""
+    """Taxon step 13: Reformat secondary search LCA taxon assignment"""
     input:
         queryDB = os.path.join(SECONDARY_NT_OUT, "queryDB"),
         db = os.path.join(POLYMICRODB, "sequenceDB")
@@ -559,13 +577,15 @@ rule SECONDARY_NT_convert:
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb = MMSeqsMem
     threads:
         MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
+    benchmark:
+        os.path.join(BENCH, "t13.second_nt_convert.txt")
     log:
-        os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_convert.log')
+        os.path.join(STDERR, 't13.mmseqs_SECONDARY_nt_convert.log')
     shell:
         """
         # Convert to alignments
@@ -576,11 +596,15 @@ rule SECONDARY_NT_convert:
 
 
 rule secondary_nt_lca_table:
-    """Create table for taxonkit lineage for secondary NT search"""
+    """Taxon step 14: Create table for taxonkit lineage for secondary NT search"""
     input:
         align = os.path.join(SECONDARY_NT_OUT, "results", "all.m8")
     output:
         lin = os.path.join(SECONDARY_NT_OUT, "results", "all.lin")
+    benchmark:
+        os.path.join(BENCH, "t14.second_nt_lca.txt")
+    log:
+        os.path.join(STDERR, 't13.second_nt_lca.log')
     run:
         lin = {}
         for l in stream_tsv(input.align):
@@ -598,7 +622,7 @@ rule secondary_nt_lca_table:
 
 
 rule secondary_nt_calc_lca:
-    """Calculate the lca for the secondary NT search"""
+    """Taxon step 15: Calculate the lca for the secondary NT search"""
     input:
         lin = os.path.join(SECONDARY_NT_OUT, "results", "all.lin"),
         taxdb = TAX
@@ -606,15 +630,18 @@ rule secondary_nt_calc_lca:
         lca_lineage = os.path.join(SECONDARY_NT_OUT, "results", "lca.lineage"),
         reformated = os.path.join(SECONDARY_NT_OUT, "results", "secondary_nt_lca.tsv")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb = MMSeqsMem
     threads:
         MMSeqsCPU
     conda:
         "../envs/mmseqs2.yaml"
+    benchmark:
+        os.path.join(BENCH, "t15.second_nt_calc_lca.txt")
     log:
-        os.path.join(STDERR, 'MMSEQS', 'mmseqs_SECONDARY_nt_calc.log')
+        os.path.join(STDERR, 't15.mmseqs_SECONDARY_nt_calc.log')
     shell:
         """
+        {{
         # calculate lca and lineage
         taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} | \
             taxonkit lineage -i 3 --data-dir {input.taxdb} | \
@@ -626,10 +653,12 @@ rule secondary_nt_calc_lca:
             taxonkit reformat --data-dir {input.taxdb} -i 3 \
                 -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank 2>> {log} |
             cut --complement -f3 > {output.reformated}
+        }} &> {log}
         """
 
 
 rule SECONDARY_NT_generate_output_table:
+    """Taxon step 16: Create the NT portion of the bigtable"""
     input:
         aln = os.path.join(SECONDARY_NT_OUT, "results", "tophit.m8"),
         top = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
@@ -638,6 +667,10 @@ rule SECONDARY_NT_generate_output_table:
         balt = os.path.join(TABLES,'2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
         os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
+    benchmark:
+        os.path.join(BENCH, "t16.nt_bigtable.txt")
+    log:
+        os.path.join(STDERR, 't16.nt_bigtable.log')
     run:
         from statistics import median
         counts = []
@@ -711,7 +744,7 @@ rule SECONDARY_NT_generate_output_table:
                     taxOut = '\t'.join((['NA'] * 8))
             seqInf = l[0].split(':')        # seq ID = sample:count:seqNum
             normCount = str((int(seqInf[1]) / smplCounts[seqInf[0]]) * medCount)
-            tName =  re.sub('.*\||\s+\S+=.*','',l[18])
+            tName =  re.sub('.*\||\s+\S+=.*', '', l[18])
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
             alnOut = 'nt\t' + '\t'.join((l[1:17]))
             try:
@@ -723,11 +756,16 @@ rule SECONDARY_NT_generate_output_table:
         out.close()
 
 rule combine_AA_NT:
+    """Taxon step 17: Combine the AA and NT bigtables"""
     input:
         aa = os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv"),
         nt = os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
     output:
         os.path.join(RESULTS, "bigtable.tsv")
+    benchmark:
+        os.path.join(BENCH, "t17.cat_bigtable.txt")
+    log:
+        os.path.join(STDERR, 't17.cat_bigtable.log')
     shell:
         """
         cat {input.aa} > {output};
@@ -735,10 +773,15 @@ rule combine_AA_NT:
         """
 
 rule krona_text_format:
+    """Taxon step 18: Text format summary of bigtable for a krona plot"""
     input:
         os.path.join(RESULTS, "bigtable.tsv")
     output:
         os.path.join(RESULTS, "kronaText.tsv")
+    benchmark:
+        os.path.join(BENCH, "t18.krona_text.txt")
+    log:
+        os.path.join(STDERR, 't18.krona_text.log')
     run:
         counts = {}
         for l in stream_tsv(input[0]):
@@ -749,18 +792,23 @@ rule krona_text_format:
                 counts[t] += int(l[2])
             except KeyError:
                 counts[t] = int(l[2])
-        outFH = open(output[0],'w')
+        outFH = open(output[0], 'w')
         for k in sorted(counts.keys()):
             outFH.write(f'{counts[k]}\t{k}\n')
         outFH.close()
 
 rule krona_plot:
+    """Taxon step 19: Krona plot of bigtable"""
     input:
         os.path.join(RESULTS,"kronaText.tsv")
     output:
         os.path.join(RESULTS, "kronaPlot.html")
     conda:
         os.path.join('../', 'envs', 'krona.yaml')
+    benchmark:
+        os.path.join(BENCH, "t19.krona_plot.txt")
+    log:
+        os.path.join(STDERR, 't19.krona_plot.log')
     shell:
         """
         ktImportText {input} -o {output}

@@ -7,19 +7,19 @@ What is accomplished with these rules?
 """
 
 rule assembly_kmer_normalization:
-    """Step 14: Kmer normalization. Data reduction for assembly improvement"""
+    """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
     input:
-        r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".unmapped.fastq"),
-        r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".unmapped.fastq"),
-        r1s = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
-        r2s = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq")
+        r1 = os.path.join(TMPDIR, "p07", PATTERN_R1 + ".unmapped.fastq"),
+        r2 = os.path.join(TMPDIR, "p07", PATTERN_R2 + ".unmapped.fastq"),
+        r1s = os.path.join(TMPDIR, "p07", PATTERN_R1 + ".singletons.fastq"),
+        r2s = os.path.join(TMPDIR, "p07", PATTERN_R2 + ".singletons.fastq")
     output:
         r1_norm = os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
         r2_norm = os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq")
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s14.kmer_normalization_{sample}.txt")
+        os.path.join(BENCH, "a01.kmer_normalization_{sample}.txt")
     log:
-        log = os.path.join(STDERR, "step_14", "s14_{sample}.log")
+        os.path.join(STDERR, "a01.kmer_norm_{sample}.log")
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -37,24 +37,24 @@ rule assembly_kmer_normalization:
         """
 
 rule individual_sample_assembly:
-    """Step 15: Individual sample assemblies
+    """Assembly step 02: Individual sample assemblies
 
     Megahit: https://github.com/voutcn/megahit
     """
     input:
         r1_norm = os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
         r2_norm = os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq"),
-        r1s = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".singletons.fastq"),
-        r2s = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".singletons.fastq")
+        r1s = os.path.join(TMPDIR, "p07", PATTERN_R1 + ".singletons.fastq"),
+        r2s = os.path.join(TMPDIR, "p07", PATTERN_R2 + ".singletons.fastq")
     output:
         contigs = os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa")
     params:
         mh_dir = directory(os.path.join(ASSEMBLY, '{sample}')),
         contig_dic = directory(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY"))
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s15.megahit_{sample}.txt")
+        os.path.join(BENCH, "a02.megahit_{sample}.txt")
     log:
-        log = os.path.join(STDERR, "step_15", "s15_{sample}.log")
+        os.path.join(STDERR, "a02.megahit_{sample}.log")
     resources:
         mem_mb = MhitMem
     threads:
@@ -71,20 +71,20 @@ rule individual_sample_assembly:
         """
 
 rule concatenate_contigs:
-    """Step 16: Concatenate individual assembly outputs (contigs) into a single file"""
+    """Assembly step 03: Concatenate individual assembly outputs (contigs) into a single file"""
     input:
         lambda wildcards: expand(os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa"), sample=SAMPLES)
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s16.concatenate_assemblies.txt")
+        os.path.join(BENCH, "a03.concatenate_assemblies.txt")
     log:
-        log = os.path.join(STDERR, "step_16", "s16.log")
+        os.path.join(STDERR, "a03.cat.log")
     shell:
-        "cat {input} > {output}"
+        "cat {input} > {output} 2> {log}"
 
 rule contig_reformating_and_stats:
-    """Step 17: Remove short contigs (Default: 1000). Defined in config[CONTIG_MINLENGTH]"""
+    """Assembly step 04: Remove short contigs (Default: 1000). Defined in config[CONTIG_MINLENGTH]"""
     input:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
     output:
@@ -92,11 +92,11 @@ rule contig_reformating_and_stats:
         size = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta"),
         stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats")
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s17.contig_reformating.txt")
+        os.path.join(BENCH, "a04.contig_reformating.txt")
     log:
-        log1 = os.path.join(STDERR, "step_17", "s17.rename.log"),
-        log2 = os.path.join(STDERR, "step_17", "s17.reformat.log"),
-        log3 = os.path.join(STDERR, "step_17", "s17.stats.log")
+        log1 = os.path.join(STDERR, "a04.rename.log"),
+        log2 = os.path.join(STDERR, "a04.reformat.log"),
+        log3 = os.path.join(STDERR, "a04.stats.log")
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -122,7 +122,7 @@ rule contig_reformating_and_stats:
         """
 
 rule population_assembly:
-    """Step 18: Create 'contig dictionary' of all unique contigs present in the study (aka: population assembly)"""
+    """Assembly step 05: Create 'contig dictionary' of all unique contigs present in the study (aka: population assembly)"""
     input:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta")
     output:
@@ -131,10 +131,10 @@ rule population_assembly:
     params:
         flye_out = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE")
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s18.population_assembly.txt")
+        os.path.join(BENCH, "a05.population_assembly.txt")
     log:
-        log1 = os.path.join(STDERR, "step_18", "s18.flye.log"),
-        log2 = os.path.join(STDERR, "step_18", "s18.stats.log")
+        log1 = os.path.join(STDERR, "a05.flye.log"),
+        log2 = os.path.join(STDERR, "a05.stats.log")
     resources:
         mem_mb = MhitMem
     threads:
@@ -151,7 +151,7 @@ rule population_assembly:
         """
 
 rule link_assembly:
-    """Link the final assembly to the RESULTS"""
+    """Assembly step 06: Link the final assembly to the results directory; not really a step."""
     input:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
     output:
@@ -160,10 +160,10 @@ rule link_assembly:
         os.symlink(os.path.abspath(input[0]), os.path.abspath(output[0]))
 
 rule coverage_calculations:
-    """Step 19: Calculate per sample contig coverage and extract unmapped reads"""
+    """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1 = os.path.join(QC, "HOST_REMOVED", PATTERN_R1 + ".all.fastq"),
-        r2 = os.path.join(QC, "HOST_REMOVED", PATTERN_R2 + ".all.fastq"),
+        r1 = os.path.join(TMPDIR, "p07", PATTERN_R1 + ".all.fastq"),
+        r2 = os.path.join(TMPDIR, "p07", PATTERN_R2 + ".all.fastq"),
         ref = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
     output:
         sam = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".aln.sam.gz"),
@@ -173,9 +173,9 @@ rule coverage_calculations:
         statsfile = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".statsfile"),
         scafstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".scafstats")
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s19.coverage_calculations_{sample}.txt")
+        os.path.join(BENCH, "a07.coverage_calculations_{sample}.txt")
     log:
-        log = os.path.join(STDERR, "step_16", "s16_{sample}.log")
+        os.path.join(STDERR, "a07.bbmap_{sample}.log")
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -201,7 +201,7 @@ rule coverage_calculations:
         """
 
 rule create_contig_count_table:
-    """Step 20: Transcript Per Million (TPM) calculator
+    """Assembly step 08: Transcript Per Million (TPM) calculator
 
     Useful resource: https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/"""
     input:
@@ -215,14 +215,14 @@ rule create_contig_count_table:
         cov_temp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp")),
         count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv")
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s20.tpm_caluclator_{sample}.txt")
+        os.path.join(BENCH, "a08.tpm_caluclator_{sample}.txt")
     log:
-        log = os.path.join(STDERR,"step_20","s20_{sample}.log")
+        os.path.join(STDERR, "a08.tmp_calc_{sample}.log")
     shell:
         """
         ## TPM Calculator
         # Prepare table & calculate RPK
-        tail -n+6 {input.rpkm} | \
+        {{ tail -n+6 {input.rpkm} | \
             cut -f1,2,5,6,8 | \
             awk 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $3/($2/1000) }}' > {output.counts_tmp};
 
@@ -243,11 +243,11 @@ rule create_contig_count_table:
 
         ## Combine tables
         paste {output.TPM_final} {output.cov_temp} > {output.count_tbl};
-
+        }} 2> {log}
         """
 
 rule concatentate_contig_count_tables:
-    """Step 21: Concatenate contig count tables
+    """Assembly step 09: Concatenate contig count tables
 
     Note: this is done as a separate rule due to how snakemake handles i/o files. It does not work well in Step 20b as 
     the i/o PATTERNS are different.
@@ -258,47 +258,12 @@ rule concatentate_contig_count_tables:
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "contig_count_table.tsv")
     benchmark:
-        os.path.join(BENCH, "PREPROCESSING", "s21.concat_contig_count_tables.txt")
+        os.path.join(BENCH, "a09.concat_contig_count_tables.txt")
     log:
-        log = os.path.join(STDERR, "step_21", "s21.log")
+        os.path.join(STDERR, "a09.concat_tables.log")
     shell:
         """
-        cat {input} > {output};
-        sed -i '1i sample_id\tcontig_id\tlength\treads\tRPKM\tFPKM\tTPM\tavg_fold_cov\tcontig_GC\tcov_perc\tcov_bases\tmedian_fold_cov' {output};
+        {{ cat {input} > {output};
+        sed -i '1i sample_id\tcontig_id\tlength\treads\tRPKM\tFPKM\tTPM\tavg_fold_cov\tcontig_GC\tcov_perc\tcov_bases\tmedian_fold_cov' {output}; \
+        }} 2> {log}
         """
-
-# rule calculate_contig_dictionary_properties:
-#     """Step 22: Calculate contig sequence properties properties (ie. GC-content, tetramer frequencies) per sequence"""
-#     input:
-#         os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","assembly.fasta")
-#     output:
-#         gc=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","contig_dictionary_properties.gc"),
-#         tetramer=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","contig_dictionary_properties.tetramer"),
-#         seq_properties=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","contig_dictionary_properties.tsv")
-#     benchmark:
-#         os.path.join(BENCH,"PREPROCESSING","s22.calculate_contig_dictionary_properties.txt")
-#     log:
-#         log1=os.path.join(LOGS,"step_20","s20.gc.log"),
-#         log2=os.path.join(LOGS,"step_20","s20.tetramer.log")
-#     resources:
-#         mem_mb=100000,
-#         cpus=64
-#     conda:
-#         "../envs/bbmap.yaml"
-#     shell:
-#         """
-#         # Calcualate per sequence GC content
-#         countgc.sh in={input} format=2 ow=t | awk 'NF' > {output.gc};
-#         sed -i '1i id\tGC' {output.gc} 2> {log.log1};
-#
-#         # Calculate per sequence tetramer frequency
-#         tetramerfreq.sh in={input} w=0 ow=t | \
-#         tail -n+2 | \
-#         cut --complement -f2 > {output.tetramer} 2> {log.log2};
-#
-#         sed -i 's/scaffold/id/' {output.tetramer};
-#
-#         # Combine
-#         csvtk join -f 1 {output.gc} {output.tetramer} -t -T > {output.seq_properties};
-#
-#         """
