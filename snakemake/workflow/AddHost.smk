@@ -23,9 +23,9 @@ hostName = config['HostName']
 entropy = config['Entropy']
 
 # FOR SLURM
-LOGDIR = 'logs'
-if not os.path.exists(LOGDIR):
-    os.mkdir(LOGDIR)
+# LOGDIR = 'logs'
+# if not os.path.exists(LOGDIR):
+#     os.mkdir(LOGDIR)
 
 # OUTPUT HOST FASTA
 hostOutDir = os.path.join(DBDIR, 'hosts', hostName)
