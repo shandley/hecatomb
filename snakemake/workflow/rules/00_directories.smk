@@ -35,17 +35,17 @@ POLYMICRODB = os.path.join(DBDIR, "nt", "virus_secondary_nt")
 
 
 ### OUTPUT DIRs
-LOGS = 'logs'
+# LOGS = 'logs'
 RESULTS = os.path.join(OUTPUT, 'RESULTS')
 WORKDIR = os.path.join(OUTPUT, 'PROCESSING')
 TMPDIR = os.path.join(WORKDIR, 'TMP')
-STDERR = os.path.join(OUTPUT,'STDERR')
+STDERR = os.path.join(OUTPUT, 'STDERR')
 BENCH = os.path.join(OUTPUT, 'BENCHMARKS')
 SUMDIR = os.path.join('hecatomb_report')
-QC = os.path.join(WORKDIR,'QC')
-ASSEMBLY = os.path.join(WORKDIR,'ASSEMBLY')
+# QC = os.path.join(WORKDIR, 'QC')
+ASSEMBLY = os.path.join(WORKDIR, 'ASSEMBLY')
 MAPPING = os.path.join(WORKDIR, 'MAPPING')
-STATS = os.path.join(WORKDIR,'STATS')
+STATS = os.path.join(WORKDIR, 'STATS')
 
 # MMSEQS OUTPUT DIRs
 PRIMARY_AA_OUT = os.path.join(RESULTS, "MMSEQS_AA_PRIMARY")

@@ -1,5 +1,5 @@
 rule mmseqs_contig_annotation:
-    """Step 24: Assign taxonomy to contigs in contig_dictionary using mmseqs
+    """Contig annotation step 01: Assign taxonomy to contigs in contig_dictionary using mmseqs
     
     Database: NCBI virus assembly with taxID added
     """
@@ -13,9 +13,9 @@ rule mmseqs_contig_annotation:
         respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
         tmppath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","mmseqs_nt_tmp")
     benchmark:
-        os.path.join(BENCH,"PREPROCESSING","s24.mmseqs_contig_annotation.txt")
+        os.path.join(BENCH, "c01.mmseqs_contig_annotation.txt")
     log:
-        log=os.path.join(LOGS,"PREPROCESSING","s24.mmseqs_contig_annotation.log")
+        log=os.path.join(STDERR, "c01.mmseqs_contig_annotation.log")
     resources:
         mem_mb=MMSeqsMem
     threads:
@@ -36,7 +36,7 @@ rule mmseqs_contig_annotation:
 
 
 rule mmseqs_contig_annotation_summary:
-    """Step 25: Summarize mmseqs contig annotation results"""
+    """Contig annotation step 02: Summarize mmseqs contig annotation results"""
     input:
         queryDB=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","queryDB"),
         db=os.path.join(NCBIVIRDB, "sequenceDB"),
@@ -56,15 +56,15 @@ rule mmseqs_contig_annotation_summary:
         inputpath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
         respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit")
     benchmark:
-        os.path.join(BENCH,"PREPROCESSING","s25.mmseqs_contig_annotation_summary.txt")
+        os.path.join(BENCH, "c02.mmseqs_contig_annotation_summary.txt")
+    log:
+        log=os.path.join(STDERR, "c02.mmseqs_contig_annotation_summary.log")
     resources:
         mem_mb=MMSeqsMem
     threads:
         MMSeqsCPU
     conda:
         os.path.join("../", "envs", "mmseqs2.yaml")
-    log:
-        log=os.path.join(LOGS,"PREPROCESSING","s25.mmseqs_contig_annotation_summary.log")
     shell:
         """
         # Filter TopHit results
