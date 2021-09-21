@@ -12,18 +12,6 @@ Overhauled: Michael Roach, Q2 2021
 """
 
 
-import os
-import sys
-
-
-"""
-Summary:
-    # Step 0: Preprocessing (Rule: 01_preprocessing.smk)
-    # Step 1: Taxonomic Assignment (Rule: 02_taxonomic_assignment.smk)
-    # Step 2: Compile Results (Rule: 03_compile_results.smk)
-"""
-
-
 ### DEFAULT CONFIG FILE
 configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 

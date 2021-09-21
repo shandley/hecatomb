@@ -438,10 +438,16 @@ rule merge_seq_table:
         resultsdir = directory(RESULTS),
     benchmark:
         os.path.join(BENCH, "merge_seq_table.txt")
+    log:
+        os.path.join(STDERR, 'merge_seq_table.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
+        logging.debug('Reading in individual sample seqtables')
         outFa = open(output.fa, 'w')
         outTsv = open(output.tsv, 'w')
         for sample in SAMPLES:
+            logging.debug(f'sample {sample}')
             seqId = 0
             seqCounts = 0
             counts = open(os.path.join(TMPDIR, "p10", f"{sample}_R1.seqtable"), 'r')
@@ -456,4 +462,5 @@ rule merge_seq_table:
             outTsv.write(f'{sample}\t{seqCounts}\n')
         outFa.close()
         outTsv.close()
+        logging.debug('Done')
 

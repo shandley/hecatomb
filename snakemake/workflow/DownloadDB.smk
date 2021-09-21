@@ -10,9 +10,6 @@ Rob Edwards, Feb 2020
 Updated: Michael Roach, Q2 2021
 """
 
-import os
-import sys
-
 
 ### LOAD DEFAULT CONFIG
 configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')

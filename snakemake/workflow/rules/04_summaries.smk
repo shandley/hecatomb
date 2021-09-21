@@ -273,8 +273,13 @@ rule sankey_diagram:
         report(os.path.join(SUMDIR, "Sankey.svg"),
             caption = "../report/sankey.rst",
             category = "Summary")
+    log:
+        os.path.join(STDERR, 'sankey_diagram.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0], filemode='w', level=logging.DEBUG)
         import plotly.graph_objects as go
+        logging.debug('Collecting summary counts')
         s0 = sum_counts(input[0])
         s1 = sum_counts(input[1])
         s2 = sum_counts(input[2])
@@ -317,12 +322,12 @@ rule sankey_diagram:
             "Vector removal",           # 5
             "Low-qual trim",            # 6
             "Host removal",             # 7
-            "Duplicate removal",        # 8
-            "Clustered seqs",           # 9
+            "Cluster seqs",             # 8
+            "Representative seqs",      # 9
             "Redundant seqs",           # 10
-            "Discard R2",               # 11
+            "Redundant (R2 reads)",     # 11
             "Discarded",                # 12
-            "Seqtable with counts",     # 13
+            "Seqtable (+ counts)",      # 13
             "Primary AA viral",         # 14
             "Primary AA non-viral",     # 15
             "Secondary AA viral",       # 16
@@ -395,12 +400,10 @@ rule sankey_diagram:
             sntV, sntU,         # sNT
             sntV, sntU          # sNT
         ]
+        logging.debug('Generating sanky diagram')
         link = dict(source=source,target=target,value=values)
-        node = dict(label=labels, pad=50, thickness=5)
+        node = dict(label=labels, pad=20, thickness=5)
         data = go.Sankey(link=link, node=node)
         fig = go.Figure(data)
         fig.write_image(output[0], width=2000, height=1000)
-
-
-
-
+        logging.debug('Done')

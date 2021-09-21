@@ -15,7 +15,7 @@ rule mmseqs_contig_annotation:
     benchmark:
         os.path.join(BENCH, "c01.mmseqs_contig_annotation.txt")
     log:
-        log=os.path.join(STDERR, "c01.mmseqs_contig_annotation.log")
+        os.path.join(STDERR, "c01.mmseqs_contig_annotation.log")
     resources:
         mem_mb=MMSeqsMem
     threads:
@@ -24,14 +24,13 @@ rule mmseqs_contig_annotation:
         os.path.join("../", "envs", "mmseqs2.yaml")
     shell:
         """
-        # Create query database
+        {{ # Create query database
         mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2;
-
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
         --start-sens 2 -s 7 --sens-steps 3 \
         --search-type 3 \
-        -e {config[PRIMNTE]} &>> {log};
+        -e {config[PRIMNTE]}; }} &>> {log};
         """
 
 
@@ -58,7 +57,7 @@ rule mmseqs_contig_annotation_summary:
     benchmark:
         os.path.join(BENCH, "c02.mmseqs_contig_annotation_summary.txt")
     log:
-        log=os.path.join(STDERR, "c02.mmseqs_contig_annotation_summary.log")
+        os.path.join(STDERR, "c02.mmseqs_contig_annotation_summary.log")
     resources:
         mem_mb=MMSeqsMem
     threads:
@@ -67,53 +66,44 @@ rule mmseqs_contig_annotation_summary:
         os.path.join("../", "envs", "mmseqs2.yaml")
     shell:
         """
-        # Filter TopHit results
+        {{ # Filter TopHit results
         mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1;
-
         # Convert to alignments
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
         --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader";
-
         # Assign taxonomy
         cut -f2 {output.align} | \
             awk -F '|' '{{ print$2 }}' | \
             taxonkit lineage --data-dir {input.taxdb} > {output.lineage};
-
         # Reformat TopHit viral lineage information
         taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 2 \
         -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
         cut --complement -f2 > {output.reformated};
-
         ## Generate summary tables
         # Phylum
         cut -f3 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Phylum\tSECONDARY_NT_Phylum_Frequency'> {output.phyl_sum};
-
         # Class
         cut -f4 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Class\tSECONDARY_NT_Class_Frequency'> {output.class_sum};
-
         # Order
         cut -f5 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Order\tSECONDARY_NT_Order_Frequency'> {output.ord_sum};
-
         # Family
         cut -f6 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Family\tSECONDARY_NT_Family_Frequency'> {output.fam_sum};
-
         # Genus
         cut -f7 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Genus\tSECONDARY_NT_Genus_Frequency'> {output.gen_sum};
-
         # Species
         cut -f3 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
-            sed '1i Species\tSECONDARY_NT_Species_Frequency'> {output.spe_sum};
+            sed '1i Species\tSECONDARY_NT_Species_Frequency'> {output.spe_sum}; }} &> {log}
         """
 
 

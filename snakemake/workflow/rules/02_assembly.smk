@@ -118,7 +118,6 @@ rule contig_reformating_and_stats:
         statswrapper.sh in={input} out={output.stats} \
             format=2 \
             ow=t 2> {log.log3};
-
         """
 
 rule population_assembly:
@@ -144,7 +143,6 @@ rule population_assembly:
     shell:
         """
         flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} -g 1g &>> {log.log1};
-
         statswrapper.sh in={output.assembly} out={output.stats} \
             format=2 \
             ow=t 2> {log.log2};

@@ -45,8 +45,7 @@ rule PRIMARY_AA_taxonomy_assignment:
         "../envs/mmseqs2.yaml"
     shell:
         """
-        {{
-        # Run mmseqs taxonomy module
+        {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
             -a --start-sens 1 --sens-steps 3 -s 7 \
             --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
@@ -55,7 +54,6 @@ rule PRIMARY_AA_taxonomy_assignment:
             --tax-lineage 1 --min-length {config[AAMINLEN]} \
             --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
             -e {config[PRIMAAE]};
-        
         # Add headers
         sort -k1 -n {output.aln} | \
             sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
@@ -77,13 +75,21 @@ rule PRIMARY_AA_parsing:
     output:
         class_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
     resources:
-        mem_mb=MiscMem
+        mem_mb = MiscMem
     threads:
         MiscCPU
+    benchmark:
+        os.path.join(BENCH, 't02.parseAA.txt')
+    log:
+        os.path.join(STDERR, 't02.parseAA.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
+        logging.debug('Reading in tophits')
         topHit = {}
         for l in stream_tsv(input.alnsort):
             topHit[l[0]] = 1
+        logging.debug('Parsing seqtable and writing seqs')
         outClass = open(output.class_seqs, 'w')
         inFa = open(input.seqs,'r')
         for line in inFa:
@@ -100,6 +106,7 @@ rule PRIMARY_AA_parsing:
                 exit(1)
         inFa.close()
         outClass.close()
+        logging.debug('Done')
 
 rule SECONDARY_AA_taxonomy_assignment:
     """Taxon step 03: Check taxonomic assignments in MMSEQS_AA_PRIMARY_classified.fasta using mmseqs2
@@ -135,8 +142,7 @@ rule SECONDARY_AA_taxonomy_assignment:
         "../envs/mmseqs2.yaml"
     shell:
         """
-        {{
-        # Run mmseqs taxonomy module
+        {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
             -a --start-sens 1 --sens-steps 3 -s 7 \
             --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
@@ -145,7 +151,6 @@ rule SECONDARY_AA_taxonomy_assignment:
             --tax-lineage 1 --split-memory-limit {MMSeqsMemSplit} --min-length {config[AAMINLEN]} \
             --threads {threads} \
             -e {config[SECAAE]};
-        
         # Add headers
         sort -k1 -n {output.aln} | \
             sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
@@ -179,8 +184,7 @@ rule SECONDARY_AA_tophit_lineage:
         os.path.join(STDERR, "t04.mmseqs_secondary_tophit_refactor.log")
     shell:
         """
-        {{
-        # Make a table: SeqID <tab> taxID
+        {{ # Make a table: SeqID <tab> taxID
         cut -f1,20 {input.tophit} \
             | taxonkit lineage --data-dir {input.db} -i 2 \
             | taxonkit reformat --data-dir {input.db} -i 3 \
@@ -233,8 +237,11 @@ rule SECONDARY_AA_generate_output_table:
     log:
         os.path.join(STDERR, "t06.AA_bigtable.log")
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
         import re
         from statistics import median
+        logging.debug('Slurping baltimore info')
         balt = {}           # read in the baltimore group information, joined on Family name
         for l in stream_tsv(input.balt):
             if l[0] == 'Family':
@@ -243,22 +250,26 @@ rule SECONDARY_AA_generate_output_table:
                 balt[l[0]] = f'{l[1]}\t{l[2]}'
             except IndexError:
                 break # the end of the file is a bunch of blank lines
+        logging.debug('Reading in reads counts for each sample')
         counts = []
         smplCounts = {}     # Read in read counts for each sample for normalised counts
         for l in stream_tsv(input.counts):
             counts.append(int(l[1]))
             smplCounts[l[0]] = int(l[1])
+        logging.debug('Reading in Taxon info for LCA seqs')
         medCount = median(counts)
         lcaLin = {}         # Read in Tax info for LCA-labelled seqs
         for l in stream_tsv(input.lca):
             if l[1] != '0' and l[1] != '1' and l[1] != '10239':     # dont use lca lineage for taxids of 0, 1, or 10239
                 lcaLin[l[0]] = '\t'.join((l[2:]))
+        logging.debug('Reading in Taxon inf for tophit seqs')
         topLin = {}         # Read in Tax info for non-LCA-labelled seqs
         for l in stream_tsv(input.top):
             try:
                 lcaLin[l[0]]
             except KeyError:
                 topLin[l[0]] = '\t'.join((l[2:]))
+        logging.debug('Parsing alignments and printing output')
         out = open(output[0],'w')       # iterate the tophit alignments and print the table on the fly
         out.write('\t'.join(('seqID',
                              'sampleID',
@@ -313,6 +324,7 @@ rule SECONDARY_AA_generate_output_table:
             out.write('\t'.join((seqOut, alnOut, tName, taxOut, baltOut)))
             out.write('\n')
         out.close()
+        logging.debug('Done')
 
 rule SECONDARY_AA_parsing:
     """Taxon step 07: Parse out all sequences that remain unclassified following the Secondary AA search and refactoring."""
@@ -330,9 +342,13 @@ rule SECONDARY_AA_parsing:
     log:
         os.path.join(STDERR, 't07.mmseqs_SECONDARY_aa_parsing.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
+        logging.debug('Reading seq ids from AA bigtable')
         virSeqs = {}
         for l in stream_tsv(input.bigtable):
             virSeqs[l[0]] = 1
+        logging.debug('Parsing seqtable and writing non AA-hit seqs')
         inFa = open(input.seqs, 'r')
         outFa = open(output.unclass_seqs, 'w')
         for line in inFa:
@@ -344,10 +360,11 @@ rule SECONDARY_AA_parsing:
                 except KeyError:
                     outFa.write(f'>{id}\n{seq}\n')
             else:
-                sys.stderr.write(f'malformed {input.seqs} file, complain to Mike')
+                logging.ERROR(f'malformed {input.seqs} file, complain to Mike')
                 exit(1)
         outFa.close()
         inFa.close()
+        logging.debug('Done')
         
 rule PRIMARY_NT_taxonomic_assignment:
     """Taxon step 08: Primary nucleotide search of unclassified viral-like sequences from aa search"""
@@ -374,11 +391,9 @@ rule PRIMARY_NT_taxonomic_assignment:
         "../envs/mmseqs2.yaml"
     shell:
         """
-        {{
-        # Create query database
+        {{ # Create query database
         rm -f {output.type}
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2;
-        
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
             --start-sens 2 -s 7 --sens-steps 3 \
@@ -414,18 +429,14 @@ rule PRIMARY_NT_reformat:
         os.path.join(STDERR, 't09.mmseqs_PRIMARY_nt_summary.log')
     shell:
         """
-        {{
-        # Filter TopHit results
+        {{ # Filter TopHit results
         mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1;
-        
         # Convert to alignments
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align};
-        
         # Assign taxonomy
         cut -f2 {output.align} | \
             awk -F '|' '{{ print$2 }}' | \
             taxonkit lineage --data-dir {input.taxdb} > {output.lineage};
-            
         # Reformat TopHit viral lineage information
         taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 2 \
             -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
@@ -454,10 +465,14 @@ rule PRIMARY_NT_parsing:
     log:
         os.path.join(STDERR, 't10.pNT_parse.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
+        logging.debug('Reading hit seq ids from primary NT')
         hit = {}
         inAln = open(input.align,'r')
         for l in stream_tsv(input.align):
             hit[l[0]] = 1
+        logging.debug('Parsing AA-unclass seqs and writing NT-hit seqs')
         inFa = open(input.seqs, 'r')
         outClass = open(output.class_seqs, 'w')
         outUnclass = open(output.unclass_seqs, 'w')
@@ -471,11 +486,12 @@ rule PRIMARY_NT_parsing:
                 except KeyError:
                     outUnclass.write(f'>{id}\n{seq}\n')
             else:
-                sys.stderr.write(f'malformed {input.seqs} file, complain to Mike')
+                logging.ERROR(f'malformed {input.seqs} file, complain to Mike')
                 exit(1)
         inFa.close()
         outClass.close()
         outUnclass.close()
+        logging.debug('Done')
 
 
 rule SECONDARY_NT_taxonomic_assignment:
@@ -503,11 +519,9 @@ rule SECONDARY_NT_taxonomic_assignment:
         "../envs/mmseqs2.yaml"
     shell:
         """
-        {{
-        # Create query database
+        {{ # Create query database
         rm -f {output.type}
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2
-        
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
             -a 1 --search-type 3 \
@@ -544,20 +558,16 @@ rule SECONDARY_NT_summary:
         os.path.join(STDERR, 't12.mmseqs_SECONDARY_nt_summary.log')
     shell:
         """
-        {{
-        # Filter TopHit results
+        {{ # Filter TopHit results
         mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1;
-        
         # Convert to alignments
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader";
-        
         # Assign taxonomy
         cut -f1,2 {output.align} \
             | sed 's/tid|//' \
             | sed 's/|.*//' \
             | taxonkit lineage -i 2 --data-dir {input.taxdb} > {output.lineage};
-            
         # Reformat TopHit viral lineage information
         taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 3 \
             -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank |
@@ -588,7 +598,6 @@ rule SECONDARY_NT_convert:
         os.path.join(STDERR, 't13.mmseqs_SECONDARY_nt_convert.log')
     shell:
         """
-        # Convert to alignments
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader" \
             2> {log}
@@ -606,6 +615,9 @@ rule secondary_nt_lca_table:
     log:
         os.path.join(STDERR, 't13.second_nt_lca.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
+        logging.debug('Reading alignments and extracting taxon IDs')
         lin = {}
         for l in stream_tsv(input.align):
             t = l[1].split('|')     # e.g. tid|2293023|NZ_QUCO01000049.1
@@ -614,11 +626,13 @@ rule secondary_nt_lca_table:
                     lin[l[0]].append(int(t[1]))
             except KeyError:
                 lin[l[0]] = [int(t[1])]
+        logging.debug('Joining tax ids for seqs and writing output')
         out = open(output.lin, 'w')
         for s in lin.keys():
             tOut = ';'.join([str(i) for i in sorted(lin[s])])
             out.write(f'{s}\t{tOut}\n')
         out.close()
+        logging.debug('Done')
 
 
 rule secondary_nt_calc_lca:
@@ -672,7 +686,10 @@ rule SECONDARY_NT_generate_output_table:
     log:
         os.path.join(STDERR, 't16.nt_bigtable.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
         from statistics import median
+        logging.debug('Slurping baltimore classifications')
         counts = []
         smplCounts = {}
         balt = {}
@@ -683,15 +700,18 @@ rule SECONDARY_NT_generate_output_table:
                 balt[l[0]] = f'{l[1]}\t{l[2]}'
             except IndexError:
                 break # the end of the file is a bunch of blank lines
+        logging.debug('Reading sample total read counts')
         for l in stream_tsv(input.counts):
             counts.append(int(l[1]))
             smplCounts[l[0]] = int(l[1])
+        logging.debug('Reading in lca-hit seq IDs')
         medCount = median(counts)
         lcaLin = {}
         for l in stream_tsv(input.lca):
             # dont use lca lineage for taxids of 0, 1, or 10239
             if l[1] != '0' and l[1] != '1' and l[1] != '10239':
                 lcaLin[l[0]] = '\t'.join((l[2:]))
+        logging.debug('Reading in tophit seq IDs')
         topLin = {}
         for l in stream_tsv(input.top):
             # skip if using lca lineage
@@ -699,7 +719,7 @@ rule SECONDARY_NT_generate_output_table:
                 lcaLin[l[0]]
             except KeyError:
                 topLin[l[0]] = '\t'.join((l[2:]))
-        # output
+        logging.debug('Parsing alignments and writing NT bigtable output')
         out = open(output[0], 'w')
         out.write('\t'.join(('seqID',
                              'sampleID',
@@ -754,6 +774,7 @@ rule SECONDARY_NT_generate_output_table:
             out.write('\t'.join((seqOut, alnOut, tName, taxOut, baltOut)))
             out.write('\n')
         out.close()
+        logging.debug('Done')
 
 rule combine_AA_NT:
     """Taxon step 17: Combine the AA and NT bigtables"""
@@ -768,8 +789,8 @@ rule combine_AA_NT:
         os.path.join(STDERR, 't17.cat_bigtable.log')
     shell:
         """
-        cat {input.aa} > {output};
-        tail -n+2 {input.nt} >> {output};
+        {{ cat {input.aa} > {output};
+        tail -n+2 {input.nt} >> {output}; }} &> {log}
         """
 
 rule krona_text_format:
@@ -783,6 +804,9 @@ rule krona_text_format:
     log:
         os.path.join(STDERR, 't18.krona_text.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
+        logging.debug('Slurping Tax assignments from bigtable')
         counts = {}
         for l in stream_tsv(input[0]):
             if l[0]=="seqID":
@@ -792,6 +816,7 @@ rule krona_text_format:
                 counts[t] += int(l[2])
             except KeyError:
                 counts[t] = int(l[2])
+        logging.debug('Sorting, counting, and writing tax assignments')
         outFH = open(output[0], 'w')
         for k in sorted(counts.keys()):
             outFH.write(f'{counts[k]}\t{k}\n')
@@ -811,5 +836,5 @@ rule krona_plot:
         os.path.join(STDERR, 't19.krona_plot.log')
     shell:
         """
-        ktImportText {input} -o {output}
+        ktImportText {input} -o {output} &> {log}
         """
