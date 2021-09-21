@@ -798,7 +798,7 @@ rule krona_text_format:
     input:
         os.path.join(RESULTS, "bigtable.tsv")
     output:
-        os.path.join(RESULTS, "kronaText.tsv")
+        os.path.join(RESULTS, "krona.txt")
     benchmark:
         os.path.join(BENCH, "t18.krona_text.txt")
     log:
@@ -811,7 +811,7 @@ rule krona_text_format:
         for l in stream_tsv(input[0]):
             if l[0]=="seqID":
                 continue
-            t = '\t'.join(l[21:])
+            t = '\t'.join(l[23:])
             try:
                 counts[t] += int(l[2])
             except KeyError:
@@ -825,9 +825,9 @@ rule krona_text_format:
 rule krona_plot:
     """Taxon step 19: Krona plot of bigtable"""
     input:
-        os.path.join(RESULTS,"kronaText.tsv")
+        os.path.join(RESULTS,"krona.txt")
     output:
-        os.path.join(RESULTS, "kronaPlot.html")
+        os.path.join(RESULTS, "krona.html")
     conda:
         os.path.join('../', 'envs', 'krona.yaml')
     benchmark:
