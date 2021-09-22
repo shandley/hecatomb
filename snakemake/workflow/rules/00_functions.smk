@@ -34,45 +34,43 @@ rule bam_index:
         "0.77.0/bio/samtools/index"
 
 rule calculate_gc:
-    """Step 13a: Calculate GC content for sequences"""
+    """Calculate GC content for sequences"""
     input:
-        os.path.join(RESULTS,"{file}.fasta")
+        os.path.join(RESULTS, "{file}.fasta")
     output:
-        temp(os.path.join(RESULTS,"{file}.properties.gc"))
+        temp(os.path.join(RESULTS, "{file}.properties.gc"))
     benchmark:
-        os.path.join(BENCH,"calculate_gc.{file}.txt")
+        os.path.join(BENCH, "calculate_gc.{file}.txt")
     log:
-        os.path.join(STDERR,"calculate_gc.{file}.log")
+        os.path.join(STDERR, "calculate_gc.{file}.log")
     conda:
         os.path.join("..", "envs", "bbmap.yaml")
     threads:
         MiscCPU
     resources:
-        mem_mb=MiscMem
+        mem_mb = MiscMem
     shell:
-        """
-        countgc.sh in={input} format=2 ow=t > {output} 2> {log}
-        """
+        """countgc.sh in={input} format=2 ow=t > {output} 2> {log}"""
 
 rule calculate_tet_freq:
-    """Step 13b: Calculate tetramer frequency
+    """Calculate tetramer frequency
 
     The tail commands trims the first line which is junk that should be printed to stdout.
     """
     input:
-        os.path.join(RESULTS,"{file}.fasta")
+        os.path.join(RESULTS, "{file}.fasta")
     output:
-        temp(os.path.join(RESULTS,"{file}.properties.tetramer"))
+        temp(os.path.join(RESULTS, "{file}.properties.tetramer"))
     benchmark:
-        os.path.join(BENCH,"calculate_tet.{file}.txt")
+        os.path.join(BENCH, "calculate_tet.{file}.txt")
     log:
-        os.path.join(STDERR,"calculate_tet.{file}.log")
+        os.path.join(STDERR, "calculate_tet.{file}.log")
     conda:
         os.path.join("..", "envs", "bbmap.yaml")
     threads:
         MiscCPU
     resources:
-        mem_mb=MiscMem
+        mem_mb = MiscMem
     shell:
         """
         tetramerfreq.sh in={input} w=0 ow=t \
@@ -81,24 +79,30 @@ rule calculate_tet_freq:
         """
 
 rule seq_properties_table:
-    """Step 13c: Combine GC and tet freq tables"""
+    """Combine GC and tet freq tables"""
     input:
-        gc=os.path.join(RESULTS,"{file}.properties.gc"),
-        tet=os.path.join(RESULTS,"{file}.properties.tetramer")
+        gc=os.path.join(RESULTS, "{file}.properties.gc"),
+        tet=os.path.join(RESULTS, "{file}.properties.tetramer")
     output:
-        os.path.join(RESULTS,"{file}.properties.tsv")
+        os.path.join(RESULTS, "{file}.properties.tsv")
     benchmark:
-        os.path.join(BENCH,"seq_properties_table.{file}.txt")
+        os.path.join(BENCH, "seq_properties_table.{file}.txt")
     threads:
         MiscCPU
     resources:
-        mem_mb=MiscMem
+        mem_mb = MiscMem
+    log:
+        os.path.join(STDERR, '{file}.seq_properties_table.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
         gc = {}
+        logging.debug('Reading GC counts')
         for l in stream_tsv(input.gc):
             if len(l) == 2:
                 gc[l[0]] = l[1]
         out = open(output[0],'w')
+        logging.debug('Parsing tet feqs and printing output')
         for l in stream_tsv(input.tet):
             if l[0] == 'scaffold':
                 out.write('id\tGC\t')
@@ -107,17 +111,17 @@ rule seq_properties_table:
             out.write('\t'.join(l[2:]))
             out.write('\n')
         out.close()
+        logging.debug('Done')
 
 
-### FUNCTIONS
+### PYTHON FUNCTIONS
 def stream_tsv(tsvFile):
     """Read a file line-by-line and split by whitespace"""
-    filehandle = open(tsvFile, 'r')
-    for line in filehandle:
-        line = line.strip()
-        l = line.split('\t')
-        yield l
-    filehandle.close()
+    with open(tsvFile, 'r') as filehandle:
+        for line in filehandle:
+            line = line.strip()
+            l = line.split('\t')
+            yield l
 
 def file_len(fname):
     """Return the number of lines in a file"""
@@ -133,41 +137,31 @@ def file_len(fname):
 
 def fasta_clust_counts(fname):
     """Return the sum of seq count values in a fasta file of clustered seqs"""
-    filehandle = open(fname, 'r')
     count = 0
-    for line in filehandle:
-        if line.startswith('>'):
-            count += int(line.split(':')[1])     # fasta id = >sample:count:seqID
-    filehandle.close()
+    with open(fname, 'r') as filehandle:
+        for line in filehandle:
+            if line.startswith('>'):
+                count += int(line.split(':')[1])     # fasta id = >sample:count:seqID
     return count
 
 def collect_counts(inPrefix, inSuffix, stepName, outFile):
     """Collect fastq counts for all samples and print to file"""
-    outfh = open(outFile,'w')
-    for sample in SAMPLES:
-        R1c = file_len(os.path.join(inPrefix, f'{sample}_R1{inSuffix}')) / 4
-        R2c = file_len(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')) / 4
-        outfh.write(f'{sample}\t{stepName}\tR1\t{R1c}\n')
-        outfh.write(f'{sample}\t{stepName}\tR2\t{R2c}\n')
+    with open(outFile,'w') as outfh:
+        for sample in SAMPLES:
+            R1c = file_len(os.path.join(inPrefix, f'{sample}_R1{inSuffix}')) / 4
+            R2c = file_len(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')) / 4
+            outfh.write(f'{sample}\t{stepName}\tR1\t{R1c}\n')
+            outfh.write(f'{sample}\t{stepName}\tR2\t{R2c}\n')
 
 def sum_counts(fname, R1=False):
     """Collect the sum of all reads for all samples from a summary count file (e.g. from collect_counts)"""
     count = 0
-    infh = open(fname, 'r')
-    for line in infh:
-        l = line.split()
-        if R1:
-            if l[2] == "R1":
+    with open(fname, 'r') as infh:
+        for line in infh:
+            l = line.split()
+            if R1:
+                if l[2] == "R1":
+                    count += float(l[3])
+            else:
                 count += float(l[3])
-        else:
-            count += float(l[3])
-    infh.close()
     return count
-
-
-
-
-
-
-
-

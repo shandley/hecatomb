@@ -1,5 +1,5 @@
 rule map_seq_table:
-    """Map the seq table to the population assembly.
+    """Mapping step 01: Map the seq table to the population assembly.
     
     The seqtable reads are mapped to the assembly and the taxon information for the reads is used to help identify
     the organism to which each contig belongs.
@@ -10,8 +10,8 @@ rule map_seq_table:
     output:
         os.path.join(MAPPING, "assembly.seqtable.bam")
     log:
-        mm2 = os.path.join(STDERR, "map_seq_table.mm2.log"),
-        stool = os.path.join(STDERR, "map_seq_table.stools.log")
+        mm2 = os.path.join(STDERR, "m01.map_seq_table.mm2.log"),
+        stool = os.path.join(STDERR, "m01.map_seq_table.stools.log")
     conda:
         os.path.join('../', 'envs', 'minimap2.yaml')
     benchmark:
@@ -27,7 +27,7 @@ rule map_seq_table:
         """
 
 rule contig_read_taxonomy:
-    """Create a table of seq mapping info and their taxonomic information
+    """Mapping step 02: Create a table of seq mapping info and their taxonomic information
     
     1. read the tax information from bigtable.tsv to a dictionary
     2. parse the aligned sequences and print a row for each primary alignment
@@ -44,15 +44,23 @@ rule contig_read_taxonomy:
         MiscCPU
     resources:
         mem_mb = MiscMem
+    benchmark:
+        os.path.join(BENCH, 'm02.contig_read_taxtable.txt')
+    log:
+        os.path.join(STDERR, 'm02.contig_read_taxtable.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
         import pysam
+        logging.debug('Slurping taxon info for seq IDs')
         tax = {}
         inTSV = open(input.taxon, 'r')
         inTSV.readline() # skip header
         for line in inTSV:
             l = line.strip().split('\t')
-            tax[l[0]] = '\t'.join((l[2:4] + l[21:]))
+            tax[l[0]] = '\t'.join((l[3:5] + l[23:]))
         inTSV.close()
+        logging.debug('Parsing mapped reads and pairing read taxon with mapped coords')
         outFH = open(output[0], 'w')
         outFH.write('contigID\tseqID\tstart\tstop\tlen\tqual\tcount\talnType\ttaxMethod\tkingdom\tphylum\tclass\torder\tfamily\tgenus\tspecies\n')
         bam = pysam.AlignmentFile(input.bam, 'rb')
@@ -72,13 +80,19 @@ rule contig_read_taxonomy:
             outFH.write(f'{infOut}\t{taxOut}\n')
         bam.close()
         outFH.close()
+        logging.debug('Done')
 
 rule contig_krona_text_format:
     input:
         os.path.join(RESULTS, "contigSeqTable.tsv")
     output:
         os.path.join(RESULTS, "contigKrona.txt")
+    log:
+        os.path.join(STDERR, 'm03.kronaText.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
+        logging.debug('Slurping contig seq table')
         counts = {}
         for l in stream_tsv(input[0]):
             if l[0] == "contigID":
@@ -89,6 +103,7 @@ rule contig_krona_text_format:
                 counts[t] += int(c[1])
             except KeyError:
                 counts[t] = int(c[1])
+        logging.debug('Sorting and writing contig taxon info')
         outFH = open(output[0],'w')
         for k in sorted(counts.keys()):
             outFH.write(f'{counts[k]}\t{k}\n')
@@ -101,7 +116,9 @@ rule contig_krona_plot:
         os.path.join(RESULTS, "contigKrona.html")
     conda:
         os.path.join('../', 'envs', 'krona.yaml')
+    log:
+        os.path.join(STDERR, 'm04.kronaPlotContig.log')
     shell:
         """
-        ktImportText {input} -o {output}
+        ktImportText {input} -o {output} &> {log}
         """

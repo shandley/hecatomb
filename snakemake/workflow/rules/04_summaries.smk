@@ -72,77 +72,77 @@ rule step00_counts:
 
 rule step01_counts:
     input:
-        expand(os.path.join(TMPDIR, "step_01", "{sample}_{rn}.s1.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
+        expand(os.path.join(TMPDIR, "p01", "{sample}_{rn}.s1.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
     output:
         report(os.path.join(SUMDIR, "Step01_counts.tsv"),
             caption = "../report/step01.rst",
             category = "Preprocessing")
     run:
-        collect_counts(os.path.join(TMPDIR, "step_01"), ".s1.out.fastq", "Step_01", output[0])
+        collect_counts(os.path.join(TMPDIR, "p01"), ".s1.out.fastq", "Step_01", output[0])
 
 rule step02_counts:
     input:
-        expand(os.path.join(TMPDIR, "step_02", "{sample}_{rn}.s2.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
+        expand(os.path.join(TMPDIR, "p02", "{sample}_{rn}.s2.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
     output:
         report(os.path.join(SUMDIR, "Step02_counts.tsv"),
             caption = "../report/step02.rst",
             category = "Preprocessing")
     run:
-        collect_counts(os.path.join(TMPDIR, "step_02"), ".s2.out.fastq", "Step_02", output[0])
+        collect_counts(os.path.join(TMPDIR, "p02"), ".s2.out.fastq", "Step_02", output[0])
 
 rule step03_counts:
     input:
-        expand(os.path.join(TMPDIR, "step_03", "{sample}_{rn}.s3.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
+        expand(os.path.join(TMPDIR, "p03", "{sample}_{rn}.s3.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
     output:
         report(os.path.join(SUMDIR, "Step03_counts.tsv"),
             caption = "../report/step03.rst",
             category = "Preprocessing")
     run:
-        collect_counts(os.path.join(TMPDIR, "step_03"), ".s3.out.fastq", "Step_03", output[0])
+        collect_counts(os.path.join(TMPDIR, "p03"), ".s3.out.fastq", "Step_03", output[0])
 
 rule step04_counts:
     input:
-        expand(os.path.join(TMPDIR, "step_04", "{sample}_{rn}.s4.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
+        expand(os.path.join(TMPDIR, "p04", "{sample}_{rn}.s4.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
     output:
         report(os.path.join(SUMDIR, "Step04_counts.tsv"),
             caption = "../report/step04.rst",
             category = "Preprocessing")
     run:
-        collect_counts(os.path.join(TMPDIR, "step_04"), ".s4.out.fastq", "Step_04", output[0])
+        collect_counts(os.path.join(TMPDIR, "p04"), ".s4.out.fastq", "Step_04", output[0])
 
 rule step05_counts:
     input:
-        expand(os.path.join(TMPDIR, "step_05", "{sample}_{rn}.s5.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
+        expand(os.path.join(TMPDIR, "p05", "{sample}_{rn}.s5.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
     output:
         report(os.path.join(SUMDIR, "Step05_counts.tsv"),
             caption = "../report/step05.rst",
             category = "Preprocessing")
     run:
-        collect_counts(os.path.join(TMPDIR, "step_05"), ".s5.out.fastq", "Step_05", output[0])
+        collect_counts(os.path.join(TMPDIR, "p05"), ".s5.out.fastq", "Step_05", output[0])
 
 rule step06_counts:
     input:
-        expand(os.path.join(TMPDIR, "step_06", "{sample}_{rn}.s6.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
+        expand(os.path.join(TMPDIR, "p06", "{sample}_{rn}.s6.out.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
     output:
         report(os.path.join(SUMDIR, "Step06_counts.tsv"),
             caption = "../report/step06.rst",
             category = "Preprocessing")
     run:
-        collect_counts(os.path.join(TMPDIR, "step_06"), ".s6.out.fastq", "Step_06", output[0])
+        collect_counts(os.path.join(TMPDIR, "p06"), ".s6.out.fastq", "Step_06", output[0])
 
 rule step07_counts:
     input:
-        expand(os.path.join(QC, "HOST_REMOVED", "{sample}_{rn}.all.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
+        expand(os.path.join(TMPDIR, "p07", "{sample}_{rn}.all.fastq"), sample=SAMPLES, rn=['R1', 'R2'])
     output:
         report(os.path.join(SUMDIR, "Step07_counts.tsv"),
             caption = "../report/step07.rst",
             category = "Preprocessing")
     run:
-        collect_counts(os.path.join(QC, "HOST_REMOVED"), ".all.fastq", "Step_07", output[0])
+        collect_counts(os.path.join(TMPDIR, "p07"), ".all.fastq", "Step_07", output[0])
 
 rule step08_counts:
     input:
-        expand(os.path.join(QC, "CLUSTERED", "{sample}_R1.deduped.out.fastq"), sample=SAMPLES)
+        expand(os.path.join(TMPDIR, "p08", "{sample}_R1.deduped.out.fastq"), sample=SAMPLES)
     output:
         report(os.path.join(SUMDIR, "Step08_counts.tsv"),
             caption = "../report/step08.rst",
@@ -150,13 +150,13 @@ rule step08_counts:
     run:
         outfh = open(output[0],'w')
         for sample in SAMPLES:
-            R1c = file_len(os.path.join(QC, "CLUSTERED", f"{sample}_R1.deduped.out.fastq")) / 4
+            R1c = file_len(os.path.join(TMPDIR, "p08", f"{sample}_R1.deduped.out.fastq")) / 4
             outfh.write(f'{sample}\tStep_08\tR1\t{R1c}\n')
         outfh.close()
 
 rule step09_counts:
     input:
-        expand(os.path.join(QC, "CLUSTERED", "{sample}_R1_rep_seq.fasta"), sample=SAMPLES)
+        expand(os.path.join(TMPDIR, "p09", "{sample}_R1_rep_seq.fasta"), sample=SAMPLES)
     output:
         report(os.path.join(SUMDIR, "Step09_counts.tsv"),
             caption = "../report/step09.rst",
@@ -164,7 +164,7 @@ rule step09_counts:
     run:
         outfh = open(output[0],'w')
         for sample in SAMPLES:
-            R1c = file_len(os.path.join(QC, "CLUSTERED", f"{sample}_R1_rep_seq.fasta")) / 2
+            R1c = file_len(os.path.join(TMPDIR, "p09", f"{sample}_R1_rep_seq.fasta")) / 2
             outfh.write(f'{sample}\tStep_09\tR1\t{R1c}\n')
         outfh.close()
 
@@ -273,8 +273,13 @@ rule sankey_diagram:
         report(os.path.join(SUMDIR, "Sankey.svg"),
             caption = "../report/sankey.rst",
             category = "Summary")
+    log:
+        os.path.join(STDERR, 'sankey_diagram.log')
     run:
+        import logging
+        logging.basicConfig(filename=log[0], filemode='w', level=logging.DEBUG)
         import plotly.graph_objects as go
+        logging.debug('Collecting summary counts')
         s0 = sum_counts(input[0])
         s1 = sum_counts(input[1])
         s2 = sum_counts(input[2])
@@ -317,12 +322,12 @@ rule sankey_diagram:
             "Vector removal",           # 5
             "Low-qual trim",            # 6
             "Host removal",             # 7
-            "Duplicate removal",        # 8
-            "Clustered seqs",           # 9
+            "Cluster seqs",             # 8
+            "Representative seqs",      # 9
             "Redundant seqs",           # 10
-            "Discard R2",               # 11
+            "Redundant (R2 reads)",     # 11
             "Discarded",                # 12
-            "Seqtable with counts",     # 13
+            "Seqtable (+ counts)",      # 13
             "Primary AA viral",         # 14
             "Primary AA non-viral",     # 15
             "Secondary AA viral",       # 16
@@ -395,12 +400,10 @@ rule sankey_diagram:
             sntV, sntU,         # sNT
             sntV, sntU          # sNT
         ]
+        logging.debug('Generating sanky diagram')
         link = dict(source=source,target=target,value=values)
-        node = dict(label=labels, pad=50, thickness=5)
+        node = dict(label=labels, pad=20, thickness=5)
         data = go.Sankey(link=link, node=node)
         fig = go.Figure(data)
         fig.write_image(output[0], width=2000, height=1000)
-
-
-
-
+        logging.debug('Done')

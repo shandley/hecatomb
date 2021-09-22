@@ -3,9 +3,7 @@ Rules for adding a new host genome for use with contaminant removal. Imported by
 """
 
 rule map_shred_seq:
-    """
-    Map the virus shred seqs to the input host
-    """
+    """Add host step 01: Map the virus shred seqs to the input host"""
     input:
         ref = hostFasta,
         shred = virShred
@@ -17,7 +15,7 @@ rule map_shred_seq:
         mem_mb=64000,
         cpus=8
     log:
-        os.path.join(LOGDIR, 'bbmap.log')
+        os.path.join(STDERR, 'h01.bbmap.log')
     shell:
         """
         bbmap.sh ref={input.ref} in={input.shred} \
@@ -27,9 +25,7 @@ rule map_shred_seq:
         """
 
 rule mask_host:
-    """
-    Mask the host
-    """
+    """Add host step 02: Mask the host"""
     input:
         ref = hostFasta,
         sam = f'{hostFasta}.sam.gz'
@@ -42,7 +38,7 @@ rule mask_host:
         mem_mb=64000,
         cpus=8
     log:
-        os.path.join(LOGDIR,'bbmask.log')
+        os.path.join(STDERR, 'bbmask.log')
     shell:
         """
         bbmask.sh in={input.ref} out={output.fa} \

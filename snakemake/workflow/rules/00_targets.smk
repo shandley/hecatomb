@@ -138,7 +138,7 @@ SecondarySearchFilesNT = [
     os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv"),
     os.path.join(RESULTS, "bigtable.tsv"),
     # os.path.join(RESULTS, "kronaText.tsv"),
-    os.path.join(RESULTS, "kronaPlot.html")]
+    os.path.join(RESULTS, "krona.html")]
 
 # Summary files
 SummaryFiles = [

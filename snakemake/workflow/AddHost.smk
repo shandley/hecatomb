@@ -7,9 +7,6 @@ The genomes need to have their viral-like sequences masked before they can be us
 Michael Roach, Q2 2021
 """
 
-import os
-import sys
-
 ### DEFAULT CONFIG FILE
 configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 
@@ -23,9 +20,9 @@ hostName = config['HostName']
 entropy = config['Entropy']
 
 # FOR SLURM
-LOGDIR = 'logs'
-if not os.path.exists(LOGDIR):
-    os.mkdir(LOGDIR)
+# LOGDIR = 'logs'
+# if not os.path.exists(LOGDIR):
+#     os.mkdir(LOGDIR)
 
 # OUTPUT HOST FASTA
 hostOutDir = os.path.join(DBDIR, 'hosts', hostName)
