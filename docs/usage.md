@@ -13,12 +13,3 @@
 
 ### Read annotation + assembly
 
-## Output files
-
-### Bigtable
-
-### Report
-
-### krona plot
-
-### Assembly files
