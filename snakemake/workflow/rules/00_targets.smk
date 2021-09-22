@@ -157,5 +157,6 @@ SummaryFiles = [
     os.path.join(SUMDIR, "Step11_counts.tsv"),
     os.path.join(SUMDIR, "Step12_counts.tsv"),
     os.path.join(SUMDIR, "Step13_counts.tsv"),
-    os.path.join(SUMDIR, "Sankey.svg")
+    os.path.join(SUMDIR, "Sankey.svg"),
+    os.path.join(SUMDIR, "taxonLevelCounts.tsv")
 ]
