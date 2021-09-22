@@ -58,11 +58,11 @@ rule contig_read_taxonomy:
         inTSV.readline() # skip header
         for line in inTSV:
             l = line.strip().split('\t')
-            tax[l[0]] = '\t'.join((l[3:5] + l[23:]))
+            tax[l[0]] = '\t'.join((l[2:5] + l[22:]))
         inTSV.close()
         logging.debug('Parsing mapped reads and pairing read taxon with mapped coords')
         outFH = open(output[0], 'w')
-        outFH.write('contigID\tseqID\tstart\tstop\tlen\tqual\tcount\talnType\ttaxMethod\tkingdom\tphylum\tclass\torder\tfamily\tgenus\tspecies\n')
+        outFH.write('contigID\tseqID\tstart\tstop\tlen\tqual\tcount\tnormCount\talnType\ttaxMethod\tkingdom\tphylum\tclass\torder\tfamily\tgenus\tspecies\tbaltimoreType\tbaltimoreGroup\n')
         bam = pysam.AlignmentFile(input.bam, 'rb')
         for read in bam.fetch():
             if read.is_secondary or read.is_supplementary or read.is_unmapped:
