@@ -1,7 +1,7 @@
-name: samtools
+name: krona
 channels:
     - conda-forge
     - bioconda
     - defaults
 dependencies:
-    - samtools=1.13
+    - krona

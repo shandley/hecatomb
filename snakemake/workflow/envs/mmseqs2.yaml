@@ -5,9 +5,5 @@ channels:
     - defaults
 dependencies:
     - mmseqs2=12.113e3=h2d02072_2
-    - samtools=1.12
-    - seqkit=0.16.1
-    - csvtk=0.23.0
     - taxonkit=0.8.0
-    
-
+    - csvtk=0.23.0

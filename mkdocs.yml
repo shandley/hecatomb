@@ -1,0 +1,10 @@
+site_name: Hecatomb
+site_url: "https://github.com/shandley/hecatomb"
+theme: readthedocs
+nav:
+    - About: index.md
+    - Install: install.md
+    - Usage: usage.md
+    - Tutorial: tutorial.md
+    - Advanced: advanced.md
+    - FAQ: faq.md

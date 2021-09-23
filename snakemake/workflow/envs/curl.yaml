@@ -1,0 +1,6 @@
+name: curl
+channels:
+    - anaconda
+dependencies:
+    - curl
+    - zstd

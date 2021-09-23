@@ -6,4 +6,3 @@ channels:
 dependencies:
   - seqkit=0.16.1
   - taxonkit=0.7.2
-  - csvtk=0.23.0
