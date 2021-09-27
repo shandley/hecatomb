@@ -11,7 +11,7 @@ While this is fine for smaller datasets it is highly recommended using a HPC clu
 
 ```shell
 # create new conda env and install hecatomb
-conda create -n hecatomb -c beardymcjohnface hecatomb
+conda create -n hecatomb -c conda-forge -c bioconda -c beardymcjohnface hecatomb
 
 # activate env
 conda activate hecatomb
@@ -23,18 +23,13 @@ hecatomb install
 ### Run Hecatomb
 
 We will run hecatomb on the included test dataset.
-Start by linking the test directory (which should be in the installation location).
+We'll use all 32 threads (which is the default anyway) and include the `--assembly` flag to make sure Hecatomb performs an assembly as well.
 
 ```shell
-ln -s `ls -l $(which hecatomb) | sed 's/.* //' | sed 's/hecatomb/..\/test_data/'` .
+Hecatomb run --test --threads 32 --assembly
 ```
 
-Now just run Hecatomb!
-We'll using all 32 threads and include the `--assembly` flag to make sure Hecatomb performs an assembly as well.
-
-```shell
-Hecatomb run --reads test_data/ --threads 32 --assembly
-```
+We should now have all the files we need!
 
 ### Hecatomb run report
 

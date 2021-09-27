@@ -60,14 +60,13 @@ hecatomb install --profile slurm
 ## Run the test dataset
 
 Hecatomb comes with a test dataset that you can run which will take a few hours to complete.
-The test dataset reads are in `test_data/` in the Hecatomb directory.
-You can find your Hecatomb directory with `which hecatomb`.
+Use `--test` in place of specifying your read directory with `--reads`.
 
 ```bash
 # run locally
-hecatomb run --reads /path/to/hecatomb/test_data/
+hecatomb run --assembly --test
 
 # run on cluster using a Snakemake profile
-hecatomb run --reads /path/to/hecatomb/test_data/ --profile slurm
+hecatomb run --assembly --test --profile slurm
 ```
 
