@@ -1,4 +1,4 @@
-# About Hecatomb
+# Hecatomb
 
 ![](img/hecatombBanner.png)
 
@@ -190,9 +190,9 @@ This dataset is relatively rich in viral sequences and yet the majority of reads
 
 ### krona.html and contigKrona.html
 
-`hecatomb_out/RESULTS/krona.html`
+`hecatomb_report/krona.html`
 
-`hecatomb_out/RESULTS/contigKrona.html`
+`hecatomb_report/contigKrona.html`
 
 The Krona plots are to assist in visual exploration of the read annotations.
 krona.html is derived from the bigtable and shows the raw distribution of taxon assignments.
