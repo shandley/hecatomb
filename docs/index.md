@@ -93,6 +93,17 @@ The assembly is also subject to a pseudo consensus annotation approach whereby t
 Taxonomic assignments in the BigTable are combined with the read mapping information.
 We find this useful with investigating contigs of interest.
 
+## Snakemake
+
+The Hecatomb pipeline is powered by [Snakemake](https://snakemake.readthedocs.io/).
+It comes preconfigured and includes a launcher script to make running the pipeline simple.
+We chose to use Snakemake over other workflow managers largely because of our extensive experience with it.
+Snakemake does a lot of heavy lifting to make our lives easier, and the pipeline better.
+It manages all the pipeline jobs, as well as generates benchmarks and reports for everything, allows the pipeline to 
+be naturally reentrant, parallel, portable, robust, containerised, and many other buzzwords!
+
+![](img/hecatombSnakemake.png)
+
 ## File outputs
 
 The pipeline outputs a number of files for further analysis and exploration, as well as to provide an overview of the 
