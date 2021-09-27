@@ -45,32 +45,30 @@ parser = argparse.ArgumentParser(
                  "    addHost     Process and add a new host genome for contaminant removal\n"
                  "\n"),
     epilog= ("\n"
-             "To Run hecatomb:\n"
+             "To Run Hecatomb:\n"
              "hecatomb run --reads fastq/\n"
              "\n"
-             "The Hecatomb pipeline is powered by Snakemake. Pass multiple additional arguments to Snakemake with --snake:\n"
-             "hecatomb run --snake=--dry-run --snake=--touch\n"
+             "Run Hecatomb and perform an assembly:\n"
+             "hecatomb run --reads fastq/ --assembly\n"
              "\n"
-             "Wrap the --snake arguments in quotes when passing whitespace:\n"
-             "hecatomb run --snake=\"--force --cleanup-metadata seqtable.fasta\"\n"
+             "Run test dataset (will take a few hours):\n"
+             "hecatomb run --test --assembly\n"
              "\n"
-             "Override default config settings:\n"
-             "hecatomb run --snake=\"--config QSCORE=12 READ_MINLENGTH=50\"\n"
-             "\n"
-             "To run hecatomb on a HPC cluster (e.g. slurm or sge):\n"
+             "To run hecatomb on a HPC cluster (e.g. slurm, sge, etc.):\n"
              "hecatomb run --profile slurm\n\n"
-             "For more information on using Snakemake profiles refer to the Snakemake documentation: \n"
-             "https://snakemake.readthedocs.io/ as well as the example configs in the Hecatomb config directory \n"
-             "https://github.com/shandley/hecatomb/tree/master/snakemake/config\n\n"
+             "\n"
+             "Complete documentation for Hecatomb is available at:\n"
+             "https://hecatomb.readthedocs.io\n"
              )
 )
 parser.add_argument('command', choices=['install', 'run', 'listHosts', 'addHost'])
 parser.add_argument('--reads', help='Directory containing seq data')
+parser.add_argument('--test', help='Use the test dataset (ignores --reads)', action='store_true')
 parser.add_argument('--assembly', help='Optionally perform an assembly', action='store_true')
 parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
 parser.add_argument('--host', help='Host name for contaminant removal', default='human')
-parser.add_argument('--hostfa', help='Host reference (when adding a new host genome)')
-parser.add_argument('--entropy', help='Host masking entropy (when adding a new host genome)', default='0.7')
+parser.add_argument('--hostfa', help='Host reference (for addHost command only)')
+# parser.add_argument('--entropy', help='Host masking entropy (for addHost command)', default='0.7')
 parser.add_argument('--profile', help='Snakemake profile for use on cluster')
 parser.add_argument('--threads', help='Number of threads to use (ignored if using --profile)', default='32')
 parser.add_argument('--snake',
@@ -81,6 +79,7 @@ args = parser.parse_args()
 
 ### GLOBAL VARIABLES
 SNEKDIR = os.path.normpath(os.path.join(BINDIR, '../', 'snakemake', 'workflow'))
+TESTDIR = os.path.normpath(os.path.join(BINDIR, '../', 'test_data'))
 CONDDIR = os.path.normpath(os.path.join(SNEKDIR, 'conda'))
 EDITOR = os.environ.get('EDITOR','nano')
 # read the config file
@@ -174,13 +173,17 @@ def run():
     The run function. This will run the hecatome snakemake pipeline itself.
     :return:
     """
-    if not args.reads:
-        sys.stderr.write('ERROR: please specify the directory with sequencing reads with --reads')
+    if args.test:
+        readDir = TESTDIR
+    elif not args.reads:
+        sys.stderr.write('ERROR: please specify the directory with sequencing reads with --reads\n')
         exit(1)
+    else:
+        readDir = args.reads
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={args.reads} Host={args.host} Output={args.results} Assembly={args.assembly}'
+    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={readDir} Host={args.host} Output={args.results} Assembly={args.assembly}'
     successMsg = "Hecatomb finished successfully\n"
     runSnakeSys(runCommand, successMsg)
     sys.stderr.write("Generating run report\n")
@@ -209,7 +212,7 @@ def addHost():
         host = args.host
     snakeCommand = initialiseSnakeCommand()
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'AddHost.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C HostFa={args.hostfa} HostName={host} Entropy={args.entropy} Output={args.results}'
+    runCommand = f'{snakeCommand} -s {snekFile} -C HostFa={args.hostfa} HostName={host} Output={args.results}'
     successMsg = "Host genome successfully added\n"
     runSnakeSys(runCommand, successMsg)
     return

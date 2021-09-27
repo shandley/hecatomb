@@ -68,6 +68,9 @@ SECAAE: 1e-5 # Secondary translated (nt-vs-aa) e-value
 PRIMNTE: 1e-5 # Primary untranslated (nt-vs-nt) e-value
 SECNTE: 1e-5 # Secondary untranslated (nt-vs-nt) e-value
 
+# addHost settings
+Entropy: 0.7
+
 
 #####################
 # Database download #
