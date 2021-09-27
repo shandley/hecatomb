@@ -11,12 +11,12 @@ import argparse
 import sys
 import os
 import subprocess
-import pathlib
+# import pathlib
 import time
 import yaml
 import glob
-from shutil import copyfile
-from subprocess import call
+# from shutil import copyfile
+# from subprocess import call
 
 
 ### VERSION
@@ -183,6 +183,10 @@ def run():
     runCommand = f'{snakeCommand} -s {snekFile} -C Reads={args.reads} Host={args.host} Output={args.results} Assembly={args.assembly}'
     successMsg = "Hecatomb finished successfully\n"
     runSnakeSys(runCommand, successMsg)
+    sys.stderr.write("Generating run report\n")
+    successMsg = "Run report generated successfully\n"
+    runCommand = runCommand + ' --report'
+    runSnakeSys(runCommand, successMsg)
     return
 
 
@@ -231,10 +235,6 @@ def listHosts():
     sys.stdout.write('\n')
     return
 
-
-# Run the program
-# if args.profile:
-#     initialiseCluster(args.profile)
 
 commands = {'install':install, 'run':run, 'addHost':addHost, 'listHosts':listHosts}
 commands[args.command]()
