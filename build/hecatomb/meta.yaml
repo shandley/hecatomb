@@ -10,7 +10,7 @@ build:
 
 source:
   url: https://github.com/shandley/{{ name }}/archive/refs/tags/{{ version }}.tar.gz
-  sha256: 53d6c4657a7434f97e3c06d372f74b9a7fd5eb29f49833c037e2249029b85f9c
+  sha256: 219981c8e8aa6e2184a83a79e60025bdac4ddd3211cb6e2732f7596aac1dd5d6
 
 requirements:
   run:
