@@ -31,6 +31,8 @@ Hecatomb run --test --threads 32 --assembly
 
 We should now have all the files we need!
 
+TODO: finish tutorial
+
 ### Hecatomb run report
 
 ## Analysis and plotting in R and Python
