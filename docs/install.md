@@ -16,35 +16,25 @@ As such it is highly recommended to run Hecatomb on a HPC cluster.
 
 Hecatomb was developed as a set of [Snakemake](https://snakemake.readthedocs.io/en/stable/#) workflows, which are 
 controlled by a python launcher for your convenience.
-While the pipeline utilises a number of other programs and tools to run, you only need to install a couple of 
-dependencies and Snakemake will take care of the rest.
+While the pipeline utilises a number of other programs and tools to run, these are all managed by the pipeline using 
+[conda](https://docs.conda.io/en/latest/) and [mamba](https://github.com/mamba-org/mamba).
 
-Hecatomb relies on [conda](https://docs.conda.io/en/latest/) to ensure portability and ease of installation. 
-The only other dependencies you will need to install are [Snakemake](https://snakemake.readthedocs.io/en/stable/#), 
-[conda](https://docs.conda.io/en/latest/), and the python packages [pysam](https://pysam.readthedocs.io/en/latest/api.html)
-and [plotly](https://plotly.com/python/).
-We also highly recommend you use [mamba](https://github.com/mamba-org/mamba) as it is _a lot_ faster than the base conda.
-
-After installing conda, install all the other dependencies like so:
+Install Hecatomb via conda:
 
 ```bash
-conda install -c conda-forge -c bioconda snakemake mamba pysam plotly
-```
-
-To install Hecatomb, first download the GitHub repo:
-
-```bash
-git clone https://github.com/shandley/hecatomb.git
-```
-
-Then add or link the launcher to your PATH (e.g. if $HOME/bin is already on your PATH):
-
-```bash
-cd hecatomb/bin
-ln -s $(pwd)/hecatomb $HOME/bin
+# This command will create a new conda env called 'hecatomb' and will install Hecatomb and all of it's dependencies.
+conda create -n hecatomb -c conda-forge -c bioconda -c beardymcjohnface hecatomb
 ```
 
 That's it!
+
+```bash
+# To use Hecatomb, activate your new conda env.
+conda activate hecatomb
+
+# Check that it's installed
+hecatomb -h
+```
 
 ## Advanced customisation
 
@@ -70,13 +60,13 @@ hecatomb install --profile slurm
 ## Run the test dataset
 
 Hecatomb comes with a test dataset that you can run which will take a few hours to complete.
-The test dataset reads are in `test_data/` in the Hecatomb directory.
+Use `--test` in place of specifying your read directory with `--reads`.
 
 ```bash
 # run locally
-hecatomb run --reads /path/to/hecatomb/test_data/
+hecatomb run --assembly --test
 
 # run on cluster using a Snakemake profile
-hecatomb run --reads /path/to/hecatomb/test_data/ --profile slurm
+hecatomb run --assembly --test --profile slurm
 ```
 

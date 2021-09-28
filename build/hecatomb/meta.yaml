@@ -1,0 +1,33 @@
+{% set name = "Hecatomb" %}
+{% set version = "v1.0.0.alpha.2" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+build:
+  number: 1
+
+source:
+  url: https://github.com/shandley/{{ name }}/archive/refs/tags/{{ version }}.tar.gz
+  sha256: 53d6c4657a7434f97e3c06d372f74b9a7fd5eb29f49833c037e2249029b85f9c
+
+requirements:
+  run:
+    - python=3
+    - snakemake=6.4.1
+    - pysam>=0.16.0.1
+    - plotly>=5.3.1
+    - mamba>=0.15.3
+
+test:
+  commands:
+    - hecatomb -h
+
+about:
+  home: https://github.com/shandley/hecatomb
+  license: MIT
+  license_file: LICENSE
+  summary: Accurate classification of viral sequences from metagenome samples
+  dev_url: https://github.com/shandley/hecatomb
+  doc_url: https://github.com/shandley/hecatomb

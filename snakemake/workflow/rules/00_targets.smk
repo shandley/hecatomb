@@ -53,8 +53,7 @@ if doAssembly:
         os.path.join(MAPPING, "assembly.seqtable.bam"),
         os.path.join(MAPPING, "assembly.seqtable.bam.bai"),
         os.path.join(RESULTS, "contigSeqTable.tsv"),
-        # os.path.join(RESULTS, "contigKrona.txt"),
-        os.path.join(RESULTS, "contigKrona.html")
+        os.path.join(SUMDIR, "contigKrona.html")
     ]
 else:
     AssemblyFiles = []
@@ -137,8 +136,7 @@ SecondarySearchFilesNT = [
     os.path.join(SECONDARY_NT_OUT, "results","secondary_nt_lca.tsv"),
     os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv"),
     os.path.join(RESULTS, "bigtable.tsv"),
-    # os.path.join(RESULTS, "kronaText.tsv"),
-    os.path.join(RESULTS, "krona.html")]
+]
 
 # Summary files
 SummaryFiles = [
@@ -158,5 +156,6 @@ SummaryFiles = [
     os.path.join(SUMDIR, "Step12_counts.tsv"),
     os.path.join(SUMDIR, "Step13_counts.tsv"),
     os.path.join(SUMDIR, "Sankey.svg"),
-    os.path.join(SUMDIR, "taxonLevelCounts.tsv")
+    os.path.join(SUMDIR, "taxonLevelCounts.tsv"),
+    os.path.join(SUMDIR, "krona.html")
 ]
