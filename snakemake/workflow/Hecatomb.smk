@@ -20,6 +20,12 @@ configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 READDIR = config['Reads']
 HOST = config['Host']
 doAssembly = config['Assembly']
+if config['Fast']:
+    MMSeqsSensAA = config['perfAAfast']
+    MMSeqsSensNT = config['perfNTfast']
+else:
+    MMSeqsSensAA = config['perfAA']
+    MMSeqsSensNT = config['perfNT']
 
 
 ### RESOURCE CONFIG
@@ -39,12 +45,6 @@ MiscCPU = config['MiscCPU']
 include: "rules/00_directories.smk"
 
 
-# DIRs TO INITIALIZE
-# for dir in [TMPDIR, WORKDIR, STDERR]:
-#     if not os.path.exists(dir):
-#         os.makedirs(dir, exist_ok=True)
-
-
 ### HOST ORGANISM
 HOSTFA = os.path.join(HOSTPATH, HOST, "masked_ref.fa.gz")
 HOSTINDEX = HOSTFA + '.idx'
@@ -52,7 +52,6 @@ HOSTINDEX = HOSTFA + '.idx'
 
 # Check for Database files
 dbFail = False
-# sys.stderr.write('\nChecking database files\n')
 for f in config['dbFiles']:
     dbFile = os.path.join(DBDIR, f)
     if not os.path.isfile(dbFile):
@@ -61,8 +60,6 @@ for f in config['dbFiles']:
 if dbFail:
     sys.stderr.write('ONE OR MORE DATABASE FILES ARE MISSING\nPlease run "hecatomb install" to download the missing database files\n\n')
     exit(1)
-# else:
-#     sys.stderr.write('Database files ok!\n')
 
 
 SAMPLES,EXTENSIONS = glob_wildcards(os.path.join(READDIR, '{sample}_R1{extensions}'))
@@ -75,7 +72,6 @@ if not EXTENSIONS:
         and '_R2' in the rev reads
         """)
     sys.exit()
-# we just get the generic extension. This is changed in Step 1/Volumes/Macintosh HD/Users/shandley/Library/Caches/Nova/42111DAF-02/Volumes/Macintosh HD/Users/shandley/Library/Caches/Nova/42111DAF-0218-485F-908B-6E1034888DEE/10.39.174.207/mnt/data3/shandley/dev/hecatomb_v_2/hecatomb/snakemake/workflow/Snakefile18-485F-908B-6E1034888DEE/10.39.174.207/mnt/data3/shandley/dev/hecatomb_v_2/hecatomb/snakemake/workflow/Hecatomb.smk
 
 file_extension = EXTENSIONS[0]
 # a convenience so we don't need to use '{sample}_R1' all the time

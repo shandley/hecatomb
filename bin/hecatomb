@@ -71,6 +71,7 @@ parser.add_argument('--hostfa', help='Host reference (for addHost command only)'
 # parser.add_argument('--entropy', help='Host masking entropy (for addHost command)', default='0.7')
 parser.add_argument('--profile', help='Snakemake profile for use on cluster')
 parser.add_argument('--threads', help='Number of threads to use (ignored if using --profile)', default='32')
+parser.add_argument('--fast', help='Use faster but less sensitive settings for MMSeqs searches', action='store_true')
 parser.add_argument('--snake',
                     help='Pass one or more commands to Snakemake e.g. --snake=--dry-run',
                     action='append')
@@ -183,7 +184,7 @@ def run():
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={readDir} Host={args.host} Output={args.results} Assembly={args.assembly}'
+    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={readDir} Host={args.host} Output={args.results} Assembly={args.assembly} Fast={args.fast}'
     successMsg = "Hecatomb finished successfully\n"
     runSnakeSys(runCommand, successMsg)
     sys.stderr.write("Generating run report\n")
