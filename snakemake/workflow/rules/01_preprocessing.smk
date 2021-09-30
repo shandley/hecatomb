@@ -225,9 +225,9 @@ rule create_host_index:
     output:
         HOSTINDEX
     benchmark:
-        os.path.join(BENCH, "create_host_index.txt")
+        os.path.join(BENCH, "p00_create_host_index.txt")
     log:
-        os.path.join(STDERR, 'create_host_index.log')
+        os.path.join(STDERR, 'p00_create_host_index.log')
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -314,9 +314,9 @@ rule nonhost_read_combine:
         r1 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R1.all.fastq"),
         r2 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R2.all.fastq")
     benchmark:
-        os.path.join(BENCH, f"07c_read_combine_{PATTERN}.txt")
+        os.path.join(BENCH, f"p07c_read_combine_{PATTERN}.txt")
     log:
-        os.path.join(STDERR, f"07c_read_combine_{PATTERN}.log")
+        os.path.join(STDERR, f"p07c_read_combine_{PATTERN}.log")
     shell:
         """
         {{ cat {input.sr1} {input.or1} > {output.t1};
@@ -335,9 +335,9 @@ rule remove_exact_dups:
     output:
         temp(os.path.join(TMPDIR, "p08", f"{PATTERN_R1}.deduped.out.fastq"))
     benchmark:
-        os.path.join(BENCH, "08_remove_exact_dups.{sample}.txt")
+        os.path.join(BENCH, "p08_remove_exact_dups.{sample}.txt")
     log:
-        os.path.join(STDERR, "08_remove_exact_dups.{sample}.log")
+        os.path.join(STDERR, "p08_remove_exact_dups.{sample}.log")
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -367,9 +367,9 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
         tmppath = os.path.join(TMPDIR, "p09", "{sample}_TMP"),
         prefix = PATTERN_R1
     benchmark:
-        os.path.join(BENCH, "09_cluster_similar_sequences.{sample}.txt")
+        os.path.join(BENCH, "p09_cluster_similar_sequences.{sample}.txt")
     log:
-        os.path.join(STDERR, "09_cluster_similar_sequences.{sample}.log")
+        os.path.join(STDERR, "p09_cluster_similar_sequences.{sample}.log")
     resources:
         mem_mb = MMSeqsMem
     threads:
@@ -437,9 +437,9 @@ rule merge_seq_table:
     params:
         resultsdir = directory(RESULTS),
     benchmark:
-        os.path.join(BENCH, "merge_seq_table.txt")
+        os.path.join(BENCH, "p11_merge_seq_table.txt")
     log:
-        os.path.join(STDERR, 'merge_seq_table.log')
+        os.path.join(STDERR, 'p11_merge_seq_table.log')
     run:
         import logging
         logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
@@ -450,14 +450,18 @@ rule merge_seq_table:
             logging.debug(f'sample {sample}')
             seqId = 0
             seqCounts = 0
-            counts = open(os.path.join(TMPDIR, "p10", f"{sample}_R1.seqtable"), 'r')
+            st = os.path.join(TMPDIR, "p10", f"{sample}_R1.seqtable")
+            counts = open(st, 'r')
             line = counts.readline() # skip header
             for line in counts:
                 l = line.split()
-                id = ':'.join((sample, l[1], str(seqId))) # fasta header = >sample:count:seqId
-                seqCounts += int(l[1])
-                seqId = seqId + 1
-                outFa.write(f'>{id}\n{l[0]}\n')
+                if len(l) == 2:
+                    id = ':'.join((sample, l[1], str(seqId))) # fasta header = >sample:count:seqId
+                    seqCounts += int(l[1])
+                    seqId = seqId + 1
+                    outFa.write(f'>{id}\n{l[0]}\n')
+                else:
+                    logging.warning(f'Possible malformed sample seqtable {st}')
             counts.close()
             outTsv.write(f'{sample}\t{seqCounts}\n')
         outFa.close()

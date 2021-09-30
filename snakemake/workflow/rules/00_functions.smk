@@ -40,9 +40,9 @@ rule calculate_gc:
     output:
         temp(os.path.join(RESULTS, "{file}.properties.gc"))
     benchmark:
-        os.path.join(BENCH, "calculate_gc.{file}.txt")
+        os.path.join(BENCH, "g00_calculate_gc.{file}.txt")
     log:
-        os.path.join(STDERR, "calculate_gc.{file}.log")
+        os.path.join(STDERR, "g00_calculate_gc.{file}.log")
     conda:
         os.path.join("..", "envs", "bbmap.yaml")
     threads:
@@ -62,9 +62,9 @@ rule calculate_tet_freq:
     output:
         temp(os.path.join(RESULTS, "{file}.properties.tetramer"))
     benchmark:
-        os.path.join(BENCH, "calculate_tet.{file}.txt")
+        os.path.join(BENCH, "g01_calculate_tet.{file}.txt")
     log:
-        os.path.join(STDERR, "calculate_tet.{file}.log")
+        os.path.join(STDERR, "g01_calculate_tet.{file}.log")
     conda:
         os.path.join("..", "envs", "bbmap.yaml")
     threads:
@@ -86,13 +86,13 @@ rule seq_properties_table:
     output:
         os.path.join(RESULTS, "{file}.properties.tsv")
     benchmark:
-        os.path.join(BENCH, "seq_properties_table.{file}.txt")
+        os.path.join(BENCH, "g02_seq_properties_table.{file}.txt")
     threads:
         MiscCPU
     resources:
         mem_mb = MiscMem
     log:
-        os.path.join(STDERR, '{file}.seq_properties_table.log')
+        os.path.join(STDERR, 'g02_{file}.seq_properties_table.log')
     run:
         import logging
         logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
