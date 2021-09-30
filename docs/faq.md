@@ -23,6 +23,15 @@ Look in your scheduler logs to see if this is the case.
 In the example profile, the slurm logs are saved in `logs/{rule}/{jobid}`.
 The rule name and jobid are supplied in the Snakemake error messages, making it easy to find the relevant logs.
 
+## Hecatomb takes too long, what can I do?
+
+First, try running Hecatomb with the `--fast` flag.
+The MMSeqs steps are by far the most time consuming steps. 
+The `--fast` flag will tell Hecatomb to use MMSeqs settings that are much much faster, but not quite as sensitive.
+You should also configure your installation to utilise as many CPUs and as much memory as possible.
+See [default resources config](https://hecatomb.readthedocs.io/en/latest/advanced/#default-resources) for more info.
+
 ## I've run the pipeline, now what?
 
 Have a look at [the tutoria](#) which goes through some example plots and analyses.
+

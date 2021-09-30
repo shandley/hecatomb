@@ -57,11 +57,24 @@ of the `--assembly` flag:
 hecatomb run --reads fastq/ --profile slurm --assembly
 ```
 
-That's it!
+### Quicker read annotation
+
+The pipeline bottleneck is the MMSeqs searches.
+Use the `--fast` flag to run Hecatomb with less sensitive settings for MMSeqs.
+In limited testing, we find it performs almost as well but with considerable runtime improvements.
+
+```bash
+hecatomb run --reads fastq/ --profile slurm --fast
+```
+
+## Host reference genomes
+
+Hecatomb includes a thorough host read removal step which utilises a processed host genome.
+You can specify a host, or add your own.
 
 ### Specifying a host genome
 
-Hecatomb includes a thorough host read removal step and by default it will use the human genome.
+By default, Hecatomb will use the human genome.
 If your sample is from a different source you will need to specify the host genome for your sample source.
 
 To see what host genomes are available:
@@ -73,7 +86,7 @@ hecatomb listHosts
 The following should be available by default: 
 bat, mouse, camel, celegans, macaque, rat, dog, cat, tick, mosquito, cow, human
 
-If you are working with mouse samples:
+So if you are working with mouse samples you would run:
 
 ```bash
 hecatomb run --reads fastq/ --host mouse

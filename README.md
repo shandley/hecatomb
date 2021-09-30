@@ -69,4 +69,8 @@ Hecatomb relies on [conda](https://docs.conda.io/en/latest/) (and [mamba](https:
 to ensure portability and ease of installation of its dependencies.
 All of Hecatomb's dependencies are installed during installation or runtime, so you don't have to worry about a thing!
 
+### Links
+
+[Hecatomb @ bio.tools](https://bio.tools/hecatomb)
+
 

@@ -22,11 +22,11 @@ hecatomb install
 
 ### Run Hecatomb
 
-We will run hecatomb on the included test dataset.
+We will run hecatomb on the included test dataset, using the fast MMSeqs settings.
 We'll use all 32 threads (which is the default anyway) and include the `--assembly` flag to make sure Hecatomb performs an assembly as well.
 
 ```shell
-Hecatomb run --test --threads 32 --assembly
+Hecatomb run --test --threads 32 --assembly --fast
 ```
 
 We should now have all the files we need!
