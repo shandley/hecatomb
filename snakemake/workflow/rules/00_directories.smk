@@ -5,11 +5,13 @@ Ensures consistent variable names and file locations for the pipeline, the datab
 and the addHost script.
 """
 
+
 ### DATABASE BASE DIRECTORY
 if config['Databases'] is None:
     DBDIR = os.path.join(workflow.basedir,'../../databases')
 else:
     DBDIR = config['Databases']
+
 
 ### OUTPUT DIRECTORY
 if config['Output'] is None:
@@ -19,9 +21,7 @@ else:
 
 
 ### DATABASE SUBDIRs
-#BACPATH = os.path.join(DBDIR, "bac_giant_unique_species")
 CONPATH = os.path.join(DBDIR, "contaminants")
-#BACBT2 = os.path.join(DBDIR, "bac_giant_unique_species", "bac_uniquespecies_giant.masked_Ns_removed")
 TAX = os.path.join(DBDIR, "tax", "taxonomy")
 TABLES = os.path.join(DBDIR, "tables")
 HOSTPATH = os.path.join(DBDIR, "host")
@@ -35,17 +35,16 @@ POLYMICRODB = os.path.join(DBDIR, "nt", "virus_secondary_nt")
 
 
 ### OUTPUT DIRs
-# LOGS = 'logs'
 RESULTS = os.path.join(OUTPUT, 'RESULTS')
 WORKDIR = os.path.join(OUTPUT, 'PROCESSING')
 TMPDIR = os.path.join(WORKDIR, 'TMP')
 STDERR = os.path.join(OUTPUT, 'STDERR')
 BENCH = os.path.join(OUTPUT, 'BENCHMARKS')
 SUMDIR = os.path.join('hecatomb_report')
-# QC = os.path.join(WORKDIR, 'QC')
 ASSEMBLY = os.path.join(WORKDIR, 'ASSEMBLY')
 MAPPING = os.path.join(WORKDIR, 'MAPPING')
 STATS = os.path.join(WORKDIR, 'STATS')
+
 
 # MMSEQS OUTPUT DIRs
 PRIMARY_AA_OUT = os.path.join(RESULTS, "MMSEQS_AA_PRIMARY")

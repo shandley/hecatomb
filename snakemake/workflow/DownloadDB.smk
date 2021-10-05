@@ -11,7 +11,7 @@ Updated: Michael Roach, Q2 2021
 """
 
 
-### LOAD DEFAULT CONFIG
+# load default config
 configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 
 
@@ -35,24 +35,10 @@ rule all:
         allDbFiles
 
 
-# rule unpack_db_file:
-#     """Generic rule to unpack included files."""
-#     input:
-#         os.path.join(DBDIR, 'contaminants', '{file}.zst')
-#     output:
-#         os.path.join(DBDIR, 'contaminants', '{file}')
-#     wildcard_constraints:
-#         file = '.*(?<!zst)'
-#     shell:
-#         """zstd -d {input} -o {output}"""
-
-
 rule download_db_file:
     """Generic rule to download a DB file."""
     output:
         os.path.join(DBDIR, '{file}')
-    # wildcard_constraints:
-    #     file = '(?!contaminants).*'
     run:
         import urllib.request
         import urllib.parse
