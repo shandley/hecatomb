@@ -1,11 +1,11 @@
 # Advanced options for Hecatomb
-
 If you're running Hecatomb on a HPC cluster, we absolutely recommend setting up a 
 [Snakemake profile](advanced.md#snakemake-profiles-for-hpc-clusters).
 
 There are many parameters that can be changed to tailor the pipeline to your system, 
 or to tweak the pipeline's filtering.
-We recommend reviewing the Snakemake `config.yaml` file in your Hecatomb installation directory.
+
+We also recommend reviewing the Snakemake `config.yaml` file in your Hecatomb installation directory.
 The config file will be at `hecatomb/snakemake/config/config.yaml` and you can find your installation directory with:
 
 ```bash
@@ -16,10 +16,12 @@ which hecatomb
 
 Snakemake profiles are a must-have for running Snakemake pipelines on HPC clusters.
 While they can be a pain to set up, you only need to do this once and then life is easy.
-For more information on profiles, check the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles), or our recent [blog post on Snakemake profiles](https://fame.flinders.edu.au/blog/2021/08/02/snakemake-profiles-updated).
+For more information, check the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles), 
+or our recent [blog post on Snakemake profiles](https://fame.flinders.edu.au/blog/2021/08/02/snakemake-profiles-updated).
 
 Hecatomb ships with an example profile for the Slurm workload manager in `hecatomb/snakemake/profile/example_slurm/`.
-The example `config.yaml` file contains all the Snakemake options for jobs that are submitted to the scheduler.
+The example _profile_ `config.yaml` file (not to be confused with the _Hecatomb_ config file) contains all the Snakemake 
+options for jobs that are submitted to the scheduler.
 Hecatomb expects the following in the cluster command:
 
  - `resources.time` for time in minutes
@@ -41,40 +43,88 @@ This line in the config file tells Snakemake how to check on the status of a job
 `cluster-status: ~/.config/snakemake/slurm/slurm-status.py` (be sure to check and update your file path).
 The `slurm-status.py` script will query the scheduler with the jobid and report back to Snakemake on the job's status.
 
-## Default resources
+## Hecatomb configuration
 
-The Hecatomb config file (`hecatomb/snakemake/config/config.yaml`) contains some sensible defaults for resources.
-While these should work for most datasets, they may fail for larger ones.
-You may also have more CPUs etc at your disposal and want to minimise runtime of the pipeline.
-Currently, the slowest steps are the MMSeqs searches and increasing the CPUs and RAM could significantly improve runtime.
-The other settings (for Megahit and Minimap2, BBTools, and misc) will probably only show modest improvement.
+The Hecatomb configuration file `hecatomb/snakemake/config/config.yaml` contains settings related to resources and 
+cutoffs for various stages of the pipeline. The different config settings are outlined further on.
+You can permanently change the behaviour of your Hecatomb installation by modifying the values in the config file.
+Alternatively, you can change the behaviour of a single run by specifying the new values on the command line. 
+See [below for passing your own Snakemake commands](advanced.md#additional-snakemake-commands).
 
 ## Database location
 
-The databases are large (~55 GB) and if your home directory is limited on space you might want to specify a new location
-to house the database files. 
-By default this config setting is blank and the pipeline will use the install location (`hecatomb/databases/`).
+The databases are large (~55 GB) and if your Hecatomb installation is on a partition with limited on space,
+you might want to specify a new location to house the database files. 
+By default, this config setting is blank and the pipeline will use the install location (`hecatomb/databases/`).
 You can specify the directory in the Hecatomb config file (`hecatomb/snakemake/config/config.yaml`) under `Databases: `, 
-e.g. 
+e.g:
 
-```bash
+```yaml
 Databases: /scratch/HecatombDatabases
 ```
 
-and run the installation 
+and run or rerun the installation 
 
 ```bash
 hecatomb install
 ```
 
+## Default resources
+
+The Hecatomb config file contains some sensible defaults for resources.
+While these should work for most datasets, they may fail for larger ones.
+You may also have more CPUs etc at your disposal and want to minimise runtime of the pipeline.
+Currently, the slowest steps are the MMSeqs searches and increasing the CPUs and RAM could significantly improve runtime.
+The other settings (for Megahit and Minimap2, BBTools, and misc) will probably only show modest improvement.
+
+The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
+
+```yaml
+# Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
+MMSeqsMem: 64000
+# Threads for MMSeqs (recommend >= 16)
+MMSeqsCPU: 32
+# Max runtime for MMSeqs
+MMSeqsTimeMin: 5760  # 4 days
+
+# Memory for BBTools in megabytes (recommend >= 16000)
+BBToolsMem: 16000
+# CPUs for BBTools (recommend >= 8)
+BBToolsCPU: 8
+
+# Memory for Megahit/Flye in megabytes (recommend >= 32000)
+MhitMem: 32000
+# CPUs for Megahit/Flye in megabytes (recommend >= 16)
+MhitCPU: 16
+
+# Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
+MiscMem: 16000
+# CPUs for slightly RAM-hungry jobs (recommend >= 2)
+MiscCPU: 2
+```
+
 ## Filtering settings
 
-There are many filtering etc. cutoff values that are specified in the Hecatomb config file (`hecatomb/snakemake/config/config.yaml`).
+There are many filtering etc. cutoff values that are specified in the Hecatomb config file.
 For instance `READ_MINLENGTH: ` specifies the minimum allowed readlength after trimming.
-If you wish to permenantly change the behaviour of your Hecatomb installation, you can modify these settings.
-If you only want to change the behaviour for specific Hecatomb runs then it would be better to specify the new config
-settings on the command line using the `--snake` launcher option. 
-See [below for passing your own Snakemake commands](advanced.md#additional-snakemake-commands).
+
+The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
+
+```yaml
+# Preprocessing
+QSCORE: 15 # Read quality trimming score (rule remove_low_quality in 01_preprocessing.smk)
+READ_MINLENGTH: 90 # Minimum read length during QC steps (rule remove_low_quality in 01_preprocessing.smk)
+CONTIG_MINLENGTH: 1000 # Read minimum length (rule contig_reformating_and_stats in 01_preprocessing.smk)
+ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 01_preprocessing.smk)
+ENTROPYWINDOW: 25 # entropy window for low qual read filter
+CLUSTERID: 0.97 # Linclust read clustering percent identity (rule cluster_similar_sequences: in 01_preprocessing.smk)
+
+# addHost settings
+Entropy: 0.7
+```
+
+There are additional settings further down in the config file for users that are familiar with MMSeqs, 
+as well as config settings that you should not alter.
 
 ## Additional Snakemake commands
 
@@ -95,8 +145,10 @@ hecatomb run --reads fasq/ --profile slurm --snake=--dry-run
 Hecatomb prints the Snakemake command to the terminal window and you should see these additional options added to the 
 Snakemake command:
 
+```bash
+hecatomb run --test --snake=--dry-run
+```
 ```text
-$ hecatomb run --test --snake=--dry-run
 Running Hecatomb
 Running snakemake command:
 snakemake -j 32 --use-conda --conda-frontend mamba --rerun-incomplete --printshellcmds \
@@ -109,8 +161,10 @@ Building DAG of jobs...
 You can use this to specify new config settings to overwrite Hecatomb's default config.
 **NOTE: Wrap your Snake commands in quotes if you want to pass whitespace** (like in this example):
 
-```text
-$ hecatomb run --test --snake="-C QSCORE=20 READ_MINLENGTH=100 ENTROPY=0.7"
+```bash
+hecatomb run --test --snake="-C QSCORE=20 READ_MINLENGTH=100 ENTROPY=0.7"
+```
+```text 
 Running Hecatomb
 Running snakemake command:
 snakemake -j 32 --use-conda --conda-frontend mamba --rerun-incomplete --printshellcmds \
