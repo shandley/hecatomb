@@ -11,12 +11,9 @@ import argparse
 import sys
 import os
 import subprocess
-# import pathlib
 import time
 import yaml
 import glob
-# from shutil import copyfile
-# from subprocess import call
 
 
 ### VERSION
@@ -48,11 +45,11 @@ parser = argparse.ArgumentParser(
              "To Run Hecatomb:\n"
              "hecatomb run --reads fastq/\n"
              "\n"
-             "Run Hecatomb and perform an assembly:\n"
-             "hecatomb run --reads fastq/ --assembly\n"
+             "Run Hecatomb and skip assembly:\n"
+             "hecatomb run --reads fastq/ --skipAssembly\n"
              "\n"
              "Run test dataset (will take a few hours):\n"
-             "hecatomb run --test --assembly\n"
+             "hecatomb run --test \n"
              "\n"
              "To run hecatomb on a HPC cluster (e.g. slurm, sge, etc.):\n"
              "hecatomb run --profile slurm\n\n"
@@ -64,11 +61,10 @@ parser = argparse.ArgumentParser(
 parser.add_argument('command', choices=['install', 'run', 'listHosts', 'addHost'])
 parser.add_argument('--reads', help='Directory containing seq data')
 parser.add_argument('--test', help='Use the test dataset (ignores --reads)', action='store_true')
-parser.add_argument('--assembly', help='Optionally perform an assembly', action='store_true')
+parser.add_argument('--skipAssembly', help="Don't perform an assembly", action='store_true', default=False)
 parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
 parser.add_argument('--host', help='Host name for contaminant removal', default='human')
 parser.add_argument('--hostfa', help='Host reference (for addHost command only)')
-# parser.add_argument('--entropy', help='Host masking entropy (for addHost command)', default='0.7')
 parser.add_argument('--profile', help='Snakemake profile for use on cluster')
 parser.add_argument('--threads', help='Number of threads to use (ignored if using --profile)', default='32')
 parser.add_argument('--fast', help='Use faster but less sensitive settings for MMSeqs searches', action='store_true')
@@ -106,37 +102,6 @@ def initialiseSnakeCommand():
     return command
 
 
-# def initialiseCluster(cluster):
-#     """
-#     Initialise the slurm or sge profile yaml file for running hecatomb on a cluster
-#     :param profile: args.profile, either 'slurm' or 'sge'
-#     :return:
-#     """
-#     clustConf = os.path.expanduser(f'~/.config/snakemake/{cluster}/config.yaml')
-#     if pathlib.Path(clustConf).is_file():
-#         sys.stderr.write(f"Found {cluster} profile {clustConf}\n")
-#         # sys.stderr.write(f'Update {cluster} profile before continuing? [y/N]: ')
-#         # YN = input()
-#         # if 'y' in YN or 'Y' in YN:
-#         #     call([EDITOR, clustConf])
-#     else:
-#         clustSampleConf = os.path.join(SNEKDIR, f'config/sample_{cluster}.yaml')
-#         clustConfDest = os.path.dirname(clustConf)
-#         pathlib.Path(clustConfDest).mkdir(parents=True, exist_ok=True)
-#         copyfile(clustSampleConf, clustConf)
-#         sys.stderr.write(f"Created a config.yaml profile for {cluster} in {clustConfDest}\n")
-#         sys.stderr.write("\n--------------------\n\n")
-#         f = open(clustConf, 'r')
-#         for line in f:
-#             sys.stderr.write(line)
-#         f.close()
-#         sys.stderr.write(f"\n\n--------------------\n\nEdit {cluster}.yaml in nano before continuing? [y/N]: ")
-#         YN = input()
-#         if 'y' in YN or 'Y' in YN:
-#             call([EDITOR, clustConf])
-#     return
-
-
 def runSnakeSys(command, msg):
     """
     Function to run snakemake and confirm success
@@ -151,7 +116,7 @@ def runSnakeSys(command, msg):
     else:
         sys.stderr.write("ERROR: Snakemake command failed\n")
         exit(1)
-    return
+    return None
 
 
 # Functions for installing and running hecatomb
@@ -166,7 +131,7 @@ def install():
     runCommand = f'{snakeCommand} -s {snekFile} -C Output={args.results}'
     successMsg = "Database installation finished successfully\n"
     runSnakeSys(runCommand, successMsg)
-    return
+    return None
 
 
 def run():
@@ -184,14 +149,14 @@ def run():
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={readDir} Host={args.host} Output={args.results} Assembly={args.assembly} Fast={args.fast}'
+    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={readDir} Host={args.host} Output={args.results} SkipAssembly={args.skipAssembly} Fast={args.fast}'
     successMsg = "Hecatomb finished successfully\n"
     runSnakeSys(runCommand, successMsg)
     sys.stderr.write("Generating run report\n")
     successMsg = "Run report generated successfully\n"
     runCommand = runCommand + ' --report'
     runSnakeSys(runCommand, successMsg)
-    return
+    return None
 
 
 def addHost():
@@ -216,7 +181,7 @@ def addHost():
     runCommand = f'{snakeCommand} -s {snekFile} -C HostFa={args.hostfa} HostName={host} Output={args.results}'
     successMsg = "Host genome successfully added\n"
     runSnakeSys(runCommand, successMsg)
-    return
+    return None
 
 
 def listHosts():
@@ -234,10 +199,9 @@ def listHosts():
     HOSTPATH = os.path.join(DBDIR, "host", "*")
     hostFastas = [os.path.basename(x) for x in glob.glob(HOSTPATH)]
     for h in hostFastas:
-        # h = h.replace('_virus_masked.fasta','')
         sys.stdout.write(f'{h}\n')
     sys.stdout.write('\n')
-    return
+    return None
 
 
 commands = {'install':install, 'run':run, 'addHost':addHost, 'listHosts':listHosts}

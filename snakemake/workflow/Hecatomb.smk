@@ -19,7 +19,7 @@ configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 ### LAUNCHER-CONTROLLED CONFIG--"Reads" MUST BE PASSED TO SNAKEMAKE
 READDIR = config['Reads']
 HOST = config['Host']
-doAssembly = config['Assembly']
+skipAssembly = config['SkipAssembly']
 if config['Fast']:
     MMSeqsSensAA = config['perfAAfast']
     MMSeqsSensNT = config['perfNTfast']
@@ -39,6 +39,10 @@ MhitMem = config['MhitMem']
 MhitCPU = config['MhitCPU']
 MiscMem = config['MiscMem']
 MiscCPU = config['MiscCPU']
+
+
+### MISC CONFIG
+taxIdsIgnore = config['taxIdIgnore'].split()
 
 
 ### DIRECTORIES

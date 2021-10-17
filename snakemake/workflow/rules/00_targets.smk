@@ -9,13 +9,17 @@ PreprocessingFiles = [
     os.path.join(RESULTS, "seqtable.properties.tsv")
 ]
 
-if doAssembly:
+if skipAssembly:
+    AssemblyFiles = []
+    ContigAnnotFiles = []
+    MappingFiles = []
+else:
     # Assembly files
     AssemblyFiles = [
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING",  "contig_count_table.tsv"),
-        os.path.join(RESULTS, "assembly.properties.tsv")]
-    # Congtig annotations
+        os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","assembly.fasta"),
+        os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING","contig_count_table.tsv"),
+        os.path.join(RESULTS,"assembly.properties.tsv")]
+    # Contig annotations
     ContigAnnotFiles = [
         os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt.tsv"),
         os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_phylum_summary.tsv"),
@@ -27,15 +31,11 @@ if doAssembly:
     ]
     # Mapping files
     MappingFiles = [
-        os.path.join(MAPPING, "assembly.seqtable.bam"),
-        os.path.join(MAPPING, "assembly.seqtable.bam.bai"),
-        os.path.join(RESULTS, "contigSeqTable.tsv"),
-        os.path.join(SUMDIR, "contigKrona.html")
+        os.path.join(MAPPING,"assembly.seqtable.bam"),
+        os.path.join(MAPPING,"assembly.seqtable.bam.bai"),
+        os.path.join(RESULTS,"contigSeqTable.tsv"),
+        os.path.join(SUMDIR,"contigKrona.html")
     ]
-else:
-    AssemblyFiles = []
-    ContigAnnotFiles = []
-    MappingFiles = []
 
 
 # Secondary AA search files
