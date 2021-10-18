@@ -28,7 +28,7 @@ rule mmseqs_contig_annotation:
         mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2;
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-            {MMSeqsSensNT} {config[filtNT]} \
+            {MMSeqsSensNT} {config[filtNTsecondary]} \
             --search-type 3 ; }} &>> {log};
         """
 

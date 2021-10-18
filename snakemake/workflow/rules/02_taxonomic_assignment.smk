@@ -47,7 +47,7 @@ rule PRIMARY_AA_taxonomy_assignment:
         """
         {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
-            {config[filtAA]} {MMSeqsSensAA} {config[reqAA]} \
+            {config[filtAAprimary]} {MMSeqsSensAA} {config[reqAA]} \
             --threads {threads} --split-memory-limit {MMSeqsMemSplit};
             
         # Add headers
@@ -140,7 +140,7 @@ rule SECONDARY_AA_taxonomy_assignment:
         """
         {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
-            {config[filtAA]} {MMSeqsSensAA} {config[reqAA]} \
+            {config[filtAAsecondary]} {MMSeqsSensAA} {config[reqAA]} \
             --threads {threads} --split-memory-limit {MMSeqsMemSplit};
             
         # Add headers
@@ -252,7 +252,7 @@ rule SECONDARY_AA_generate_output_table:
         medCount = median(counts)
         lcaLin = {}         # Read in Tax info for LCA-labelled seqs
         for l in stream_tsv(input.lca):
-            if l[1] != '0' and l[1] != '1' and l[1] != '10239':     # dont use lca lineage for taxids of 0, 1, or 10239
+            if not l[1] in taxIdsIgnore:     # dont use lca lineage for root taxIDs - see config.yaml for IDs
                 lcaLin[l[0]] = '\t'.join((l[2:]))
         logging.debug('Reading in Taxon inf for tophit seqs')
         topLin = {}         # Read in Tax info for non-LCA-labelled seqs
@@ -308,6 +308,7 @@ rule SECONDARY_AA_generate_output_table:
             tName =  re.sub('.*\||\s+\S+=.*','',l[18])
             normCount = str(( int(seqInf[1]) / smplCounts[seqInf[0]] ) * medCount)
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
+            l[15] = str(int(l[15]) * 3)       # convert aa alignment len to nt alignment len
             alnOut = 'aa\t' + '\t'.join((l[1:17]))
             try:
                 baltOut = balt[taxOut.split()[5]]
@@ -388,7 +389,7 @@ rule PRIMARY_NT_taxonomic_assignment:
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2;
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-            {MMSeqsSensNT} {config[filtNT]} \
+            {MMSeqsSensNT} {config[filtNTprimary]} \
             --search-type 3 --threads {threads} --split-memory-limit {MMSeqsMemSplit};
         }} &> {log}
         """
@@ -514,7 +515,7 @@ rule SECONDARY_NT_taxonomic_assignment:
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-            {MMSeqsSensNT} {config[filtNT]} \
+            {MMSeqsSensNT} {config[filtNTsecondary]} \
             --search-type 3 --threads {threads} --split-memory-limit {MMSeqsMemSplit};
         }} &> {log}
         """
@@ -602,6 +603,8 @@ rule secondary_nt_lca_table:
         os.path.join(BENCH, "t14.second_nt_lca.txt")
     log:
         os.path.join(STDERR, 't14.second_nt_lca.log')
+    resources:
+        mem_mb = MiscMem
     run:
         import logging
         logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
@@ -696,8 +699,7 @@ rule SECONDARY_NT_generate_output_table:
         medCount = median(counts)
         lcaLin = {}
         for l in stream_tsv(input.lca):
-            # dont use lca lineage for taxids of 0, 1, or 10239
-            if l[1] != '0' and l[1] != '1' and l[1] != '10239':
+            if not l[1] in taxIdsIgnore:    # dont use lca lineage for root taxIDs - see config.yaml for IDs
                 lcaLin[l[0]] = '\t'.join((l[2:]))
         logging.debug('Reading in tophit seq IDs')
         topLin = {}

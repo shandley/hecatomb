@@ -22,7 +22,7 @@ Databases:
 MMSeqsMem: 64000
 # Threads for MMSeqs (recommend >= 16)
 MMSeqsCPU: 32
-# Max runtime for MMSeqs
+# Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
 MMSeqsTimeMin: 5760  # 4 days
 
 # Memory for BBTools in megabytes (recommend >= 16000)
@@ -51,48 +51,72 @@ READ_MINLENGTH: 90 # Minimum read length during QC steps (rule remove_low_qualit
 CONTIG_MINLENGTH: 1000 # Read minimum length (rule contig_reformating_and_stats in 01_preprocessing.smk)
 ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 01_preprocessing.smk)
 ENTROPYWINDOW: 25 # entropy window for low qual read filter
-CLUSTERID: 0.97 # Linclust read clustering percent identity (rule cluster_similar_sequences: in 01_preprocessing.smk)
+
+# CLUSTER READS TO SEQTABLE (MMSEQS EASY-LINCLUST)
+ # -c = req coverage of target seq
+ # --min-seq-id = req identity [0-1] of alignment
+linclustParams:
+ --kmer-per-seq-scale 0.3
+ -c 0.7
+ --cov-mode 1
+ --min-seq-id 0.95
+ --alignment-mode 3
+
 
 # addHost settings
 Entropy: 0.7
+
+# LCA TAX IDs TO IGNORE (DEFER TO TOPHIT)
+ # 0 = unclassified
+ # 1 = root
+ # 2 = bacteria root
+ # 10239 = virus root
+ # 131567 = cell org root
+ # 12429 = unclass virus
+ # 2759 = eukaryota root
+ # 12333 = unclass phage
+taxIdIgnore: 0 1 2 10239 131567 12429 2759
 
 
 ###################
 # MMSeqs settings #
 ###################
 
-# CUTOFFS
-# --min-length should be < 1/3 of read_minlen, -e is max allowed e-value of alignments
-filtAA:
+# ALIGNMENT FILTERING CUTOFFS
+  # --min-length for AA should be equal or less than 1/3 of READ_MINLENGTH
+  # --min-length for NT should be equal or less than READ_MINLENGTH
+filtAAprimary:
+ --min-length 30
+ -e 1e-3
+filtAAsecondary:
  --min-length 30
  -e 1e-5
-# --min-length for NT should be less than read_minlen
-filtNT:
+filtNTprimary:
+ --min-length 90
+ -e 1e-3
+filtNTsecondary:
  --min-length 90
  -e 1e-5
 
-# PERFORMANCE SETTINGS
-# sensitive AA search
+# PERFORMANCE SETTINGS - SEE MMSEQS DOCUMENTATION FOR DETAILS
+  # sensitive AA search
 perfAA:
  --start-sens 1
  --sens-steps 3
  -s 7
  --lca-mode 2
  --shuffle 0
-
-# fast AA search
+  # fast AA search
 perfAAfast:
  -s 4.0
  --lca-mode 1
  --shuffle 0
-
-# sensitive NT search
+  # sensitive NT search
 perfNT:
  --start-sens 2
  -s 7
  --sens-steps 3
-
-# fast NT search
+  # fast NT search
 perfNTfast:
  -s 4.0
 

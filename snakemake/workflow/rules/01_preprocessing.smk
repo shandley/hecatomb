@@ -365,7 +365,8 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     params:
         respath = os.path.join(TMPDIR, "p09"),
         tmppath = os.path.join(TMPDIR, "p09", "{sample}_TMP"),
-        prefix = PATTERN_R1
+        prefix = PATTERN_R1,
+        config = config['linclustParams']
     benchmark:
         os.path.join(BENCH, "p09_cluster_similar_sequences.{sample}.txt")
     log:
@@ -379,8 +380,8 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     shell:
         """ 
         mmseqs easy-linclust {input} {params.respath}/{params.prefix} {params.tmppath} \
-            --kmer-per-seq-scale 0.3 \
-            -c {config[CLUSTERID]} --cov-mode 1 --threads {threads} &> {log};
+            {params.config} \
+            --threads {threads} &> {log};
         """
         
 rule create_individual_seqtables:
