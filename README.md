@@ -16,6 +16,12 @@ This process frequently results in a great loss of suspected viral sequences / c
 
 ## Quick start guide
 
+### Running on HPC
+
+Hecatomb is powered by [Snakemake](https://snakemake.readthedocs.io/en/stable/#) and greatly benefits from the use of 
+Snakemake profiles for HPC Clusters.
+[More information and example for setting up Snakemake profiles for Hecatomb in the documentation](https://hecatomb.readthedocs.io/en/latest/advanced/#profiles-for-hpc-clusters).
+
 ### Install
 
 ```bash
@@ -27,18 +33,19 @@ conda activate hecatomb
 
 # check the installation
 hecatomb -h
+
+# download the databases - you only have to do this once
+  # locally: uses 32 threads by default
+hecatomb install
+
+  # HPC: using a profile named 'slurm'
+hecatomb install --profile slurm
 ```
-
-### Running on HPC
-
-Hecatomb is powered by [Snakemake](https://snakemake.readthedocs.io/en/stable/#) and greatly benefits from the use of 
-Snakemake profiles for HPC Clusters.
-[More information and example for setting up Snakemake profiles for Hecatomb in the documentation](https://hecatomb.readthedocs.io/en/latest/advanced/#profiles-for-hpc-clusters).
 
 ### Run the test dataset
 
 ```bash
-# locally: requires 32 threads and 64 GB RAM
+# locally: uses 32 threads and 64 GB RAM by default
 hecatomb run --test --assembly
 
 # HPC: using a profile named 'slurm'

@@ -43,7 +43,7 @@ This line in the config file tells Snakemake how to check on the status of a job
 `cluster-status: ~/.config/snakemake/slurm/slurm-status.py` (be sure to check and update your file path).
 The `slurm-status.py` script will query the scheduler with the jobid and report back to Snakemake on the job's status.
 
-## Hecatomb configuration
+## Changing the Hecatomb configuration
 
 The Hecatomb configuration file `hecatomb/snakemake/config/config.yaml` contains settings related to resources and 
 cutoffs for various stages of the pipeline. The different config settings are outlined further on.
@@ -74,7 +74,7 @@ hecatomb install
 The Hecatomb config file contains some sensible defaults for resources.
 While these should work for most datasets, they may fail for larger ones.
 You may also have more CPUs etc at your disposal and want to minimise runtime of the pipeline.
-Currently, the slowest steps are the MMSeqs searches and increasing the CPUs and RAM could significantly improve runtime.
+Currently, the slowest steps are the MMSeqs searches; increasing the CPUs and RAM could significantly improve runtime.
 The other settings (for Megahit and Minimap2, BBTools, and misc) will probably only show modest improvement.
 
 The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
@@ -84,7 +84,7 @@ The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
 MMSeqsMem: 64000
 # Threads for MMSeqs (recommend >= 16)
 MMSeqsCPU: 32
-# Max runtime for MMSeqs
+# Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
 MMSeqsTimeMin: 5760  # 4 days
 
 # Memory for BBTools in megabytes (recommend >= 16000)
@@ -103,10 +103,10 @@ MiscMem: 16000
 MiscCPU: 2
 ```
 
-## Filtering settings
+## Preprocessing settings
 
 There are many filtering etc. cutoff values that are specified in the Hecatomb config file.
-For instance `READ_MINLENGTH: ` specifies the minimum allowed readlength after trimming.
+For instance `READ_MINLENGTH: ` specifies the minimum allowed read length after trimming.
 
 The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
 
@@ -117,14 +117,79 @@ READ_MINLENGTH: 90 # Minimum read length during QC steps (rule remove_low_qualit
 CONTIG_MINLENGTH: 1000 # Read minimum length (rule contig_reformating_and_stats in 01_preprocessing.smk)
 ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 01_preprocessing.smk)
 ENTROPYWINDOW: 25 # entropy window for low qual read filter
-CLUSTERID: 0.97 # Linclust read clustering percent identity (rule cluster_similar_sequences: in 01_preprocessing.smk)
 
-# addHost settings
-Entropy: 0.7
+# CLUSTER READS TO SEQTABLE (MMSEQS EASY-LINCLUST)
+ # -c = req coverage of target seq
+ # --min-seq-id = req identity [0-1] of alignment
+linclustParams:
+ --kmer-per-seq-scale 0.3
+ -c 0.7
+ --cov-mode 1
+ --min-seq-id 0.95
+ --alignment-mode 3
 ```
 
 There are additional settings further down in the config file for users that are familiar with MMSeqs, 
 as well as config settings that you should not alter.
+
+## Alignment filtering
+
+Hecatomb has settings for filtering MMSeqs alignments at each stage of the search strategy.
+By default, we use a lenient e-value cutoff to maximise the identification of viral sequences in the primary searches,
+and a more stringent e-value cutoff for the multi-kingdom search.
+You can lower the evalue cutoffs (`-e`) to improve runtime performance at the cost of lower recall.
+The `--min-lenghth` should be the same or lower than the preprocessing cutoffs.
+
+The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
+
+```yaml
+# ALIGNMENT FILTERING CUTOFFS
+  # --min-length for AA should be equal or less than 1/3 of READ_MINLENGTH
+  # --min-length for NT should be equal or less than READ_MINLENGTH
+filtAAprimary:
+ --min-length 30
+ -e 1e-1
+filtAAsecondary:
+ --min-length 30
+ -e 1e-3
+filtNTprimary:
+ --min-length 90
+ -e 1e-1
+filtNTsecondary:
+ --min-length 90
+ -e 1e-3
+```
+
+## Alignment settings
+
+Hecatomb can perform MMSeqs alignments using either sensitive (default) or fast (`--fast`) parameters.
+You can tweak the setting in the config file but you should consult the MMSeqs documentation before making any changes.
+
+The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
+
+```yaml
+# PERFORMANCE SETTINGS - SEE MMSEQS DOCUMENTATION FOR DETAILS
+  # sensitive AA search
+perfAA:
+ --start-sens 1
+ --sens-steps 3
+ -s 7
+ --lca-mode 2
+ --shuffle 0
+  # fast AA search
+perfAAfast:
+ -s 4.0
+ --lca-mode 1
+ --shuffle 0
+  # sensitive NT search
+perfNT:
+ --start-sens 2
+ -s 7
+ --sens-steps 3
+  # fast NT search
+perfNTfast:
+ -s 4.0
+```
 
 ## Additional Snakemake commands
 
@@ -142,8 +207,8 @@ In Hecatomb, you can pass this flag like so:
 hecatomb run --reads fasq/ --profile slurm --snake=--dry-run
 ```
 
-Hecatomb prints the Snakemake command to the terminal window and you should see these additional options added to the 
-Snakemake command:
+Hecatomb prints the Snakemake command to the terminal window before running and you should see these additional options 
+added to the Snakemake command:
 
 ```bash
 hecatomb run --test --snake=--dry-run

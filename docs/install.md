@@ -64,9 +64,9 @@ Use `--test` in place of specifying your read directory with `--reads`.
 
 ```bash
 # run locally
-hecatomb run --assembly --test
+hecatomb run --test
 
 # run on cluster using a Snakemake profile
-hecatomb run --assembly --test --profile slurm
+hecatomb run --test --profile slurm
 ```
 

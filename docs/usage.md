@@ -22,7 +22,7 @@ sample2_R2.fastq.gz
 
 If your files don't follow this convention then you will need to rename them before running the pipeline.
 
-### Read annotation
+### Read annotation + assembly
 
 To annotate your reads, assuming your reads are in a directory called `fastq/`:
 
@@ -48,13 +48,13 @@ hecatomb run --reads fastq/ --profile slurm
 
 Running Hecatomb on a HPC with a Snakemake profile is THE BEST WAY to run the pipeline.
 
-### Read annotation + assembly
+### Read annotation only (no assembly)
 
-To optionally perform an assembly while running Hecatomb, the command is exactly the same as above with the addition
-of the `--assembly` flag:
+To optionally skip generating an assembly when running Hecatomb, 
+the command is exactly the same as above with the addition of the `--skipAssembly` flag:
 
 ```bash
-hecatomb run --reads fastq/ --profile slurm --assembly
+hecatomb run --reads fastq/ --profile slurm --skipAssembly
 ```
 
 ### Quicker read annotation

@@ -204,7 +204,7 @@ etc.
 
 `hecatomb_out/RESULTS/assembly.fasta`
 
-These are the contigs generated when running Hecatomb with the `--assembly` flag.
+These are the contigs generated UNLESS you run Hecatomb with the `--skipAssembly` flag.
 The assembly is used for producing the ContigSeqTable and ContigKrona plots, as well as the direct contig annotations.
 
 ### CONTIG ANNOTATIONS
