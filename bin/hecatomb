@@ -199,7 +199,8 @@ def listHosts():
     HOSTPATH = os.path.join(DBDIR, "host", "*")
     hostFastas = [os.path.basename(x) for x in glob.glob(HOSTPATH)]
     for h in hostFastas:
-        sys.stdout.write(f'{h}\n')
+        if h != 'virus_shred.fasta.gz':
+            sys.stdout.write(f'{h}\n')
     sys.stdout.write('\n')
     return None
 

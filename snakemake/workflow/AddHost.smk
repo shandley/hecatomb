@@ -21,11 +21,11 @@ virShred = os.path.join(HOSTPATH, 'virus_shred.fasta.gz')
 hostFasta = config['HostFa']
 hostName = config['HostName']
 entropy = config['Entropy']
-
+BBToolsMem = config['BBToolsMem']
+BBToolsCPU = config['BBToolsCPU']
 
 # output files
-hostOutDir = os.path.join(DBDIR, 'hosts', hostName)
-hostOutFasta = os.path.join(hostOutDir, 'masked_ref.fa.gz')
+hostOutFasta = os.path.join(HOSTPATH, 'masked_ref.fa.gz')
 
 
 rule all:
@@ -41,7 +41,7 @@ rule map_shred_seq:
     output:
         temp(f'{hostFasta}.sam.gz')
     conda:
-        os.path.join("../", "envs", "bbmap.yaml")
+        os.path.join("envs", "bbmap.yaml")
     resources:
         mem_mb = BBToolsMem,
         cpus = BBToolsCPU
@@ -65,7 +65,7 @@ rule mask_host:
         fa = temp(os.path.join(WORKDIR, 'tmpHost.fa')),
         gz = hostOutFasta
     conda:
-        os.path.join("../", "envs", "bbmap.yaml")
+        os.path.join("envs", "bbmap.yaml")
     resources:
         mem_mb = BBToolsMem,
         cpus = BBToolsCPU
