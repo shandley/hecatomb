@@ -11,7 +11,13 @@
 
 ### Read directory
 
-Hecatomb currently expects paired sequencing reads in the format sampleName_R1/R2.fastq(.gz). e.g. 
+Hecatomb is currently designed to only work with paired-end reads.
+You can either specify a directory of reads, and Hecatomb will infer the sample names and forward/reverse files, or,
+you can specify a TSV file to explicitly assign sample names and point to the corresponding read files.
+In either case you just use `--reads` and Hecatomb will figure out if it's a file or directory.
+
+When you specify a directory of reads, e.g. `hecatomb run --reads readDir/`, 
+Hecatomb expects paired sequencing reads in the format sampleName_R1/R2.fastq(.gz). e.g. 
 
 ```text
 sample1_R1.fastq.gz
@@ -20,16 +26,18 @@ sample2_R1.fastq.gz
 sample2_R2.fastq.gz
 ```
 
-If your files don't follow this convention then you will need to rename them before running the pipeline.
+When you specify a TSV file, e.g. `hecatomb run --reads samples.tsv`, 
+Hecatomb expects a 3-column tab separated file with the first column specifying the sample name, 
+and the other columns the relative or full paths to the forward and reverse read files. e.g.
 
-### Read annotation
-
-To annotate your reads, assuming your reads are in a directory called `fastq/`:
-
-```bash
-hecatomb run --reads fastq/
+```text
+sample1    /path/to/reads/sample1.1.fastq.gz    /path/to/reads/sample1.2.fastq.gz
+sample2    /path/to/reads/sample2.1.fastq.gz    /path/to/reads/sample2.2.fastq.gz
 ```
 
+### Read annotation + assembly
+
+By default, Hecatomb will annotate your reads and perform an assembly.
 If you have more than 32 threads available, you can increase the threads provided to the pipeline with `--threads`:
 
 ```bash
@@ -48,20 +56,33 @@ hecatomb run --reads fastq/ --profile slurm
 
 Running Hecatomb on a HPC with a Snakemake profile is THE BEST WAY to run the pipeline.
 
-### Read annotation + assembly
+### Read annotation only (no assembly)
 
-To optionally perform an assembly while running Hecatomb, the command is exactly the same as above with the addition
-of the `--assembly` flag:
+To optionally skip generating an assembly when running Hecatomb, 
+the command is exactly the same as above with the addition of the `--skipAssembly` flag:
 
 ```bash
-hecatomb run --reads fastq/ --profile slurm --assembly
+hecatomb run --reads fastq/ --profile slurm --skipAssembly
 ```
 
-That's it!
+### Quicker read annotation
+
+The pipeline bottleneck is the MMSeqs searches.
+Use the `--fast` flag to run Hecatomb with less sensitive settings for MMSeqs.
+In limited testing, we find it performs almost as well but with considerable runtime improvements.
+
+```bash
+hecatomb run --reads fastq/ --profile slurm --fast
+```
+
+## Host reference genomes
+
+Hecatomb includes a thorough host read removal step which utilises a processed host genome.
+You can specify a host, or add your own.
 
 ### Specifying a host genome
 
-Hecatomb includes a thorough host read removal step and by default it will use the human genome.
+By default, Hecatomb will use the human genome.
 If your sample is from a different source you will need to specify the host genome for your sample source.
 
 To see what host genomes are available:
@@ -73,7 +94,7 @@ hecatomb listHosts
 The following should be available by default: 
 bat, mouse, camel, celegans, macaque, rat, dog, cat, tick, mosquito, cow, human
 
-If you are working with mouse samples:
+So if you are working with mouse samples you would run:
 
 ```bash
 hecatomb run --reads fastq/ --host mouse

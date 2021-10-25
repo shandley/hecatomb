@@ -60,15 +60,19 @@ rule tax_level_counts:
 
 
 ### Collect read counts following each preprocessing step
+rule dumpSamplesTsv:
+    output:
+        os.path.join(SUMDIR, 'hecatomb.samples.tsv')
+    run:
+        writeSamplesTsv(sampleReads, output[0])
+
 rule step00_counts:
-    input:
-        expand(os.path.join(READDIR, "{sample}_{rn}" + file_extension), sample=SAMPLES, rn=['R1','R2'])
     output:
         report(os.path.join(SUMDIR,"Step00_counts.tsv"),
             caption = "../report/step00.rst",
             category = "Preprocessing")
     run:
-        collect_counts(os.path.join(READDIR), file_extension, "Step_00", output[0])
+        collect_start_counts(sampleReads, output[0])
 
 rule step01_counts:
     input:

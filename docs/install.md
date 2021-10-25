@@ -64,9 +64,23 @@ Use `--test` in place of specifying your read directory with `--reads`.
 
 ```bash
 # run locally
-hecatomb run --assembly --test
+hecatomb run --test
 
 # run on cluster using a Snakemake profile
-hecatomb run --assembly --test --profile slurm
+hecatomb run --test --profile slurm
 ```
 
+## Build the docs
+
+These document pages can be built from the repo like so.
+
+```bash
+# install mkdocs
+pip install mkdocs
+
+# cd to your install directory
+cd /path/to/hecatomb
+
+# build
+mkdocs build
+```

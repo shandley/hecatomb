@@ -9,13 +9,13 @@ What is accomplished with these rules?
 rule assembly_kmer_normalization:
     """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
     input:
-        r1 = os.path.join(TMPDIR, "p07", PATTERN_R1 + ".unmapped.fastq"),
-        r2 = os.path.join(TMPDIR, "p07", PATTERN_R2 + ".unmapped.fastq"),
-        r1s = os.path.join(TMPDIR, "p07", PATTERN_R1 + ".singletons.fastq"),
-        r2s = os.path.join(TMPDIR, "p07", PATTERN_R2 + ".singletons.fastq")
+        r1 = os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.fastq"),
+        r2 = os.path.join(TMPDIR, "p07", "{sample}_R2.unmapped.fastq"),
+        r1s = os.path.join(TMPDIR, "p07", "{sample}_R1.singletons.fastq"),
+        r2s = os.path.join(TMPDIR, "p07", "{sample}_R2.singletons.fastq")
     output:
-        r1_norm = os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
-        r2_norm = os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq")
+        r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
+        r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq")
     benchmark:
         os.path.join(BENCH, "a01.kmer_normalization_{sample}.txt")
     log:
@@ -42,12 +42,12 @@ rule individual_sample_assembly:
     Megahit: https://github.com/voutcn/megahit
     """
     input:
-        r1_norm = os.path.join(ASSEMBLY, PATTERN_R1 + ".norm.fastq"),
-        r2_norm = os.path.join(ASSEMBLY, PATTERN_R2 + ".norm.fastq"),
-        r1s = os.path.join(TMPDIR, "p07", PATTERN_R1 + ".singletons.fastq"),
-        r2s = os.path.join(TMPDIR, "p07", PATTERN_R2 + ".singletons.fastq")
+        r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
+        r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq"),
+        r1s = os.path.join(TMPDIR, "p07", "{sample}_R1.singletons.fastq"),
+        r2s = os.path.join(TMPDIR, "p07", "{sample}_R2.singletons.fastq")
     output:
-        contigs = os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa")
+        contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa")
     params:
         mh_dir = directory(os.path.join(ASSEMBLY, '{sample}')),
         contig_dic = directory(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY"))
@@ -73,7 +73,7 @@ rule individual_sample_assembly:
 rule concatenate_contigs:
     """Assembly step 03: Concatenate individual assembly outputs (contigs) into a single file"""
     input:
-        lambda wildcards: expand(os.path.join(ASSEMBLY, PATTERN, PATTERN + ".contigs.fa"), sample=SAMPLES)
+        expand(os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"), sample=SAMPLES)
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
     benchmark:
@@ -160,16 +160,16 @@ rule link_assembly:
 rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1 = os.path.join(TMPDIR, "p07", PATTERN_R1 + ".all.fastq"),
-        r2 = os.path.join(TMPDIR, "p07", PATTERN_R2 + ".all.fastq"),
+        r1 = os.path.join(TMPDIR, "p07", "{sample}_R1.all.fastq"),
+        r2 = os.path.join(TMPDIR, "p07", "{sample}_R2.all.fastq"),
         ref = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
     output:
-        sam = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".aln.sam.gz"),
-        unmap = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".unmapped.fastq"),
-        covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats"),
-        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"),
-        statsfile = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".statsfile"),
-        scafstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".scafstats")
+        sam = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz"),
+        unmap = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.unmapped.fastq"),
+        covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats"),
+        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm"),
+        statsfile = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.statsfile"),
+        scafstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.scafstats")
     benchmark:
         os.path.join(BENCH, "a07.coverage_calculations_{sample}.txt")
     log:
@@ -203,15 +203,15 @@ rule create_contig_count_table:
 
     Useful resource: https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/"""
     input:
-        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".rpkm"),
-        covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + ".cov_stats")
+        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm"),
+        covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats")
     output:
-        counts_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_counts.tmp")),
-        TPM_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.tmp")),
-        TPM = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM")),
-        TPM_final = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_TPM.final")),
-        cov_temp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_cov.tmp")),
-        count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv")
+        counts_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_counts.tmp")),
+        TPM_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_TPM.tmp")),
+        TPM = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_TPM")),
+        TPM_final = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_TPM.final")),
+        cov_temp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_cov.tmp")),
+        count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv")
     benchmark:
         os.path.join(BENCH, "a08.tpm_caluclator_{sample}.txt")
     log:
@@ -251,8 +251,7 @@ rule concatentate_contig_count_tables:
     the i/o PATTERNS are different.
     """
     input:
-        lambda wildcards: expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", PATTERN + "_contig_counts.tsv"),
-            sample=SAMPLES)
+        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv"), sample=SAMPLES)
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "contig_count_table.tsv")
     benchmark:

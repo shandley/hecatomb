@@ -40,9 +40,9 @@ rule calculate_gc:
     output:
         temp(os.path.join(RESULTS, "{file}.properties.gc"))
     benchmark:
-        os.path.join(BENCH, "calculate_gc.{file}.txt")
+        os.path.join(BENCH, "g00_calculate_gc.{file}.txt")
     log:
-        os.path.join(STDERR, "calculate_gc.{file}.log")
+        os.path.join(STDERR, "g00_calculate_gc.{file}.log")
     conda:
         os.path.join("..", "envs", "bbmap.yaml")
     threads:
@@ -62,9 +62,9 @@ rule calculate_tet_freq:
     output:
         temp(os.path.join(RESULTS, "{file}.properties.tetramer"))
     benchmark:
-        os.path.join(BENCH, "calculate_tet.{file}.txt")
+        os.path.join(BENCH, "g01_calculate_tet.{file}.txt")
     log:
-        os.path.join(STDERR, "calculate_tet.{file}.log")
+        os.path.join(STDERR, "g01_calculate_tet.{file}.log")
     conda:
         os.path.join("..", "envs", "bbmap.yaml")
     threads:
@@ -86,13 +86,13 @@ rule seq_properties_table:
     output:
         os.path.join(RESULTS, "{file}.properties.tsv")
     benchmark:
-        os.path.join(BENCH, "seq_properties_table.{file}.txt")
+        os.path.join(BENCH, "g02_seq_properties_table.{file}.txt")
     threads:
         MiscCPU
     resources:
         mem_mb = MiscMem
     log:
-        os.path.join(STDERR, '{file}.seq_properties_table.log')
+        os.path.join(STDERR, 'g02_{file}.seq_properties_table.log')
     run:
         import logging
         logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
@@ -143,6 +143,15 @@ def fasta_clust_counts(fname):
             if line.startswith('>'):
                 count += int(line.split(':')[1])     # fasta id = >sample:count:seqID
     return count
+
+def collect_start_counts(sampleReads, outFile):
+    """Collect the read counts of the raw input files"""
+    with open(outFile, 'w') as outfh:
+        for sample in SAMPLES:
+            R1c = file_len(sampleReads[sample]['R1']) / 4
+            R2c = file_len(sampleReads[sample]['R2']) / 4
+            outfh.write(f'{sample}\tStep_00\tR1\t{R1c}\n')
+            outfh.write(f'{sample}\tStep_00\tR2\t{R2c}\n')
 
 def collect_counts(inPrefix, inSuffix, stepName, outFile):
     """Collect fastq counts for all samples and print to file"""

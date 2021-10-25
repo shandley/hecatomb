@@ -5,6 +5,6 @@ nav:
     - About Hecatomb: index.md
     - Installation: install.md
     - Usage: usage.md
-    - Tutorial: tutorial.md
     - Advanced: advanced.md
+    - Tutorial: tutorial.md
     - FAQ: faq.md

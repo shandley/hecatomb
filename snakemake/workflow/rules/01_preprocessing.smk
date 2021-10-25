@@ -21,12 +21,12 @@ rule remove_5prime_primer:
     place them in CONPATH (defined in the Hecatomb.smk) and change the file name from primerB.fa to your file name below.
     """
     input:
-        r1 = os.path.join(READDIR, PATTERN_R1 + file_extension),
-        r2 = os.path.join(READDIR, PATTERN_R2 + file_extension),
+        r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
+        r2 = lambda wildcards: sampleReads[wildcards.sample]['R2'],
         primers = os.path.join(CONPATH, "primerB.fa")
     output:
-        r1 = temp(os.path.join(TMPDIR, "p01", f"{PATTERN_R1}.s1.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p01", f"{PATTERN_R2}.s1.out.fastq")),
+        r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq")),
         stats = os.path.join(STATS, "p01", "{sample}.s1.stats.tsv")
     benchmark:
         os.path.join(BENCH, "p01_leftmost_primerB.{sample}.txt")
@@ -57,12 +57,12 @@ rule remove_3prime_contaminant:
     to the right of that molecule when detected.
     """
     input:
-        r1 = os.path.join(TMPDIR, "p01", f"{PATTERN_R1}.s1.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p01", f"{PATTERN_R2}.s1.out.fastq"),
+        r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq"),
+        r2 = os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq"),
         primers = os.path.join(CONPATH, "rc_primerB_ad6.fa")
     output:
-        r1 = temp(os.path.join(TMPDIR, "p02", f"{PATTERN_R1}.s2.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p02", f"{PATTERN_R2}.s2.out.fastq")),
+        r1 = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.s2.out.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "p02", "{sample}_R2.s2.out.fastq")),
         stats = os.path.join(STATS, "p02", "{sample}.s2.stats.tsv")
     benchmark:
         os.path.join(BENCH, "p02_3prime_contaminant.{sample}.txt")
@@ -91,12 +91,12 @@ rule remove_primer_free_adapter:
     everything to the right of the detected primer-free adapter.
     """
     input:
-        r1 = os.path.join(TMPDIR, "p02", f"{PATTERN_R1}.s2.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p02", f"{PATTERN_R2}.s2.out.fastq"),
+        r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.s2.out.fastq"),
+        r2 = os.path.join(TMPDIR, "p02", "{sample}_R2.s2.out.fastq"),
         primers = os.path.join(CONPATH, "nebnext_adapters.fa")
     output:
-        r1 = temp(os.path.join(TMPDIR, "p03", f"{PATTERN_R1}.s3.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p03", f"{PATTERN_R2}.s3.out.fastq")),
+        r1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.s3.out.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "p03", "{sample}_R2.s3.out.fastq")),
         stats = os.path.join(STATS, "p03", "{sample}.s3.stats.tsv")
     benchmark:
         os.path.join(BENCH, "p03_primer_free_adapter.{sample}.txt")
@@ -125,12 +125,12 @@ rule remove_adapter_free_primer:
     of the detected adapter-free primer. 
     """
     input:
-        r1 = os.path.join(TMPDIR, "p03", f"{PATTERN_R1}.s3.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p03", f"{PATTERN_R2}.s3.out.fastq"),
+        r1 = os.path.join(TMPDIR, "p03", "{sample}_R1.s3.out.fastq"),
+        r2 = os.path.join(TMPDIR, "p03", "{sample}_R2.s3.out.fastq"),
         primers = os.path.join(CONPATH, "rc_primerB_ad6.fa")
     output:
-        r1 = temp(os.path.join(TMPDIR, "p04", f"{PATTERN_R1}.s4.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p04", f"{PATTERN_R2}.s4.out.fastq")),
+        r1 = temp(os.path.join(TMPDIR, "p04", "{sample}_R1.s4.out.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "p04", "{sample}_R2.s4.out.fastq")),
         stats = os.path.join(STATS, "p04", "{sample}.s4.stats.tsv")
     benchmark:
         os.path.join(BENCH, "p04_adapter_free_primer.{sample}.txt")
@@ -155,12 +155,12 @@ rule remove_adapter_free_primer:
 rule remove_vector_contamination:
     """Preprocessing step 05: Vector contamination removal (PhiX + NCBI UniVecDB)"""
     input:
-        r1 = os.path.join(TMPDIR, "p04", f"{PATTERN_R1}.s4.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p04", f"{PATTERN_R2}.s4.out.fastq"),
+        r1 = os.path.join(TMPDIR, "p04", "{sample}_R1.s4.out.fastq"),
+        r2 = os.path.join(TMPDIR, "p04", "{sample}_R2.s4.out.fastq"),
         primers = os.path.join(CONPATH, "vector_contaminants.fa")
     output:
-        r1 = temp(os.path.join(TMPDIR, "p05", f"{PATTERN_R1}.s5.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p05", f"{PATTERN_R2}.s5.out.fastq")),
+        r1 = temp(os.path.join(TMPDIR, "p05", "{sample}_R1.s5.out.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "p05", "{sample}_R2.s5.out.fastq")),
         stats = os.path.join(STATS, "p05", "{sample}.s5.stats.tsv")
     benchmark:
         os.path.join(BENCH, "p05_vector_contamination_{sample}.txt")
@@ -188,11 +188,11 @@ rule remove_low_quality:
     Quality score can be modified in config.yaml (QSCORE).
     """
     input:
-        r1 = os.path.join(TMPDIR, "p05", f"{PATTERN_R1}.s5.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p05", f"{PATTERN_R2}.s5.out.fastq")
+        r1 = os.path.join(TMPDIR, "p05", "{sample}_R1.s5.out.fastq"),
+        r2 = os.path.join(TMPDIR, "p05", "{sample}_R2.s5.out.fastq")
     output:
-        r1 = temp(os.path.join(TMPDIR, "p06", f"{PATTERN_R1}.s6.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p06", f"{PATTERN_R2}.s6.out.fastq")),
+        r1 = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.s6.out.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "p06", "{sample}_R2.s6.out.fastq")),
         stats = os.path.join(STATS, "p06", "{sample}.s6.stats.tsv")
     benchmark:
         os.path.join(BENCH, "p06_low_quality_{sample}.txt")
@@ -225,9 +225,9 @@ rule create_host_index:
     output:
         HOSTINDEX
     benchmark:
-        os.path.join(BENCH, "create_host_index.txt")
+        os.path.join(BENCH, "p00_create_host_index.txt")
     log:
-        os.path.join(STDERR, 'create_host_index.log')
+        os.path.join(STDERR, 'p00_create_host_index.log')
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -244,14 +244,14 @@ rule host_removal_mapping:
     If your reference is not available you need to add it using 'Hecatomb addHost'
     """
     input:
-        r1 = os.path.join(TMPDIR, "p06", f"{PATTERN_R1}.s6.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p06", f"{PATTERN_R2}.s6.out.fastq"),
+        r1 = os.path.join(TMPDIR, "p06", "{sample}_R1.s6.out.fastq"),
+        r2 = os.path.join(TMPDIR, "p06", "{sample}_R2.s6.out.fastq"),
         host = HOSTINDEX
     output:
-        r1 = temp(os.path.join(TMPDIR, "p07", f"{PATTERN_R1}.unmapped.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p07", f"{PATTERN_R2}.unmapped.fastq")),
-        s = temp(os.path.join(TMPDIR, "p07", f"{PATTERN_R1}.unmapped.singletons.fastq")),
-        o = temp(os.path.join(TMPDIR, "p07", f"{PATTERN_R1}.other.singletons.fastq"))
+        r1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.unmapped.fastq")),
+        s = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.singletons.fastq")),
+        o = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.other.singletons.fastq"))
     benchmark:
         os.path.join(BENCH, "p07a_host_removal_mapping.{sample}.txt")
     log:
@@ -274,13 +274,13 @@ rule host_removal_mapping:
 rule nonhost_read_repair:
     """Preprocessing step 07b: Parse R1/R2 singletons (if singletons at all)"""
     input:
-        s = os.path.join(TMPDIR, "p07", f"{PATTERN_R1}.unmapped.singletons.fastq"),
-        o = os.path.join(TMPDIR, "p07", f"{PATTERN_R1}.other.singletons.fastq")
+        s = os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.singletons.fastq"),
+        o = os.path.join(TMPDIR, "p07", "{sample}_R1.other.singletons.fastq")
     output:
-        sr1 = temp(os.path.join(TMPDIR, "p07", f"{PATTERN_R1}.u.singletons.fastq")),
-        sr2 = temp(os.path.join(TMPDIR, "p07", f"{PATTERN_R2}.u.singletons.fastq")),
-        or1 = temp(os.path.join(TMPDIR, "p07", f"{PATTERN_R1}.o.singletons.fastq")),
-        or2 = temp(os.path.join(TMPDIR, "p07", f"{PATTERN_R2}.o.singletons.fastq"))
+        sr1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.u.singletons.fastq")),
+        sr2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.u.singletons.fastq")),
+        or1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.o.singletons.fastq")),
+        or2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.o.singletons.fastq"))
     benchmark:
         os.path.join(BENCH, "p07b_read_repair_{sample}.txt")
     log:
@@ -302,21 +302,21 @@ rule nonhost_read_repair:
 rule nonhost_read_combine:
     """Preprocessing step 07c: Combine paired and singleton reads."""
     input:
-        r1 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R1.unmapped.fastq"),
-        r2 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R2.unmapped.fastq"),
-        sr1 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R1.u.singletons.fastq"),
-        sr2 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R2.u.singletons.fastq"),
-        or1 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R1.o.singletons.fastq"),
-        or2 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R2.o.singletons.fastq")
+        r1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.unmapped.fastq"),
+        r2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.unmapped.fastq"),
+        sr1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.u.singletons.fastq"),
+        sr2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.u.singletons.fastq"),
+        or1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.o.singletons.fastq"),
+        or2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.o.singletons.fastq")
     output:
-        t1 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R1.singletons.fastq"),
-        t2 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R2.singletons.fastq"),
-        r1 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R1.all.fastq"),
-        r2 = os.path.join(TMPDIR, "p07", f"{PATTERN}_R2.all.fastq")
+        t1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.singletons.fastq"),
+        t2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.singletons.fastq"),
+        r1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.all.fastq"),
+        r2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.all.fastq")
     benchmark:
-        os.path.join(BENCH, f"07c_read_combine_{PATTERN}.txt")
+        os.path.join(BENCH, "p07c_read_combine_{PATTERN}.txt")
     log:
-        os.path.join(STDERR, f"07c_read_combine_{PATTERN}.log")
+        os.path.join(STDERR, "p07c_read_combine_{PATTERN}.log")
     shell:
         """
         {{ cat {input.sr1} {input.or1} > {output.t1};
@@ -331,13 +331,13 @@ rule remove_exact_dups:
     Exact duplicates are considered PCR generated and not accounted for in the count table (seqtable_all.tsv)
     """
     input:
-        os.path.join(TMPDIR, "p07", f"{PATTERN_R1}.all.fastq")
+        os.path.join(TMPDIR, "p07", "{sample}_R1.all.fastq")
     output:
-        temp(os.path.join(TMPDIR, "p08", f"{PATTERN_R1}.deduped.out.fastq"))
+        temp(os.path.join(TMPDIR, "p08", "{sample}_R1.deduped.out.fastq"))
     benchmark:
-        os.path.join(BENCH, "08_remove_exact_dups.{sample}.txt")
+        os.path.join(BENCH, "p08_remove_exact_dups.{sample}.txt")
     log:
-        os.path.join(STDERR, "08_remove_exact_dups.{sample}.log")
+        os.path.join(STDERR, "p08_remove_exact_dups.{sample}.log")
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -357,19 +357,20 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
      Sequences clustered at CLUSTERID in config.yaml.
     """
     input:
-        os.path.join(TMPDIR, "p08", f"{PATTERN_R1}.deduped.out.fastq")
+        os.path.join(TMPDIR, "p08", "{sample}_R1.deduped.out.fastq")
     output:
-        temp(os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_rep_seq.fasta")),
-        temp(os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_cluster.tsv")),
-        temp(os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_all_seqs.fasta"))
+        temp(os.path.join(TMPDIR, "p09", "{sample}_R1_rep_seq.fasta")),
+        temp(os.path.join(TMPDIR, "p09", "{sample}_R1_cluster.tsv")),
+        temp(os.path.join(TMPDIR, "p09", "{sample}_R1_all_seqs.fasta"))
     params:
         respath = os.path.join(TMPDIR, "p09"),
         tmppath = os.path.join(TMPDIR, "p09", "{sample}_TMP"),
-        prefix = PATTERN_R1
+        prefix = '{sample}_R1',
+        config = config['linclustParams']
     benchmark:
-        os.path.join(BENCH, "09_cluster_similar_sequences.{sample}.txt")
+        os.path.join(BENCH, "p09_cluster_similar_sequences.{sample}.txt")
     log:
-        os.path.join(STDERR, "09_cluster_similar_sequences.{sample}.log")
+        os.path.join(STDERR, "p09_cluster_similar_sequences.{sample}.log")
     resources:
         mem_mb = MMSeqsMem
     threads:
@@ -379,8 +380,8 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     shell:
         """ 
         mmseqs easy-linclust {input} {params.respath}/{params.prefix} {params.tmppath} \
-            --kmer-per-seq-scale 0.3 \
-            -c {config[CLUSTERID]} --cov-mode 1 --threads {threads} &> {log};
+            {params.config} \
+            --threads {threads} &> {log};
         """
         
 rule create_individual_seqtables:
@@ -390,12 +391,12 @@ rule create_individual_seqtables:
     sequence per sample.
     """
     input:
-        seqs = os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_rep_seq.fasta"),
-        counts = os.path.join(TMPDIR, "p09", f"{PATTERN_R1}_cluster.tsv")
+        seqs = os.path.join(TMPDIR, "p09", "{sample}_R1_rep_seq.fasta"),
+        counts = os.path.join(TMPDIR, "p09", "{sample}_R1_cluster.tsv")
     output:
-        seqs = temp(os.path.join(TMPDIR, "p10", f"{PATTERN_R1}.seqs")),
-        counts = temp(os.path.join(TMPDIR, "p10", f"{PATTERN_R1}.counts")),
-        seqtable = temp(os.path.join(TMPDIR, "p10", f"{PATTERN_R1}.seqtable"))
+        seqs = temp(os.path.join(TMPDIR, "p10", "{sample}_R1.seqs")),
+        counts = temp(os.path.join(TMPDIR, "p10", "{sample}_R1.counts")),
+        seqtable = temp(os.path.join(TMPDIR, "p10", "{sample}_R1.seqtable"))
     benchmark:
         os.path.join(BENCH, "p10_individual_seqtables.{sample}.txt")
     log:
@@ -437,9 +438,9 @@ rule merge_seq_table:
     params:
         resultsdir = directory(RESULTS),
     benchmark:
-        os.path.join(BENCH, "merge_seq_table.txt")
+        os.path.join(BENCH, "p11_merge_seq_table.txt")
     log:
-        os.path.join(STDERR, 'merge_seq_table.log')
+        os.path.join(STDERR, 'p11_merge_seq_table.log')
     run:
         import logging
         logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
@@ -450,14 +451,18 @@ rule merge_seq_table:
             logging.debug(f'sample {sample}')
             seqId = 0
             seqCounts = 0
-            counts = open(os.path.join(TMPDIR, "p10", f"{sample}_R1.seqtable"), 'r')
+            st = os.path.join(TMPDIR, "p10", f"{sample}_R1.seqtable")
+            counts = open(st, 'r')
             line = counts.readline() # skip header
             for line in counts:
                 l = line.split()
-                id = ':'.join((sample, l[1], str(seqId))) # fasta header = >sample:count:seqId
-                seqCounts += int(l[1])
-                seqId = seqId + 1
-                outFa.write(f'>{id}\n{l[0]}\n')
+                if len(l) == 2:
+                    id = ':'.join((sample, l[1], str(seqId))) # fasta header = >sample:count:seqId
+                    seqCounts += int(l[1])
+                    seqId = seqId + 1
+                    outFa.write(f'>{id}\n{l[0]}\n')
+                else:
+                    logging.warning(f'Possible malformed sample seqtable {st}')
             counts.close()
             outTsv.write(f'{sample}\t{seqCounts}\n')
         outFa.close()

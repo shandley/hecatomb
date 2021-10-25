@@ -52,11 +52,6 @@ It does so through an iterative search approach, which is a large part of the he
 
 The first search takes all query seqeunces (the seqtable from the preprocessing steps) and queries them against a virus protein target database. 
 This initial search is a translated (nt-to-aa) search. 
-The target database is all UniProt viral protein entires clusterd at 99% identity. 
-This clustering greatly reduces the size of the database with minimal sacrifice to information content. 
-For example, there were 4,635,541 protein entires for viruses in UniProt on October 29, 2020. 
-When clustered at 99% identity only 1,840,337 representative sequences remained, this is about a 60% reduction in target query space.
-
 All of the reads assigned a viral taxonomy in this first search need to be confirmed to be truly viral in origin. 
 The issue here is that querying a target database consisting solely of viral proteins does not permit each sequence to see if it really originates from a different domain of life. 
 So while a sequence may be classified as viral at this stage, once queried against a more comprehensive sequence database 
@@ -86,12 +81,55 @@ The preprocessing rule also goes ahead and does assembly as contigs are an impor
 The assembly strategy consists of several steps intended to be resource efficient and to maximise representation of all present species.
 First, individual [MEGAHIT](https://github.com/voutcn/megahit) assemblies are produced for each sample.
 The reads are then mapped to the combined assemblies and any unmapped reads undergo another round of assembly.
-All contigs are then combined and merged into a non-redundant set of contigs.
+All contigs are then combined and merged into a non-redundant set of contigs with [Flye](https://github.com/fenderglass/Flye).
 
 The assembly contigs are directly annotated with MMSeqs.
 The assembly is also subject to a pseudo consensus annotation approach whereby the SeqTable sequences are mapped and their
 Taxonomic assignments in the BigTable are combined with the read mapping information.
-We find this useful with investigating contigs of interest.
+We find this useful with investigating the origins of contigs of interest.
+
+## Databases
+
+As mentioned above, Hecatomb uses a multi-stage search strategy that utilises a processed reference host genome for preprocessing,
+and both amino acid and nucleotide databases for viral annotation.
+
+### Processed host genomes
+
+Contamination of viral metagenomes by host DNA can be a significant burden and source of false positive in viral annotation.
+We use a host reference genome to filter out any host reads prior to annotation.
+However, host genomes typically contain large amounts of virus-like and virus-derived sequence.
+This could lead to erroneous removal of true viral reads.
+We therefore must process host reference genomes to mask viral-like sequence prior to using it for preprocessing.
+Hecatomb comes with several processed host genomes and a tool for users to add their own genomes.
+See [Adding your own host genome](usage.md#adding-your-own-host-genome) for more info.
+
+### Amino acid databases
+
+**Primary AA**
+
+The primary AA database is used to quickly identify any reads that are viral-like.
+This database is all UniProt viral protein entires clusterd at 99% identity. 
+This clustering greatly reduces the size of the database with minimal sacrifice to information content. 
+For example, there were 4,635,541 protein entires for viruses in UniProt on October 29, 2020. 
+When clustered at 99% identity only 1,840,337 representative sequences remained, 
+this is about a 60% reduction in target query space.
+
+**Secondary AA**
+
+The secondary AA database is used to check if any viral-like reads (from the primary AA search) have a better non-viral match.
+TODO ...
+
+### Nucleotide databases
+
+**Primary NT**
+
+The primary NT database is used to quickly identify any viral-like reads that were not identified in the primary AA search.
+TODO ...
+
+**Secondary NT**
+
+The secondary NT database is used to check if the viral-like reads (from the primary NT search) have a better non-viral match.
+TODO ...
 
 ## Snakemake
 
@@ -166,7 +204,7 @@ etc.
 
 `hecatomb_out/RESULTS/assembly.fasta`
 
-These are the contigs generated when running Hecatomb with the `--assembly` flag.
+These are the contigs generated UNLESS you run Hecatomb with the `--skipAssembly` flag.
 The assembly is used for producing the ContigSeqTable and ContigKrona plots, as well as the direct contig annotations.
 
 ### CONTIG ANNOTATIONS

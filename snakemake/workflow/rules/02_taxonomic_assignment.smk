@@ -30,15 +30,15 @@ rule PRIMARY_AA_taxonomy_assignment:
         aln = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
         alnsort = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted")
     params:
-        alnRes=os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY"),
-        tmppath=os.path.join(PRIMARY_AA_OUT, "mmseqs_aa_tmp")
+        alnRes = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY"),
+        tmppath = os.path.join(PRIMARY_AA_OUT, "mmseqs_aa_tmp")
     benchmark:
         os.path.join(BENCH, "t01.mmseqs_primary_AA.txt")
     log:
         os.path.join(STDERR, "t01.mmseqs_primary_AA.log")
     resources:
-        mem_mb=MMSeqsMem,
-        time=MMSeqsTimeMin
+        mem_mb = MMSeqsMem,
+        time = MMSeqsTimeMin
     threads:
         MMSeqsCPU
     conda:
@@ -47,13 +47,9 @@ rule PRIMARY_AA_taxonomy_assignment:
         """
         {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
-            -a --start-sens 1 --sens-steps 3 -s 7 \
-            --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
-            --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
-            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
-            --tax-lineage 1 --min-length {config[AAMINLEN]} \
-            --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
-            -e {config[PRIMAAE]};
+            {config[filtAAprimary]} {MMSeqsSensAA} {config[reqAA]} \
+            --threads {threads} --split-memory-limit {MMSeqsMemSplit};
+            
         # Add headers
         sort -k1 -n {output.aln} | \
             sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
@@ -144,13 +140,9 @@ rule SECONDARY_AA_taxonomy_assignment:
         """
         {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
-            -a --start-sens 1 --sens-steps 3 -s 7 \
-            --tax-output-mode 2 --search-type 2 --lca-mode 2 --shuffle 0 \
-            --lca-ranks "superkingdom,phylum,class,order,family,genus,species" \
-            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage" \
-            --tax-lineage 1 --split-memory-limit {MMSeqsMemSplit} --min-length {config[AAMINLEN]} \
-            --threads {threads} \
-            -e {config[SECAAE]};
+            {config[filtAAsecondary]} {MMSeqsSensAA} {config[reqAA]} \
+            --threads {threads} --split-memory-limit {MMSeqsMemSplit};
+            
         # Add headers
         sort -k1 -n {output.aln} | \
             sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
@@ -260,7 +252,7 @@ rule SECONDARY_AA_generate_output_table:
         medCount = median(counts)
         lcaLin = {}         # Read in Tax info for LCA-labelled seqs
         for l in stream_tsv(input.lca):
-            if l[1] != '0' and l[1] != '1' and l[1] != '10239':     # dont use lca lineage for taxids of 0, 1, or 10239
+            if not l[1] in taxIdsIgnore:     # dont use lca lineage for root taxIDs - see config.yaml for IDs
                 lcaLin[l[0]] = '\t'.join((l[2:]))
         logging.debug('Reading in Taxon inf for tophit seqs')
         topLin = {}         # Read in Tax info for non-LCA-labelled seqs
@@ -316,6 +308,7 @@ rule SECONDARY_AA_generate_output_table:
             tName =  re.sub('.*\||\s+\S+=.*','',l[18])
             normCount = str(( int(seqInf[1]) / smplCounts[seqInf[0]] ) * medCount)
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
+            l[15] = str(int(l[15]) * 3)       # convert aa alignment len to nt alignment len
             alnOut = 'aa\t' + '\t'.join((l[1:17]))
             try:
                 baltOut = balt[taxOut.split()[5]]
@@ -338,7 +331,7 @@ rule SECONDARY_AA_parsing:
     threads:
         MiscCPU
     benchmark:
-        os.path.join(BENCH, "t06.mmseq_second_aa_parse.txt")
+        os.path.join(BENCH, "t07.mmseq_second_aa_parse.txt")
     log:
         os.path.join(STDERR, 't07.mmseqs_SECONDARY_aa_parsing.log')
     run:
@@ -360,7 +353,7 @@ rule SECONDARY_AA_parsing:
                 except KeyError:
                     outFa.write(f'>{id}\n{seq}\n')
             else:
-                logging.ERROR(f'malformed {input.seqs} file, complain to Mike')
+                logging.error(f'malformed {input.seqs} file, complain to Mike')
                 exit(1)
         outFa.close()
         inFa.close()
@@ -396,10 +389,8 @@ rule PRIMARY_NT_taxonomic_assignment:
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2;
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-            --start-sens 2 -s 7 --sens-steps 3 \
-            --search-type 3 --min-length {config[NTMINLEN]} \
-            --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
-            -e {config[PRIMNTE]};
+            {MMSeqsSensNT} {config[filtNTprimary]} \
+            --search-type 3 --threads {threads} --split-memory-limit {MMSeqsMemSplit};
         }} &> {log}
         """
         
@@ -524,10 +515,8 @@ rule SECONDARY_NT_taxonomic_assignment:
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-            -a 1 --search-type 3 \
-            --start-sens 2 -s 7 --sens-steps 3 --min-length {config[NTMINLEN]} \
-            --threads {threads} --split-memory-limit {MMSeqsMemSplit} \
-            -e {config[SECNTE]};
+            {MMSeqsSensNT} {config[filtNTsecondary]} \
+            --search-type 3 --threads {threads} --split-memory-limit {MMSeqsMemSplit};
         }} &> {log}
         """
 
@@ -613,7 +602,9 @@ rule secondary_nt_lca_table:
     benchmark:
         os.path.join(BENCH, "t14.second_nt_lca.txt")
     log:
-        os.path.join(STDERR, 't13.second_nt_lca.log')
+        os.path.join(STDERR, 't14.second_nt_lca.log')
+    resources:
+        mem_mb = MiscMem
     run:
         import logging
         logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
@@ -708,8 +699,7 @@ rule SECONDARY_NT_generate_output_table:
         medCount = median(counts)
         lcaLin = {}
         for l in stream_tsv(input.lca):
-            # dont use lca lineage for taxids of 0, 1, or 10239
-            if l[1] != '0' and l[1] != '1' and l[1] != '10239':
+            if not l[1] in taxIdsIgnore:    # dont use lca lineage for root taxIDs - see config.yaml for IDs
                 lcaLin[l[0]] = '\t'.join((l[2:]))
         logging.debug('Reading in tophit seq IDs')
         topLin = {}
