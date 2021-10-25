@@ -85,13 +85,29 @@ TESTDIR = os.path.normpath(os.path.join(BINDIR, '../', 'test_data'))
 CONDDIR = os.path.normpath(os.path.join(SNEKDIR, 'conda'))
 
 
+def readConfig():
+    """
+    Read in the config file
+    :return: config dictionary
+    """
+    if args.configfile:
+        configFile = args.configfile
+    else:
+        configFile = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
+    with open(configFile, 'r') as stream:
+        config = yaml.safe_load(stream)
+    return config
+
+
 def initialiseSnakeCommand():
     """
     Initialise the Snakemake command (add profile or threads args, default args, and additional snake args)
     :return command: string for use with subprocess.run()
     """
     if args.profile:
-        runJobs = f'--profile {args.profile}'
+        config = readConfig()
+        runJobs = f'--profile {args.profile} --default-resources mem_mb={config["defaultMem"]} ' \
+                  f'time={config["defaultTime"]} jobs={config["defaultJobs"]}'
     else:
         runJobs = f'-j {args.threads}'
     # Decorate the Snakemake run command
@@ -208,13 +224,7 @@ def listHosts():
     Print the list of available host genomes and exit
     :return:
     """
-    # read the config file
-    if args.configfile:
-        configFile = args.configfile
-    else:
-        configFile = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
-    with open(configFile, 'r') as stream:
-        config = yaml.safe_load(stream)
+    config = readConfig()
     # check DB location
     if config['Databases'] is None:
         DBDIR = os.path.join(BINDIR, '../databases')

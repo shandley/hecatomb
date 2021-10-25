@@ -40,6 +40,13 @@ MiscMem: 16000
 # CPUs for slightly RAM-hungry jobs (recommend >= 2)
 MiscCPU: 2
 
+# Default memory in megabytes (for --profile)
+defaultMem: 2000
+# Default time in minutes (for --profile)
+defaultTime: 1440
+# Default concurrent jobs (for --profile)
+defaultJobs: 100
+
 
 ############################
 # Optional Rule Parameters #
