@@ -24,9 +24,17 @@ def samplesFromDirectory(dir):
             outDict[sample] = {}
             R1 = os.path.join(dir,f'{sample}_R1{extensions[0]}')
             R2 = os.path.join(dir,f'{sample}_R2{extensions[0]}')
-            outDict[sample]['R1'] = R1
-            if os.path.isfile(R2):
+            if os.path.isfile(R1) and os.path.isfile(R2):
+                outDict[sample]['R1'] = R1
                 outDict[sample]['R2'] = R2
+            else:
+                sys.stderr.write("\n"
+                                 "    FATAL: Error globbing files. One of:\n"
+                                 f"    {R1} or\n"
+                                 f"    {R2}\n"
+                                 "    does not exist. Ensure consistent _R1/_R2 formatting and file extensions."
+                                 "\n")
+                sys.exit(1)
     return outDict
 
 def samplesFromTsv(tsvFile):
@@ -35,23 +43,20 @@ def samplesFromTsv(tsvFile):
     with open(tsvFile,'r') as tsv:
         for line in tsv:
             l = line.strip().split('\t')
-            if len(l) >= 2:
+            if len(l) == 3:
                 outDict[l[0]] = {}
-                if os.path.isfile(l[1]):
+                if os.path.isfile(l[1]) and os.path.isfile(l[2]):
                     outDict[l[0]]['R1'] = l[1]
+                    outDict[l[0]]['R2'] = l[2]
                 else:
                     sys.stderr.write("\n"
-                                     f"    FATAL: The file {l[1]} specified in {tsvFile} does not exist."
+                                     f"    FATAL: Error parsing {tsvFile}. One of \n"
+                                     f"    {l[1]} or \n"
+                                     f"    {l[2]}\n"
+                                     "    does not exist. Check formatting, and that \n" 
+                                     "    file names and file paths are correct.\n"
                                      "\n")
                     sys.exit(1)
-                if len(l) == 3:
-                    if os.path.isfile(l[2]):
-                        outDict[l[0]]['R2'] = l[2]
-                    else:
-                        sys.stderr.write("\n"
-                                         f"    FATAL: The file {l[2]} specified in {tsvFile} does not exist."
-                                         "\n")
-                        sys.exit(1)
     return outDict
 
 def parseSamples(readFileDir):
