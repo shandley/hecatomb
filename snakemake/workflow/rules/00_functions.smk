@@ -144,6 +144,15 @@ def fasta_clust_counts(fname):
                 count += int(line.split(':')[1])     # fasta id = >sample:count:seqID
     return count
 
+def collect_start_counts(sampleReads, outFile):
+    """Collect the read counts of the raw input files"""
+    with open(outFile, 'w') as outfh:
+        for sample in SAMPLES:
+            R1c = file_len(sampleReads[sample]['R1']) / 4
+            R2c = file_len(sampleReads[sample]['R2']) / 4
+            outfh.write(f'{sample}\tStep_00\tR1\t{R1c}\n')
+            outfh.write(f'{sample}\tStep_00\tR2\t{R2c}\n')
+
 def collect_counts(inPrefix, inSuffix, stepName, outFile):
     """Collect fastq counts for all samples and print to file"""
     with open(outFile,'w') as outfh:

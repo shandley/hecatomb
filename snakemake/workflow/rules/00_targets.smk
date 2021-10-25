@@ -52,6 +52,7 @@ SecondarySearchFilesNT = [
 # Summary files
 SummaryFiles = [
     #os.path.join(SUMDIR, "taxonLevelCounts.tsv"),
+    os.path.join(SUMDIR, 'hecatomb.samples.tsv'),
     os.path.join(SUMDIR, "Step00_counts.tsv"),
     os.path.join(SUMDIR, "Step01_counts.tsv"),
     os.path.join(SUMDIR, "Step02_counts.tsv"),

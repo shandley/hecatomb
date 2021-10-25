@@ -17,7 +17,7 @@ configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 
 
 ### LAUNCHER-CONTROLLED CONFIG--"Reads" MUST BE PASSED TO SNAKEMAKE
-READDIR = config['Reads']
+READS = config['Reads']
 HOST = config['Host']
 skipAssembly = config['SkipAssembly']
 if config['Fast']:
@@ -71,32 +71,13 @@ if dbFail:
     sys.exit(1)
 
 
-# Identify samples
-SAMPLES,EXTENSIONS = glob_wildcards(os.path.join(READDIR, '{sample}_R1{extensions}'))
-
-if not EXTENSIONS:
-    sys.stderr.write("\n"
-        "    FATAL: We could not parse the sequence file names.\n"
-        "    We are expecting {sample}_R1{extension}, and so your files\n"
-        "    should contain the characters '_R1' in the fwd reads\n"
-        "    and '_R2' in the rev reads\n"
-        "\n")
-    sys.exit(1)
-
-file_extension = EXTENSIONS[0]
-# a convenience so we don't need to use '{sample}_R1' all the time
-PATTERN = '{sample}'
-PATTERN_R1 = '{sample}_R1'
-PATTERN_R2 = '{sample}_R2'
-
-if len(SAMPLES) == 0:
-    sys.stderr.write("\n"
-        "    FATAL: We could not detect any samples at all.\n"
-        "    See https://hecatomb.readthedocs.io/en/latest/usage/#read-directory for more info\n"
-        "\n")
-    sys.exit()
+# Parse the samples and read files
+include: "rules/00_samples.smk"
+sampleReads = parseSamples(READS)
+SAMPLES = sampleReads.keys()
 
 
+# Import rules and functions
 include: "rules/00_functions.smk"
 include: "rules/00_targets.smk"
 include: "rules/01_preprocessing.smk"

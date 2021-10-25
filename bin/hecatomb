@@ -14,6 +14,7 @@ import subprocess
 import time
 import yaml
 import glob
+from shutil import copyfile
 
 
 ### VERSION
@@ -38,6 +39,8 @@ parser = argparse.ArgumentParser(
                  "Commands:\n"
                  "    install     Download and install the databases (only have to do once)\n"
                  "    run         Run the Hecatomb pipeline\n"
+                 "    config      Copy the default configfile to the current directory\n"
+                 "                (for use with --configfile)\n"
                  "    listHosts   List the available host genomes for contaminant removal\n"
                  "    addHost     Process and add a new host genome for contaminant removal\n"
                  "\n"),
@@ -58,8 +61,10 @@ parser = argparse.ArgumentParser(
              "https://hecatomb.readthedocs.io\n"
              )
 )
-parser.add_argument('command', choices=['install', 'run', 'listHosts', 'addHost'])
-parser.add_argument('--reads', help='Directory containing seq data')
+parser.add_argument('command', choices=['install', 'run', 'config', 'listHosts', 'addHost'])
+parser.add_argument('--reads', help=('Either directory containing seq data, or TSV specifying samples and seq files. '
+                                     'See https://hecatomb.readthedocs.io/en/latest/usage/ for more info.'))
+parser.add_argument('--configfile', help='Specify your own config file. First copy the template with "hecatomb config".')
 parser.add_argument('--test', help='Use the test dataset (ignores --reads)', action='store_true')
 parser.add_argument('--skipAssembly', help="Don't perform an assembly", action='store_true', default=False)
 parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
@@ -78,10 +83,6 @@ args = parser.parse_args()
 SNEKDIR = os.path.normpath(os.path.join(BINDIR, '../', 'snakemake', 'workflow'))
 TESTDIR = os.path.normpath(os.path.join(BINDIR, '../', 'test_data'))
 CONDDIR = os.path.normpath(os.path.join(SNEKDIR, 'conda'))
-EDITOR = os.environ.get('EDITOR','nano')
-# read the config file
-with open(os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml'), 'r') as stream:
-    config = yaml.safe_load(stream)
 
 
 def initialiseSnakeCommand():
@@ -142,20 +143,38 @@ def run():
     if args.test:
         readDir = TESTDIR
     elif not args.reads:
-        sys.stderr.write('ERROR: please specify the directory with sequencing reads with --reads\n')
+        sys.stderr.write('ERROR: please specify the directory or TSV file of reads with --reads\n')
         exit(1)
     else:
         readDir = args.reads
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={readDir} Host={args.host} Output={args.results} SkipAssembly={args.skipAssembly} Fast={args.fast}'
+    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={readDir} Host={args.host} Output={args.results} SkipAssembly={args.skipAssembly} Fast={args.fast} '
+    if args.configfile:
+        runCommand = runCommand + f' --configfile {args.configfile}'
     successMsg = "Hecatomb finished successfully\n"
     runSnakeSys(runCommand, successMsg)
     sys.stderr.write("Generating run report\n")
     successMsg = "Run report generated successfully\n"
     runCommand = runCommand + ' --report'
     runSnakeSys(runCommand, successMsg)
+    return None
+
+
+def dumpConfig():
+    """
+    Copy the system template config file to the working directory
+    :return:
+    """
+    if not os.path.isfile('hecatomb.config.yaml'):
+        templateConfig = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
+        copyfile(templateConfig, 'hecatomb.config.yaml')
+    else:
+        sys.stderr.write("\n"
+                         "Error: Output file 'hecatomb.config.yaml' already exists.\n"
+                         "\n")
+        sys.exit(1)
     return None
 
 
@@ -189,6 +208,13 @@ def listHosts():
     Print the list of available host genomes and exit
     :return:
     """
+    # read the config file
+    if args.configfile:
+        configFile = args.configfile
+    else:
+        configFile = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
+    with open(configFile, 'r') as stream:
+        config = yaml.safe_load(stream)
     # check DB location
     if config['Databases'] is None:
         DBDIR = os.path.join(BINDIR, '../databases')
@@ -205,7 +231,7 @@ def listHosts():
     return None
 
 
-commands = {'install':install, 'run':run, 'addHost':addHost, 'listHosts':listHosts}
+commands = {'install':install, 'run':run, 'config':dumpConfig, 'addHost':addHost, 'listHosts':listHosts}
 commands[args.command]()
 
 time.sleep(1)
