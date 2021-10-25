@@ -70,3 +70,17 @@ hecatomb run --test
 hecatomb run --test --profile slurm
 ```
 
+## Build the docs
+
+These document pages can be built from the repo like so.
+
+```bash
+# install mkdocs
+pip install mkdocs
+
+# cd to your install directory
+cd /path/to/hecatomb
+
+# build
+mkdocs build
+```

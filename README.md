@@ -46,19 +46,19 @@ hecatomb install --profile slurm
 
 ```bash
 # locally: uses 32 threads and 64 GB RAM by default
-hecatomb run --test --assembly
+hecatomb run --test
 
 # HPC: using a profile named 'slurm'
-hecatomb run --test --assembly --profile slurm
+hecatomb run --test --profile slurm
 ```
 
 ### Current limitations
 
 Hecatomb is currently designed to only work with paired-end reads. 
-We have considered making a branch for single-end reads, but that is not currently avaialbe. 
-The workflow will crash if you do not supply paired-end reads at this time.
+We have considered making a branch for single-end reads, but that is not currently available.
 
-Hecatomb expects paired sequencing reads in the format sampleName_R1/R2.fastq(.gz). e.g. 
+When you specify a directory of reads with `--reads`, Hecatomb expects paired sequencing reads in the format 
+sampleName_R1/R2.fastq(.gz). e.g. 
 
 ```text
 sample1_R1.fastq.gz
@@ -67,7 +67,13 @@ sample2_R1.fastq.gz
 sample2_R2.fastq.gz
 ```
 
-If your files don't follow this convention then you will need to rename them before running the pipeline.
+When you specify a TSV file with `--reads`, Hecatomb expects a 3-column tab separated file with the first column
+specifying a sample name, and the other columns the relative or full paths to the forward and reverse read files. e.g.
+
+```text
+sample1    /path/to/reads/sample1.1.fastq.gz    /path/to/reads/sample1.2.fastq.gz
+sample2    /path/to/reads/sample2.1.fastq.gz    /path/to/reads/sample2.2.fastq.gz
+```
 
 ### Dependencies
 

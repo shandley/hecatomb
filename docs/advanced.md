@@ -47,9 +47,20 @@ The `slurm-status.py` script will query the scheduler with the jobid and report 
 
 The Hecatomb configuration file `hecatomb/snakemake/config/config.yaml` contains settings related to resources and 
 cutoffs for various stages of the pipeline. The different config settings are outlined further on.
-You can permanently change the behaviour of your Hecatomb installation by modifying the values in the config file.
-Alternatively, you can change the behaviour of a single run by specifying the new values on the command line. 
+You can permanently change the behaviour of your Hecatomb installation by modifying the values in this config file.
+Alternatively, you can change the behaviour of a single run by specifying the new values on the command line.
 See [below for passing your own Snakemake commands](advanced.md#additional-snakemake-commands).
+Lastly, you can specify your own config file. To do this, you first copy the system default config file like so:
+
+```bash
+hecatomb config
+```
+
+You can then edit your new `hecatomb.config.yaml` file to suit your needs and used it in a Hecatomb run like so:
+
+```bash
+hecatomb run --configfile hecatomb.config.yaml
+```
 
 ## Database location
 
@@ -130,7 +141,7 @@ linclustParams:
 ```
 
 There are additional settings further down in the config file for users that are familiar with MMSeqs, 
-as well as config settings that you should not alter.
+as well as some settings that you should not alter.
 
 ## Alignment filtering
 
@@ -148,16 +159,16 @@ The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
   # --min-length for NT should be equal or less than READ_MINLENGTH
 filtAAprimary:
  --min-length 30
- -e 1e-1
+ -e 1e-3
 filtAAsecondary:
  --min-length 30
- -e 1e-3
+ -e 1e-5
 filtNTprimary:
  --min-length 90
- -e 1e-1
+ -e 1e-3
 filtNTsecondary:
  --min-length 90
- -e 1e-3
+ -e 1e-5
 ```
 
 ## Alignment settings

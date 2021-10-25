@@ -81,12 +81,12 @@ The preprocessing rule also goes ahead and does assembly as contigs are an impor
 The assembly strategy consists of several steps intended to be resource efficient and to maximise representation of all present species.
 First, individual [MEGAHIT](https://github.com/voutcn/megahit) assemblies are produced for each sample.
 The reads are then mapped to the combined assemblies and any unmapped reads undergo another round of assembly.
-All contigs are then combined and merged into a non-redundant set of contigs.
+All contigs are then combined and merged into a non-redundant set of contigs with [Flye](https://github.com/fenderglass/Flye).
 
 The assembly contigs are directly annotated with MMSeqs.
 The assembly is also subject to a pseudo consensus annotation approach whereby the SeqTable sequences are mapped and their
 Taxonomic assignments in the BigTable are combined with the read mapping information.
-We find this useful with investigating contigs of interest.
+We find this useful with investigating the origins of contigs of interest.
 
 ## Databases
 
