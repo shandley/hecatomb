@@ -15,9 +15,8 @@ nav:
     - Advanced: advanced.md
     - Tutorial: tutorial.md
     - FAQ: faq.md
-#extra_css:
-#    - docs/css/theme.css
-#    - docs/css/theme_extra.css
-#extra_javascript:
-#    - docs/js/theme.js
-#    - docs/js/theme_extra.js
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.snippets
