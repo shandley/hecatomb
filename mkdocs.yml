@@ -1,6 +1,13 @@
 site_name: Hecatomb
 site_url: "https://github.com/shandley/hecatomb"
-theme: readthedocs
+theme:
+    name: readthedocs
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - bash
+        - shell
+        - text
 nav:
     - About Hecatomb: index.md
     - Installation: install.md
@@ -8,9 +15,9 @@ nav:
     - Advanced: advanced.md
     - Tutorial: tutorial.md
     - FAQ: faq.md
-extra_css:
-    - docs/css/theme.css
-    - docs/css/theme_extra.css
-extra_javascript:
-    - docs/js/theme.js
-    - docs/js/theme_extra.js
+#extra_css:
+#    - docs/css/theme.css
+#    - docs/css/theme_extra.css
+#extra_javascript:
+#    - docs/js/theme.js
+#    - docs/js/theme_extra.js

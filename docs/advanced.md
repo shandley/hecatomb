@@ -240,7 +240,7 @@ You can use this to specify new config settings to overwrite Hecatomb's default 
 ```bash
 hecatomb run --test --snake="-C QSCORE=20 READ_MINLENGTH=100 ENTROPY=0.7"
 ```
-```text 
+```text
 Running Hecatomb
 Running snakemake command:
 snakemake -j 32 --use-conda --conda-frontend mamba --rerun-incomplete --printshellcmds \

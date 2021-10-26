@@ -9,7 +9,7 @@ While this is fine for smaller datasets it is highly recommended using a HPC clu
 
 ### New install
 
-```shell
+```bash
 # create new conda env and install hecatomb
 conda create -n hecatomb -c conda-forge -c bioconda -c beardymcjohnface hecatomb
 
@@ -25,7 +25,7 @@ hecatomb install
 We will run hecatomb on the included test dataset, using the fast MMSeqs settings with 32 threads 
 (which is the default anyway). This will give us an assembly and some read annotations.
 
-```shell
+```bash
 Hecatomb run --test --threads 32 --fast
 ```
 
