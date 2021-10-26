@@ -6,6 +6,7 @@
 * `hecatomb run` - Run the pipeline
 * `hecatomb listHosts` - List the currently-available host genomes
 * `hecatomb addHost` - Add your own host genome
+* `hecatomb config` - Copy the default config file to the current directory (for use with `--configfile`)
 
 ## Run Hecatomb
 
