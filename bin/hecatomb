@@ -106,13 +106,24 @@ def initialiseSnakeCommand():
     """
     if args.profile:
         config = readConfig()
-        runJobs = f'--profile {args.profile} --default-resources mem_mb={config["defaultMem"]} ' \
-                  f'time={config["defaultTime"]} jobs={config["defaultJobs"]}'
+        runJobs = (f'--profile {args.profile} '
+                   '--default-resources '
+                      f'mem_mb={config["defaultMem"]} '
+                      f'time={config["defaultTime"]} '
+                      f'jobs={config["defaultJobs"]} ')
     else:
         runJobs = f'-j {args.threads}'
     # Decorate the Snakemake run command
-    command = f"snakemake {runJobs} --use-conda --conda-frontend mamba --rerun-incomplete --printshellcmds " \
-              f"--nolock --conda-prefix {CONDDIR} "
+    command = (f'snakemake {runJobs} '
+               '--use-conda '
+               '--conda-frontend mamba '
+               '--rerun-incomplete '
+               '--printshellcmds '
+               '--nolock '
+               f'--conda-prefix {CONDDIR} ')
+    # User-specified config file?
+    if args.configfile:
+        command = command + f' --configfile {args.configfile} '
     # Additional Snakemake commands
     if args.snake:
         command = command + ' '.join(c for c in args.snake)
@@ -166,9 +177,13 @@ def run():
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C Reads={readDir} Host={args.host} Output={args.results} SkipAssembly={args.skipAssembly} Fast={args.fast} '
-    if args.configfile:
-        runCommand = runCommand + f' --configfile {args.configfile}'
+    runCommand = (f'{snakeCommand} '
+                  f'-s {snekFile} '
+                  f'-C Reads={readDir} '
+                    f'Host={args.host} '
+                    f'Output={args.results} '
+                    f'SkipAssembly={args.skipAssembly} '
+                    f'Fast={args.fast} ')
     successMsg = "Hecatomb finished successfully\n"
     runSnakeSys(runCommand, successMsg)
     sys.stderr.write("Generating run report\n")
