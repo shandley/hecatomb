@@ -12,6 +12,10 @@ Overhauled: Michael Roach, Q2 2021
 """
 
 
+# imports
+import re
+
+
 ### DEFAULT CONFIG FILE
 configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 
@@ -54,21 +58,8 @@ HOSTFA = os.path.join(HOSTPATH, HOST, "masked_ref.fa.gz")
 HOSTINDEX = HOSTFA + '.idx'
 
 
-# Check for Database files
-dbFail = False
-for f in config['dbFiles']:
-    dbFile = os.path.join(DBDIR, f)
-    if not os.path.isfile(dbFile):
-        dbFail = True
-        sys.stderr.write("\n"
-            f"    ERROR: missing database file {dbFile}"
-            "\n")
-if dbFail:
-    sys.stderr.write("\n"
-        "    FATAL: One or more database files is missing.\n"
-        "    Please run 'hecatomb install' to download the missing database files.\n"
-        "\n")
-    sys.exit(1)
+### PREFLIGHT CHECKS
+include: "rules/00_preflight.smk"
 
 
 # Parse the samples and read files
