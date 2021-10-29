@@ -130,19 +130,15 @@ def initialiseSnakeCommand():
     return command
 
 
-def runSnakeSys(command, msg):
+def runSnakeSys(command):
     """
     Function to run snakemake and confirm success
 
     :param command: The snakemake command to run
-    :param msg: Success message if it runs fine
     :return: none
     """
     sys.stderr.write(f'Running snakemake command:\n{command}\n')
-    if subprocess.run(command.split()).returncode==0:
-        sys.stderr.write(msg)
-    else:
-        sys.stderr.write("ERROR: Snakemake command failed\n")
+    if not subprocess.run(command.split()).returncode==0:
         exit(1)
     return None
 
@@ -157,8 +153,7 @@ def install():
     sys.stderr.write("Checking and downloading database files\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'DownloadDB.smk'))
     runCommand = f'{snakeCommand} -s {snekFile} -C Output={args.results}'
-    successMsg = "Database installation finished successfully\n"
-    runSnakeSys(runCommand, successMsg)
+    runSnakeSys(runCommand)
     return None
 
 
@@ -184,12 +179,10 @@ def run():
                     f'Output={args.results} '
                     f'SkipAssembly={args.skipAssembly} '
                     f'Fast={args.fast} ')
-    successMsg = "Hecatomb finished successfully\n"
-    runSnakeSys(runCommand, successMsg)
+    runSnakeSys(runCommand)
     sys.stderr.write("Generating run report\n")
-    successMsg = "Run report generated successfully\n"
     runCommand = runCommand + ' --report'
-    runSnakeSys(runCommand, successMsg)
+    runSnakeSys(runCommand)
     return None
 
 
@@ -229,8 +222,7 @@ def addHost():
     snakeCommand = initialiseSnakeCommand()
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'AddHost.smk'))
     runCommand = f'{snakeCommand} -s {snekFile} -C HostFa={args.hostfa} HostName={host} Output={args.results}'
-    successMsg = "Host genome successfully added\n"
-    runSnakeSys(runCommand, successMsg)
+    runSnakeSys(runCommand)
     return None
 
 
