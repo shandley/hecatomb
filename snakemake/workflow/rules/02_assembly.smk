@@ -17,9 +17,9 @@ rule assembly_kmer_normalization:
         r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
         r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq")
     benchmark:
-        os.path.join(BENCH, "a01.kmer_normalization_{sample}.txt")
+        os.path.join(BENCH, "kmer_normalization_{sample}.txt")
     log:
-        os.path.join(STDERR, "a01.kmer_norm_{sample}.log")
+        os.path.join(STDERR, "kmer_norm_{sample}.log")
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -34,6 +34,7 @@ rule assembly_kmer_normalization:
             target=100 \
             ow=t \
             threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+        rm {log}
         """
 
 rule individual_sample_assembly:
@@ -52,9 +53,9 @@ rule individual_sample_assembly:
         mh_dir = directory(os.path.join(ASSEMBLY, '{sample}')),
         contig_dic = directory(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY"))
     benchmark:
-        os.path.join(BENCH, "a02.megahit_{sample}.txt")
+        os.path.join(BENCH, "megahit_{sample}.txt")
     log:
-        os.path.join(STDERR, "a02.megahit_{sample}.log")
+        os.path.join(STDERR, "megahit_{sample}.log")
     resources:
         mem_mb = MhitMem
     threads:
@@ -63,11 +64,11 @@ rule individual_sample_assembly:
         "../envs/megahit.yaml"
     shell:
         """
-        rmdir {params.mh_dir};
-
+        rmdir {params.mh_dir}
         megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
             -o {params.mh_dir} --out-prefix {wildcards.sample} \
-            --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log};
+            --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
+        rm {log}
         """
 
 rule concatenate_contigs:
@@ -77,11 +78,11 @@ rule concatenate_contigs:
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
     benchmark:
-        os.path.join(BENCH, "a03.concatenate_assemblies.txt")
+        os.path.join(BENCH, "concatenate_assemblies.txt")
     log:
-        os.path.join(STDERR, "a03.cat.log")
+        os.path.join(STDERR, "concatenate_assemblies.log")
     shell:
-        "cat {input} > {output} 2> {log}"
+        "cat {input} > {output} 2> {log} && rm {log}"
 
 rule contig_reformating_and_stats:
     """Assembly step 04: Remove short contigs (Default: 1000). Defined in config[CONTIG_MINLENGTH]"""
@@ -92,11 +93,11 @@ rule contig_reformating_and_stats:
         size = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta"),
         stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats")
     benchmark:
-        os.path.join(BENCH, "a04.contig_reformating.txt")
+        os.path.join(BENCH, "contig_reformating.txt")
     log:
-        log1 = os.path.join(STDERR, "a04.rename.log"),
-        log2 = os.path.join(STDERR, "a04.reformat.log"),
-        log3 = os.path.join(STDERR, "a04.stats.log")
+        log1 = os.path.join(STDERR, "contig_reformating_and_stats.rename.log"),
+        log2 = os.path.join(STDERR, "contig_reformating_and_stats.reformat.log"),
+        log3 = os.path.join(STDERR, "contig_reformating_and_stats.stats.log")
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -108,16 +109,17 @@ rule contig_reformating_and_stats:
         rename.sh in={input} out={output.rename} \
             prefix=contig_ \
             ow=t \
-            -Xmx{resources.mem_mb}m 2> {log.log1};
-
+            -Xmx{resources.mem_mb}m 2> {log.log1}
+        rm {log.log1}
         reformat.sh in={output.rename} out={output.size} \
             ml={config[CONTIG_MINLENGTH]} \
             ow=t \
-            -Xmx{resources.mem_mb}m 2> {log.log2};
-
+            -Xmx{resources.mem_mb}m 2> {log.log2}
+        rm {log.log2}
         statswrapper.sh in={input} out={output.stats} \
             format=2 \
-            ow=t 2> {log.log3};
+            ow=t 2> {log.log3}
+        rm {log.log3}
         """
 
 rule population_assembly:
@@ -130,10 +132,10 @@ rule population_assembly:
     params:
         flye_out = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE")
     benchmark:
-        os.path.join(BENCH, "a05.population_assembly.txt")
+        os.path.join(BENCH, "population_assembly.txt")
     log:
-        log1 = os.path.join(STDERR, "a05.flye.log"),
-        log2 = os.path.join(STDERR, "a05.stats.log")
+        log1 = os.path.join(STDERR, "population_assembly.flye.log"),
+        log2 = os.path.join(STDERR, "population_assembly.stats.log")
     resources:
         mem_mb = MhitMem
     threads:
@@ -142,10 +144,12 @@ rule population_assembly:
         "../envs/metaflye.yaml"
     shell:
         """
-        flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} -g 1g &>> {log.log1};
+        flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} -g 1g &>> {log.log1}
+        rm {log.log1}
         statswrapper.sh in={output.assembly} out={output.stats} \
             format=2 \
-            ow=t 2> {log.log2};
+            ow=t 2> {log.log2}
+        rm {log.log2}
         """
 
 rule link_assembly:
@@ -171,9 +175,9 @@ rule coverage_calculations:
         statsfile = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.statsfile"),
         scafstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.scafstats")
     benchmark:
-        os.path.join(BENCH, "a07.coverage_calculations_{sample}.txt")
+        os.path.join(BENCH, "coverage_calculations.{sample}.txt")
     log:
-        os.path.join(STDERR, "a07.bbmap_{sample}.log")
+        os.path.join(STDERR, "coverage_calculations.{sample}.log")
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -195,7 +199,8 @@ rule coverage_calculations:
             scafstats={output.scafstats} \
             maxindel=100 minid=90 \
             ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log};
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+        rm {log}
         """
 
 rule create_contig_count_table:
@@ -213,9 +218,9 @@ rule create_contig_count_table:
         cov_temp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_cov.tmp")),
         count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv")
     benchmark:
-        os.path.join(BENCH, "a08.tpm_caluclator_{sample}.txt")
+        os.path.join(BENCH, "create_contig_count_table.{sample}.txt")
     log:
-        os.path.join(STDERR, "a08.tmp_calc_{sample}.log")
+        os.path.join(STDERR, "create_contig_count_table.{sample}.log")
     shell:
         """
         ## TPM Calculator
@@ -242,6 +247,7 @@ rule create_contig_count_table:
         ## Combine tables
         paste {output.TPM_final} {output.cov_temp} > {output.count_tbl};
         }} 2> {log}
+        rm {log}
         """
 
 rule concatentate_contig_count_tables:
@@ -255,12 +261,13 @@ rule concatentate_contig_count_tables:
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "contig_count_table.tsv")
     benchmark:
-        os.path.join(BENCH, "a09.concat_contig_count_tables.txt")
+        os.path.join(BENCH, "concatentate_contig_count_tables.txt")
     log:
-        os.path.join(STDERR, "a09.concat_tables.log")
+        os.path.join(STDERR, "concatentate_contig_count_tables.log")
     shell:
         """
         {{ cat {input} > {output};
         sed -i '1i sample_id\tcontig_id\tlength\treads\tRPKM\tFPKM\tTPM\tavg_fold_cov\tcontig_GC\tcov_perc\tcov_bases\tmedian_fold_cov' {output}; \
         }} 2> {log}
+        rm {log}
         """

@@ -152,6 +152,7 @@ def collect_start_counts(sampleReads, outFile):
             R2c = file_len(sampleReads[sample]['R2']) / 4
             outfh.write(f'{sample}\tStep_00\tR1\t{R1c}\n')
             outfh.write(f'{sample}\tStep_00\tR2\t{R2c}\n')
+    return None
 
 def collect_counts(inPrefix, inSuffix, stepName, outFile):
     """Collect fastq counts for all samples and print to file"""
@@ -161,6 +162,7 @@ def collect_counts(inPrefix, inSuffix, stepName, outFile):
             R2c = file_len(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')) / 4
             outfh.write(f'{sample}\t{stepName}\tR1\t{R1c}\n')
             outfh.write(f'{sample}\t{stepName}\tR2\t{R2c}\n')
+    return None
 
 def sum_counts(fname, R1=False):
     """Collect the sum of all reads for all samples from a summary count file (e.g. from collect_counts)"""

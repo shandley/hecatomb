@@ -10,8 +10,8 @@ rule map_seq_table:
     output:
         os.path.join(MAPPING, "assembly.seqtable.bam")
     log:
-        mm2 = os.path.join(STDERR, "m01.map_seq_table.mm2.log"),
-        stool = os.path.join(STDERR, "m01.map_seq_table.stools.log")
+        mm2 = os.path.join(STDERR, "map_seq_table.mm2.log"),
+        stool = os.path.join(STDERR, "map_seq_table.stools.log")
     conda:
         os.path.join('../', 'envs', 'minimap2.yaml')
     benchmark:
@@ -24,6 +24,7 @@ rule map_seq_table:
         """
         minimap2 -ax sr --secondary=no -t {threads} {input.assembly} {input.seqtable} 2> {log.mm2} \
             | samtools sort -m 1G -o {output} 2> {log.stool}
+        rm {log.mm2} {log.stool}
         """
 
 rule contig_read_taxonomy:
@@ -45,39 +46,8 @@ rule contig_read_taxonomy:
     resources:
         mem_mb = MiscMem
     benchmark:
-        os.path.join(BENCH, 'm02.contig_read_taxtable.txt')
+        os.path.join(BENCH, 'contig_read_taxonomy.txt')
     log:
-        os.path.join(STDERR, 'm02.contig_read_taxtable.log')
-    run:
-        import logging
-        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
-        import pysam
-        logging.debug('Slurping taxon info for seq IDs')
-        tax = {}
-        inTSV = open(input.taxon, 'r')
-        inTSV.readline() # skip header
-        for line in inTSV:
-            l = line.strip().split('\t')
-            tax[l[0]] = '\t'.join((l[2:5] + l[22:]))
-        inTSV.close()
-        logging.debug('Parsing mapped reads and pairing read taxon with mapped coords')
-        outFH = open(output[0], 'w')
-        outFH.write('contigID\tseqID\tstart\tstop\tlen\tqual\tcount\tnormCount\talnType\ttaxMethod\tkingdom\tphylum\tclass\torder\tfamily\tgenus\tspecies\tbaltimoreType\tbaltimoreGroup\n')
-        bam = pysam.AlignmentFile(input.bam, 'rb')
-        for read in bam.fetch():
-            if read.is_secondary or read.is_supplementary or read.is_unmapped:
-                continue
-            infOut = '\t'.join([str(read.reference_name),
-                                str(read.query_name),
-                                str(read.reference_start),
-                                str(read.reference_end),
-                                str(read.reference_length),
-                                str(read.mapping_quality)])
-            try:
-                taxOut = tax[read.query_name]
-            except KeyError:
-                taxOut = '\t'.join((['NA'] * 8))
-            outFH.write(f'{infOut}\t{taxOut}\n')
-        bam.close()
-        outFH.close()
-        logging.debug('Done')
+        os.path.join(STDERR, 'contig_read_taxonomy.log')
+    script:
+        os.path.join('..', 'scripts', 'contigReadTaxon.py')
