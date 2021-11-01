@@ -11,7 +11,7 @@ def exitLogCleanup(*args):
     return None
 
 atexit.register(exitLogCleanup, snakemake.log[0])
-logging.basicConfig(filename=log[0], filemode='w', level=logging.DEBUG)
+logging.basicConfig(filename=snakemake.log[0], filemode='w', level=logging.DEBUG)
 
 logging.debug('Reading seq ids from AA bigtable')
 virSeqs = {}
@@ -22,7 +22,7 @@ with open(snakemake.input.bigtable, 'r') as btbl:
 
 logging.debug('Parsing seqtable and writing non AA-hit seqs')
 with open(snakemake.input.seqs, 'r') as inFa:
-    with open open(snakemake.output.unclass_seqs, 'w') as outFa:
+    with open(snakemake.output.unclass_seqs, 'w') as outFa:
         for line in inFa:
             if line.startswith('>'):
                 id = line.strip().replace('>' ,'')

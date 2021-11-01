@@ -45,10 +45,6 @@ MiscMem = config['MiscMem']
 MiscCPU = config['MiscCPU']
 
 
-### MISC CONFIG
-taxIdsIgnore = config['taxIdIgnore'].split()
-
-
 ### DIRECTORIES
 include: "rules/00_directories.smk"
 

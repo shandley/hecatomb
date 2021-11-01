@@ -29,9 +29,9 @@ rule remove_5prime_primer:
         r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq")),
         stats = os.path.join(STATS, "p01", "{sample}.s1.stats.tsv")
     benchmark:
-        os.path.join(BENCH, "leftmost_primerB.{sample}.txt")
+        os.path.join(BENCH, "remove_5prime_primer.{sample}.txt")
     log:
-        os.path.join(STDERR, "leftmost_primerB.{sample}.log")
+        os.path.join(STDERR, "remove_5prime_primer.{sample}.log")
     group:
         'preprocessing'
     resources:
@@ -68,9 +68,9 @@ rule remove_3prime_contaminant:
         r2 = temp(os.path.join(TMPDIR, "p02", "{sample}_R2.s2.out.fastq")),
         stats = os.path.join(STATS, "p02", "{sample}.s2.stats.tsv")
     benchmark:
-        os.path.join(BENCH, "3prime_contaminant.{sample}.txt")
+        os.path.join(BENCH, "remove_3prime_contaminant.{sample}.txt")
     log:
-        os.path.join(STDERR, "3prime_contaminant.{sample}.log")
+        os.path.join(STDERR, "remove_3prime_contaminant.{sample}.log")
     group:
         'preprocessing'
     resources:
@@ -105,9 +105,9 @@ rule remove_primer_free_adapter:
         r2 = temp(os.path.join(TMPDIR, "p03", "{sample}_R2.s3.out.fastq")),
         stats = os.path.join(STATS, "p03", "{sample}.s3.stats.tsv")
     benchmark:
-        os.path.join(BENCH, "primer_free_adapter.{sample}.txt")
+        os.path.join(BENCH, "remove_primer_free_adapter.{sample}.txt")
     log:
-        os.path.join(STDERR, "primer_free_adapter.{sample}.log")
+        os.path.join(STDERR, "remove_primer_free_adapter.{sample}.log")
     group:
         'preprocessing'
     resources:
@@ -142,9 +142,9 @@ rule remove_adapter_free_primer:
         r2 = temp(os.path.join(TMPDIR, "p04", "{sample}_R2.s4.out.fastq")),
         stats = os.path.join(STATS, "p04", "{sample}.s4.stats.tsv")
     benchmark:
-        os.path.join(BENCH, "adapter_free_primer.{sample}.txt")
+        os.path.join(BENCH, "remove_adapter_free_primer.{sample}.txt")
     log:
-        os.path.join(STDERR, "adapter_free_primer.{sample}.log")
+        os.path.join(STDERR, "remove_adapter_free_primer.{sample}.log")
     group:
         'preprocessing'
     resources:
@@ -161,7 +161,7 @@ rule remove_adapter_free_primer:
             stats={output.stats} \
             k=16 hdist=0 removeifeitherbad=f ordered=t rcomp=t ow=t \
             threads={threads} -Xmx{resources.mem_mb}m 2> {log}
-        {log}
+        rm {log}
         """
 
 rule remove_vector_contamination:
@@ -175,9 +175,9 @@ rule remove_vector_contamination:
         r2 = temp(os.path.join(TMPDIR, "p05", "{sample}_R2.s5.out.fastq")),
         stats = os.path.join(STATS, "p05", "{sample}.s5.stats.tsv")
     benchmark:
-        os.path.join(BENCH, "vector_contamination_{sample}.txt")
+        os.path.join(BENCH, "remove_vector_contamination.{sample}.txt")
     log:
-        os.path.join(STDERR, "vector_contamination_{sample}.log")
+        os.path.join(STDERR, "remove_vector_contamination.{sample}.log")
     group:
         'preprocessing'
     resources:
@@ -210,9 +210,9 @@ rule remove_low_quality:
         r2 = temp(os.path.join(TMPDIR, "p06", "{sample}_R2.s6.out.fastq")),
         stats = os.path.join(STATS, "p06", "{sample}.s6.stats.tsv")
     benchmark:
-        os.path.join(BENCH, "low_quality_{sample}.txt")
+        os.path.join(BENCH, "remove_low_quality.{sample}.txt")
     log:
-        os.path.join(STDERR, "low_quality_{sample}.log")
+        os.path.join(STDERR, "remove_low_quality.{sample}.log")
     group:
         'preprocessing'
     resources:
@@ -306,9 +306,9 @@ rule nonhost_read_repair:
         or1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.o.singletons.fastq")),
         or2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.o.singletons.fastq"))
     benchmark:
-        os.path.join(BENCH, "read_repair_{sample}.txt")
+        os.path.join(BENCH, "nonhost_read_repair.{sample}.txt")
     log:
-        os.path.join(STDERR, "read_repair_{sample}.log")
+        os.path.join(STDERR, "nonhost_read_repair.{sample}.log")
     group:
         'preprocessing'
     resources:
@@ -341,9 +341,9 @@ rule nonhost_read_combine:
         r1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.all.fastq"),
         r2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.all.fastq")
     benchmark:
-        os.path.join(BENCH, "read_combine_{PATTERN}.txt")
+        os.path.join(BENCH, "nonhost_read_combine.{PATTERN}.txt")
     log:
-        os.path.join(STDERR, "read_combine_{PATTERN}.log")
+        os.path.join(STDERR, "nonhost_read_combine.{PATTERN}.log")
     group:
         'preprocessing'
     shell:
@@ -475,9 +475,10 @@ rule merge_seq_table:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
     params:
-        resultsdir = directory(RESULTS),
-        samples = SAMPLES,
+        samples = list(SAMPLES),
         tmpdir = TMPDIR
+    conda:
+        os.path.join('..', 'envs', 'pysam.yaml')
     benchmark:
         os.path.join(BENCH, "merge_seq_table.txt")
     log:

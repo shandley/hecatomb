@@ -60,9 +60,9 @@ rule PRIMARY_AA_parsing:
     threads:
         MiscCPU
     benchmark:
-        os.path.join(BENCH, 't02.parseAA.txt')
+        os.path.join(BENCH, 'PRIMARY_AA_parsing.txt')
     log:
-        os.path.join(STDERR, 't02.parseAA.log')
+        os.path.join(STDERR, 'PRIMARY_AA_parsing.log')
     script:
         os.path.join('..', 'scripts', 'aaPrimaryParse.py')
 
@@ -180,6 +180,8 @@ rule SECONDARY_AA_generate_output_table:
         os.path.join(BENCH, "SECONDARY_AA_generate_output_table.txt")
     log:
         os.path.join(STDERR, "SECONDARY_AA_generate_output_table.log")
+    params:
+        taxIdIgnore = config['taxIdIgnore'].split()
     script:
         os.path.join('..', 'scripts', 'aaBigtable.py')
 
@@ -480,6 +482,8 @@ rule SECONDARY_NT_generate_output_table:
         balt = os.path.join(TABLES,'2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
         os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
+    params:
+        taxIdIgnore = config['taxIdIgnore'].split()
     benchmark:
         os.path.join(BENCH, "SECONDARY_NT_generate_output_table.txt")
     log:

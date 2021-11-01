@@ -21,8 +21,8 @@ with open(snakemake.input.balt, 'r') as baltfh:
     baltfh.readline() # skip header
     for line in baltfh:
         l = line.strip().split('\t')
-            if len(l) == 3:
-                balt[l[0]] = f'{l[1]}\t{l[2]}'
+        if len(l) == 3:
+            balt[l[0]] = f'{l[1]}\t{l[2]}'
 
 logging.debug('Reading in reads counts for each sample')
 counts = []
@@ -40,7 +40,7 @@ with open(snakemake.input.lca, 'r') as lcafh:
     for line in lcafh:
         l = line.strip().split('\t')
         # dont use lca lineage for root taxIDs - see config.yaml for IDs
-        if not l[1] in taxIdsIgnore:
+        if not l[1] in snakemake.params.taxIdIgnore:
             lcaLin[l[0]] = '\t'.join((l[2:]))
 
 logging.debug('Reading in Taxon inf for tophit seqs')

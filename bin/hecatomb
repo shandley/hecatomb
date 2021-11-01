@@ -120,6 +120,7 @@ def initialiseSnakeCommand():
                '--rerun-incomplete '
                '--printshellcmds '
                '--nolock '
+               '--show-failed-logs '
                f'--conda-prefix {CONDDIR} ')
     # User-specified config file?
     if args.configfile:
