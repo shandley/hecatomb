@@ -1,6 +1,4 @@
-# Hecatomb
-
-![](img/hecatombBanner.png)
+![](img/hecatombLogo.png)
 
 A hecatomb is a great sacrifice or an extensive loss. 
 Heactomb the software empowers an analyst to make data driven decisions to 'sacrifice' false-positive viral reads from 
@@ -8,6 +6,8 @@ metagenomes to enrich for true-positive viral reads.
 This process frequently results in a great loss of suspected viral sequences / contigs.
 
 ## Motivation
+
+![](img/hecatombBanner.png)
 
 Hecatomb was developed in response to the challenges associated with the detection of viral sequences in metagenomes. 
 Virus detection or virome profiling is typically performed on samples containing extensive host nucleic acid (e.g. a 

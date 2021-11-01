@@ -40,6 +40,7 @@ hecatomb -h
 
 If you're running Hecatomb on a cluster it is highly recommended to use Snakemake profiles 
 ([Running Hecatomb with a Snakemake profile](advanced.md#profiles-for-hpc-clusters)).
+
 You may also want to customise the available resources for your system, whether you're using a cluster or running 
 locally ([Advanced configuration](advanced.md#changing-the-hecatomb-configuration)).
 

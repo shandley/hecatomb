@@ -4,7 +4,7 @@
 ![](https://anaconda.org/beardymcjohnface/hecatomb/badges/downloads.svg)
 [![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
 
-# Hecatomb
+![](docs/img/hecatombLogo.png)
 
 A [hecatomb](https://en.wiktionary.org/wiki/hecatomb) is a great sacrifice or an extensive loss. 
 Heactomb the software empowers an analyst to make data driven decisions to *'sacrifice'* false-positive viral reads from 
