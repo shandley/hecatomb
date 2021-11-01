@@ -51,8 +51,10 @@ s8disc = s7R1 - s8
 s9rdnt = s8 - s9
 searches = {}
 for f in snakemake.input[10:]:
-    for l in stream_tsv(f):
-        searches[l[0]] = int(l[1])
+    with open(f, 'r') as fh:
+        for line in fh:
+            l = line.strip().split('\t')
+            searches[l[0]] = int(l[1])
 
 paaV = searches['Primary AA viral:']
 paaU = searches['Primary AA non-viral:']
