@@ -170,7 +170,7 @@ rule seq_properties_table:
     run:
         import logging
         import atexit
-        atexit.register(exitLogCleanup,snakemake.log[0])
+        atexit.register(exitLogCleanup,log[0])
         logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
         gc = {}
         logging.debug('Reading GC counts')

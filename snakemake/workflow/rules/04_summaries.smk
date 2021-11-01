@@ -269,7 +269,7 @@ rule krona_text_format:
     run:
         import logging
         import atexit
-        atexit.register(exitLogCleanup,snakemake.log[0])
+        atexit.register(exitLogCleanup,log[0])
         logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
         logging.debug('Slurping Tax assignments from bigtable')
         counts = {}
