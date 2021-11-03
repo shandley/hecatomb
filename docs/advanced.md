@@ -16,7 +16,10 @@ which hecatomb
 
 Snakemake profiles are a must-have for running Snakemake pipelines on HPC clusters.
 While they can be a pain to set up, you only need to do this once and then life is easy.
-For more information, check the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles), 
+**If you just want to get up and running with as little effort as possible, 
+check out [the tutorial on creating a profile](tutorial.md#snakemake-profiles).**
+
+For more information, check the [Snakemake documentation on profiles](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles), 
 or our recent [blog post on Snakemake profiles](https://fame.flinders.edu.au/blog/2021/08/02/snakemake-profiles-updated).
 
 Hecatomb ships with an example profile for the Slurm workload manager in `hecatomb/snakemake/profile/example_slurm/`.
@@ -29,7 +32,8 @@ Hecatomb expects the following in the cluster command:
  - `threads` for requested CPUs
  
 We have tried to use what we believe is the most common nomenclature for these variables in Snakemake pipelines 
-in the hopes that Hecatomb is compatible with existing Snakemake profiles.
+in the hopes that Hecatomb is compatible with existing Snakemake profiles and the available 
+[Cookiecutter profiles for Snakemake](https://github.com/Snakemake-Profiles).
 
 We recommend redirecting STDERR and STDOUT messages to log files using the Snakemake variables `{rule}` and `{jobid}`, 
 for instance like this `--output=logs/{rule}/{jobid}.out`.
@@ -48,9 +52,7 @@ The `slurm-status.py` script will query the scheduler with the jobid and report 
 The Hecatomb configuration file `hecatomb/snakemake/config/config.yaml` contains settings related to resources and 
 cutoffs for various stages of the pipeline. The different config settings are outlined further on.
 You can permanently change the behaviour of your Hecatomb installation by modifying the values in this config file.
-Alternatively, you can change the behaviour of a single run by specifying the new values on the command line.
-See [below for passing your own Snakemake commands](advanced.md#additional-snakemake-commands).
-Lastly, you can specify your own config file. To do this, you first copy the system default config file like so:
+Alternatively, you can specify your own config file. To do this, you first copy the system default config file like so:
 
 ```bash
 hecatomb config
@@ -112,6 +114,13 @@ MhitCPU: 16
 MiscMem: 16000
 # CPUs for slightly RAM-hungry jobs (recommend >= 2)
 MiscCPU: 2
+
+# Default memory in megabytes (for use with --profile)
+defaultMem: 2000
+# Default time in minutes (for use with --profile)
+defaultTime: 1440
+# Default concurrent jobs (for use with --profile)
+defaultJobs: 100
 ```
 
 ## Preprocessing settings
@@ -180,24 +189,24 @@ The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
 
 ```yaml
 # PERFORMANCE SETTINGS - SEE MMSEQS DOCUMENTATION FOR DETAILS
-  # sensitive AA search
+# sensitive AA search
 perfAA:
  --start-sens 1
  --sens-steps 3
  -s 7
  --lca-mode 2
  --shuffle 0
-  # fast AA search
+# fast AA search
 perfAAfast:
  -s 4.0
  --lca-mode 1
  --shuffle 0
-  # sensitive NT search
+# sensitive NT search
 perfNT:
  --start-sens 2
  -s 7
  --sens-steps 3
-  # fast NT search
+# fast NT search
 perfNTfast:
  -s 4.0
 ```
@@ -234,21 +243,7 @@ snakemake -j 32 --use-conda --conda-frontend mamba --rerun-incomplete --printshe
 Building DAG of jobs...
 ```
 
-You can use this to specify new config settings to overwrite Hecatomb's default config.
-**NOTE: Wrap your Snake commands in quotes if you want to pass whitespace** (like in this example):
-
-```bash
-hecatomb run --test --snake="-C QSCORE=20 READ_MINLENGTH=100 ENTROPY=0.7"
-```
-```text 
-Running Hecatomb
-Running snakemake command:
-snakemake -j 32 --use-conda --conda-frontend mamba --rerun-incomplete --printshellcmds \
-  --nolock --conda-prefix /scratch/hecatomb/snakemake/workflow/conda \
-  -C QSCORE=20 READ_MINLENGTH=100 ENTROPY=0.7 -s /scratch/hecatomb/snakemake/workflow/Hecatomb.smk \
-  -C Reads=/scratch/hecatomb/test_data Host=human Output=hecatomb_out Assembly=False
-Building DAG of jobs...
-```
-
-Have a look at the full list of available Snakemake options with `snakemake --help`.
-Also note: The launcher will pass anything in `--snake=` verbatim, so use with care.
+Have a look at the full list of available Snakemake options with `snakemake --help`. 
+The launcher will pass anything in `--snake=` verbatim, so use with care.
+**NOTE: Don't use hecatomb's --snake arg to pass additional config settings with Snakemake's -C/--config arg**,
+instead, follow the directions above [for changing the config of a Hecatomb run](advanced.md#changing-the-hecatomb-configuration).

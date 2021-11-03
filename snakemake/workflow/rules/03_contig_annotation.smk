@@ -13,9 +13,9 @@ rule mmseqs_contig_annotation:
         respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
         tmppath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","mmseqs_nt_tmp")
     benchmark:
-        os.path.join(BENCH, "c01.mmseqs_contig_annotation.txt")
+        os.path.join(BENCH, "mmseqs_contig_annotation.txt")
     log:
-        os.path.join(STDERR, "c01.mmseqs_contig_annotation.log")
+        os.path.join(STDERR, "mmseqs_contig_annotation.log")
     resources:
         mem_mb=MMSeqsMem
     threads:
@@ -24,12 +24,12 @@ rule mmseqs_contig_annotation:
         os.path.join("../", "envs", "mmseqs2.yaml")
     shell:
         """
-        {{ # Create query database
+        {{
         mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2;
-        # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
             {MMSeqsSensNT} {config[filtNTsecondary]} \
-            --search-type 3 ; }} &>> {log};
+            --search-type 3 ; }} &> {log}
+        rm {log}
         """
 
 
@@ -54,9 +54,9 @@ rule mmseqs_contig_annotation_summary:
         inputpath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
         respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit")
     benchmark:
-        os.path.join(BENCH, "c02.mmseqs_contig_annotation_summary.txt")
+        os.path.join(BENCH, "mmseqs_contig_annotation_summary.txt")
     log:
-        os.path.join(STDERR, "c02.mmseqs_contig_annotation_summary.log")
+        os.path.join(STDERR, "mmseqs_contig_annotation_summary.log")
     resources:
         mem_mb=MMSeqsMem
     threads:
@@ -103,6 +103,7 @@ rule mmseqs_contig_annotation_summary:
         cut -f3 {output.reformated} | \
             csvtk freq -H -n -r -T -t | \
             sed '1i Species\tSECONDARY_NT_Species_Frequency'> {output.spe_sum}; }} &> {log}
+        rm {log}
         """
 
 

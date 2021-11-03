@@ -1,6 +1,4 @@
-# Hecatomb
-
-![](img/hecatombBanner.png)
+![](img/hecatombLogo.png)
 
 A hecatomb is a great sacrifice or an extensive loss. 
 Heactomb the software empowers an analyst to make data driven decisions to 'sacrifice' false-positive viral reads from 
@@ -8,6 +6,8 @@ metagenomes to enrich for true-positive viral reads.
 This process frequently results in a great loss of suspected viral sequences / contigs.
 
 ## Motivation
+
+![](img/hecatombBanner.png)
 
 Hecatomb was developed in response to the challenges associated with the detection of viral sequences in metagenomes. 
 Virus detection or virome profiling is typically performed on samples containing extensive host nucleic acid (e.g. a 
@@ -175,7 +175,7 @@ This file is big, hence the name, but is designed to make merging with sample me
 
 The header looks like this:
 
-```
+```text
 seqID  sampleID  count  normCount  alnType  targetID  evalue  pident  fident  nident  mismatches  qcov  tcov  qstart  qend  qlen  tstart  tend  tlen  alnlen  bits  targetName  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
 ```
 
@@ -192,7 +192,7 @@ those counts have already been collected, and you can simply run your analysis a
 
 The file looks something like this:
 
-```
+```text
 sampleID    taxonLevel  taxonPath                                   taxonName       count   normCount
 sample1     Kingdom     k_Bacteria                                  Bacteria        3162    3178.818
 sample1     phylum      K_Viruses,p_Phixviricota                    Phixviricota    1216    1222.467
@@ -222,7 +222,7 @@ chimeric contigs, recombination or horizontal transfer events.
 
 The header looks like this:
 
-```
+```text
 contigID  seqID  start  stop  len  qual  count  normCount  alnType  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
 ```
 

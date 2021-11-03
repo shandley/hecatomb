@@ -14,7 +14,6 @@
 # Run Parameters #
 ##################
 
-# !! check/change the following items !!
 # Database installation location, leave blank = use hecatomb install location
 Databases:
 
@@ -40,11 +39,11 @@ MiscMem: 16000
 # CPUs for slightly RAM-hungry jobs (recommend >= 2)
 MiscCPU: 2
 
-# Default memory in megabytes (for --profile)
+# Default memory in megabytes (for use with --profile)
 defaultMem: 2000
-# Default time in minutes (for --profile)
+# Default time in minutes (for use with --profile)
 defaultTime: 1440
-# Default concurrent jobs (for --profile)
+# Default concurrent jobs (for use with --profile)
 defaultJobs: 100
 
 
@@ -64,14 +63,10 @@ ENTROPYWINDOW: 25 # entropy window for low qual read filter
  # --min-seq-id = req identity [0-1] of alignment
 linclustParams:
  --kmer-per-seq-scale 0.3
- -c 0.7
+ -c 0.8
  --cov-mode 1
- --min-seq-id 0.95
+ --min-seq-id 0.97
  --alignment-mode 3
-
-
-# addHost settings
-Entropy: 0.7
 
 # LCA TAX IDs TO IGNORE (DEFER TO TOPHIT)
  # 0 = unclassified
@@ -106,24 +101,24 @@ filtNTsecondary:
  -e 1e-5
 
 # PERFORMANCE SETTINGS - SEE MMSEQS DOCUMENTATION FOR DETAILS
-  # sensitive AA search
+# sensitive AA search
 perfAA:
  --start-sens 1
  --sens-steps 3
  -s 7
  --lca-mode 2
  --shuffle 0
-  # fast AA search
+# fast AA search
 perfAAfast:
  -s 4.0
  --lca-mode 1
  --shuffle 0
-  # sensitive NT search
+# sensitive NT search
 perfNT:
  --start-sens 2
  -s 7
  --sens-steps 3
-  # fast NT search
+# fast NT search
 perfNTfast:
  -s 4.0
 
