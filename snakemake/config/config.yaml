@@ -68,10 +68,6 @@ linclustParams:
  --min-seq-id 0.97
  --alignment-mode 3
 
-
-# addHost settings
-Entropy: 0.7
-
 # LCA TAX IDs TO IGNORE (DEFER TO TOPHIT)
  # 0 = unclassified
  # 1 = root

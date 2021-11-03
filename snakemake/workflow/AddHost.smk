@@ -20,7 +20,7 @@ include: "rules/00_directories.smk"
 virShred = os.path.join(HOSTPATH, 'virus_shred.fasta.gz')
 hostFasta = config['HostFa']
 hostName = config['HostName']
-entropy = config['Entropy']
+entropy = config['ENTROPY']
 BBToolsMem = config['BBToolsMem']
 BBToolsCPU = config['BBToolsCPU']
 
