@@ -18,9 +18,9 @@ logging.debug('Slurping taxon info for seq IDs')
 tax = {}
 with open(snakemake.input.taxon, 'r') as inTSV:
     inTSV.readline() # skip header
-        for line in inTSV:
-            l = line.strip().split('\t')
-            tax[l[0]] = '\t'.join((l[2:5] + l[22:]))
+    for line in inTSV:
+        l = line.strip().split('\t')
+        tax[l[0]] = '\t'.join((l[2:5] + l[22:]))
 
 logging.debug('Parsing mapped reads and pairing read taxon with mapped coords')
 with open(snakemake.output[0], 'w') as outFH:
