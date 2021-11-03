@@ -1,5 +1,5 @@
 {% set name = "Hecatomb" %}
-{% set version = "v1.0.0.alpha.3" %}
+{% set version = "v1.0.0.beta.1" %}
 
 package:
   name: {{ name|lower }}
@@ -10,7 +10,7 @@ build:
 
 source:
   url: https://github.com/shandley/{{ name }}/archive/refs/tags/{{ version }}.tar.gz
-  sha256: ac07dfd8f0d02a33a94fc481cb9360eca9a459ba2684cebae085cbebd226baab
+  sha256:
 
 requirements:
   run:
