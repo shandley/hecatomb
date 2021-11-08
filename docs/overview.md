@@ -1,4 +1,4 @@
-# Pipeline overview
+# Pipeline
 
 The pipeline consists of three main sections: Read preprocessing, Virus identification, and Assembly.
 

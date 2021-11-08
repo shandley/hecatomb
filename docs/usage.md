@@ -1,4 +1,4 @@
-# Running Hecatomb
+# Usage
 
 ## Commands
 

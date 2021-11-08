@@ -1,4 +1,4 @@
-# Hecatomb FAQ
+# FAQ
 
 ## Where can I get help or support?
 

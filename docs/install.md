@@ -1,4 +1,4 @@
-# Installing and testing Hecatomb
+# Installing
 
 ## System requirements
 
