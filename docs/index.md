@@ -1,4 +1,4 @@
-![](img/hecatombLogo.png)
+# ![](img/hecatombLogo.png)
 
 A hecatomb is a great sacrifice or an extensive loss. 
 Heactomb the software empowers an analyst to make data driven decisions to 'sacrifice' false-positive viral reads from 

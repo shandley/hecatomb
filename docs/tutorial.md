@@ -1,6 +1,8 @@
+# Hecatomb tutorial
+
 This tutorial will walk through the process of running Hecatomb and performing some preliminary plots and analyses in both R and Python.
 
-## Run Hecatomb
+## Running Hecatomb
 
 ### System information
 
@@ -11,7 +13,7 @@ While this is fine for smaller datasets it is highly recommended using a HPC clu
 
 ```bash
 # create new conda env and install hecatomb
-conda create -n hecatomb -c conda-forge -c bioconda -c beardymcjohnface hecatomb
+conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 
 # activate env
 conda activate hecatomb

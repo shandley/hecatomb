@@ -1,7 +1,7 @@
 site_name: Hecatomb
 site_url: "https://github.com/shandley/hecatomb"
 theme:
-    name: readthedocs
+    name: rtd-dropdown
     highlightjs: true
     hljs_languages:
         - yaml
