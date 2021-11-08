@@ -1,5 +1,3 @@
-# Advanced
-
 If you're running Hecatomb on a HPC cluster, we absolutely recommend setting up a 
 [Snakemake profile](advanced.md#snakemake-profiles-for-hpc-clusters).
 

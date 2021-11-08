@@ -1,5 +1,3 @@
-# Outputs
-
 The pipeline outputs a number of files for further analysis and exploration, as well as to provide an overview of the 
 read preprocessing and distribution.
 

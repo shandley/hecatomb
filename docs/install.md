@@ -1,5 +1,3 @@
-# Installing
-
 ## System requirements
 
 We have set some sensible defaults for Hecatomb on the following minimum recommended system requirements:

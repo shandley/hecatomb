@@ -1,5 +1,3 @@
-# FAQ
-
 ## Where can I get help or support?
 
 [Open an issue on github](https://github.com/shandley/hecatomb/issues).

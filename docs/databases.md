@@ -1,9 +1,7 @@
-# Databases
-
 As mentioned above, Hecatomb uses a multi-stage search strategy that utilises a processed reference host genome for preprocessing,
 and both amino acid and nucleotide databases for viral annotation.
 
-## Processed host genomes
+## Host genomes
 
 Contamination of viral metagenomes by host DNA can be a significant burden and source of false positive in viral annotation.
 We use a host reference genome to filter out any host reads prior to annotation.

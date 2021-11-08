@@ -1,5 +1,3 @@
-# Tutorial
-
 This tutorial will walk through the process of running Hecatomb and performing some preliminary plots and analyses in both R and Python.
 
 ## System information

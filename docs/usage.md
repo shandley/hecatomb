@@ -1,5 +1,3 @@
-# Usage
-
 ## Commands
 
 * `hecatomb install` - Install the databases (you should only need to do this once)
