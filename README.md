@@ -1,8 +1,9 @@
-![](https://anaconda.org/beardymcjohnface/hecatomb/badges/platforms.svg)
-[![](https://anaconda.org/beardymcjohnface/hecatomb/badges/license.svg)](https://opensource.org/licenses/MIT)
-[![](https://anaconda.org/beardymcjohnface/hecatomb/badges/installer/conda.svg)](https://anaconda.org/beardymcjohnface/hecatomb)
-![](https://anaconda.org/beardymcjohnface/hecatomb/badges/downloads.svg)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)](https://anaconda.org/bioconda/hecatomb)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/platforms.svg)](https://anaconda.org/bioconda/hecatomb)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)](https://anaconda.org/bioconda/hecatomb)
 [![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/downloads.svg)](https://anaconda.org/bioconda/hecatomb)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda)
 
 ![](docs/img/hecatombLogo.png)
 
@@ -26,7 +27,7 @@ Snakemake profiles for HPC Clusters.
 
 ```bash
 # create conda env and install
-conda create -n hecatomb -c conda-forge -c bioconda -c beardymcjohnface hecatomb
+conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 
 # activate conda env
 conda activate hecatomb
