@@ -9,9 +9,13 @@ theme:
         - shell
         - text
 nav:
-    - About Hecatomb: index.md
-    - Installation: install.md
+  - Hecatomb:
+    - About: index.md
+    - Pipeline: overview.md
+    - Install: install.md
     - Usage: usage.md
+    - Outputs: outputs.md
+    - Databases: databases.md
     - Advanced: advanced.md
     - Tutorial: tutorial.md
     - FAQ: faq.md

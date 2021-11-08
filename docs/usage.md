@@ -8,9 +8,7 @@
 * `hecatomb addHost` - Add your own host genome
 * `hecatomb config` - Copy the default config file to the current directory (for use with `--configfile`)
 
-## Run Hecatomb
-
-### Read directory
+## Input
 
 Hecatomb is currently designed to only work with paired-end reads.
 You can either specify a directory of reads, and Hecatomb will infer the sample names and forward/reverse files, or,
@@ -36,7 +34,7 @@ sample1    /path/to/reads/sample1.1.fastq.gz    /path/to/reads/sample1.2.fastq.g
 sample2    /path/to/reads/sample2.1.fastq.gz    /path/to/reads/sample2.2.fastq.gz
 ```
 
-### Read annotation + assembly
+## Read annotation + assembly
 
 By default, Hecatomb will annotate your reads and perform an assembly.
 If you have more than 32 threads available, you can increase the threads provided to the pipeline with `--threads`:
@@ -57,7 +55,7 @@ hecatomb run --reads fastq/ --profile slurm
 
 Running Hecatomb on a HPC with a Snakemake profile is THE BEST WAY to run the pipeline.
 
-### Read annotation only (no assembly)
+## Read annotation only
 
 To optionally skip generating an assembly when running Hecatomb, 
 the command is exactly the same as above with the addition of the `--skipAssembly` flag:
@@ -66,7 +64,7 @@ the command is exactly the same as above with the addition of the `--skipAssembl
 hecatomb run --reads fastq/ --profile slurm --skipAssembly
 ```
 
-### Quicker read annotation
+## Quicker read annotation
 
 The pipeline bottleneck is the MMSeqs searches.
 Use the `--fast` flag to run Hecatomb with less sensitive settings for MMSeqs.
@@ -76,12 +74,11 @@ In limited testing, we find it performs almost as well but with considerable run
 hecatomb run --reads fastq/ --profile slurm --fast
 ```
 
-## Host reference genomes
+
+## Specifying a host genome
 
 Hecatomb includes a thorough host read removal step which utilises a processed host genome.
 You can specify a host, or add your own.
-
-### Specifying a host genome
 
 By default, Hecatomb will use the human genome.
 If your sample is from a different source you will need to specify the host genome for your sample source.
@@ -101,7 +98,7 @@ So if you are working with mouse samples you would run:
 hecatomb run --reads fastq/ --host mouse
 ```
 
-### Adding your own host genome
+## Add your own host genome
 
 If the genome for the host you're working with isn't included in the available hosts, or you have a reference genome
 which you think is better, you can add it with `addHost`.
