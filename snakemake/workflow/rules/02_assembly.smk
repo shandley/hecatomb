@@ -267,7 +267,7 @@ rule concatentate_contig_count_tables:
     shell:
         """
         {{ cat {input} > {output};
-        sed -i '1i sample_id\tcontig_id\tlength\treads\tRPKM\tFPKM\tTPM\tavg_fold_cov\tcontig_GC\tcov_perc\tcov_bases\tmedian_fold_cov' {output}; \
+            sed -i '1i sample_id\tcontig_id\tlength\treads\tRPKM\tFPKM\tTPM\tavg_fold_cov\tcontig_GC\tcov_perc\tcov_bases\tmedian_fold_cov' {output};
         }} 2> {log}
         rm {log}
         """
