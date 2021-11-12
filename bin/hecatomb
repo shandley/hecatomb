@@ -67,6 +67,7 @@ parser.add_argument('--reads', help=('Either directory containing seq data, or T
 parser.add_argument('--configfile', help='Specify your own config file. First copy the template with "hecatomb config".')
 parser.add_argument('--test', help='Use the test dataset (ignores --reads)', action='store_true')
 parser.add_argument('--skipAssembly', help="Don't perform an assembly", action='store_true', default=False)
+parser.add_argument('--report', help='Generate a run report', action='store_true', default=False)
 parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
 parser.add_argument('--host', help='Host name for contaminant removal', default='human')
 parser.add_argument('--hostfa', help='Host reference (for addHost command only)')
@@ -181,9 +182,10 @@ def run():
                     f'SkipAssembly={args.skipAssembly} '
                     f'Fast={args.fast} ')
     runSnakeSys(runCommand)
-    sys.stderr.write("Generating run report\n")
-    runCommand = runCommand + ' --report'
-    runSnakeSys(runCommand)
+    if args.report:
+        sys.stderr.write("Generating run report\n")
+        runCommand = runCommand + ' --report'
+        runSnakeSys(runCommand)
     return None
 
 
