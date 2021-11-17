@@ -43,7 +43,7 @@ hecatomb run --reads fastq/ --threads 64
 
 If you're running on a HPC cluster, you should first set up a 
 [Snakemake Profile](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles).
-[More info and example for Hecatomb here](advanced.md#profiles-for-hpc-clusters).
+[More info and example for Hecatomb here](configuration.md#profiles-for-hpc-clusters).
 Then you would specify your profile name when running Hecatomb.
 Assuming your profile is called `slurm`:
 
@@ -71,7 +71,6 @@ In limited testing, we find it performs almost as well but with considerable run
 ```bash
 hecatomb run --reads fastq/ --profile slurm --fast
 ```
-
 
 ## Specifying a host genome
 

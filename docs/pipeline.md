@@ -1,3 +1,17 @@
+## Snakemake
+
+The Hecatomb pipeline is powered by [Snakemake](https://snakemake.readthedocs.io/) 
+and makes extensive use of [Conda](https://docs.conda.io/en/latest/).
+It comes preconfigured and includes a launcher script to make running the pipeline simple.
+We chose to use Snakemake over other workflow managers largely because of our extensive experience with it.
+Snakemake does a lot of heavy lifting to make our lives easier, and the pipeline better.
+It manages all the pipeline jobs, as well as generates benchmarks and reports for everything, allows the pipeline to 
+be naturally reentrant, parallel, portable, robust, containerised, and many other buzzwords!
+
+![](img/hecatombSnakemake.png)
+
+## Overview
+
 The pipeline consists of three main sections: Read preprocessing, Virus identification, and Assembly.
 
 ![](img/hecatombPipeline.png)
@@ -58,15 +72,3 @@ The assembly contigs are directly annotated with MMSeqs.
 The assembly is also subject to a pseudo consensus annotation approach whereby the SeqTable sequences are mapped and their
 Taxonomic assignments in the BigTable are combined with the read mapping information.
 We find this useful with investigating the origins of contigs of interest.
-
-## Snakemake
-
-The Hecatomb pipeline is powered by [Snakemake](https://snakemake.readthedocs.io/).
-It comes preconfigured and includes a launcher script to make running the pipeline simple.
-We chose to use Snakemake over other workflow managers largely because of our extensive experience with it.
-Snakemake does a lot of heavy lifting to make our lives easier, and the pipeline better.
-It manages all the pipeline jobs, as well as generates benchmarks and reports for everything, allows the pipeline to 
-be naturally reentrant, parallel, portable, robust, containerised, and many other buzzwords!
-
-![](img/hecatombSnakemake.png)
-

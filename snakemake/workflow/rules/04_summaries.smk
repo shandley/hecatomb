@@ -11,6 +11,8 @@ rule tax_level_counts:
             category = "Output")
     params:
         samples = list(SAMPLES)
+    log:
+        os.path.join(STDERR, 'tax_level_counts.log')
     resources:
         mem_mb=MiscMem
     threads:

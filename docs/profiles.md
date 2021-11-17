@@ -1,52 +1,45 @@
-This tutorial will walk through the process of running Hecatomb and performing some preliminary plots and analyses in both R and Python.
+## About Snakemake profiles
 
-## System information
+Snakemake profiles are a must-have for running Snakemake pipelines on HPC clusters.
+While they can be a pain to set up, you only need to do this once and then life is easy.
+**If you just want to get up and running with as little effort as possible, [see the tutorial below](profiles.md#profile-installation-examples).**
 
-For this tutorial I'll be running Hecatomb on a 16-core/32-thread workstation with 64 GB of RAM running Ubuntu 18.04 LTS.
-While this is fine for smaller datasets it is highly recommended using a HPC cluster or server with more CPUs and RAM for larger datasets.
+For more information, check the [Snakemake documentation on profiles](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles), 
+or our recent [blog post on Snakemake profiles](https://fame.flinders.edu.au/blog/2021/08/02/snakemake-profiles-updated).
 
-## New install
+## Profiles for Hecatomb
 
-```bash
-# create new conda env and install hecatomb
-conda create -n hecatomb -c conda-forge -c bioconda hecatomb
+Hecatomb ships with an example profile for the Slurm workload manager in `hecatomb/snakemake/profile/example_slurm/`.
+The example _profile_ `config.yaml` file (not to be confused with the _Hecatomb_ config file) contains all the Snakemake 
+options for jobs that are submitted to the scheduler.
+Hecatomb expects the following in the cluster command:
 
-# activate env
-conda activate hecatomb
+ - `resources.time` for time in minutes
+ - `resources.mem_mb` for requested memory in Mb
+ - `threads` for requested CPUs
+ 
+We have tried to use what we believe is the most common nomenclature for these variables in Snakemake pipelines 
+in the hopes that Hecatomb is compatible with existing Snakemake profiles and the available 
+[Cookiecutter profiles for Snakemake](https://github.com/Snakemake-Profiles).
 
-# install the database files
-hecatomb install
-```
+We recommend redirecting STDERR and STDOUT messages to log files using the Snakemake variables `{rule}` and `{jobid}`, 
+for instance like this `--output=logs/{rule}/{jobid}.out`.
+You should also prepend the scheduler command with a command to make the log directories in case they don't exists
+(it can cause errors for some schedulers), in this example like so: `mkdir -p logs/{rule}/ && sbatch ...`. 
+This will make troubleshooting easier for jobs that fail due to scheduler issues.
 
-## Run Hecatomb
+The example profile includes a 'watcher' script.
+Snakemake won't always pick up when a scheduler prematurely terminates a job, which is why we need a watcher script.
+This line in the config file tells Snakemake how to check on the status of a job:
+`cluster-status: ~/.config/snakemake/slurm/slurm-status.py` (be sure to check and update your file path).
+The `slurm-status.py` script will query the scheduler with the jobid and report back to Snakemake on the job's status.
 
-We will run hecatomb on the included test dataset, using the fast MMSeqs settings with 32 threads 
-(which is the default anyway). This will give us an assembly and some read annotations.
-
-```bash
-Hecatomb run --test --threads 32 --fast
-```
-
-We should now have all the files we need!
-
-TODO: finish tutorial
-
-## Hecatomb run report
-
-## Analysis and plotting in R and Python
-
-### Dependencies
-
-### Plotting and filtering
-
-### Statistical tests
-
-## Snakemake profiles
+## Profile installation examples
 
 We'll walk through two ways to set up a profile for the Slurm workload manager.
 If your HPC uses a different workload manager, the process of installing a profile will be similar but different.
 
-### Copy an example profile
+## Copy an example profile
 
 We have provided an example profile for the Slurm workload manager that should work for most HPCs using Slurm.
 Snakemake will look for profiles in your home directory at:
@@ -86,7 +79,7 @@ You can now use this profile with hecatomb:
 hecatomb run --test --fast --profile slurm
 ```
 
-### Create a profile with cookiecutter
+## Create a profile with cookiecutter
 
 Cookiecutter is a nifty tool for creating projects using a template.
 For Snakemake profiles, Cookiecutter takes away a lot of the manual configuration steps involved with setting up a profile for a specific scheduler.

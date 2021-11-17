@@ -1,7 +1,16 @@
-As mentioned above, Hecatomb uses a multi-stage search strategy that utilises a processed reference host genome for preprocessing,
-and both amino acid and nucleotide databases for viral annotation.
+A complete list of all database files is available in the Hecatomb `config.yaml` file.
+
+## Contaminants
+
+`databases/contaminants/`
+
+This database consists of a collection of NEBNext and TruSeq adapters, primerB sequences, 
+and a collection of cloning vectors that are common sources of false positives. 
+These sequences are used in preprocessing to trim reads of non-biological contaminant sequences.
 
 ## Host genomes
+
+`databases/host/`
 
 Contamination of viral metagenomes by host DNA can be a significant burden and source of false positive in viral annotation.
 We use a host reference genome to filter out any host reads prior to annotation.
@@ -12,6 +21,8 @@ Hecatomb comes with several processed host genomes and a tool for users to add t
 See [Adding your own host genome](usage.md#adding-your-own-host-genome) for more info.
 
 ## Amino acid databases
+
+`databases/aa/`
 
 **Primary AA**
 
@@ -29,6 +40,8 @@ TODO ...
 
 ## Nucleotide databases
 
+`databases/nt/`
+
 **Primary NT**
 
 The primary NT database is used to quickly identify any viral-like reads that were not identified in the primary AA search.
@@ -38,3 +51,17 @@ TODO ...
 
 The secondary NT database is used to check if the viral-like reads (from the primary NT search) have a better non-viral match.
 TODO ...
+
+## Taxonomy
+
+`databases/tax/`
+
+Hecatomb utilises the NCBI taxonomy database (taxdump) with [TaxonKit](https://github.com/shenwei356/taxonkit) 
+for converting taxon IDs into complete lineages for the output bigtable.
+
+## Tables
+
+`databases/tables/`
+
+These are a collection of supplementary tables.
+Primarily, the Baltimore classifications are provided here to be merged with the bigtable annotations.
