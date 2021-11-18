@@ -26,7 +26,18 @@ There was more metadata associated with the original samples but 'vaccine' and '
 
 ## Merge in the metadata
 
-<merge and inspect new dataframe ######################################3
+Merging in your metadata is easy.
+
+The merge function with perform an inner join by default, or you can specify outer, and left- and right-outer.
+This shouldn't matter if you have metadata for all of your samples.
+
+```R
+# save the merged tables to a new dataframe
+dataMeta = merge(data, meta, by='sampleID')
+
+# If your metadata is incomplete and you want to keep all samples
+dataMeta = merge(data, meta, by='sampleID', all=T)
+```
 
 ## Preliminary bigtable plots
 
@@ -34,7 +45,7 @@ Let's look at the raw alignments.
 First, extract the viral hits to a new data frame. 
 
 ```R
-viruses = data %>% filter(kingdom=="Viruses")
+viruses = dataMeta %>% filter(kingdom=="Viruses")
 ```
 
 I like to plot the alignment length against identity, and facet by viral family.
