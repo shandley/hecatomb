@@ -172,4 +172,4 @@ or ignore top hit annotations if there are no accompanying LCA-based annotations
 
 **Filter your raw viral hits to only keep protein hits with an evalue < 1e-10**
 
-Save it to `virusesFiltered` and move on to [Part 3: visualising annotations](tutorialPt2.md).
+Save it to `virusesFiltered` and move on to [Part 3: visualising annotations](tutorialPt3.md).

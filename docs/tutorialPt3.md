@@ -1,4 +1,4 @@
-
+This section assumes you have finished Tutorials [Part 1](tutorialPt1.md) and [Part 2](tutorialPt2.md)
 
 ## Unfiltered taxon counts
 
@@ -76,9 +76,9 @@ These count tables we will use for plotting and some statistical comparisons.
 # Visualising groups
 
 We have a few viral families that are very prominent in our samples.
-Let's see if we can predict viral loads according to our sample groups.
+Let's see if there is a difference in viral loads according to our sample groups.
 Collect sample counts for _Microviridae_.
-Include the metadata group in `group_by()` so you can use it later.
+Include the metadata group in `group_by()` so you can use it in the plot.
 
 ```R
 microCounts = virusesFiltered %>% 
@@ -90,7 +90,7 @@ microCounts = virusesFiltered %>%
 And plot. I like jitter plots but boxplots or violin plots might work better if you have hundreds of samples.
 
 ```R
-ggplot(myoCounts) +
+ggplot(microCounts) +
     geom_jitter(aes(x=MacGuffinGroup,y=n),width = 0.1) +
     theme_bw()
 ```
@@ -119,4 +119,4 @@ ggplot(podoCounts) +
 **Could gender be a good predictor of viral load for these families?**
 
 While the MacGuffinGroup looks promising for _Podoviridae_, 
-we'll need to [move on to Part 3: statistical tests](#) to find out for sure. 
+we'll need to [move on to Part 4: statistical tests](tutorialPt4.md) to find out for sure. 

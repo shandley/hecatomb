@@ -83,12 +83,19 @@ Alternatively, you can install the whole tidyverse with:
 install.packages("tidyverse")
 ```
 
+We'll also need 'rstatix' for some of the statistical tests:
+
+```R
+install.packages("rstatix")
+```
+
 Once installed, load the packages:
 
 ```R
 library(tidyr)
 library(dplyr)
 library(ggplot2)
+library(rstatix)
 ```
 
 ## Load the data
@@ -110,7 +117,7 @@ meta=read.csv('metadata.tsv.gz',header=T,sep='\t')
 We'll load `taxonLevelCounts.tsv.gz` while we're at it.
 
 ```R
-taxonCounts=read.csv('taxonLevelCounts.tsv.gz',header=T,sep='\t)
+taxonCounts=read.csv('taxonLevelCounts.tsv.gz',header=T,sep='\t')
 ```
 
 Keep the `contigSeqTable.tsv.gz` file handy, we'll load that into R as well later on.
