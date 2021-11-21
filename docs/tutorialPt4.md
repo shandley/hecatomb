@@ -121,3 +121,66 @@ It seems like only _Podoviridae_ is significantly different.
 
 # Compare presence/absence
 
+You might not care about viral loads and instead are just interested in comparing the presence or absence of viruses.
+For this you could use a Fisher's exact test.
+To perform this test you need to assign a presence '1' or absence '0' for each viral family/genus/etc for each sample.
+What number of hits you use for deciding if a virus is present is up to you.
+
+I want to be sure about the alignments, so I'll apply some stringent filtering cutoffs.
+Then I'll assign anything with _any_ hits as 'present' for that viral family.
+Let's look at _Myoviridae_ ... for no particular reason.
+ 
+```R
+# apply a stringent filter
+virusesStringent = viruses %>% filter(evalue<1e-30,alnlen>150,pident>75,alnType=='aa')
+
+# count hits for Myoviridae and score presence
+# NOTE: the absent samples WONT be in the table yet, we have to add them in after
+myovirPresAbs = virusesStringent %>% 
+    filter(family=='Myoviridae') %>%
+    group_by(sampleID) %>% 
+    summarise(n=sum(normCount)) %>%
+    mutate(present=ifelse(n>0,1,0))
+
+# merge in the metadata
+# Using all=T will do an outer join and bring in the absent samples
+myovirPresAbs = merge(myovirPresAbs,meta,by='sampleID',all=T)
+
+# convert na's to zeros
+myovirPresAbs[is.na(myovirPresAbs)] = 0
+```
+
+To do the Fisher's exact test we need to specify a 2x2 grid;
+The first column will be the number with _Myoviridae_ for each group.
+The second column will be the numbers without for each group.
+
+```R
+# matrix rows
+pres = c(
+    myovirPresAbs %>% filter(MacGuffinGroup=='A',present==1) %>% summarise(n=n()) %>% pull(n),
+    myovirPresAbs %>% filter(MacGuffinGroup=='B',present==1) %>% summarise(n=n()) %>% pull(n))
+absn = c(
+    myovirPresAbs %>% filter(MacGuffinGroup=='A',present==0) %>% summarise(n=n()) %>% pull(n),
+    myovirPresAbs %>% filter(MacGuffinGroup=='B',present==0) %>% summarise(n=n()) %>% pull(n))
+
+# create the 2x2 matrix
+myovirFishMtx = matrix(c(pres,absn),nrow = 2)
+
+# Run Fisher's exact test
+fisher.test(myovirFishMtx)
+```
+
+```text
+	Fisher's Exact Test for Count Data
+
+data:  myovirFishMtx
+p-value = 0.04762
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+ 0.000000 0.975779
+sample estimates:
+odds ratio 
+         0 
+```
+
+We don't have many samples, so our significance won't be great regardless.
