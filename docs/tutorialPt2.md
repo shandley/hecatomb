@@ -22,7 +22,7 @@ View(meta)
 ![](img/tuteMetaTable.png)
 
 For the metadata table I've made sure the column header for the sample IDs are the same in both tables.
-There was more metadata associated with the original samples but 'vaccine' and 'sex' were the only variables with differences for the test subset.
+There was more metadata associated with the original samples, but we've simplified things here.
 
 ## Merge in the metadata
 
