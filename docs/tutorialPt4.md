@@ -240,3 +240,5 @@ odds ratio
 ```
 
 We don't have many samples, so our significance won't be great regardless.
+
+In [Part 5](tutorialPt5.md) we will look at the contigs' read-based annotations.
