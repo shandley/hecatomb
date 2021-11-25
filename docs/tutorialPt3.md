@@ -5,6 +5,10 @@ This section assumes you have finished Tutorials [Part 1](tutorialPt1.md) and [P
 The `taxonLevelCounts.tsv` file is intended to make it quick and easy to compare virus hit counts across samples.
 Let's take a look at it:
 
+```R
+View(taxonCounts)
+```
+
 [![](img/taxCountTable.png)](img/taxCountTable.png)
 
 The file contains the counts and normalised counts for each taxonomic level, for each sample, 
@@ -13,7 +17,8 @@ If we wanted to compare the number of Adenoviridae hits between each sample we c
 
 ```R
 # get adenoviridae counts
-adenoCounts = taxonCounts %>% filter(taxonLevel=='family',taxonName=='Adenoviridae')
+adenoCounts = taxonCounts %>% 
+    filter(taxonLevel=='family',taxonName=='Adenoviridae')
 
 # plot
 ggplot(adenoCounts) +
@@ -27,7 +32,8 @@ We can take this one step further and plot all the viral family normalised count
 
 ```R
 # get all viral family counts
-viralCounts = taxonCounts %>% filter(taxonLevel=='family',grepl('k_Viruses',taxonPath))
+viralCounts = taxonCounts %>% 
+    filter(taxonLevel=='family',grepl('k_Viruses',taxonPath))
 
 # plot
 ggplot(viralCounts) +
@@ -46,10 +52,13 @@ or normalisedCounts, e.g. at the family level:
 
 ```R
 # Answer for "Challenge: Filter your raw viral hits to only keep protein hits with an evalue < 1e-10"
-virusesFiltered = viruses %>% filter(alnType=='aa',evalue<1e-10)
+virusesFiltered = viruses %>% 
+    filter(alnType=='aa',evalue<1e-10)
 
 # collect the filtered counts
-viralFiltCounts = virusesFiltered %>% group_by(sampleID,family) %>% summarise(n = sum(normCount))
+viralFiltCounts = virusesFiltered %>% 
+    group_by(sampleID,family) %>% 
+    summarise(n = sum(normCount))
 ```
 
 Then plot again. 

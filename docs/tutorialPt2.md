@@ -45,7 +45,8 @@ Let's look at the raw alignments.
 First, extract the viral hits to a new data frame. 
 
 ```R
-viruses = dataMeta %>% filter(kingdom=="Viruses")
+viruses = dataMeta %>% 
+    filter(kingdom=="Viruses")
 ```
 
 I like to plot the alignment length against identity, and facet by viral family.
@@ -107,14 +108,16 @@ Let's see what hits would be removed if we used a fairly stringent cutoff of 1e-
 You can return a filtered dataframe like so:
 
 ```R
-virusesFiltered = viruses %>% filter(evalue<1e-20)
+virusesFiltered = viruses %>% 
+    filter(evalue<1e-20)
 ```
 
 But let's instead add a flag to the original dataframe for purging hits:
 
 ```R
 # mutate() will add or modify columns, ifelse() will return a value base on a condition
-viruses = viruses %>% mutate(filter = ifelse(evalue<1e-20,'pass','filter'))
+viruses = viruses %>% 
+    mutate(filter=ifelse(evalue<1e-20,'pass','filter'))
 ```
 
 And plot:
@@ -136,7 +139,8 @@ Going back to the quadrant concept, you might only want to keep sequences above 
 
 ```R
 # this will overwrite the flags with the new designations
-viruses = viruses %>% mutate(filter = ifelse(alnlen>150 & pident>75,'pass','filter'))
+viruses = viruses %>% 
+    mutate(filter=ifelse(alnlen>150 & pident>75,'pass','filter'))
 ```
 
 Plot with the vertical and horizontal lines to match our cutoffs:

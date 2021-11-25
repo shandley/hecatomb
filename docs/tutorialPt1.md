@@ -107,19 +107,19 @@ We will load the `bigtable.tsv.gz` into a dataframe called `data` with `load.csv
 The file is tab-separated and contains a header.
 
 ```R
-data=read.csv('bigtable.tsv.gz',header=T,sep='\t')
+data = read.csv('bigtable.tsv.gz',header=T,sep='\t')
 ```
 
 Next, we will load the `metadata.tsv.gz` file into a dataframe called `meta` in the same way.
 
 ```R
-meta=read.csv('metadata.tsv.gz',header=T,sep='\t')
+meta = read.csv('metadata.tsv.gz',header=T,sep='\t')
 ```
 
 We'll load `taxonLevelCounts.tsv.gz` while we're at it.
 
 ```R
-taxonCounts=read.csv('taxonLevelCounts.tsv.gz',header=T,sep='\t')
+taxonCounts = read.csv('taxonLevelCounts.tsv.gz',header=T,sep='\t')
 ```
 
 Keep the `contigSeqTable.tsv.gz` file handy, we'll load that into R as well later on.
