@@ -44,8 +44,21 @@ cut --complement -f8-22 bigtable.tsv > newBigtable.tsv
 Upon analysing your bigtable, you may have a collection of interesting hits that you want to investigate further.
 To retrieve the relevant sequences from your `seqtable.fasta` file you will only need a list of the sequence IDs--the first column in the bigtable.
 
-For instance, get all seqIDs for the Viral family 'Flaviviridae' and save it to a file.
+For instance, get all seqIDs for the Viral family 'Flaviviridae' and save it to a file:
 
 ```R
-# in R using tidyr/dplyr
+# in R using tidyr/dplyr get the seq IDs
+flaviviridaeSeqs = data %>% 
+    filter(family=='Flaviviridae') %>% 
+    pull(seqID)
+
+# print to a file
+lapply(flaviviridaeSeqs, write, "flavSeqIDs.list", append=TRUE, ncolumns=1)
+```
+
+Use Samtools to grab all these sequences from the seqtable.fasta file:
+
+```shell
+# in bash
+samtools faidx seqtable.fasta -r flavSeqIDs.list > flaviviridaeSeqs.fasta
 ```
