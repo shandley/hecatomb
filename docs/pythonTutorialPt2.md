@@ -4,11 +4,11 @@ and have loaded them in PyCharm into dataframes called `data` and `meta`.
 
 ## Inspect the dataframes
 
-Let's look at the bigtable file by clicking on the 'View As DataFrame' link:
+Let's look at the bigtable file by clicking on the 'View As DataFrame' link next to the 'data' DataFrame:
 
 [![](img/pythonTutDataTable.png)](img/pythonTutDataTable.png)
 
-And the metadata:
+And then look at the 'meta' DataFrame as well:
 
 ![](img/pythonTutMetaTable.png)
 
