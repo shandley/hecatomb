@@ -22,7 +22,7 @@ Merging in your metadata is easy.
 The merge function with perform an inner join by default, or you can specify outer, and left- and right-outer.
 This shouldn't matter if you have metadata for all of your samples.
 
-```R
+```python
 # save the merged tables to a new dataframe
 dataMeta = pd.merge(data, meta, on=["sampleID"])
 
@@ -35,49 +35,62 @@ dataMeta = pd.merge(data, meta, on=["sampleID"], how="outer")
 Let's look at the raw alignments.
 First, extract the viral hits to a new data frame. 
 
-```
+```python
 viruses = dataMeta[(dataMeta.kingdom == "Viruses")]
-
 ```
 
 I like to plot the alignment length against identity, and facet by viral family.
 We show the different alignment types by color, and we can scale the point size by the cluster number.
-I've added in `alpha=0.1` to set it to 10% opacity and the points will overlap a lot at this scale.
+I've added in `alpha=.1` to set it to 10% opacity and the points will overlap a lot at this scale.
 
 This is where we use the Seaborn library so include this import at the top:
 
-```
+```python
 import seaborn as sns
 import matplotlib.pyplot as plt
 ```
 
-UP TO HERE IN DOCO
+To render the scatterplot marker dots size based on count include the following:
 
+```python
+virusesGroup = viruses.groupby(by=['family','alnType','alnlen','pident'], as_index=False).count()
+sizeScatter = 10 * virusesGroup['count']
 ```
-## still to do more here
-g = sns.FacetGrid(viruses, col="family", hue="alnType", margin_titles=True)
-g.map(sns.scatterplot, "alnlen", "pident", alpha=.1)
+
+Next is to create the FacetGrid so we can display the scatterplot by family:
+
+```python
+sns.set_style("darkgrid")
+sns.set_palette("colorblind")
+g = sns.FacetGrid(virusesGroup, col="family", hue="alnType", col_wrap=7)
+```
+
+And then create the plot:
+```python
+g.map(sns.scatterplot, "alnlen", "pident", alpha=.1, sizes=(100,500), size=sizeScatter)
+plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
 plt.show()
 ```
 
-[![](img/tuteAlnPidFam.png)](img/tuteAlnPidFam.png)
+
+[![](img/pythonTutAlnPidFam.png)](img/pythonTutAlnPidFam.png)
 
 We can immediately see that a handful of viral families make up a majority of the viral hits.
 You can use these plots to help guide filtering strategies.
 We can divide the alignments into 'quadrants' by adding alignment length and percent identity thresholds,
 for instance alignment length of 150 and percent identity of 75. 
 
-```R
-ggplot(viruses) +
-    geom_point(
-        aes(x=alnlen,y=pident,color=alnType,size=count),
-        alpha=0.1) +
-    facet_wrap(~family) +
-    geom_vline(xintercept=150,colour='red',linetype='longdash') +
-    geom_hline(yintercept=75,colour='red',linetype='longdash')
+```python
+g.map(sns.scatterplot, "alnlen", "pident", alpha=.1, sizes=(100,500), size=sizeScatter)
+for ax in g.axes.flat:
+    ax.tick_params(axis='both', labelleft=True, labelbottom=True)
+    ax.axhline(y=75, c='red', linestyle='dashed', label="_horizontal")
+    ax.axvline(x=150, c='red', linestyle='dashed', label="_vertical")
+plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
+plt.show()
 ```
 
-[![](img/tuteAlnPidFamQuad.png)](img/tuteAlnPidFamQuad.png)
+[![](img/pythonTutAlnPidFamQuad.png)](img/pythonTutAlnPidFamQuad.png)
 
 We can see that for Adenoviridae and Parvoviridae the majority of hits occupy the top two quadrants, 
 and we can be reasonably confident about these alignments.
@@ -106,55 +119,52 @@ Let's see what hits would be removed if we used a fairly stringent cutoff of 1e-
 
 You can return a filtered dataframe like so:
 
-```R
-virusesFiltered = viruses %>% 
-    filter(evalue<1e-20)
+```python
+virusesFiltered = viruses[viruses.evalue<1e-20]
 ```
 
 But let's instead add a flag to the original dataframe for purging hits:
 
-```R
-# mutate() will add or modify columns, ifelse() will return a value base on a condition
-viruses = viruses %>% 
-    mutate(filter=ifelse(evalue<1e-20,'pass','filter'))
+```python
+# assign() will add or modify columns, np.where() will return a value base on a condition
+viruses = viruses.assign(filter = np.where(viruses.evalue<1e-20,'pass','filter'))
 ```
 
 And plot:
 
-```R
-ggplot(viruses) +
-    geom_point(
-        aes(x=alnlen,y=pident,color=filter),
-        alpha=0.2) +
-    facet_wrap(~family)
+```python
+#change the group by line to add in the new filter column
+virusesGroup = viruses.groupby(by=['family','alnType','alnlen','pident','filter'], as_index=False).count()
+#plot with hue=filter
+g = sns.FacetGrid(virusesGroup, col="family", hue="filter", col_wrap=7)
+g.map(sns.scatterplot, "alnlen", "pident", alpha=.1)
 ```
 
-[![](img/tuteVirEvalFilt.png)](img/tuteVirEvalFilt.png)
+[![](img/pythonTutVirEvalFilt.png)](img/pythonTutVirEvalFilt.png)
 
-The orange (or red?) sequences are destined to be removed, while the blue-green sequences will be kept.
+The blue sequences are destined to be removed, while the orange sequences will be kept.
 Some viral families will be removed altogether, which is probably a good thing if they only have low quality hits.
 
 Going back to the quadrant concept, you might only want to keep sequences above a certain length and percent identity:
 
-```R
+```python
 # this will overwrite the flags with the new designations
-viruses = viruses %>% 
-    mutate(filter=ifelse(alnlen>150 & pident>75,'pass','filter'))
+viruses = viruses.assign(filter = np.where((viruses.alnlen>150) & (viruses.pident>75),'pass','filter'))
 ```
 
 Plot with the vertical and horizontal lines to match our cutoffs:
 
-```R
-ggplot(viruses) +
-    geom_point(
-        aes(x=alnlen,y=pident,color=filter),
-        alpha=0.2) +
-    facet_wrap(~family) +
-    geom_vline(xintercept=150,colour='red',linetype='longdash') +
-    geom_hline(yintercept=75,colour='red',linetype='longdash')
+```python
+g.map(sns.scatterplot, "alnlen", "pident", alpha=.1, sizes=(100,500), size=sizeScatter)
+for ax in g.axes.flat:
+    ax.tick_params(axis='both', labelleft=True, labelbottom=True)
+    ax.axhline(y=75, c='red', linestyle='dashed', label="_horizontal")
+    ax.axvline(x=150, c='red', linestyle='dashed', label="_vertical")
+plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
+plt.show()
 ```
 
-[![](img/tuteVirLenFilt.png)](img/tuteVirLenFilt.png)
+[![](img/pythonTutVirLenFilt.png)](img/pythonTutVirLenFilt.png)
 
 There are many alignment metrics included in the bigtable for you to choose from.
 
@@ -175,4 +185,4 @@ or ignore top hit annotations if there are no accompanying LCA-based annotations
 
 **Filter your raw viral hits to only keep protein hits with an evalue < 1e-10**
 
-Save it to `virusesFiltered` and move on to [Part 3: visualising annotations](tutorialPt3.md).
+Save it to `virusesFiltered` and move on to [Part 3: visualising annotations](pythonTutorialPt3.md).

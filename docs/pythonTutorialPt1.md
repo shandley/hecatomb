@@ -76,6 +76,7 @@ Assuming you have installed Python and PyCharm for your operating system, you sh
 # in PyCharm
 pip install seaborn
 pip install pandas
+pip install numpy
 ```
 
 If you run into an error message 'matplotlib: RuntimeError: Python is not installed as a framework' on a Mac, the creation of a file in ~/.matplotlib/matplotlibr as per [this article](https://stackoverflow.com/questions/34977388/matplotlib-runtimeerror-python-is-not-installed-as-a-framework) fixed this issue.
@@ -90,26 +91,29 @@ Make sure you set your working directory and have downloaded the files into this
 
 Always make sure to include the following at the start to load the Pandas library
 
-```
+```python
 import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 ```
 
 We will load the `bigtable.tsv.gz` into a dataframe called `data` with `pd.read_csv`.
 The file is tab-separated and contains a header.
 
-```
+```python
 data = pd.read_csv('bigtable.tsv.gz',compression='gzip',header=1,sep='\t')
 ```
 
 Next, we will load the `metadata.tsv.gz` file into a dataframe called `meta` in the same way.
 
-```
+```python
 meta = pd.read_csv('metadata.tsv.gz',compression='gzip',header=1,sep='\t')
 ```
 
 We'll load `taxonLevelCounts.tsv.gz` while we're at it.
 
-```
+```python
 taxonCounts = pd.read_csv('taxonLevelCounts.tsv.gz',compression='gzp',header=1,sep='\t')
 ```
 
