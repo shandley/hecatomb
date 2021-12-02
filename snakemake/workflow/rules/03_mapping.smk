@@ -49,5 +49,7 @@ rule contig_read_taxonomy:
         os.path.join(BENCH, 'contig_read_taxonomy.txt')
     log:
         os.path.join(STDERR, 'contig_read_taxonomy.log')
+    conda:
+        os.path.join('..', 'envs', 'pysam.yaml')
     script:
         os.path.join('..', 'scripts', 'contigReadTaxon.py')
