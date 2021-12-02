@@ -86,5 +86,5 @@ All of Hecatomb's dependencies are installed during installation or runtime, so 
 ### Links
 
 [Hecatomb @ bio.tools](https://bio.tools/hecatomb)
-
+[Hecatomb @ WorkflowHub](https://workflowhub.eu/workflows/235)
 
