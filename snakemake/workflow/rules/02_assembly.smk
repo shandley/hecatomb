@@ -64,9 +64,196 @@ rule individual_sample_assembly:
         "../envs/megahit.yaml"
     shell:
         """
-        rmdir {params.mh_dir}
+        if [ -d {params.mh_dir} ]; then
+            rm -rf {params.mh_dir}
+        fi
         megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
             -o {params.mh_dir} --out-prefix {wildcards.sample} \
+            --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
+        rm {log}
+        """
+
+rule mapSampleAssemblyPairedReads:
+    """Map the sample paired reads to the sample assembly"""
+    input:
+        r1 = os.path.join(TMPDIR,"p07","{sample}_R1.unmapped.fastq"),
+        r2 = os.path.join(TMPDIR,"p07","{sample}_R2.unmapped.fastq"),
+        contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa")
+    output:
+        temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.pe.bam'))
+    conda:
+        os.path.join('..', 'envs', 'minimap2.yaml')
+    threads:
+        BBToolsCPU
+    resources:
+        mem_mb = BBToolsMem
+    log:
+        os.path.join(STDERR, 'sampleAssemblyMapPe.{sample}.log')
+    benchmark:
+        os.path.join(BENCH, 'sampleAssemblyMapPe.{sample}.txt')
+    shell:
+        """
+        minimap2 -t {threads} -ax sr {input.contigs} {input.r1} {input.r2} | \
+            samtools sort -n -o {output[0]}
+        """
+
+rule mapSampleAssemblyUnpairedReads:
+    """Map the sample unpaired reads to the sample assembly"""
+    input:
+        r1s = os.path.join(TMPDIR,"p07","{sample}_R1.singletons.fastq"),
+        r2s = os.path.join(TMPDIR,"p07","{sample}_R2.singletons.fastq"),
+        contigs= os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fa")
+    output:
+        temp(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
+    conda:
+        os.path.join('..', 'envs', 'minimap2.yaml')
+    threads:
+        BBToolsCPU
+    resources:
+        mem_mb = BBToolsMem
+    log:
+        os.path.join(STDERR, 'sampleAssemblyMapS.{sample}.log')
+    benchmark:
+        os.path.join(BENCH, 'sampleAssemblyMapS.{sample}.txt')
+    shell:
+        """
+        minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} {input.r2s} | \
+            samtools sort -n | \
+            samtools view -b -f4 | \
+            bamToFastq -i - -fq {output[0]}
+        """
+
+rule pullPairedUnmappedReads:
+    """Grab the paired unmapped reads (neither pair mapped)"""
+    input:
+        os.path.join(ASSEMBLY,'{sample}','{sample}.pe.bam')
+    output:
+        r1 = temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R1.fastq')),
+        r2 = temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R2.fastq'))
+    conda:
+        os.path.join('..','envs','samtools.yaml')
+    threads:
+        BBToolsCPU
+    resources:
+        mem_mb = BBToolsMem
+    log:
+        os.path.join(STDERR, 'pullPairedUnmappedReads.{sample}.log')
+    benchmark:
+        os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
+    shell:
+        """
+        samtools view -bf77 {input} | bamToFastq -i - -fq {output.r1}
+        samtools view -bf141 {input} | bamToFastq -i - -fq {output.r2}
+        """
+
+rule pullPairedUnmappedReadsMateMapped:
+    """Grab the paired unmapped reads (mate is mapped)"""
+    input:
+        os.path.join(ASSEMBLY,'{sample}','{sample}.pe.bam')
+    output:
+        temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped.pe.s.fastq'))
+    conda:
+        os.path.join('..','envs','samtools.yaml')
+    threads:
+        BBToolsCPU
+    resources:
+        mem_mb = BBToolsMem
+    log:
+        os.path.join(STDERR, 'pullPairedUnmappedReads.{sample}.log')
+    benchmark:
+        os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
+    shell:
+        """
+        samtools view -b -f5 -F8 {input[0]} | bamToFastq -i - -fq {output[0]}
+        """
+
+rule poolR1Unmapped:
+    """Concatenate the unmapped, paired R1 reads for all samples"""
+    input:
+        expand(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R1.fastq'), sample=SAMPLES)
+    output:
+        temp(os.path.join(ASSEMBLY, 'unmapRescue_R1.fastq'))
+    shell:
+        """cat {input} > {output}"""
+
+rule poolR2Unmapped:
+    """Concatenate the unmapped, paired R2 reads for all samples"""
+    input:
+        expand(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R2.fastq'), sample=SAMPLES)
+    output:
+        temp(os.path.join(ASSEMBLY, 'unmapRescue_R2.fastq'))
+    shell:
+        """cat {input} > {output}"""
+
+rule poolUnpairedUnmapped:
+    """Concatenate the unmapped, unpaired reads for all samples"""
+    input:
+        expand(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.{sPe}.fastq'), sample=SAMPLES, sPe = ['s','pe.s'])
+    output:
+        temp(os.path.join(ASSEMBLY, 'unmapRescue.s.fastq'))
+    shell:
+        """cat {input} > {output}"""
+
+rule rescue_read_kmer_normalization:
+    """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
+    input:
+        r1 = os.path.join(ASSEMBLY, 'unmapRescue_R1.fastq'),
+        r2 = os.path.join(ASSEMBLY, 'unmapRescue_R2.fastq'),
+        s = os.path.join(ASSEMBLY, 'unmapRescue.s.fastq')
+    output:
+        r1_norm = temp(os.path.join(ASSEMBLY, 'unmapRescueNorm_R1.fastq')),
+        r2_norm = temp(os.path.join(ASSEMBLY, 'unmapRescueNorm_R2.fastq'))
+    benchmark:
+        os.path.join(BENCH, "rescue_read_kmer_normalization.txt")
+    log:
+        os.path.join(STDERR, "rescue_read_kmer_normalization.log")
+    resources:
+        mem_mb = BBToolsMem
+    threads:
+        BBToolsCPU
+    conda:
+        "../envs/bbmap.yaml"
+    shell:
+        """
+        bbnorm.sh in={input.r1} in2={input.r2} \
+            extra={input.s} \
+            out={output.r1_norm} out2={output.r2_norm} \
+            target=100 \
+            ow=t \
+            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+        rm {log}
+        """
+
+rule unmapped_read_rescue_assembly:
+    """Assemble the unmapped reads from all samples
+
+    Megahit: https://github.com/voutcn/megahit
+    """
+    input:
+        r1_norm = os.path.join(ASSEMBLY, 'unmapRescueNorm_R1.fastq'),
+        r2_norm = os.path.join(ASSEMBLY, 'unmapRescueNorm_R2.fastq'),
+        s = os.path.join(ASSEMBLY, 'unmapRescue.s.fastq')
+    output:
+        contigs = os.path.join(ASSEMBLY, 'rescue', "rescue.contigs.fa")
+    params:
+        mh_dir = directory(os.path.join(ASSEMBLY, 'rescue'))
+    benchmark:
+        os.path.join(BENCH, "unmapped_read_rescue_assembly.txt")
+    log:
+        os.path.join(STDERR, "unmapped_read_rescue_assembly.log")
+    resources:
+        mem_mb = MhitMem
+    threads:
+        MhitCPU
+    conda:
+        "../envs/megahit.yaml"
+    shell:
+        """
+        if [ -d {params.mh_dir} ]; then
+            rm -rf {params.mh_dir}
+        fi
+        megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.s} \
+            -o {params.mh_dir} --out-prefix rescue \
             --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
         rm {log}
         """
@@ -74,7 +261,8 @@ rule individual_sample_assembly:
 rule concatenate_contigs:
     """Assembly step 03: Concatenate individual assembly outputs (contigs) into a single file"""
     input:
-        expand(os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"), sample=SAMPLES)
+        expand(os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"), sample=SAMPLES),
+        os.path.join(ASSEMBLY,'rescue',"rescue.contigs.fa")
     output:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
     benchmark:
