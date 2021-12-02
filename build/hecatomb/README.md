@@ -19,3 +19,8 @@ We copy the contents of `bin/` and `snakemake/` which are all that is required t
 The `test_data/` files are copied as they are required for running the Hecatomb tests.
 We also copy `docs/` and `mkdocs.yaml` if the user wants to build a local copy of the documentation 
 (they would need to separately install mkdocs).
+
+## Requirements
+
+Use this to build the conda env that would be generated from a bioconda install. 
+Used for checking dependency versions etc for bioconda installation.
