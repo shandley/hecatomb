@@ -61,8 +61,8 @@ Now copy the files for the example slurm profile
 # go to your new profile directory
 cd ~/.config/snakemake/slurm/
 # copy the files (either from GitHub or from where you installed Hecatomb)
-wget https://github.com/shandley/hecatomb/blob/ec1c62cfaddf29ade68cf4f33f4991fa07f9e6e0/snakemake/profile/example_slurm/config.yaml
-wget https://github.com/shandley/hecatomb/blob/ec1c62cfaddf29ade68cf4f33f4991fa07f9e6e0/snakemake/profile/example_slurm/slurm-status.py
+wget https://raw.githubusercontent.com/shandley/hecatomb/ec1c62cfaddf29ade68cf4f33f4991fa07f9e6e0/snakemake/profile/example_slurm/config.yaml
+wget https://raw.githubusercontent.com/shandley/hecatomb/ec1c62cfaddf29ade68cf4f33f4991fa07f9e6e0/snakemake/profile/example_slurm/slurm-status.py
 ```
 
 This example includes the necessary `config.yaml` file for profiles and a watcher script called `slurm-status.py`.
