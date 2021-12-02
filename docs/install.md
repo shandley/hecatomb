@@ -1,5 +1,3 @@
-# Installing and testing Hecatomb
-
 ## System requirements
 
 We have set some sensible defaults for Hecatomb on the following minimum recommended system requirements:
@@ -23,7 +21,7 @@ Install Hecatomb via conda:
 
 ```bash
 # This command will create a new conda env called 'hecatomb' and will install Hecatomb and all of it's dependencies.
-conda create -n hecatomb -c conda-forge -c bioconda -c beardymcjohnface hecatomb
+conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 ```
 
 That's it!
@@ -36,15 +34,15 @@ conda activate hecatomb
 hecatomb -h
 ```
 
-## Advanced customisation
+## Customisation
 
 If you're running Hecatomb on a cluster it is highly recommended to use Snakemake profiles 
-([Running Hecatomb with a Snakemake profile](advanced.md#profiles-for-hpc-clusters)).
+([Set up a profile for Snakemake](profiles.md)).
 
 You may also want to customise the available resources for your system, whether you're using a cluster or running 
-locally ([Advanced configuration](advanced.md#changing-the-hecatomb-configuration)).
+locally ([Advanced configuration](configuration.md)).
 
-## Download the Hecatomb databases
+## Download the databases
 
 Before running Hecatomb for the first time you will need to download the databases.
 You will only need to do this step once (unless we update the databases).

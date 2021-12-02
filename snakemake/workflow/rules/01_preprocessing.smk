@@ -32,8 +32,6 @@ rule remove_5prime_primer:
         os.path.join(BENCH, "remove_5prime_primer.{sample}.txt")
     log:
         os.path.join(STDERR, "remove_5prime_primer.{sample}.log")
-    group:
-        'preprocessing'
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -71,8 +69,6 @@ rule remove_3prime_contaminant:
         os.path.join(BENCH, "remove_3prime_contaminant.{sample}.txt")
     log:
         os.path.join(STDERR, "remove_3prime_contaminant.{sample}.log")
-    group:
-        'preprocessing'
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -108,8 +104,6 @@ rule remove_primer_free_adapter:
         os.path.join(BENCH, "remove_primer_free_adapter.{sample}.txt")
     log:
         os.path.join(STDERR, "remove_primer_free_adapter.{sample}.log")
-    group:
-        'preprocessing'
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -145,8 +139,6 @@ rule remove_adapter_free_primer:
         os.path.join(BENCH, "remove_adapter_free_primer.{sample}.txt")
     log:
         os.path.join(STDERR, "remove_adapter_free_primer.{sample}.log")
-    group:
-        'preprocessing'
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -178,8 +170,6 @@ rule remove_vector_contamination:
         os.path.join(BENCH, "remove_vector_contamination.{sample}.txt")
     log:
         os.path.join(STDERR, "remove_vector_contamination.{sample}.log")
-    group:
-        'preprocessing'
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -213,8 +203,6 @@ rule remove_low_quality:
         os.path.join(BENCH, "remove_low_quality.{sample}.txt")
     log:
         os.path.join(STDERR, "remove_low_quality.{sample}.log")
-    group:
-        'preprocessing'
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -279,8 +267,6 @@ rule host_removal_mapping:
         mm = os.path.join(STDERR, "host_removal_mapping.{sample}.minimap.log"),
         sv = os.path.join(STDERR, "host_removal_mapping.{sample}.samtoolsView.log"),
         fq = os.path.join(STDERR, "host_removal_mapping.{sample}.samtoolsFastq.log")
-    group:
-        'preprocessing'
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -309,8 +295,6 @@ rule nonhost_read_repair:
         os.path.join(BENCH, "nonhost_read_repair.{sample}.txt")
     log:
         os.path.join(STDERR, "nonhost_read_repair.{sample}.log")
-    group:
-        'preprocessing'
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -344,8 +328,6 @@ rule nonhost_read_combine:
         os.path.join(BENCH, "nonhost_read_combine.{PATTERN}.txt")
     log:
         os.path.join(STDERR, "nonhost_read_combine.{PATTERN}.log")
-    group:
-        'preprocessing'
     shell:
         """
         {{ cat {input.sr1} {input.or1} > {output.t1};
@@ -368,8 +350,6 @@ rule remove_exact_dups:
         os.path.join(BENCH, "remove_exact_dups.{sample}.txt")
     log:
         os.path.join(STDERR, "remove_exact_dups.{sample}.log")
-    group:
-        'preprocessing'
     resources:
         mem_mb = BBToolsMem
     threads:
@@ -406,8 +386,6 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
         os.path.join(STDERR, "cluster_similar_sequences.{sample}.log")
     resources:
         mem_mb = MMSeqsMem
-    group:
-        'cluster'
     threads:
         MMSeqsCPU
     conda:
@@ -437,8 +415,6 @@ rule create_individual_seqtables:
         os.path.join(BENCH, "individual_seqtables.{sample}.txt")
     log:
         os.path.join(STDERR, "individual_seqtables.{sample}.txt")
-    group:
-        'cluster'
     resources:
         mem_mb = MMSeqsMem
     threads:

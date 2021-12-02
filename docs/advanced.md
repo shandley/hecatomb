@@ -1,249 +1,64 @@
-# Advanced options for Hecatomb
-If you're running Hecatomb on a HPC cluster, we absolutely recommend setting up a 
-[Snakemake profile](advanced.md#snakemake-profiles-for-hpc-clusters).
+## Prefilter the bigtable
 
-There are many parameters that can be changed to tailor the pipeline to your system, 
-or to tweak the pipeline's filtering.
+If your bigtable is too big, you can remove the stuff you don't want using the linux command line before loading it into R or Python.
 
-We also recommend reviewing the Snakemake `config.yaml` file in your Hecatomb installation directory.
-The config file will be at `hecatomb/snakemake/config/config.yaml` and you can find your installation directory with:
+**Remove low quality hits**
+
+Use `awk` to apply evalue/bitscore/alignemnt lenght/etcetera cutoffs:
 
 ```bash
-which hecatomb
+# copy the header for your new file
+head -1 bigtable.tsv > newBigtable.tsv
+
+# filter low quality hits, e.g. using an evalue cutoff of say 1e-20
+awk -F '\t' '$7<1e-20' bigtable.tsv >> newBigtable.tsv
 ```
 
-## Profiles for HPC clusters
+**Remove irrelevant hits**
 
-Snakemake profiles are a must-have for running Snakemake pipelines on HPC clusters.
-While they can be a pain to set up, you only need to do this once and then life is easy.
-**If you just want to get up and running with as little effort as possible, 
-check out [the tutorial on creating a profile](tutorial.md#snakemake-profiles).**
-
-For more information, check the [Snakemake documentation on profiles](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles), 
-or our recent [blog post on Snakemake profiles](https://fame.flinders.edu.au/blog/2021/08/02/snakemake-profiles-updated).
-
-Hecatomb ships with an example profile for the Slurm workload manager in `hecatomb/snakemake/profile/example_slurm/`.
-The example _profile_ `config.yaml` file (not to be confused with the _Hecatomb_ config file) contains all the Snakemake 
-options for jobs that are submitted to the scheduler.
-Hecatomb expects the following in the cluster command:
-
- - `resources.time` for time in minutes
- - `resources.mem_mb` for requested memory in Mb
- - `threads` for requested CPUs
- 
-We have tried to use what we believe is the most common nomenclature for these variables in Snakemake pipelines 
-in the hopes that Hecatomb is compatible with existing Snakemake profiles and the available 
-[Cookiecutter profiles for Snakemake](https://github.com/Snakemake-Profiles).
-
-We recommend redirecting STDERR and STDOUT messages to log files using the Snakemake variables `{rule}` and `{jobid}`, 
-for instance like this `--output=logs/{rule}/{jobid}.out`.
-You should also prepend the scheduler command with a command to make the log directories in case they don't exists
-(it can cause errors for some schedulers), in this example like so: `mkdir -p logs/{rule}/ && sbatch ...`. 
-This will make troubleshooting easier for jobs that fail due to scheduler issues.
-
-The example profile includes a 'watcher' script.
-Snakemake won't always pick up when a scheduler prematurely terminates a job, which is why we need a watcher script.
-This line in the config file tells Snakemake how to check on the status of a job:
-`cluster-status: ~/.config/snakemake/slurm/slurm-status.py` (be sure to check and update your file path).
-The `slurm-status.py` script will query the scheduler with the jobid and report back to Snakemake on the job's status.
-
-## Changing the Hecatomb configuration
-
-The Hecatomb configuration file `hecatomb/snakemake/config/config.yaml` contains settings related to resources and 
-cutoffs for various stages of the pipeline. The different config settings are outlined further on.
-You can permanently change the behaviour of your Hecatomb installation by modifying the values in this config file.
-Alternatively, you can specify your own config file. To do this, you first copy the system default config file like so:
+If you only plan on analysing viruses or say protein hits, you can remove everything else with `awk`:
 
 ```bash
-hecatomb config
+# copy the header
+head -1 bigtable.tsv > newBigtable.tsv
+
+# return only rows where "Viruses" is in the "kingdom" column
+akw -F '\t' '$24=="Viruses"' bigtable.tsv >> newBigtable.tsv
+
+# alternatively, only return the "aa" protein-based hits
+awk -F '\t' '$5=="aa"' bigtable.tsv >> newBigtable.tsv
 ```
 
-You can then edit your new `hecatomb.config.yaml` file to suit your needs and used it in a Hecatomb run like so:
+**Remove irrelevant columns**
+
+If you've finished prefiltering, or you only plan on using say the evalues for filtering, 
+you can remove all the other alignment metrics, this time using `cut`:
 
 ```bash
-hecatomb run --configfile hecatomb.config.yaml
+# remove all the alignment metrics except for evalue
+cut --complement -f8-22 bigtable.tsv > newBigtable.tsv
 ```
 
-## Database location
+## Retrieving sequences of interest
 
-The databases are large (~55 GB) and if your Hecatomb installation is on a partition with limited on space,
-you might want to specify a new location to house the database files. 
-By default, this config setting is blank and the pipeline will use the install location (`hecatomb/databases/`).
-You can specify the directory in the Hecatomb config file (`hecatomb/snakemake/config/config.yaml`) under `Databases: `, 
-e.g:
+Upon analysing your bigtable, you may have a collection of interesting hits that you want to investigate further.
+To retrieve the relevant sequences from your `seqtable.fasta` file you will only need a list of the sequence IDs--the first column in the bigtable.
 
-```yaml
-Databases: /scratch/HecatombDatabases
+For instance, get all seqIDs for the Viral family 'Flaviviridae' and save it to a file:
+
+```R
+# in R using tidyr/dplyr get the seq IDs
+flaviviridaeSeqs = data %>% 
+    filter(family=='Flaviviridae') %>% 
+    pull(seqID)
+
+# print to a file
+lapply(flaviviridaeSeqs, write, "flavSeqIDs.list", append=TRUE, ncolumns=1)
 ```
 
-and run or rerun the installation 
+Use Samtools to grab all these sequences from the seqtable.fasta file:
 
-```bash
-hecatomb install
+```shell
+# in bash
+samtools faidx seqtable.fasta -r flavSeqIDs.list > flaviviridaeSeqs.fasta
 ```
-
-## Default resources
-
-The Hecatomb config file contains some sensible defaults for resources.
-While these should work for most datasets, they may fail for larger ones.
-You may also have more CPUs etc at your disposal and want to minimise runtime of the pipeline.
-Currently, the slowest steps are the MMSeqs searches; increasing the CPUs and RAM could significantly improve runtime.
-The other settings (for Megahit and Minimap2, BBTools, and misc) will probably only show modest improvement.
-
-The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
-
-```yaml
-# Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
-MMSeqsMem: 64000
-# Threads for MMSeqs (recommend >= 16)
-MMSeqsCPU: 32
-# Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
-MMSeqsTimeMin: 5760  # 4 days
-
-# Memory for BBTools in megabytes (recommend >= 16000)
-BBToolsMem: 16000
-# CPUs for BBTools (recommend >= 8)
-BBToolsCPU: 8
-
-# Memory for Megahit/Flye in megabytes (recommend >= 32000)
-MhitMem: 32000
-# CPUs for Megahit/Flye in megabytes (recommend >= 16)
-MhitCPU: 16
-
-# Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
-MiscMem: 16000
-# CPUs for slightly RAM-hungry jobs (recommend >= 2)
-MiscCPU: 2
-
-# Default memory in megabytes (for use with --profile)
-defaultMem: 2000
-# Default time in minutes (for use with --profile)
-defaultTime: 1440
-# Default concurrent jobs (for use with --profile)
-defaultJobs: 100
-```
-
-## Preprocessing settings
-
-There are many filtering etc. cutoff values that are specified in the Hecatomb config file.
-For instance `READ_MINLENGTH: ` specifies the minimum allowed read length after trimming.
-
-The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
-
-```yaml
-# Preprocessing
-QSCORE: 15 # Read quality trimming score (rule remove_low_quality in 01_preprocessing.smk)
-READ_MINLENGTH: 90 # Minimum read length during QC steps (rule remove_low_quality in 01_preprocessing.smk)
-CONTIG_MINLENGTH: 1000 # Read minimum length (rule contig_reformating_and_stats in 01_preprocessing.smk)
-ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 01_preprocessing.smk)
-ENTROPYWINDOW: 25 # entropy window for low qual read filter
-
-# CLUSTER READS TO SEQTABLE (MMSEQS EASY-LINCLUST)
- # -c = req coverage of target seq
- # --min-seq-id = req identity [0-1] of alignment
-linclustParams:
- --kmer-per-seq-scale 0.3
- -c 0.7
- --cov-mode 1
- --min-seq-id 0.95
- --alignment-mode 3
-```
-
-There are additional settings further down in the config file for users that are familiar with MMSeqs, 
-as well as some settings that you should not alter.
-
-## Alignment filtering
-
-Hecatomb has settings for filtering MMSeqs alignments at each stage of the search strategy.
-By default, we use a lenient e-value cutoff to maximise the identification of viral sequences in the primary searches,
-and a more stringent e-value cutoff for the multi-kingdom search.
-You can lower the evalue cutoffs (`-e`) to improve runtime performance at the cost of lower recall.
-The `--min-lenghth` should be the same or lower than the preprocessing cutoffs.
-
-The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
-
-```yaml
-# ALIGNMENT FILTERING CUTOFFS
-  # --min-length for AA should be equal or less than 1/3 of READ_MINLENGTH
-  # --min-length for NT should be equal or less than READ_MINLENGTH
-filtAAprimary:
- --min-length 30
- -e 1e-3
-filtAAsecondary:
- --min-length 30
- -e 1e-5
-filtNTprimary:
- --min-length 90
- -e 1e-3
-filtNTsecondary:
- --min-length 90
- -e 1e-5
-```
-
-## Alignment settings
-
-Hecatomb can perform MMSeqs alignments using either sensitive (default) or fast (`--fast`) parameters.
-You can tweak the setting in the config file but you should consult the MMSeqs documentation before making any changes.
-
-The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
-
-```yaml
-# PERFORMANCE SETTINGS - SEE MMSEQS DOCUMENTATION FOR DETAILS
-# sensitive AA search
-perfAA:
- --start-sens 1
- --sens-steps 3
- -s 7
- --lca-mode 2
- --shuffle 0
-# fast AA search
-perfAAfast:
- -s 4.0
- --lca-mode 1
- --shuffle 0
-# sensitive NT search
-perfNT:
- --start-sens 2
- -s 7
- --sens-steps 3
-# fast NT search
-perfNTfast:
- -s 4.0
-```
-
-## Additional Snakemake commands
-
-As mentioned, Hecatomb is powered by Snakemake but runs via a launcher for your convenience.
-The launcher--called with `hecatomb`--lets you specify the directory with your reads, host genome, where to save the results,
-whether to do an assembly, and either specify the number of threads to use or a profile to use.
-Snakemake itself has many command line options and the launcher can pass additional commands to Snakemake using the `--snake` option.
-
-One such example is if you're not production ready you might wish to do a 'dry-run', where the run is simulated but no 
-jobs are submitted, just to see if everything is configured correctly.
-To do that, Snakemake needs the dry run flag (`--dry-run`, `--dryrun`, or `-n`).
-In Hecatomb, you can pass this flag like so:
-
-```bash
-hecatomb run --reads fasq/ --profile slurm --snake=--dry-run
-```
-
-Hecatomb prints the Snakemake command to the terminal window before running and you should see these additional options 
-added to the Snakemake command:
-
-```bash
-hecatomb run --test --snake=--dry-run
-```
-```text
-Running Hecatomb
-Running snakemake command:
-snakemake -j 32 --use-conda --conda-frontend mamba --rerun-incomplete --printshellcmds \
-  --nolock --conda-prefix /scratch/hecatomb/snakemake/workflow/conda \
-  --dry-run -s /scratch/hecatomb/snakemake/workflow/Hecatomb.smk \
-  -C Reads=/scratch/hecatomb/test_data Host=human Output=hecatomb_out Assembly=False
-Building DAG of jobs...
-```
-
-Have a look at the full list of available Snakemake options with `snakemake --help`. 
-The launcher will pass anything in `--snake=` verbatim, so use with care.
-**NOTE: Don't use hecatomb's --snake arg to pass additional config settings with Snakemake's -C/--config arg**,
-instead, follow the directions above [for changing the config of a Hecatomb run](advanced.md#changing-the-hecatomb-configuration).
