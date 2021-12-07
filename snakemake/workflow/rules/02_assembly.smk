@@ -121,7 +121,7 @@ rule mapSampleAssemblyUnpairedReads:
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} {input.r2s} | \
             samtools sort -n | \
             samtools view -b -f4 | \
-            bamToFastq -i - -fq {output[0]}
+            samtools bam2fq - > {output[0]}
         """
 
 rule pullPairedUnmappedReads:
@@ -143,8 +143,8 @@ rule pullPairedUnmappedReads:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools view -bf77 {input} | bamToFastq -i - -fq {output.r1}
-        samtools view -bf141 {input} | bamToFastq -i - -fq {output.r2}
+        samtools view -bf77 {input} | samtools bam2fq - > {output.r1}
+        samtools view -bf141 {input} | samtools bam2fq - > {output.r2}
         """
 
 rule pullPairedUnmappedReadsMateMapped:
@@ -165,7 +165,7 @@ rule pullPairedUnmappedReadsMateMapped:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools view -b -f5 -F8 {input[0]} | bamToFastq -i - -fq {output[0]}
+        samtools view -b -f5 -F8 {input[0]} | samtools bam2fq - > {output[0]}
         """
 
 rule poolR1Unmapped:
