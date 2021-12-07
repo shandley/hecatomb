@@ -159,7 +159,7 @@ rule SECONDARY_AA_refactor_finalize:
         {{ cut -f1,2 {input.lca} \
             | taxonkit lineage --data-dir {input.db} -i 2 \
             | taxonkit reformat --data-dir {input.db} -i 3 \
-            -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank \
+                -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank \
             | cut --complement -f3 \
             > {output.lca_reformated}; }} &> {log}
         rm {log}
