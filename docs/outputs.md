@@ -30,7 +30,7 @@ This file is big, hence the name, but is designed to make merging with sample me
 The header looks like this:
 
 ```text
-seqID  sampleID  count  normCount  alnType  targetID  evalue  pident  fident  nident  mismatches  qcov  tcov  qstart  qend  qlen  tstart  tend  tlen  alnlen  bits  targetName  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
+seqID  sampleID  count  CPM  alnType  targetID  evalue  pident  fident  nident  mismatches  qcov  tcov  qstart  qend  qlen  tstart  tend  tlen  alnlen  bits  targetName  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
 ```
 
 ## TaxonLevelCounts
@@ -47,7 +47,7 @@ those counts have already been collected, and you can simply run your analysis a
 The file looks something like this:
 
 ```text
-sampleID    taxonLevel  taxonPath                                   taxonName       count   normCount
+sampleID    taxonLevel  taxonPath                                   taxonName       count   CPM
 sample1     Kingdom     k_Bacteria                                  Bacteria        3162    3178.818
 sample1     phylum      K_Viruses,p_Phixviricota                    Phixviricota    1216    1222.467
 sample1     class       K_Viruses,p_Uroviricota,c_Caudoviricetes    Caudoviricetes  1234    1240.564
@@ -77,7 +77,7 @@ chimeric contigs, recombination or horizontal transfer events.
 The header looks like this:
 
 ```text
-contigID  seqID  start  stop  len  qual  count  normCount  alnType  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
+contigID  seqID  start  stop  len  qual  count  CPM  alnType  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
 ```
 
 ## Sankey

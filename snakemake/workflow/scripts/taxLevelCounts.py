@@ -20,12 +20,12 @@ short = {'23' :'k', '24' :'p', '25' :'c', '26' :'o', '27' :'f', '28' :'g', '29' 
 
 logging.debug(f'Opening {snakemake.output[0]} for writing\n')
 out = open(snakemake.output[0], 'w')
-out.write('sampleID\ttaxonLevel\ttaxonPath\ttaxonName\tcount\tnormCount\n')
+out.write('sampleID\ttaxonLevel\ttaxonPath\ttaxonName\tcount\tCPM\n')
 # re-read the file for each sample to keep the memory happy - this is probably not necessary
 for sample in snakemake.params.samples:
     logging.debug(f'parsing {snakemake.input[0]} for sample {sample}\n')
     counts = {}         # counts[taxlevel][taxname] = int
-    normCounts = {}     # normalised counts, same structure as counts
+    cpm = {}     # normalised counts, same structure as counts
     infh = open(snakemake.input[0], 'r')
     infh.readline()     # skip header
     for line in infh:
@@ -39,24 +39,24 @@ for sample in snakemake.params.samples:
                     continue
                 try:
                     counts[t]
-                    normCounts[t]
+                    cpm[t]
                 except KeyError:
                     counts[t] = {}
-                    normCounts[t] = {}
+                    cpm[t] = {}
                 taxPath = []
                 for o in range(idxStart ,i):
                     taxPath.append(f'{short[str(o)]}_{l[o]}')   # taxon path = k_kingName,p_phylName etc.
                 outPath = ','.join(taxPath)
                 try:
                     counts[t][outPath] += int(l[2])
-                    normCounts[t][outPath] += float(l[3])
+                    cpm[t][outPath] += float(l[3])
                 except KeyError:
                     counts[t][outPath] = int(l[2])
-                    normCounts[t][outPath] = float(l[3])
+                    cpm[t][outPath] = float(l[3])
     infh.close()
     for taxLevel in counts.keys():
         for taxPath in counts[taxLevel].keys():
             taxName = taxPath.split('_')[-1]
             out.write \
-                (f'{sample}\t{taxLevel}\t{taxPath}\t{taxName}\t{counts[taxLevel][taxPath]}\t{normCounts[taxLevel][taxPath]}\n')
+                (f'{sample}\t{taxLevel}\t{taxPath}\t{taxName}\t{counts[taxLevel][taxPath]}\t{cpm[taxLevel][taxPath]}\n')
 out.close()

@@ -17,34 +17,22 @@
 # Database installation location, leave blank = use hecatomb install location
 Databases:
 
-# Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
-MMSeqsMem: 64000
-# Threads for MMSeqs (recommend >= 16)
-MMSeqsCPU: 32
-# Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
-MMSeqsTimeMin: 5760  # 4 days
+### STICK TO YOUR SYSTEM'S CPU:RAM RATIO FOR THESE
+BigJobMem: 64000     # Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
+BigJobCpu: 24        # Threads for MMSeqs (recommend >= 16)
+BigJobTimeMin: 5760  # Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
+MediumJobMem: 32000  # Memory for Megahit/Flye in megabytes (recommend >= 32000)
+MediumJobCpu: 16     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
+SmallJobMem: 16000   # Memory for BBTools etc. in megabytes (recommend >= 16000)
+SmallJobCpu: 8       # CPUs for BBTools etc. (recommend >= 8)
+                     # default CPUs = 1
+defaultMem: 2000     # Default memory in megabytes (for use with --profile)
+defaultTime: 1440    # Default time in minutes (for use with --profile)
+defaultJobs: 100     # Default concurrent jobs (for use with --profile)
 
-# Memory for BBTools in megabytes (recommend >= 16000)
-BBToolsMem: 16000
-# CPUs for BBTools (recommend >= 8)
-BBToolsCPU: 8
-
-# Memory for Megahit/Flye in megabytes (recommend >= 32000)
-MhitMem: 32000
-# CPUs for Megahit/Flye in megabytes (recommend >= 16)
-MhitCPU: 16
-
-# Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
-MiscMem: 16000
-# CPUs for slightly RAM-hungry jobs (recommend >= 2)
-MiscCPU: 2
-
-# Default memory in megabytes (for use with --profile)
-defaultMem: 2000
-# Default time in minutes (for use with --profile)
-defaultTime: 1440
-# Default concurrent jobs (for use with --profile)
-defaultJobs: 100
+# Some jobs need more RAM; go over your CPU:RAM ratio if needed
+MoreRamMem: 16000    # Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
+MoreRamCpu: 2        # CPUs for slightly RAM-hungry jobs (recommend >= 2)
 
 
 ############################
@@ -68,7 +56,7 @@ linclustParams:
  --min-seq-id 0.97
  --alignment-mode 3
 
-# LCA TAX IDs TO IGNORE (DEFER TO TOPHIT)
+# If the following LCA-calculated TaxIDs are encountered, defer to the top hit TaxID
  # 0 = unclassified
  # 1 = root
  # 2 = bacteria root

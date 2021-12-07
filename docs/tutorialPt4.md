@@ -86,7 +86,7 @@ First find out what the major families are by summing the hits for each family a
 # collect the family counts
 viralFamCounts = virusesFiltered %>% 
     group_by(family) %>% 
-    summarise(n=sum(normCount)) %>% 
+    summarise(n=sum(CPM)) %>% 
     arrange(desc(n))
 
 # update factor levels to the sorted order
@@ -110,7 +110,7 @@ Collect summary counts for these families for each sample and include the metada
 viralMajorFamCounts = viruses %>% 
     filter(family %in% c('Siphoviridae','Adenoviridae','Podoviridae','Microviridae')) %>% 
     group_by(sampleID,family,vaccine) %>% 
-    summarise(n=sum(normCount))
+    summarise(n=sum(CPM))
 ```
 
 Now let's do the dunn's test for these families:
@@ -172,7 +172,7 @@ virusesStringent = viruses %>%
 myovirPresAbs = virusesStringent %>% 
     filter(family=='Myoviridae') %>%
     group_by(sampleID) %>% 
-    summarise(n=sum(normCount)) %>%
+    summarise(n=sum(CPM)) %>%
     mutate(present=ifelse(n>0,1,0))
 
 # merge in the metadata

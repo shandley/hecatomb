@@ -21,7 +21,8 @@ rule assembly_kmer_normalization:
     log:
         os.path.join(STDERR, "kmer_norm_{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -33,7 +34,7 @@ rule assembly_kmer_normalization:
             out={output.r1_norm} out2={output.r2_norm} \
             target=100 \
             ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 
@@ -120,7 +121,7 @@ rule mapSampleAssemblyUnpairedReads:
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} {input.r2s} | \
             samtools sort -n | \
             samtools view -b -f4 | \
-            bamToFastq -i - -fq {output[0]}
+            samtools bam2fq - > {output[0]}
         """
 
 rule pullPairedUnmappedReads:
@@ -142,8 +143,8 @@ rule pullPairedUnmappedReads:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools view -bf77 {input} | bamToFastq -i - -fq {output.r1}
-        samtools view -bf141 {input} | bamToFastq -i - -fq {output.r2}
+        samtools view -bf77 {input} | samtools bam2fq - > {output.r1}
+        samtools view -bf141 {input} | samtools bam2fq - > {output.r2}
         """
 
 rule pullPairedUnmappedReadsMateMapped:
@@ -164,7 +165,7 @@ rule pullPairedUnmappedReadsMateMapped:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools view -b -f5 -F8 {input[0]} | bamToFastq -i - -fq {output[0]}
+        samtools view -b -f5 -F8 {input[0]} | samtools bam2fq - > {output[0]}
         """
 
 rule poolR1Unmapped:
@@ -208,7 +209,8 @@ rule rescue_read_kmer_normalization:
     log:
         os.path.join(STDERR, "rescue_read_kmer_normalization.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -220,7 +222,7 @@ rule rescue_read_kmer_normalization:
             out={output.r1_norm} out2={output.r2_norm} \
             target=100 \
             ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 
@@ -287,7 +289,8 @@ rule contig_reformating_and_stats:
         log2 = os.path.join(STDERR, "contig_reformating_and_stats.reformat.log"),
         log3 = os.path.join(STDERR, "contig_reformating_and_stats.stats.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -297,12 +300,12 @@ rule contig_reformating_and_stats:
         rename.sh in={input} out={output.rename} \
             prefix=contig_ \
             ow=t \
-            -Xmx{resources.mem_mb}m 2> {log.log1}
+            -Xmx{resources.javaAlloc}m 2> {log.log1}
         rm {log.log1}
         reformat.sh in={output.rename} out={output.size} \
             ml={config[CONTIG_MINLENGTH]} \
             ow=t \
-            -Xmx{resources.mem_mb}m 2> {log.log2}
+            -Xmx{resources.javaAlloc}m 2> {log.log2}
         rm {log.log2}
         statswrapper.sh in={input} out={output.stats} \
             format=2 \
@@ -367,7 +370,8 @@ rule coverage_calculations:
     log:
         os.path.join(STDERR, "coverage_calculations.{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -387,7 +391,7 @@ rule coverage_calculations:
             scafstats={output.scafstats} \
             maxindel=100 minid=90 \
             ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 

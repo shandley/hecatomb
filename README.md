@@ -21,7 +21,7 @@ This process frequently results in a great loss of suspected viral sequences / c
 
 Hecatomb is powered by [Snakemake](https://snakemake.readthedocs.io/en/stable/#) and greatly benefits from the use of 
 Snakemake profiles for HPC Clusters.
-[More information and example for setting up Snakemake profiles for Hecatomb in the documentation](https://hecatomb.readthedocs.io/en/latest/advanced/#profiles-for-hpc-clusters).
+[More information and example for setting up Snakemake profiles for Hecatomb in the documentation](https://hecatomb.readthedocs.io/en/latest/profiles/).
 
 ### Install
 
@@ -86,5 +86,6 @@ All of Hecatomb's dependencies are installed during installation or runtime, so 
 ### Links
 
 [Hecatomb @ bio.tools](https://bio.tools/hecatomb)
+
 [Hecatomb @ WorkflowHub](https://workflowhub.eu/workflows/235)
 

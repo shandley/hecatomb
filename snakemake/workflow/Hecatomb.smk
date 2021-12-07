@@ -33,16 +33,16 @@ else:
 
 
 ### RESOURCE CONFIG
-MMSeqsMem = config['MMSeqsMem']
-MMSeqsCPU = config['MMSeqsCPU']
+MMSeqsMem = config['BigJobMem']
+MMSeqsCPU = config['BigJobCpu']
 MMSeqsMemSplit = str(int(0.75 * int(MMSeqsMem))) + 'M'
-MMSeqsTimeMin = config['MMSeqsTimeMin']
-BBToolsMem = config['BBToolsMem']
-BBToolsCPU = config['BBToolsCPU']
-MhitMem = config['MhitMem']
-MhitCPU = config['MhitCPU']
-MiscMem = config['MiscMem']
-MiscCPU = config['MiscCPU']
+MMSeqsTimeMin = config['BigJobTimeMin']
+MhitMem = config['MediumJobMem']
+MhitCPU = config['MediumJobCpu']
+BBToolsMem = config['SmallJobMem']
+BBToolsCPU = config['SmallJobCpu']
+MiscMem = config['MoreRamMem']
+MiscCPU = config['MoreRamCpu']
 
 
 ### DIRECTORIES
