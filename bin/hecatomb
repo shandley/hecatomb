@@ -64,7 +64,9 @@ parser = argparse.ArgumentParser(
 parser.add_argument('command', choices=['install', 'run', 'config', 'listHosts', 'addHost'])
 parser.add_argument('--reads', help=('Either directory containing seq data, or TSV specifying samples and seq files. '
                                      'See https://hecatomb.readthedocs.io/en/latest/usage/ for more info.'))
-parser.add_argument('--configfile', help='Specify your own config file. First copy the template with "hecatomb config".')
+parser.add_argument('--configfile',
+                    help='Specify your own config file. First copy the template with "hecatomb config".',
+                    default='hecatomb.config.yaml')
 parser.add_argument('--test', help='Use the test dataset (ignores --reads)', action='store_true')
 parser.add_argument('--skipAssembly', help="Don't perform an assembly", action='store_true', default=False)
 parser.add_argument('--report', help='Generate a run report', action='store_true', default=False)
@@ -86,16 +88,27 @@ TESTDIR = os.path.normpath(os.path.join(BINDIR, '../', 'test_data'))
 CONDDIR = os.path.normpath(os.path.join(SNEKDIR, 'conda'))
 
 
+def dumpConfig():
+    """
+    Copy the system template config file to the working directory (or to --configfile declaration)
+    :return:
+    """
+    if not os.path.isfile(args.configfile):
+        sys.stderr.write(f'Copyting system default config file to {args.configfile}\n')
+        templateConfig = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
+        copyfile(templateConfig, args.configfile)
+    else:
+        sys.stderr.write(f"Config file {args.configfile} already exists.\n")
+    return None
+
+
 def readConfig():
     """
-    Read in the config file
+    Read in the config file; must be run after dumpConfig()
     :return: config dictionary
     """
-    if args.configfile:
-        configFile = args.configfile
-    else:
-        configFile = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
-    with open(configFile, 'r') as stream:
+    dumpConfig()
+    with open(args.configfile, 'r') as stream:
         config = yaml.safe_load(stream)
     return config
 
@@ -105,8 +118,8 @@ def initialiseSnakeCommand():
     Initialise the Snakemake command (add profile or threads args, default args, and additional snake args)
     :return command: string for use with subprocess.run()
     """
+    config = readConfig()
     if args.profile:
-        config = readConfig()
         runJobs = (f'--profile {args.profile} '
                    '--default-resources '
                       f'mem_mb={config["defaultMem"]} '
@@ -186,22 +199,6 @@ def run():
         sys.stderr.write("Generating run report\n")
         runCommand = runCommand + ' --report'
         runSnakeSys(runCommand)
-    return None
-
-
-def dumpConfig():
-    """
-    Copy the system template config file to the working directory
-    :return:
-    """
-    if not os.path.isfile('hecatomb.config.yaml'):
-        templateConfig = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
-        copyfile(templateConfig, 'hecatomb.config.yaml')
-    else:
-        sys.stderr.write("\n"
-                         "Error: Output file 'hecatomb.config.yaml' already exists.\n"
-                         "\n")
-        sys.exit(1)
     return None
 
 

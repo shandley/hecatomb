@@ -17,9 +17,9 @@
 # Database installation location, leave blank = use hecatomb install location
 Databases:
 
-# Stick to your system's RAM:CPU ratio for these
+### STICK TO YOUR SYSTEM'S CPU:RAM RATIO FOR THESE
 BigJobMem: 64000     # Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
-BigJobCpu: 32        # Threads for MMSeqs (recommend >= 16)
+BigJobCpu: 24        # Threads for MMSeqs (recommend >= 16)
 BigJobTimeMin: 5760  # Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
 MediumJobMem: 32000  # Memory for Megahit/Flye in megabytes (recommend >= 32000)
 MediumJobCpu: 16     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
@@ -30,7 +30,7 @@ defaultMem: 2000     # Default memory in megabytes (for use with --profile)
 defaultTime: 1440    # Default time in minutes (for use with --profile)
 defaultJobs: 100     # Default concurrent jobs (for use with --profile)
 
-# Some jobs need more RAM
+# Some jobs need more RAM; go over your CPU:RAM ratio if needed
 MoreRamMem: 16000    # Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
 MoreRamCpu: 2        # CPUs for slightly RAM-hungry jobs (recommend >= 2)
 
