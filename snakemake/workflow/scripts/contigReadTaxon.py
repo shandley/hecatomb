@@ -32,7 +32,7 @@ with open(snakemake.output[0], 'w') as outFH:
         'len',
         'qual',
         'count',
-        'normCount',
+        'CPM',
         'alnType',
         'taxMethod',
         'kingdom',

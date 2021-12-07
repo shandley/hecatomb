@@ -58,7 +58,7 @@ virusesFiltered = viruses %>%
 # collect the filtered counts
 viralFiltCounts = virusesFiltered %>% 
     group_by(sampleID,family) %>% 
-    summarise(n = sum(normCount))
+    summarise(n = sum(CPM))
 ```
 
 Then plot again. 
@@ -93,7 +93,7 @@ Include the metadata group in `group_by()` so you can use it in the plot.
 microCounts = virusesFiltered %>% 
     group_by(family,sampleID,MacGuffinGroup) %>% 
     filter(family=='Microviridae') %>% 
-    summarise(n = sum(normCount))
+    summarise(n = sum(CPM))
 ```
 
 And plot. I like jitter plots but boxplots or violin plots might work better if you have hundreds of samples.
@@ -113,7 +113,7 @@ Let's do the same for _Podoviridae_.
 podoCounts = virusesFiltered %>% 
     group_by(family,sampleID,MacGuffinGroup) %>% 
     filter(family=='Podoviridae') %>% 
-    summarise(n = sum(normCount))
+    summarise(n = sum(CPM))
 
 # plot
 ggplot(podoCounts) +

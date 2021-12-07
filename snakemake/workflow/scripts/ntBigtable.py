@@ -34,7 +34,6 @@ with open(snakemake.input.counts, 'r') as cntfh:
         smplCounts[l[0]] = int(l[1])
 
 logging.debug('Reading in lca-hit seq IDs')
-medCount = median(counts)
 lcaLin = {}
 with open(snakemake.input.lca, 'r') as lcafh:
     for line in lcafh:
@@ -59,7 +58,7 @@ with open(snakemake.output[0], 'w') as out:
     out.write('\t'.join(('seqID',
                          'sampleID',
                          'count',
-                         'normCount',
+                         'CPM',
                          'alnType',     # aa or nt
                          'targetID',
                          'evalue',
@@ -101,9 +100,9 @@ with open(snakemake.output[0], 'w') as out:
                     taxOut = '\t'.join((['NA'] * 8))
             # seq ID = sample:count:seqNum
             seqInf = l[0].split(':')
-            normCount = str((int(seqInf[1]) / smplCounts[seqInf[0]]) * medCount)
+            cpm = str((int(seqInf[1]) / smplCounts[seqInf[0]]) * 1000000)
             tName =  re.sub('.*\||\s+\S+=.*', '', l[18])
-            seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], normCount))
+            seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], cpm))
             alnOut = 'nt\t' + '\t'.join((l[1:17]))
             try:
                 baltOut = balt[taxOut.split()[5]]
