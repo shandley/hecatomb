@@ -33,7 +33,8 @@ rule remove_5prime_primer:
     log:
         os.path.join(STDERR, "remove_5prime_primer.{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -46,7 +47,7 @@ rule remove_5prime_primer:
             stats={output.stats} \
             k=16 hdist=1 mink=11 ktrim=l restrictleft=20 \
             removeifeitherbad=f trimpolya=10 ordered=t rcomp=f ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 
@@ -70,7 +71,8 @@ rule remove_3prime_contaminant:
     log:
         os.path.join(STDERR, "remove_3prime_contaminant.{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -82,7 +84,7 @@ rule remove_3prime_contaminant:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=1 mink=11 ktrim=r removeifeitherbad=f ordered=t rcomp=f ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 
@@ -105,7 +107,8 @@ rule remove_primer_free_adapter:
     log:
         os.path.join(STDERR, "remove_primer_free_adapter.{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -117,7 +120,7 @@ rule remove_primer_free_adapter:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=1 mink=10 ktrim=r removeifeitherbad=f ordered=t rcomp=t ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 
@@ -140,7 +143,8 @@ rule remove_adapter_free_primer:
     log:
         os.path.join(STDERR, "remove_adapter_free_primer.{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -152,7 +156,7 @@ rule remove_adapter_free_primer:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=16 hdist=0 removeifeitherbad=f ordered=t rcomp=t ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 
@@ -171,7 +175,8 @@ rule remove_vector_contamination:
     log:
         os.path.join(STDERR, "remove_vector_contamination.{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -183,7 +188,7 @@ rule remove_vector_contamination:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             k=31 hammingdistance=1 ordered=t ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
         
@@ -204,7 +209,8 @@ rule remove_low_quality:
     log:
         os.path.join(STDERR, "remove_low_quality.{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -220,7 +226,7 @@ rule remove_low_quality:
             entropywindow={config[ENTROPYWINDOW]} \
             trimq={config[QSCORE]} \
             minlength={config[READ_MINLENGTH]} \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 
@@ -296,7 +302,8 @@ rule nonhost_read_repair:
     log:
         os.path.join(STDERR, "nonhost_read_repair.{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -304,9 +311,9 @@ rule nonhost_read_repair:
     shell:
         """
         {{ reformat.sh in={input.s} out={output.sr1} out2={output.sr2} \
-            -Xmx{resources.mem_mb}m;
+            -Xmx{resources.javaAlloc}m;
         reformat.sh in={input.o} out={output.or1} out2={output.or2} \
-            -Xmx{resources.mem_mb}m; }} 2>> {log}
+            -Xmx{resources.javaAlloc}m; }} 2>> {log}
         rm {log}
         """
 
@@ -351,7 +358,8 @@ rule remove_exact_dups:
     log:
         os.path.join(STDERR, "remove_exact_dups.{sample}.log")
     resources:
-        mem_mb = BBToolsMem
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -360,7 +368,7 @@ rule remove_exact_dups:
         """
         dedupe.sh in={input} out={output} \
             ac=f ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
           
