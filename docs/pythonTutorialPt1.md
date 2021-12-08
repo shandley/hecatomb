@@ -68,6 +68,7 @@ If you run into this situation check out [prefiltering the bigtable](advanced.md
 
 The remainder of the tutorial will be in [Python](https://www.python.org/) and [PyCharm](https://www.jetbrains.com/pycharm/)), 
 and will use the packages [Pandas](https://pandas.pydata.org/) and [Seaborn](https://seaborn.pydata.org/) which is part of the [Anaconda](https://www.anaconda.com/) toolkit.
+In addition, for the Dunn's test we will install the scikit-posthocs package [scikit-posthocs](https://scikit-posthocs.readthedocs.io/)
 The installation and packages for this tutorial have been tested with a fresh installation of Python (3.9.7) and PyCharm (2021.2.3 Professional Edition Build PY-212.5457.59) for Mac.
 
 Assuming you have installed Python and PyCharm for your operating system, you should be able to install the packages like so:
@@ -77,6 +78,7 @@ Assuming you have installed Python and PyCharm for your operating system, you sh
 pip install seaborn
 pip install pandas
 pip install numpy
+pip install scikit-posthocs
 ```
 
 If you run into an error message 'matplotlib: RuntimeError: Python is not installed as a framework' on a Mac, the creation of a file in ~/.matplotlib/matplotlibr as per [this article](https://stackoverflow.com/questions/34977388/matplotlib-runtimeerror-python-is-not-installed-as-a-framework) fixed this issue.

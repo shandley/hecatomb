@@ -21,12 +21,17 @@ nav:
       - Configuration: configuration.md
       - Advanced: advanced.md
       - FAQ: faq.md
-    - TUTORIAL:
+    - R TUTORIAL:
       - 'Part 1: Preparation': tutorialPt1.md
       - 'Part 2: Filtering annotations': tutorialPt2.md
       - 'Part 3: Visualising annotations': tutorialPt3.md
       - 'Part 4: Statistical tests': tutorialPt4.md
       - 'Part 5: Contig annotations': tutorialPt5.md
+    - PYTHON TUTORIAL:
+      - 'Part 1: Preparation': pythonTutorialPt1.md
+      - 'Part 2: Filtering annotations': pythonTutorialPt2.md
+      - 'Part 3: Visualising annotations': pythonTutorialPt3.md
+      - 'Part 4: Statistical tests': pythonTutorialPt4.md
 markdown_extensions:
   - pymdownx.highlight
   - pymdownx.inlinehilite

@@ -56,7 +56,7 @@ of families is making this chart hard to interpret in this way:
 1) Heatmap
 2) Bubble Plot
 
-#### Heatmap
+**Heatmap**
 ```python
 # get all viral family counts
 viralFiltCounts = viralCounts.groupby(by=['sampleID','taxonName'], as_index=False)['count'].agg('sum')
@@ -73,7 +73,7 @@ plt.show()
 
 [![](img/pythonTutViralCountsHM.png)](img/pythonTutViralCountsHM.png)
 
-#### Bubble Plot
+***Bubble Plot***
 ```python
 # get all viral family counts
 viralFiltCounts = viralCounts.groupby(by=['sampleID','taxonName'], as_index=False)['count'].agg('sum')
@@ -106,7 +106,7 @@ viralFiltCounts = virusesFiltered.groupby(by=['sampleID','family'], as_index=Fal
 
 Then plot again and have included Heatmap or Bubble Plot options
 
-####Heatmap
+***Heatmap***
 
 ```python
 sns.set_style("darkgrid")
@@ -120,7 +120,7 @@ plt.show()
 
 [![](img/pythonTuteViralFiltCountsHM.png)](img/pythonTuteViralFiltCountsHM.png)
 
-####Bubble Plot
+***Bubble Plot***
 
 ```python
 sns.set_style("darkgrid")
@@ -179,7 +179,7 @@ Let's do the same for _Podoviridae_.
 virusesFiltered = viruses[(viruses.family=='Podoviridae') & (viruses.alnType=='aa') & (viruses.evalue<1e-10)]
 
 #group by
-microCounts = virusesFiltered.groupby(by=['MacGuffinGroup','family','sampleID'], as_index=False)['normCount'].agg('sum')
+podoCounts = virusesFiltered.groupby(by=['MacGuffinGroup','family','sampleID'], as_index=False)['normCount'].agg('sum')
 
 #plot
 sns.set_style("darkgrid")
@@ -187,7 +187,7 @@ sns.set_palette("colorblind")
 sns.set(rc={'figure.figsize':(6,8)})
 sns.stripplot(x="MacGuffinGroup",
                     y="normCount",
-                    data=microCounts, jitter=0.1)
+                    data=podoCounts, jitter=0.1)
 
 plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
 plt.show()
