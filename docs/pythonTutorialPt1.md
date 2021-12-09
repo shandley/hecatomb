@@ -1,4 +1,4 @@
-This tutorial will walk through the process of running Hecatomb and performing some preliminary plots and analyses in R/Rstudio.
+This tutorial will walk through the process of running Hecatomb and performing some preliminary plots and analyses in Python/PyCharm.
 This first section details the Hecatomb run.
 
 **You won't need to actually run Hecatomb, you can simply [download the files](tutorialPt1.md#download-the-files) and continue with the rest of the tutorial.**
@@ -66,9 +66,9 @@ If you run into this situation check out [prefiltering the bigtable](advanced.md
 
 ## Setting up Python
 
-The remainder of the tutorial will be in [Python](https://www.python.org/) and [PyCharm](https://www.jetbrains.com/pycharm/)), 
+The remainder of the tutorial will be in [Python](https://www.python.org/) and [PyCharm](https://www.jetbrains.com/pycharm/), 
 and will use the packages [Pandas](https://pandas.pydata.org/) and [Seaborn](https://seaborn.pydata.org/) which is part of the [Anaconda](https://www.anaconda.com/) toolkit.
-In addition, for the Dunn's test we will install the scikit-posthocs package [scikit-posthocs](https://scikit-posthocs.readthedocs.io/)
+In addition, for the Dunn's test we will install the scikit-posthocs package [scikit-posthocs](https://scikit-posthocs.readthedocs.io/).
 The installation and packages for this tutorial have been tested with a fresh installation of Python (3.9.7) and PyCharm (2021.2.3 Professional Edition Build PY-212.5457.59) for Mac.
 
 Assuming you have installed Python and PyCharm for your operating system, you should be able to install the packages like so:
@@ -87,17 +87,25 @@ If you run into an error message 'matplotlib: RuntimeError: Python is not instal
 import matplotlib.pyplot as plt
 ```
 
+You should also check in PyCharm what Python version is being used for the project as some of the functions will rely on Python 3.6+
+
+On a Windows the options should be under File -> Settings -> Preferences -> Project Interpreter-> Python Interpreters
+
+On a Mac the options would be under PyCharm -> Preferences -> Project Name -> Python Interpreters
+
 ## Load the data
 
-Make sure you set your working directory and have downloaded the files into this directory.
+Make sure you have created a new Python project and have downloaded the Hecatomb files into this directory.
 
-Always make sure to include the following at the start to load the Pandas library
+Always make sure to include the following at the start to load the necessary libraries required. 
 
 ```python
-import pandas as pd
+import scipy.stats as stats
+import statsmodels.stats.api as sms
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 ```
 
 We will load the `bigtable.tsv.gz` into a dataframe called `data` with `pd.read_csv`.
@@ -119,6 +127,6 @@ We'll load `taxonLevelCounts.tsv.gz` while we're at it.
 taxonCounts = pd.read_csv('taxonLevelCounts.tsv.gz',compression='gzp',header=1,sep='\t')
 ```
 
-Keep the `contigSeqTable.tsv.gz` file handy, we'll load that into R as well later on.
+Keep the `contigSeqTable.tsv.gz` file handy, we'll load that into python as well later on.
 
 You can now move onto [Part 2: filtering annotations](pythonTutorialPt2.md).

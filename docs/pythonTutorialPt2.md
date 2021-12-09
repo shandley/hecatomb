@@ -6,11 +6,11 @@ and have loaded them in PyCharm into dataframes called `data` and `meta`.
 
 Let's look at the bigtable file by clicking on the 'View As DataFrame' link next to the 'data' DataFrame:
 
-[![](img/pythonTutDataTable.png)](img/pythonTutDataTable.png)
+[![](img/pythonTutDataTable.png){: style="width:480px"}](img/pythonTutDataTable.png)
 
 And then look at the 'meta' DataFrame as well:
 
-![](img/pythonTutMetaTable.png)
+[![](img/pythonTutMetaTable.png){: style="width:480px"}](img/pythonTutMetaTable.png)
 
 For the metadata table I've made sure the column header for the sample IDs are the same in both tables.
 There was more metadata associated with the original samples, but we've simplified things here.
@@ -55,21 +55,27 @@ To render the scatterplot marker dots size based on count include the following:
 ```python
 virusesGroup = viruses.groupby(by=['family','alnType','alnlen','pident'], as_index=False).count()
 sizeScatter = 10 * virusesGroup['count']
+
+#styling
+sns.set_style("darkgrid")
+sns.set_palette("colorblind")
+sns.set(rc={'figure.figsize':(12,8)})
+
 ```
 
 Next is to create the FacetGrid so we can display the scatterplot by family:
 
 ```python
-sns.set_style("darkgrid")
-sns.set_palette("colorblind")
-g = sns.FacetGrid(virusesGroup, col="family", hue="alnType", col_wrap=7)
+g = sns.FacetGrid(virusesGroup, col="family", hue="alnType", col_wrap=6)
+
 ```
 
 And then create the plot:
 ```python
 g.map(sns.scatterplot, "alnlen", "pident", alpha=.1, sizes=(100,500), size=sizeScatter)
-plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
+plt.legend(bbox_to_anchor=(5.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
 plt.show()
+
 ```
 
 
@@ -86,7 +92,7 @@ for ax in g.axes.flat:
     ax.tick_params(axis='both', labelleft=True, labelbottom=True)
     ax.axhline(y=75, c='red', linestyle='dashed', label="_horizontal")
     ax.axvline(x=150, c='red', linestyle='dashed', label="_vertical")
-plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
+plt.legend(bbox_to_anchor=(5.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
 plt.show()
 ```
 
@@ -105,7 +111,7 @@ Don't facet the bacterial hits by family, there will be way too many panels.
 
 **Can you plot the Adenoviridae hits for each sample?**
 
-You can use `%>% filter(...)` inside the `ggplot()` function.
+You can use `[(viruses.family=='Adenoviridae')` and the `sns.scatterplot` function.
 
 
 ## Filtering strategies
@@ -135,9 +141,10 @@ And plot:
 ```python
 #change the group by line to add in the new filter column
 virusesGroup = viruses.groupby(by=['family','alnType','alnlen','pident','filter'], as_index=False).count()
-#plot with hue=filter
-g = sns.FacetGrid(virusesGroup, col="family", hue="filter", col_wrap=7)
+g = sns.FacetGrid(virusesGroup, col="family", hue="filter", col_wrap=6)
 g.map(sns.scatterplot, "alnlen", "pident", alpha=.1)
+plt.legend(bbox_to_anchor=(5.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
+plt.show()
 ```
 
 [![](img/pythonTutVirEvalFilt.png)](img/pythonTutVirEvalFilt.png)
@@ -160,7 +167,7 @@ for ax in g.axes.flat:
     ax.tick_params(axis='both', labelleft=True, labelbottom=True)
     ax.axhline(y=75, c='red', linestyle='dashed', label="_horizontal")
     ax.axvline(x=150, c='red', linestyle='dashed', label="_vertical")
-plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
+plt.legend(bbox_to_anchor=(5.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, labelspacing=1.5, borderpad=1.5)
 plt.show()
 ```
 

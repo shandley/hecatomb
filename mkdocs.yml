@@ -32,8 +32,11 @@ nav:
       - 'Part 2: Filtering annotations': pythonTutorialPt2.md
       - 'Part 3: Visualising annotations': pythonTutorialPt3.md
       - 'Part 4: Statistical tests': pythonTutorialPt4.md
+      - 'Part 5: Contig annotations': pythonTutorialPt5.md
 markdown_extensions:
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - pymdownx.snippets
+  - attr_list
+  - md_in_html

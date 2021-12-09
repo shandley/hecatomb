@@ -14,11 +14,11 @@ Let's check out the dataframe we made earlier that we'll be using for the test:
 print(podoCounts)
 ```
 
-![](img/pythonTutPodoCnts.png)
+![](img/pythonTutPodoCnts.png){: style="width:480px"}
 
 We'll use the python function `stats.ttest_ind`, which takes two vectors--one with the 
 group A counts and one with the group B counts.
-We will first filter then group the data before using the t-test function. You'll also need to import the 'stats' library
+We will first filter then group the data before using the t-test function. You'll also need to import the 'scipy.stats' library.
 
 ```python
 #add to top with the other import statements
@@ -36,16 +36,16 @@ podoCountsB = virusesFilteredB.groupby(by=['family','sampleID'], as_index=False)
 df = len(podoCountsA) + len(podoCountsB) - 2
 t_stat, p_val = stats.ttest_ind(podoCountsA.normCount, podoCountsB.normCount, equal_var=True)
 
-print(f"t-test= {t_stat:.4f}", "\n",
+print(f"t-test = {t_stat:.4f}", "\n",
           f"p-value = {p_val:.7f}", "\n",
-          f"Degrees of Freedom= {df:.0f}")
+          f"Degrees of Freedom = {df:.0f}")
 ```
 
 ```text
 
-t-test= -5.3033 
+t-test = -5.3033 
 p-value = 0.0007255
-Degrees of Freedom= 8
+Degrees of Freedom = 8
 
 ```
 Alternative hypothesis: true difference in means is not equal to 0
@@ -54,11 +54,6 @@ Below is example of how to plot the p-value significant notation manually onto g
 ```python
 #plot
 from matplotlib.markers import TICKDOWN
-def significance_bar(start,end,height,displaystring,linewidth = 1.2,markersize = 8,boxpad  =0.3,fontsize = 15,color = 'k'):
-    # draw a line with downticks at the ends
-    plt.plot([start,end],[height]*2,'-',color = color,lw=linewidth,marker = TICKDOWN,markeredgewidth=linewidth,markersize = markersize)
-    # draw the text with a bounding box covering up the line
-    plt.text(0.5*(start+end),height,displaystring,ha = 'center',va='center',bbox=dict(facecolor='1.', edgecolor='none',boxstyle='Square,pad='+str(boxpad)),size = fontsize)
 
 sns.set_style("darkgrid")
 sns.set_palette("colorblind")
@@ -68,7 +63,11 @@ ax = sns.stripplot(x="MacGuffinGroup",
                     data=podoCounts, jitter=0.1)
 
 #plot p-value
-pValAsterisk = ''
+def significance_bar(start,end,height,displaystring,linewidth = 1.2,markersize = 8,boxpad  =0.3,fontsize = 15,color = 'k'):
+    # draw a line with downticks at the ends
+    plt.plot([start,end],[height]*2,'-',color = color,lw=linewidth,marker = TICKDOWN,markeredgewidth=linewidth,markersize = markersize)
+    # draw the text with a bounding box covering up the line
+    plt.text(0.5*(start+end),height,displaystring,ha = 'center',va='center',bbox=dict(facecolor='1.', edgecolor='none',boxstyle='Square,pad='+str(boxpad)),size = fontsize)
 
 if p_val < 0.0001:
     pValAsterisk = '****'
@@ -85,12 +84,14 @@ height = podoCounts["normCount"].max()+20
 significance_bar(-.2,1.25,height,pValAsterisk)
 ax.set_title(f"p-value = {p_val:.7f}")
 plt.show()
+
 ```
 
 ![](img/pythonTutPodoJitterTTest.png)
 
 **Wilcoxon test**
-NOTE: TO DO - cross check R function and python are the same since its
+
+TODO - cross check R function and python are the same since its
 coming up with different values. Suspect its because sample size is not
 big enough.
 
@@ -115,8 +116,6 @@ Note - Wilcoxon p-value from R was used in this diagram
 
 **Dunn's test**
 
-TODO Dunn's Test In Python
-
 Let's use Dunn's test to check all the major families at the same time.
 Dunn's is good for if you have three or more categories for a metadata field, such as our vaccine column.
 First find out what the major families are by summing the hits for each family and sorting the table.
@@ -132,7 +131,7 @@ viralFamCounts = viralFamCounts.sort_values(by=['normCount'])
 # plot
 sns.set_style("darkgrid")
 sns.set_palette("colorblind")
-sns.set(rc={'figure.figsize':(14,10)})
+sns.set(rc={'figure.figsize':(12,8)})
 sns.barplot(x="normCount", y="family", data=viralFamCounts)
 plt.subplots_adjust(left=0.2)
 plt.grid(True)
@@ -144,13 +143,15 @@ plt.show()
 Let's focus on _Siphoviridae_, _Adenoviridae_, _Podoviridae_, and _Microviridae_.
 Collect summary counts for these families for each sample and include the metadata we want to use:
 
-```R
-viralMajorFamCounts = viruses %>% 
-    filter(family %in% c('Siphoviridae','Adenoviridae','Podoviridae','Microviridae')) %>% 
-    group_by(sampleID,family,vaccine) %>% 
-    summarise(n=sum(normCount))
-```
+```python
+#filter
+virusesFiltered = viruses[(viruses['family'].isin(['Siphoviridae','Adenoviridae','Podoviridae','Microviridae'])) & (viruses.alnType=='aa') & (viruses.evalue<1e-10)]
 
+#group by
+viralMajorFamCounts = virusesFiltered.groupby(by=['family','vaccine'], as_index=False)['normCount'].agg('sum')
+
+```
+TODO Dunn's Test In Python
 Now let's do the dunn's test for these families:
 
 ```R

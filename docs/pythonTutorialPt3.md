@@ -5,7 +5,7 @@ This section assumes you have finished Tutorials [Part 1](pythontTutorialPt1.md)
 The `taxonLevelCounts.tsv` file is intended to make it quick and easy to compare virus hit counts across samples.
 Let's look at the file by clicking on the 'View As DataFrame' link next to the 'taxonCounts' DataFrame:
 
-[![](img/pythonTaxCountTable.png)](img/pythonTaxCountTable.png)
+[![](img/pythonTaxCountTable.png){: style="width:480px"}](img/pythonTaxCountTable.png)
 
 The file contains the counts and normalised counts for each taxonomic level, for each sample, 
 based on the raw (unfiltered) hit counts.
@@ -52,9 +52,8 @@ plt.show()
 [![](img/pythonTutViralCounts.png)](img/pythonTutViralCounts.png)
 
 There are a couple of other options on how to display this data as you can see that the number
-of families is making this chart hard to interpret in this way:
-1) Heatmap
-2) Bubble Plot
+of families is making this chart harder to interpret in this way via either a Heatmap or Bubble Plot with example code
+provided below.
 
 **Heatmap**
 ```python
@@ -63,7 +62,7 @@ viralFiltCounts = viralCounts.groupby(by=['sampleID','taxonName'], as_index=Fals
 
 #plot
 sns.set_style("darkgrid")
-sns.set(rc={'figure.figsize':(22,12)})
+sns.set(rc={'figure.figsize':(20,10)})
 sns.heatmap(pd.crosstab([viralFiltCounts.sampleID], [viralFiltCounts.taxonName], values=viralFiltCounts['count'], aggfunc='sum', dropna=False).fillna(0),
             cmap="YlGnBu", annot=True, cbar=False, fmt=".0f")
 plt.xticks(rotation=90)
@@ -80,7 +79,7 @@ viralFiltCounts = viralCounts.groupby(by=['sampleID','taxonName'], as_index=Fals
 
 #plot
 sns.set_style("darkgrid")
-sns.set(rc={'figure.figsize':(22,12)})
+sns.set(rc={'figure.figsize':(16,12)})
 sns.scatterplot(x="taxonName", y="sampleID", data=viralFiltCounts, hue="count", s=viralFiltCounts['count'])
 plt.xticks(rotation=90)
 plt.tight_layout()
@@ -100,8 +99,6 @@ or normalisedCounts, e.g. at the family level:
 # Answer for "Challenge: Filter your raw viral hits to only keep protein hits with an evalue < 1e-10"
 virusesFiltered = viruses[(viruses.alnType=='aa') & (viruses.evalue<1e-10)]
 
-# collect the filtered counts
-viralFiltCounts = virusesFiltered.groupby(by=['sampleID','family'], as_index=False)['normCount'].agg('sum')
 ```
 
 Then plot again and have included Heatmap or Bubble Plot options
@@ -110,7 +107,7 @@ Then plot again and have included Heatmap or Bubble Plot options
 
 ```python
 sns.set_style("darkgrid")
-sns.set(rc={'figure.figsize':(22,12)})
+sns.set(rc={'figure.figsize':(20,10)})
 sns.heatmap(pd.crosstab([virusesFiltered.sampleID], [virusesFiltered.family], values=virusesFiltered.normCount, aggfunc='sum', dropna=False).fillna(0),
             cmap="YlGnBu", annot=True, cbar=False, fmt=".0f")
 plt.xticks(rotation=90)
@@ -124,7 +121,7 @@ plt.show()
 
 ```python
 sns.set_style("darkgrid")
-sns.set(rc={'figure.figsize':(22,12)})
+sns.set(rc={'figure.figsize':(16,12)})
 sns.scatterplot(x="family", y="sampleID", data=viralFiltCounts, hue="normCount", s=viralFiltCounts.normCount)
 plt.xticks(rotation=90)
 plt.tight_layout()
@@ -170,7 +167,7 @@ plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, l
 plt.show()
 ```
 
-![](img/pythonPlottuteMicrovirJitter.png)
+![](img/pythonPlottuteMicrovirJitter.png){: style="width:480px"}
 
 Let's do the same for _Podoviridae_.
 
@@ -193,7 +190,7 @@ plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, l
 plt.show()
 ```
 
-![](img/pythonTutePodoJitter.png)
+![](img/pythonTutePodoJitter.png){: style="width:480px"}
 
 # Challenge
 
