@@ -12,12 +12,8 @@ Overhauled: Michael Roach, Q2 2021
 """
 
 
-# imports
-import re
-
-
 ### DEFAULT CONFIG FILE
-configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
+# configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 
 
 ### LAUNCHER-CONTROLLED CONFIG--"Reads" MUST BE PASSED TO SNAKEMAKE

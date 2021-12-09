@@ -136,9 +136,8 @@ def initialiseSnakeCommand():
                '--nolock '
                '--show-failed-logs '
                f'--conda-prefix {CONDDIR} ')
-    # User-specified config file?
-    if args.configfile:
-        command = command + f' --configfile {args.configfile} '
+    # Config is now always passed via --configfile
+    command = command + f' --configfile {args.configfile} '
     # Additional Snakemake commands
     if args.snake:
         command = command + ' '.join(c for c in args.snake)

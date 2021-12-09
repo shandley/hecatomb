@@ -9,7 +9,7 @@ Michael Roach, Q2 2021
 
 
 # load default config
-configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
+# configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 
 
 # directories
