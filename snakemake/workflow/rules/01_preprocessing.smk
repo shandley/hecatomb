@@ -23,7 +23,8 @@ rule remove_5prime_primer:
     input:
         r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
         r2 = lambda wildcards: sampleReads[wildcards.sample]['R2'],
-        primers = os.path.join(CONPATH, "primerB.fa")
+        primers = os.path.join(CONPATH, "primerB.fa"),
+        summ = optionalSummary[0]
     output:
         r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq")),
@@ -61,7 +62,8 @@ rule remove_3prime_contaminant:
     input:
         r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq"),
         r2 = os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq"),
-        primers = os.path.join(CONPATH, "rc_primerB_ad6.fa")
+        primers = os.path.join(CONPATH, "rc_primerB_ad6.fa"),
+        summ = optionalSummary[1]
     output:
         r1 = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.s2.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p02", "{sample}_R2.s2.out.fastq")),
@@ -97,7 +99,8 @@ rule remove_primer_free_adapter:
     input:
         r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.s2.out.fastq"),
         r2 = os.path.join(TMPDIR, "p02", "{sample}_R2.s2.out.fastq"),
-        primers = os.path.join(CONPATH, "nebnext_adapters.fa")
+        primers = os.path.join(CONPATH, "nebnext_adapters.fa"),
+        summ = optionalSummary[2]
     output:
         r1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.s3.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p03", "{sample}_R2.s3.out.fastq")),
@@ -133,7 +136,8 @@ rule remove_adapter_free_primer:
     input:
         r1 = os.path.join(TMPDIR, "p03", "{sample}_R1.s3.out.fastq"),
         r2 = os.path.join(TMPDIR, "p03", "{sample}_R2.s3.out.fastq"),
-        primers = os.path.join(CONPATH, "rc_primerB_ad6.fa")
+        primers = os.path.join(CONPATH, "rc_primerB_ad6.fa"),
+        summ = optionalSummary[3]
     output:
         r1 = temp(os.path.join(TMPDIR, "p04", "{sample}_R1.s4.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p04", "{sample}_R2.s4.out.fastq")),
@@ -165,7 +169,8 @@ rule remove_vector_contamination:
     input:
         r1 = os.path.join(TMPDIR, "p04", "{sample}_R1.s4.out.fastq"),
         r2 = os.path.join(TMPDIR, "p04", "{sample}_R2.s4.out.fastq"),
-        primers = os.path.join(CONPATH, "vector_contaminants.fa")
+        primers = os.path.join(CONPATH, "vector_contaminants.fa"),
+        summ = optionalSummary[4]
     output:
         r1 = temp(os.path.join(TMPDIR, "p05", "{sample}_R1.s5.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p05", "{sample}_R2.s5.out.fastq")),
@@ -199,7 +204,8 @@ rule remove_low_quality:
     """
     input:
         r1 = os.path.join(TMPDIR, "p05", "{sample}_R1.s5.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p05", "{sample}_R2.s5.out.fastq")
+        r2 = os.path.join(TMPDIR, "p05", "{sample}_R2.s5.out.fastq"),
+        summ = optionalSummary[5]
     output:
         r1 = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.s6.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p06", "{sample}_R2.s6.out.fastq")),
@@ -261,7 +267,8 @@ rule host_removal_mapping:
     input:
         r1 = os.path.join(TMPDIR, "p06", "{sample}_R1.s6.out.fastq"),
         r2 = os.path.join(TMPDIR, "p06", "{sample}_R2.s6.out.fastq"),
-        host = HOSTINDEX
+        host = HOSTINDEX,
+        summ = optionalSummary[6]
     output:
         r1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.unmapped.fastq")),
@@ -291,7 +298,8 @@ rule nonhost_read_repair:
     """Preprocessing step 07b: Parse R1/R2 singletons (if singletons at all)"""
     input:
         s = os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.singletons.fastq"),
-        o = os.path.join(TMPDIR, "p07", "{sample}_R1.other.singletons.fastq")
+        o = os.path.join(TMPDIR, "p07", "{sample}_R1.other.singletons.fastq"),
+        summ = optionalSummary[7]
     output:
         sr1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.u.singletons.fastq")),
         sr2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.u.singletons.fastq")),
@@ -378,7 +386,8 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
      Sequences clustered at CLUSTERID in config.yaml.
     """
     input:
-        os.path.join(TMPDIR, "p08", "{sample}_R1.deduped.out.fastq")
+        fq = os.path.join(TMPDIR, "p08", "{sample}_R1.deduped.out.fastq"),
+        summ = optionalSummary[8]
     output:
         temp(os.path.join(TMPDIR, "p09", "{sample}_R1_rep_seq.fasta")),
         temp(os.path.join(TMPDIR, "p09", "{sample}_R1_cluster.tsv")),
@@ -400,7 +409,7 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
         "../envs/mmseqs2.yaml"
     shell:
         """ 
-        mmseqs easy-linclust {input} {params.respath}/{params.prefix} {params.tmppath} \
+        mmseqs easy-linclust {input.fq} {params.respath}/{params.prefix} {params.tmppath} \
             {params.config} \
             --threads {threads} &> {log}
         rm {log}
@@ -414,7 +423,8 @@ rule create_individual_seqtables:
     """
     input:
         seqs = os.path.join(TMPDIR, "p09", "{sample}_R1_rep_seq.fasta"),
-        counts = os.path.join(TMPDIR, "p09", "{sample}_R1_cluster.tsv")
+        counts = os.path.join(TMPDIR, "p09", "{sample}_R1_cluster.tsv"),
+        summ = optionalSummary[9]
     output:
         seqs = temp(os.path.join(TMPDIR, "p10", "{sample}_R1.seqs")),
         counts = temp(os.path.join(TMPDIR, "p10", "{sample}_R1.counts")),
@@ -454,7 +464,8 @@ rule merge_seq_table:
     the pipline.
     """
     input:
-        expand(os.path.join(TMPDIR, "p10", "{sample}_R1.seqtable"), sample=SAMPLES)
+        seqtables = expand(os.path.join(TMPDIR, "p10", "{sample}_R1.seqtable"), sample=SAMPLES),
+        summ = optionalSummary[10]
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")

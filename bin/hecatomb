@@ -186,13 +186,18 @@ def run():
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
+    if args.report:
+        rept = 'Report=True'
+    else:
+        rept = 'Report=False'
     runCommand = (f'{snakeCommand} '
                   f'-s {snekFile} '
                   f'-C Reads={readDir} '
                     f'Host={args.host} '
                     f'Output={args.results} '
                     f'SkipAssembly={args.skipAssembly} '
-                    f'Fast={args.fast} ')
+                    f'Fast={args.fast} '
+                    f'{rept}')
     runSnakeSys(runCommand)
     if args.report:
         sys.stderr.write("Generating run report\n")

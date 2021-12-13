@@ -20,6 +20,7 @@ Overhauled: Michael Roach, Q2 2021
 READS = config['Reads']
 HOST = config['Host']
 skipAssembly = config['SkipAssembly']
+makeReport = config['Report']
 if config['Fast']:
     MMSeqsSensAA = config['perfAAfast']
     MMSeqsSensNT = config['perfNTfast']
