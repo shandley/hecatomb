@@ -12,18 +12,15 @@ Overhauled: Michael Roach, Q2 2021
 """
 
 
-# imports
-import re
-
-
 ### DEFAULT CONFIG FILE
-configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
+# configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 
 
 ### LAUNCHER-CONTROLLED CONFIG--"Reads" MUST BE PASSED TO SNAKEMAKE
 READS = config['Reads']
 HOST = config['Host']
 skipAssembly = config['SkipAssembly']
+makeReport = config['Report']
 if config['Fast']:
     MMSeqsSensAA = config['perfAAfast']
     MMSeqsSensNT = config['perfNTfast']
