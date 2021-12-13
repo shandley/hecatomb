@@ -39,7 +39,7 @@ plt.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), borderaxespad=1,ncol=1, 
 plt.show()
 ```
 
-[![](img/pythonTutCtg6Sp.png)](img/pythonTutCtg6.png)
+[![](img/pythonTutCtg6.png)](img/pythonTutCtg6.png)
 
 There is a nice clear consensus that this is a Mastadenovirus.
 The handful of other reads we could fairly confidently reassign as such if we wanted.

@@ -52,8 +52,7 @@ plt.show()
 [![](img/pythonTutViralCounts.png)](img/pythonTutViralCounts.png)
 
 There are a couple of other options on how to display this data as you can see that the number
-of families is making this chart harder to interpret in this way via either a Heatmap or Bubble Plot with example code
-provided below.
+of families is making this chart hard to interpret. You could look at either a Heatmap or Bubble Plot.
 
 **Heatmap**
 ```python

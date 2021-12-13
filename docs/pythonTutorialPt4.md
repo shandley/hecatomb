@@ -87,32 +87,60 @@ plt.show()
 
 ```
 
-![](img/pythonTutPodoJitterTTest.png)
+![](img/pythonTutPodoJitterTTest.png){: style="width:480px"}
 
 **Wilcoxon test**
-
-TODO - cross check R function and python are the same since its
-coming up with different values. Suspect its because sample size is not
-big enough.
-
 You might prefer to perform a Wilcoxon test; the syntax is very similar to the t.test.
-Something to note is that the python Wilcoxon function is best suited to sample sizes >20
-so in this example n=10 so the p-value will be less accurate.
-https://stackoverflow.com/questions/33579785/difference-between-wilcoxon-test-in-r-and-python
 
 ```python
 #Wilcoxon test
-stat, p = stats.wilcoxon(podoCountsA.normCount, podoCountsB.normCount)
-print('Wilcoxon signed-rank test')
-print('Statistics=%.3f, p=%.5f' % (stat, p))
+stat, p_val = stats.mannwhitneyu(x=podoCountsA.normCount, y=podoCountsB.normCount, alternative = 'two-sided')
+print('Wilcoxon rank sum exact test')
+print('Statistics=%.3f, p=%.6f' % (stat, p_val))
 ```
 
 ```text
 Wilcoxon rank sum exact test
-Statistics=0.000, p=0.06250
+Statistics=0.000, p=0.007937
 ```
-Note - Wilcoxon p-value from R was used in this diagram
-![](img/tutePodoJitterWilc.png)
+
+Then plot
+```python
+#plot
+from matplotlib.markers import TICKDOWN
+
+sns.set_style("darkgrid")
+sns.set_palette("colorblind")
+sns.set(rc={'figure.figsize':(6,8)})
+ax = sns.stripplot(x="MacGuffinGroup",
+                    y="normCount",
+                    data=podoCounts, jitter=0.1)
+
+#plot p-value
+def significance_bar(start,end,height,displaystring,linewidth = 1.2,markersize = 8,boxpad  =0.3,fontsize = 15,color = 'k'):
+    # draw a line with downticks at the ends
+    plt.plot([start,end],[height]*2,'-',color = color,lw=linewidth,marker = TICKDOWN,markeredgewidth=linewidth,markersize = markersize)
+    # draw the text with a bounding box covering up the line
+    plt.text(0.5*(start+end),height,displaystring,ha = 'center',va='center',bbox=dict(facecolor='1.', edgecolor='none',boxstyle='Square,pad='+str(boxpad)),size = fontsize)
+
+if p_val < 0.0001:
+    pValAsterisk = '****'
+elif p_val < 0.001:
+  pValAsterisk = '***'
+elif p_val < 0.01:
+  pValAsterisk = '**'
+elif p_val < 0.05:
+  pValAsterisk = '*'
+else:
+  'ns'
+
+height = podoCounts["normCount"].max()+20
+significance_bar(-.2,1.25,height,pValAsterisk)
+ax.set_title(f"p-value = {p_val:.7f}")
+plt.show()
+```
+
+![](img/pythonTutPodoJitterWilc.png){: style="width:480px"}
 
 **Dunn's test**
 

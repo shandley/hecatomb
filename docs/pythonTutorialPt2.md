@@ -53,10 +53,11 @@ import matplotlib.pyplot as plt
 To render the scatterplot marker dots size based on count include the following:
 
 ```python
+#filter
 virusesGroup = viruses.groupby(by=['family','alnType','alnlen','pident'], as_index=False).count()
-sizeScatter = 10 * virusesGroup['count']
 
 #styling
+sizeScatter = 10 * virusesGroup['count']
 sns.set_style("darkgrid")
 sns.set_palette("colorblind")
 sns.set(rc={'figure.figsize':(12,8)})
