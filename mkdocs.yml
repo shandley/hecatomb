@@ -38,5 +38,3 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - pymdownx.snippets
-  - attr_list
-  - md_in_html

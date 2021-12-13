@@ -5,7 +5,7 @@ This section assumes you have finished Tutorials [Part 1](pythontTutorialPt1.md)
 The `taxonLevelCounts.tsv` file is intended to make it quick and easy to compare virus hit counts across samples.
 Let's look at the file by clicking on the 'View As DataFrame' link next to the 'taxonCounts' DataFrame:
 
-[![](img/pythonTaxCountTable.png){: style="width:480px"}](img/pythonTaxCountTable.png)
+[![](img/pythonTaxCountTable.png)](img/pythonTaxCountTable.png)
 
 The file contains the counts and normalised counts for each taxonomic level, for each sample, 
 based on the raw (unfiltered) hit counts.
@@ -166,7 +166,7 @@ plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, l
 plt.show()
 ```
 
-![](img/pythonPlottuteMicrovirJitter.png){: style="width:480px"}
+![](img/pythonPlottuteMicrovirJitter.png)
 
 Let's do the same for _Podoviridae_.
 
@@ -189,7 +189,7 @@ plt.legend(bbox_to_anchor=(6.0,1), loc=0, borderaxespad=2,ncol=6, shadow=True, l
 plt.show()
 ```
 
-![](img/pythonTutePodoJitter.png){: style="width:480px"}
+![](img/pythonTutePodoJitter.png)
 
 # Challenge
 

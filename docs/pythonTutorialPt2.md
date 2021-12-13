@@ -6,11 +6,11 @@ and have loaded them in PyCharm into dataframes called `data` and `meta`.
 
 Let's look at the bigtable file by clicking on the 'View As DataFrame' link next to the 'data' DataFrame:
 
-[![](img/pythonTutDataTable.png){: style="width:480px"}](img/pythonTutDataTable.png)
+[![](img/pythonTutDataTable.png)](img/pythonTutDataTable.png)
 
 And then look at the 'meta' DataFrame as well:
 
-[![](img/pythonTutMetaTable.png){: style="width:480px"}](img/pythonTutMetaTable.png)
+[![](img/pythonTutMetaTable.png)](img/pythonTutMetaTable.png)
 
 For the metadata table I've made sure the column header for the sample IDs are the same in both tables.
 There was more metadata associated with the original samples, but we've simplified things here.

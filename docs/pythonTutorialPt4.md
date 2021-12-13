@@ -14,7 +14,7 @@ Let's check out the dataframe we made earlier that we'll be using for the test:
 print(podoCounts)
 ```
 
-![](img/pythonTutPodoCnts.png){: style="width:480px"}
+![](img/pythonTutPodoCnts.png)
 
 We'll use the python function `stats.ttest_ind`, which takes two vectors--one with the 
 group A counts and one with the group B counts.
@@ -87,7 +87,7 @@ plt.show()
 
 ```
 
-![](img/pythonTutPodoJitterTTest.png){: style="width:480px"}
+![](img/pythonTutPodoJitterTTest.png)
 
 **Wilcoxon test**
 You might prefer to perform a Wilcoxon test; the syntax is very similar to the t.test.
@@ -140,7 +140,7 @@ ax.set_title(f"p-value = {p_val:.7f}")
 plt.show()
 ```
 
-![](img/pythonTutPodoJitterWilc.png){: style="width:480px"}
+![](img/pythonTutPodoJitterWilc.png)
 
 **Dunn's test**
 
