@@ -121,10 +121,7 @@ def initialiseSnakeCommand():
     config = readConfig()
     if args.profile:
         runJobs = (f'--profile {args.profile} '
-                   '--default-resources '
-                      f'mem_mb={config["defaultMem"]} '
-                      f'time={config["defaultTime"]} '
-                      f'jobs={config["defaultJobs"]} ')
+                   f'--jobs {config["defaultJobs"]} ')
     else:
         runJobs = f'-j {args.threads}'
     # Decorate the Snakemake run command
