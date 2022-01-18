@@ -412,34 +412,41 @@ rule create_contig_count_table:
         os.path.join(BENCH, "create_contig_count_table.{sample}.txt")
     log:
         os.path.join(STDERR, "create_contig_count_table.{sample}.log")
-    shell:
-        """
-        ## TPM Calculator
-        # Prepare table & calculate RPK
-        {{ tail -n+6 {input.rpkm} | \
-            cut -f1,2,5,6,8 | \
-            awk 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $3/($2/1000) }}' > {output.counts_tmp};
-
-        # Calculate size factor (per million)
-        sizef=$(awk 'BEGIN{{ total=0 }} {{ total=total+$6/1000000 }} END{{ printf total }}' {output.counts_tmp});
-
-        # Calculate TPM
-        awk -v awkvar="$sizef" 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $6/awkvar }}' < {output.counts_tmp} > {output.TPM_tmp};
-
-        # Add sample name
-        awk -v awkvar="{wildcards.sample}" 'BEGIN{{FS=OFS="\t"}} {{ print awkvar, $0 }}' < {output.TPM_tmp} > {output.TPM};
-
-        # Remove RPK
-        cut --complement -f 7 {output.TPM} > {output.TPM_final};
-
-        ## Coverage stats modifications
-        tail -n+2 {input.covstats} | cut -f2,4,5,6,9 > {output.cov_temp};
-
-        ## Combine tables
-        paste {output.TPM_final} {output.cov_temp} > {output.count_tbl};
-        }} 2> {log}
-        rm {log}
-        """
+    run:
+        covStat = {}
+        with open(input.covstats, 'r') as f:
+            for line in f:
+                if not line.startswith('#'):
+                    l = line.split('\t')
+                    covStat[l[0]] = [l[1],l[3],l[4],l[5],l[9]]
+        total = 0
+        with open(input.rpkm, 'r') as f:
+            for line in f:
+                if not line.startswith('#'):
+                    l = line.split('\t')
+                    rpk = l[2] / (l[1] / 1000)      # RPK
+                    total += rpk / 1000000         # size factor per million
+        with open(output.counts_tmp,'w') as o:
+            o.write('#Sample\tContig\tLength\tReads\tRPKM\tFPKM\tTPM\tAverageFold\tReferenceGC\tCoveragePercentage\tcoverageBases\tMedianFold\n')
+            with open(input.rpkm,'r') as f:
+                for line in f:
+                    if not line.startswith('#'):
+                        l = line.split('\t')
+                        rpk = l[2] / (l[1] / 1000)      # RPK
+                        try:
+                            tpm = rpk / total               # TPM
+                        except ZeroDivisionError:
+                            tpm = 0
+                        o.write( '\t'.join(
+                            wildcards.sample,       # sample
+                            l[0],                   # contig
+                            l[1],                   # length
+                            l[4],                   # reads
+                            l[5],                   # RPKM
+                            l[7],                   # FPKM
+                            tpm,                    # TPM
+                            covStat[l[0]]          # aveFole -> medianFold
+                        ) + '\n')
 
 rule concatentate_contig_count_tables:
     """Assembly step 09: Concatenate contig count tables
