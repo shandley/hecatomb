@@ -176,6 +176,10 @@ rule SECONDARY_AA_generate_output_table:
         balt = os.path.join(TABLES, '2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
         os.path.join(SECONDARY_AA_OUT, "AA_bigtable.tsv")
+    resources:
+        mem_mb = MiscMem
+    threads:
+        MiscCPU
     benchmark:
         os.path.join(BENCH, "SECONDARY_AA_generate_output_table.txt")
     log:
@@ -482,6 +486,10 @@ rule SECONDARY_NT_generate_output_table:
         balt = os.path.join(TABLES,'2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
         os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
+    resources:
+        mem_mb = MiscMem
+    threads:
+        MiscCPU
     params:
         taxIdIgnore = config['taxIdIgnore'].split()
     benchmark:
