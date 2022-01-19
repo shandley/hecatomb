@@ -33,9 +33,9 @@ rule fastp_preprocessing:
     log:
         os.path.join(STDERR, "fastp_preprocessing.{sample}.log")
     resources:
-        mem_mb = fastpMem
+        mem_mb = FastpMem
     threads:
-        fastpCPU
+        FastpCPU
     conda:
         "../envs/fastp.yaml"
     shell:
