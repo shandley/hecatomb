@@ -40,8 +40,8 @@ BBToolsMem = config['SmallJobMem']
 BBToolsCPU = config['SmallJobCpu']
 MiscMem = config['MoreRamMem']
 MiscCPU = config['MoreRamCpu']
-fastpMem = config['SmallJobMem']
-fastpCPU = config['SmallJobCpu']
+FastpMem = config['SmallJobMem']
+FastpCPU = config['SmallJobCpu']
 
 ### DIRECTORIES
 include: "rules/00_directories.smk"
