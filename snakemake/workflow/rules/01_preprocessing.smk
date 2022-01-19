@@ -1,243 +1,43 @@
-"""
-Snakemake rule file to preprocess Illumina sequence data for virome analysis.
-
-What is accomplished with these rules?
-    - Non-biological sequence removal (primers, adapters)
-    - Host sequence removal
-    - Removal of redundant sequences (duplicates + clustering)
-        - Creation of sequence count table
-        - Calculation of sequence properties (e.g. GC content, tetramer frequencies)
-
-Rob Edwards, Jan 2020
-Updated: Scott Handley, March 2021
-Updated: Michael Roach, Q2/3 2021
-"""
-
-
-rule remove_5prime_primer:
-    """Preprocessing step 01: Remove 5' primer.
+rule fastp_preprocessing:
+    """Preprocessing step 01: fastp_preprocessing.
     
-    Default RdA/B Primer sequences are provided in the file primerB.fa. If your lab uses other primers you will need to
-    place them in CONPATH (defined in the Hecatomb.smk) and change the file name from primerB.fa to your file name below.
+    Use fastP to remove adaptors, vector contaminants, low quality sequences, poly-A tails and reads shorts than minimum length, plus deduplicate.
     """
     input:
         r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
         r2 = lambda wildcards: sampleReads[wildcards.sample]['R2'],
-        primers = os.path.join(CONPATH, "primerB.fa"),
+        contaminants = os.path.join(CONPATH, "contaminants.fasta"),
         summ = optionalSummary[0]
     output:
         r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq")),
-        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.tsv")
+        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.json")
     benchmark:
-        os.path.join(BENCH, "remove_5prime_primer.{sample}.txt")
+        os.path.join(BENCH, "fastp_preprocessing.{sample}.txt")
     log:
-        os.path.join(STDERR, "remove_5prime_primer.{sample}.log")
+        os.path.join(STDERR, "fastp_preprocessing.{sample}.log")
     resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        mem_mb = fastpMem
     threads:
-        BBToolsCPU
+        fastpCPU
     conda:
-        "../envs/bbmap.yaml"
+        "../envs/fastp.yaml"
     shell:
         """
-        bbduk.sh in={input.r1} in2={input.r2} \
-            ref={input.primers} \
-            out={output.r1} out2={output.r2} \
-            stats={output.stats} \
-            k=16 hdist=1 mink=11 ktrim=l restrictleft=20 \
-            removeifeitherbad=f trimpolya=10 ordered=t rcomp=f ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
-        """
-
-rule remove_3prime_contaminant:
-    """Preprocessing step 02: Remove 3' read through contaminant. 
-    
-    This is sequence that occurs if the library fragment is shorter than 250 bases and the sequencer reads through the 
-    the 3' end. We use the full length of primerB plus 6 bases of the adapter to detect this event and remove everything
-    to the right of that molecule when detected.
-    """
-    input:
-        r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq"),
-        primers = os.path.join(CONPATH, "rc_primerB_ad6.fa"),
-        summ = optionalSummary[1]
-    output:
-        r1 = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.s2.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p02", "{sample}_R2.s2.out.fastq")),
-        stats = os.path.join(STATS, "p02", "{sample}.s2.stats.tsv")
-    benchmark:
-        os.path.join(BENCH, "remove_3prime_contaminant.{sample}.txt")
-    log:
-        os.path.join(STDERR, "remove_3prime_contaminant.{sample}.log")
-    resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
-    threads:
-        BBToolsCPU
-    conda:
-        "../envs/bbmap.yaml"
-    shell:
-        """
-        bbduk.sh in={input.r1} in2={input.r2} \
-            ref={input.primers} \
-            out={output.r1} out2={output.r2} \
-            stats={output.stats} \
-            k=16 hdist=1 mink=11 ktrim=r removeifeitherbad=f ordered=t rcomp=f ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
-        """
-
-rule remove_primer_free_adapter:
-    """Preprocessing step 03: Remove primer free adapter (both orientations). 
-    
-    Rarely the adapter will be seen in the molecule indpendent of the primer. This removes those instances as well as 
-    everything to the right of the detected primer-free adapter.
-    """
-    input:
-        r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.s2.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p02", "{sample}_R2.s2.out.fastq"),
-        primers = os.path.join(CONPATH, "nebnext_adapters.fa"),
-        summ = optionalSummary[2]
-    output:
-        r1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.s3.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p03", "{sample}_R2.s3.out.fastq")),
-        stats = os.path.join(STATS, "p03", "{sample}.s3.stats.tsv")
-    benchmark:
-        os.path.join(BENCH, "remove_primer_free_adapter.{sample}.txt")
-    log:
-        os.path.join(STDERR, "remove_primer_free_adapter.{sample}.log")
-    resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
-    threads:
-        BBToolsCPU
-    conda:
-        "../envs/bbmap.yaml"
-    shell:
-        """
-        bbduk.sh in={input.r1} in2={input.r2} \
-            ref={input.primers} \
-            out={output.r1} out2={output.r2} \
-            stats={output.stats} \
-            k=16 hdist=1 mink=10 ktrim=r removeifeitherbad=f ordered=t rcomp=t ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
-        """
-
-rule remove_adapter_free_primer:
-    """Preprocessing step 04: Remove adapter free primer (both orientations). 
-    
-    Rarely the primer is detected without the primer. This removes those instances as well as everything to the right 
-    of the detected adapter-free primer. 
-    """
-    input:
-        r1 = os.path.join(TMPDIR, "p03", "{sample}_R1.s3.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p03", "{sample}_R2.s3.out.fastq"),
-        primers = os.path.join(CONPATH, "rc_primerB_ad6.fa"),
-        summ = optionalSummary[3]
-    output:
-        r1 = temp(os.path.join(TMPDIR, "p04", "{sample}_R1.s4.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p04", "{sample}_R2.s4.out.fastq")),
-        stats = os.path.join(STATS, "p04", "{sample}.s4.stats.tsv")
-    benchmark:
-        os.path.join(BENCH, "remove_adapter_free_primer.{sample}.txt")
-    log:
-        os.path.join(STDERR, "remove_adapter_free_primer.{sample}.log")
-    resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
-    threads:
-        BBToolsCPU
-    conda:
-        "../envs/bbmap.yaml"
-    shell:
-        """
-        bbduk.sh in={input.r1} in2={input.r2} \
-            ref={input.primers} \
-            out={output.r1} out2={output.r2} \
-            stats={output.stats} \
-            k=16 hdist=0 removeifeitherbad=f ordered=t rcomp=t ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
-        """
-
-rule remove_vector_contamination:
-    """Preprocessing step 05: Vector contamination removal (PhiX + NCBI UniVecDB)"""
-    input:
-        r1 = os.path.join(TMPDIR, "p04", "{sample}_R1.s4.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p04", "{sample}_R2.s4.out.fastq"),
-        primers = os.path.join(CONPATH, "vector_contaminants.fa"),
-        summ = optionalSummary[4]
-    output:
-        r1 = temp(os.path.join(TMPDIR, "p05", "{sample}_R1.s5.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p05", "{sample}_R2.s5.out.fastq")),
-        stats = os.path.join(STATS, "p05", "{sample}.s5.stats.tsv")
-    benchmark:
-        os.path.join(BENCH, "remove_vector_contamination.{sample}.txt")
-    log:
-        os.path.join(STDERR, "remove_vector_contamination.{sample}.log")
-    resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
-    threads:
-        BBToolsCPU
-    conda:
-        "../envs/bbmap.yaml"
-    shell:
-        """
-        bbduk.sh in={input.r1} in2={input.r2} \
-            ref={input.primers} \
-            out={output.r1} out2={output.r2} \
-            stats={output.stats} \
-            k=31 hammingdistance=1 ordered=t ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
-        """
-        
-rule remove_low_quality:
-    """Preprocessing step 06: Remove remaining low-quality bases and short reads. 
-    
-    Quality score can be modified in config.yaml (QSCORE).
-    """
-    input:
-        r1 = os.path.join(TMPDIR, "p05", "{sample}_R1.s5.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p05", "{sample}_R2.s5.out.fastq"),
-        summ = optionalSummary[5]
-    output:
-        r1 = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.s6.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p06", "{sample}_R2.s6.out.fastq")),
-        stats = os.path.join(STATS, "p06", "{sample}.s6.stats.tsv")
-    benchmark:
-        os.path.join(BENCH, "remove_low_quality.{sample}.txt")
-    log:
-        os.path.join(STDERR, "remove_low_quality.{sample}.log")
-    resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
-    threads:
-        BBToolsCPU
-    conda:
-        "../envs/bbmap.yaml"
-    shell:
-        """
-        bbduk.sh in={input.r1} in2={input.r2} \
-            out={output.r1} out2={output.r2} \
-            stats={output.stats} \
-            ordered=t \
-            qtrim=r maxns=2 \
-            entropy={config[ENTROPY]} \
-            entropywindow={config[ENTROPYWINDOW]} \
-            trimq={config[QSCORE]} \
-            minlength={config[READ_MINLENGTH]} \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
+        fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} -z {config[COMPRESSION]} / 
+        -j {output.stats}/
+        --qualified_quality_phred {config[QSCORE]} /
+        --length_required {config[READ_MINLENGTH]} /
+        --adapter_fasta {input.contaminants} / 
+        --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]}  /
+        --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} /
+        --trim_poly_x /
+        --thread {threads} 2> {log}
         rm {log}
         """
 
 rule create_host_index:
-    """Create the minimap2 index for mapping to the host; this will save time."""
+    """Step 02. Create the minimap2 index for mapping to the host; this will save time."""
     input:
         HOSTFA,
     output:
@@ -259,21 +59,21 @@ rule create_host_index:
         """
 
 rule host_removal_mapping:
-    """Preprocessing step 07a: Host removal: mapping to host. 
+    """Preprocessing step 02a: Host removal: mapping to host.
     
     Must define host in config file (see Paths: Host: in config.yaml). Host should be masked of viral sequence.
     If your reference is not available you need to add it using 'Hecatomb addHost'
     """
     input:
-        r1 = os.path.join(TMPDIR, "p06", "{sample}_R1.s6.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p06", "{sample}_R2.s6.out.fastq"),
+        r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq"),
+        r2 = os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq"),
         host = HOSTINDEX,
         summ = optionalSummary[6]
     output:
-        r1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.unmapped.fastq")),
-        s = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.singletons.fastq")),
-        o = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.other.singletons.fastq"))
+        r1 = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "p02", "{sample}_R2.unmapped.fastq")),
+        s = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq")),
+        o = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq"))
     benchmark:
         os.path.join(BENCH, "host_removal_mapping.{sample}.txt")
     log:
@@ -295,16 +95,16 @@ rule host_removal_mapping:
         """
 
 rule nonhost_read_repair:
-    """Preprocessing step 07b: Parse R1/R2 singletons (if singletons at all)"""
+    """Preprocessing step 03: Parse R1/R2 singletons (if singletons at all)"""
     input:
-        s = os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.singletons.fastq"),
-        o = os.path.join(TMPDIR, "p07", "{sample}_R1.other.singletons.fastq"),
+        s = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq"),
+        o = os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq"),
         summ = optionalSummary[7]
     output:
-        sr1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.u.singletons.fastq")),
-        sr2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.u.singletons.fastq")),
-        or1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.o.singletons.fastq")),
-        or2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.o.singletons.fastq"))
+        sr1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.u.singletons.fastq")),
+        sr2 = temp(os.path.join(TMPDIR, "p03", "{sample}_R2.u.singletons.fastq")),
+        or1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.o.singletons.fastq")),
+        or2 = temp(os.path.join(TMPDIR, "p03", "{sample}_R2.o.singletons.fastq"))
     benchmark:
         os.path.join(BENCH, "nonhost_read_repair.{sample}.txt")
     log:
@@ -326,19 +126,19 @@ rule nonhost_read_repair:
         """
 
 rule nonhost_read_combine:
-    """Preprocessing step 07c: Combine paired and singleton reads."""
+    """Preprocessing step 4: Combine paired and singleton reads. """
     input:
-        r1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.unmapped.fastq"),
-        r2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.unmapped.fastq"),
-        sr1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.u.singletons.fastq"),
-        sr2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.u.singletons.fastq"),
-        or1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.o.singletons.fastq"),
-        or2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.o.singletons.fastq")
+        r1 = os.path.join(TMPDIR, "p02", "{PATTERN}_R1.unmapped.fastq"),
+        r2 = os.path.join(TMPDIR, "p02", "{PATTERN}_R2.unmapped.fastq"),
+        sr1 = os.path.join(TMPDIR, "p03", "{PATTERN}_R1.u.singletons.fastq"),
+        sr2 = os.path.join(TMPDIR, "p03", "{PATTERN}_R2.u.singletons.fastq"),
+        or1 = os.path.join(TMPDIR, "p03", "{PATTERN}_R1.o.singletons.fastq"),
+        or2 = os.path.join(TMPDIR, "p03", "{PATTERN}_R2.o.singletons.fastq")
     output:
-        t1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.singletons.fastq"),
-        t2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.singletons.fastq"),
-        r1 = os.path.join(TMPDIR, "p07", "{PATTERN}_R1.all.fastq"),
-        r2 = os.path.join(TMPDIR, "p07", "{PATTERN}_R2.all.fastq")
+        t1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.singletons.fastq"),
+        t2 = os.path.join(TMPDIR, "p04", "{PATTERN}_R2.singletons.fastq"),
+        r1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.all.fastq"),
+        r2 = os.path.join(TMPDIR, "p04", "{PATTERN}_R2.all.fastq")
     benchmark:
         os.path.join(BENCH, "nonhost_read_combine.{PATTERN}.txt")
     log:
@@ -351,50 +151,22 @@ rule nonhost_read_combine:
         cat {input.r2} {output.t2} > {output.r2}; }} 2> {log}
         rm {log}
         """
-
-rule remove_exact_dups:
-    """Preprocessing step 08: Remove exact duplicates
-    
-    Exact duplicates are considered PCR generated and not accounted for in the count table (seqtable_all.tsv)
-    """
-    input:
-        os.path.join(TMPDIR, "p07", "{sample}_R1.all.fastq")
-    output:
-        temp(os.path.join(TMPDIR, "p08", "{sample}_R1.deduped.out.fastq"))
-    benchmark:
-        os.path.join(BENCH, "remove_exact_dups.{sample}.txt")
-    log:
-        os.path.join(STDERR, "remove_exact_dups.{sample}.log")
-    resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
-    threads:
-        BBToolsCPU
-    conda:
-        "../envs/bbmap.yaml"
-    shell:
-        """
-        dedupe.sh in={input} out={output} \
-            ac=f ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
-        """
           
 rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT AT THIS POINT
-    """Preprocessing step 09: Cluster similar sequences.
+    """Preprocessing step 05: Cluster similar sequences.
      
      Sequences clustered at CLUSTERID in config.yaml.
     """
     input:
-        fq = os.path.join(TMPDIR, "p08", "{sample}_R1.deduped.out.fastq"),
+        fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq")
         summ = optionalSummary[8]
     output:
-        temp(os.path.join(TMPDIR, "p09", "{sample}_R1_rep_seq.fasta")),
-        temp(os.path.join(TMPDIR, "p09", "{sample}_R1_cluster.tsv")),
-        temp(os.path.join(TMPDIR, "p09", "{sample}_R1_all_seqs.fasta"))
+        temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
+        temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
+        temp(os.path.join(TMPDIR, "p05", "{sample}_R1_all_seqs.fasta"))
     params:
-        respath = os.path.join(TMPDIR, "p09"),
-        tmppath = os.path.join(TMPDIR, "p09", "{sample}_TMP"),
+        respath = os.path.join(TMPDIR, "p05"),
+        tmppath = os.path.join(TMPDIR, "p05", "{sample}_TMP"),
         prefix = '{sample}_R1',
         config = config['linclustParams']
     benchmark:
@@ -416,19 +188,19 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
         """
         
 rule create_individual_seqtables:
-    """Preprocessing step 10: Create individual seqtables. 
+    """Preprocessing step 6: Create individual seqtables. 
     
     A seqtable is a count table with each sequence as a row, each column as a sample and each cell the counts of each 
     sequence per sample.
     """
     input:
-        seqs = os.path.join(TMPDIR, "p09", "{sample}_R1_rep_seq.fasta"),
-        counts = os.path.join(TMPDIR, "p09", "{sample}_R1_cluster.tsv"),
+        seqs = os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta"),
+        counts = os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv"),
         summ = optionalSummary[9]
     output:
-        seqs = temp(os.path.join(TMPDIR, "p10", "{sample}_R1.seqs")),
-        counts = temp(os.path.join(TMPDIR, "p10", "{sample}_R1.counts")),
-        seqtable = temp(os.path.join(TMPDIR, "p10", "{sample}_R1.seqtable"))
+        seqs = temp(os.path.join(TMPDIR, "p6", "{sample}_R1.seqs")),
+        counts = temp(os.path.join(TMPDIR, "p6", "{sample}_R1.counts")),
+        seqtable = temp(os.path.join(TMPDIR, "p6", "{sample}_R1.seqtable"))
     benchmark:
         os.path.join(BENCH, "individual_seqtables.{sample}.txt")
     log:
@@ -458,13 +230,13 @@ rule create_individual_seqtables:
 
 
 rule merge_seq_table:
-    """Preprocessing step 11: Merge seq tables
+    """Preprocessing step 7: Merge seq tables
     
     Reads the sequences and counts from each samples' seqtable text file and converts to fasta format for the rest of 
     the pipline.
     """
     input:
-        seqtables = expand(os.path.join(TMPDIR, "p10", "{sample}_R1.seqtable"), sample=SAMPLES),
+        seqtables = expand(os.path.join(TMPDIR, "p6", "{sample}_R1.seqtable"), sample=SAMPLES),
         summ = optionalSummary[10]
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
