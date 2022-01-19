@@ -17,11 +17,11 @@ import glob
 from shutil import copyfile
 
 
-### VERSION
-BINDIR = os.path.dirname(os.path.realpath(__file__))
-vFH = open(os.path.join(BINDIR, '../', 'VERSION'), 'r')
-VERSION = vFH.readline()
-vFH.close()
+### VERSION # This breaks the compiled version of hecatomb, so I've removed it for now. 
+#BINDIR = os.path.dirname(os.path.realpath(__file__))
+#vFH = open(os.path.join(BINDIR, '../', 'VERSION'), 'r')
+#VERSION = vFH.readline()
+#vFH.close()
 
 
 ### PARSE COMMAND LINE ARGUMENTS
@@ -34,7 +34,7 @@ parser = argparse.ArgumentParser(
                  "██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗\n"
                  "██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝\n"
                  "╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝ \n"                                                   
-                 f"\nVersion {VERSION}\n"
+                 #f"\nVersion {VERSION}\n"
                  "\n"
                  "Commands:\n"
                  "    install     Download and install the databases (only have to do once)\n"
