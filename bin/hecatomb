@@ -4,6 +4,7 @@
 Command-line interface for installing and running hecatomb.
 
 Michael Roach, Q2 2021
+Tweaked Sarah Beecroft Q1 2022
 """
 
 
@@ -22,6 +23,8 @@ from shutil import copyfile
 #vFH = open(os.path.join(BINDIR, '../', 'VERSION'), 'r')
 #VERSION = vFH.readline()
 #vFH.close()
+
+BINDIR = os.getcwd()
 
 
 ### PARSE COMMAND LINE ARGUMENTS
