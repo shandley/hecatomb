@@ -402,51 +402,13 @@ rule create_contig_count_table:
         rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm"),
         covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats")
     output:
-        # counts_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_counts.tmp")),
-        # TPM_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_TPM.tmp")),
-        # TPM = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_TPM")),
-        # TPM_final = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_TPM.final")),
-        # cov_temp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_cov.tmp")),
         count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv")
     benchmark:
         os.path.join(BENCH, "create_contig_count_table.{sample}.txt")
     log:
         os.path.join(STDERR, "create_contig_count_table.{sample}.log")
-    run:
-        covStat = {}
-        with open(input.covstats, 'r') as f:
-            for line in f:
-                if not line.startswith('#'):
-                    l = line.split('\t')
-                    covStat[l[0]] = [l[1],l[3],l[4],l[5],l[9]]
-        total = 0
-        with open(input.rpkm, 'r') as f:
-            for line in f:
-                if not line.startswith('#'):
-                    l = line.split('\t')
-                    rpk = int(l[2]) / (int(l[1]) / 1000)      # RPK
-                    total += rpk / 1000000         # size factor per million
-        with open(output.count_tbl,'w') as o:
-            o.write('#Sample\tContig\tLength\tReads\tRPKM\tFPKM\tTPM\tAverageFold\tReferenceGC\tCoveragePercentage\tcoverageBases\tMedianFold\n')
-            with open(input.rpkm,'r') as f:
-                for line in f:
-                    if not line.startswith('#'):
-                        l = line.split('\t')
-                        rpk = int(l[2]) / (int(l[1]) / 1000)      # RPK
-                        try:
-                            tpm = rpk / total               # TPM
-                        except ZeroDivisionError:
-                            tpm = 0
-                        o.write( '\t'.join([
-                            wildcards.sample,       # sample
-                            l[0],                   # contig
-                            l[1],                   # length
-                            l[4],                   # reads
-                            l[5],                   # RPKM
-                            l[7],                   # FPKM
-                            str(tpm)]+              # CPM
-                            covStat[l[0]]           # aveFole -> medianFold
-                        ) + '\n')
+    script:
+        os.path.join('..', 'scripts', 'contigCountTable.py')
 
 rule concatentate_contig_count_tables:
     """Assembly step 09: Concatenate contig count tables
