@@ -22,7 +22,7 @@ rule fastp_preprocessing:
     input:
         r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
         r2 = lambda wildcards: sampleReads[wildcards.sample]['R2'],
-        contaminants = os.path.join(CONPATH, "contaminants.fasta"),
+        contaminants = os.path.join(CONPATH, "vector_contaminants.fa"),
         summ = optionalSummary[0]
     output:
         r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
