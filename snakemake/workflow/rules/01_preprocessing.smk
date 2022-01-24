@@ -174,7 +174,7 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
      Sequences clustered at CLUSTERID in config.yaml.
     """
     input:
-        fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq")
+        fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
         summ = optionalSummary[8]
     output:
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
