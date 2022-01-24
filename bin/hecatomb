@@ -24,7 +24,7 @@ from shutil import copyfile
 #VERSION = vFH.readline()
 #vFH.close()
 
-BINDIR = os.getcwd()
+BINDIR = os.path.join(os.getcwd(), 'bin')
 
 
 ### PARSE COMMAND LINE ARGUMENTS
