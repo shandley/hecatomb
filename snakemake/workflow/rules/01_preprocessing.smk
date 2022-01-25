@@ -40,14 +40,14 @@ rule fastp_preprocessing:
         "../envs/fastp.yaml"
     shell:
         """
-        fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} -z {config[COMPRESSION]} / 
-        -j {output.stats}/
-        --qualified_quality_phred {config[QSCORE]} /
-        --length_required {config[READ_MINLENGTH]} /
-        --adapter_fasta {input.contaminants} / 
-        --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]}  /
-        --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} /
-        --trim_poly_x /
+        fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} -z {config[COMPRESSION]} \
+        -j {output.stats} \
+        --qualified_quality_phred {config[QSCORE]} \
+        --length_required {config[READ_MINLENGTH]} \
+        --adapter_fasta {input.contaminants} \
+        --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]} \
+        --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} \
+        --trim_poly_x \
         --thread {threads} 2> {log}
         rm {log}
         """
