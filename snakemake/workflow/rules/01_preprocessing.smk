@@ -36,8 +36,6 @@ rule fastp_preprocessing:
         mem_mb = FastpMem
     threads:
         FastpCPU
-    conda:
-        "../envs/fastp.yaml"
     shell:
         """
         fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} -z {config[COMPRESSION]} \
