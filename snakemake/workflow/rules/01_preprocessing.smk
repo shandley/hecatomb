@@ -43,7 +43,7 @@ rule fastp_preprocessing:
         --qualified_quality_phred {config[QSCORE]} \
         --length_required {config[READ_MINLENGTH]} \
         --adapter_fasta {input.contaminants} \
-        --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]}  \
+        --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]} \
         --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} \
         --trim_poly_x \
         --thread {threads} 2> {log}
