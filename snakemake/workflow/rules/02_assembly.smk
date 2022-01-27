@@ -402,44 +402,13 @@ rule create_contig_count_table:
         rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm"),
         covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats")
     output:
-        counts_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_counts.tmp")),
-        TPM_tmp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_TPM.tmp")),
-        TPM = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_TPM")),
-        TPM_final = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_TPM.final")),
-        cov_temp = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_cov.tmp")),
         count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv")
     benchmark:
         os.path.join(BENCH, "create_contig_count_table.{sample}.txt")
     log:
         os.path.join(STDERR, "create_contig_count_table.{sample}.log")
-    shell:
-        """
-        ## TPM Calculator
-        # Prepare table & calculate RPK
-        {{ tail -n+6 {input.rpkm} | \
-            cut -f1,2,5,6,8 | \
-            awk 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $3/($2/1000) }}' > {output.counts_tmp};
-
-        # Calculate size factor (per million)
-        sizef=$(awk 'BEGIN{{ total=0 }} {{ total=total+$6/1000000 }} END{{ printf total }}' {output.counts_tmp});
-
-        # Calculate TPM
-        awk -v awkvar="$sizef" 'BEGIN{{ FS=OFS="\t" }} {{ print $0, $6/awkvar }}' < {output.counts_tmp} > {output.TPM_tmp};
-
-        # Add sample name
-        awk -v awkvar="{wildcards.sample}" 'BEGIN{{FS=OFS="\t"}} {{ print awkvar, $0 }}' < {output.TPM_tmp} > {output.TPM};
-
-        # Remove RPK
-        cut --complement -f 7 {output.TPM} > {output.TPM_final};
-
-        ## Coverage stats modifications
-        tail -n+2 {input.covstats} | cut -f2,4,5,6,9 > {output.cov_temp};
-
-        ## Combine tables
-        paste {output.TPM_final} {output.cov_temp} > {output.count_tbl};
-        }} 2> {log}
-        rm {log}
-        """
+    script:
+        os.path.join('..', 'scripts', 'contigCountTable.py')
 
 rule concatentate_contig_count_tables:
     """Assembly step 09: Concatenate contig count tables

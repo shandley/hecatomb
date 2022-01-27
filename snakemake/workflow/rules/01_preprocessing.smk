@@ -270,8 +270,8 @@ rule host_removal_mapping:
         host = HOSTINDEX,
         summ = optionalSummary[6]
     output:
-        r1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.unmapped.fastq")),
+        r1 = os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.fastq"),
+        r2 = os.path.join(TMPDIR, "p07", "{sample}_R2.unmapped.fastq"),
         s = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.singletons.fastq")),
         o = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.other.singletons.fastq"))
     benchmark:

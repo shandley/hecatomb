@@ -176,6 +176,10 @@ rule SECONDARY_AA_generate_output_table:
         balt = os.path.join(TABLES, '2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
         os.path.join(SECONDARY_AA_OUT, "AA_bigtable.tsv")
+    resources:
+        mem_mb = MiscMem
+    threads:
+        MiscCPU
     benchmark:
         os.path.join(BENCH, "SECONDARY_AA_generate_output_table.txt")
     log:
@@ -397,7 +401,7 @@ rule SECONDARY_NT_convert:
         queryDB = os.path.join(SECONDARY_NT_OUT, "queryDB"),
         db = os.path.join(POLYMICRODB, "sequenceDB")
     output:
-        align = os.path.join(SECONDARY_NT_OUT, "results", "all.m8"),
+        align = temp(os.path.join(SECONDARY_NT_OUT, "results", "all.m8")),
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result")
     resources:
@@ -413,7 +417,7 @@ rule SECONDARY_NT_convert:
     shell:
         """
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
-            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader" \
+            --format-output "query,target" \
             2> {log}
         rm {log}
         """
@@ -429,8 +433,6 @@ rule secondary_nt_lca_table:
         os.path.join(BENCH, "secondary_nt_lca_table.txt")
     log:
         os.path.join(STDERR, 'secondary_nt_lca_table.log')
-    resources:
-        mem_mb = MiscMem
     script:
         os.path.join('..', 'scripts', 'ntSecondaryLca.py')
 
@@ -482,6 +484,10 @@ rule SECONDARY_NT_generate_output_table:
         balt = os.path.join(TABLES,'2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
         os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
+    resources:
+        mem_mb = MiscMem
+    threads:
+        MiscCPU
     params:
         taxIdIgnore = config['taxIdIgnore'].split()
     benchmark:

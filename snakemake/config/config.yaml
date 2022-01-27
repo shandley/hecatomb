@@ -26,8 +26,9 @@ MediumJobCpu: 16     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
 SmallJobMem: 16000   # Memory for BBTools etc. in megabytes (recommend >= 16000)
 SmallJobCpu: 8       # CPUs for BBTools etc. (recommend >= 8)
                      # default CPUs = 1
-defaultMem: 2000     # Default memory in megabytes (for use with --profile)
-defaultTime: 1440    # Default time in minutes (for use with --profile)
+# SPECIFY DEFAULT MEM AND TIME IN YOUR PROFILE - see example profile config.yaml
+#defaultMem: 2000     # Default memory in megabytes (for use with --profile)
+#defaultTime: 1440    # Default time in minutes (for use with --profile)
 defaultJobs: 100     # Default concurrent jobs (for use with --profile)
 
 # Some jobs need more RAM; go over your CPU:RAM ratio if needed
