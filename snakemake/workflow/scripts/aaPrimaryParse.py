@@ -15,7 +15,7 @@ logging.basicConfig(filename=snakemake.log[0], filemode='w', level=logging.DEBUG
 
 logging.debug('Reading in seq IDs that were classified in primary AA search')
 topHit = {}
-with open(snakemake.input.alnsort, 'r') as alnfh:
+with open(snakemake.input.aln, 'r') as alnfh:
     for line in alnfh:
         l = line.strip().split()
         topHit[l[0]] = 1
