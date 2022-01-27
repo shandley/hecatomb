@@ -56,7 +56,7 @@ with open(snakemake.output.count_tbl ,'w') as o:
                 except ZeroDivisionError:
                     tpm = 0
                 o.write( '\t'.join([
-                    wildcards.sample,       # sample
+                    snakemake.wildcards.sample,       # sample
                     l[0],                   # contig
                     l[1],                   # length
                     l[4],                   # reads
