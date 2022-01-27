@@ -115,11 +115,9 @@ perfNTfast:
 # DON'T TOUCH THIS BIT IT WILL BREAK THE PIPELINE
 reqAA:
  -a
- --tax-output-mode 2
  --search-type 2
- --tax-lineage 1
- --lca-ranks "superkingdom,phylum,class,order,family,genus,species"
- --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage"
+ --tax-lineage 2
+ --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid"
 
 
 #####################
