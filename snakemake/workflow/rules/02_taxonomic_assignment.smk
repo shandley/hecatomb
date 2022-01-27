@@ -18,7 +18,6 @@ rule PRIMARY_AA_taxonomy_assignment:
         report = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_report"),
         tophit_report = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_report"),
         aln = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
-        alnsort = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted")
     params:
         alnRes = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY"),
         tmppath = os.path.join(PRIMARY_AA_OUT, "mmseqs_aa_tmp")
@@ -35,15 +34,9 @@ rule PRIMARY_AA_taxonomy_assignment:
         os.path.join("..", "envs", "mmseqs2.yaml")
     shell:
         """
-        {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
             {config[filtAAprimary]} {MMSeqsSensAA} {config[reqAA]} \
-            --threads {threads} --split-memory-limit {MMSeqsMemSplit};
-            
-        # Add headers
-        sort -k1 -n {output.aln} | \
-            sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
-        }} &> {log}
+            --threads {threads} --split-memory-limit {MMSeqsMemSplit} &> {log}
         rm {log}
         """
 
@@ -51,7 +44,7 @@ rule PRIMARY_AA_taxonomy_assignment:
 rule PRIMARY_AA_parsing:
     """Taxon step 02: Parse primary AA search results for classified (potentially viral) and unclassified sequences"""
     input:
-        alnsort = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted"),
+        aln = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln"),
         seqs = os.path.join(RESULTS, "seqtable.fasta"),
     output:
         class_seqs = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_classified.fasta"),
@@ -77,7 +70,6 @@ rule SECONDARY_AA_taxonomy_assignment:
         report = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_report"),
         tophit_report = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_report"),
         aln = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln"),
-        alnsort = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln_sorted")
     params:
         alnRes=os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY"),
         tmppath=os.path.join(SECONDARY_AA_OUT, "mmseqs_aa_tmp")
@@ -94,15 +86,9 @@ rule SECONDARY_AA_taxonomy_assignment:
         os.path.join("..", "envs", "mmseqs2.yaml")
     shell:
         """
-        {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
             {config[filtAAsecondary]} {MMSeqsSensAA} {config[reqAA]} \
-            --threads {threads} --split-memory-limit {MMSeqsMemSplit};
-            
-        # Add headers
-        sort -k1 -n {output.aln} | \
-            sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
-        }} &> {log}
+            --threads {threads} --split-memory-limit {MMSeqsMemSplit} &> {log}
         rm {log}
         """
 
@@ -126,7 +112,7 @@ rule SECONDARY_AA_tophit_lineage:
         os.path.join(STDERR, "SECONDARY_AA_tophit_lineage.log")
     shell:
         """
-        {{ # Make a table: SeqID <tab> taxID
+        {{
         cut -f1,20 {input.tophit} \
             | taxonkit lineage --data-dir {input.db} -i 2 \
             | taxonkit reformat --data-dir {input.db} -i 3 \
