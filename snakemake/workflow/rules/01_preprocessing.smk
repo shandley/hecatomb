@@ -140,7 +140,7 @@ rule nonhost_read_repair:
         """
 
 rule nonhost_read_combine:
-    """Preprocessing step 4: Combine paired and singleton reads. """
+    """Preprocessing step 04: Combine paired and singleton reads. """
     input:
         r1 = os.path.join(TMPDIR, "p02", "{PATTERN}_R1.unmapped.fastq"),
         r2 = os.path.join(TMPDIR, "p02", "{PATTERN}_R2.unmapped.fastq"),
@@ -202,7 +202,7 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
         """
         
 rule create_individual_seqtables:
-    """Preprocessing step 6: Create individual seqtables. 
+    """Preprocessing step 06: Create individual seqtables. 
     
     A seqtable is a count table with each sequence as a row, each column as a sample and each cell the counts of each 
     sequence per sample.
@@ -212,9 +212,9 @@ rule create_individual_seqtables:
         counts = os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv"),
         summ = optionalSummary[9]
     output:
-        seqs = temp(os.path.join(TMPDIR, "p6", "{sample}_R1.seqs")),
-        counts = temp(os.path.join(TMPDIR, "p6", "{sample}_R1.counts")),
-        seqtable = temp(os.path.join(TMPDIR, "p6", "{sample}_R1.seqtable"))
+        seqs = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqs")),
+        counts = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.counts")),
+        seqtable = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"))
     benchmark:
         os.path.join(BENCH, "individual_seqtables.{sample}.txt")
     log:
@@ -244,7 +244,7 @@ rule create_individual_seqtables:
 
 
 rule merge_seq_table:
-    """Preprocessing step 7: Merge seq tables
+    """Preprocessing step 07: Merge seq tables
     
     Reads the sequences and counts from each samples' seqtable text file and converts to fasta format for the rest of 
     the pipline.
