@@ -43,6 +43,7 @@ parser = argparse.ArgumentParser(
                  "                (for use with --configfile)\n"
                  "    listHosts   List the available host genomes for contaminant removal\n"
                  "    addHost     Process and add a new host genome for contaminant removal\n"
+                 "    combine     Combine output from multiple Hecatomb runs\n"
                  "\n"),
     epilog= ("\n"
              "To Run Hecatomb:\n"
@@ -56,6 +57,9 @@ parser = argparse.ArgumentParser(
              "\n"
              "To run hecatomb on a HPC cluster (e.g. slurm, sge, etc.):\n"
              "hecatomb run --profile slurm\n\n"
+             "\n"
+             "Combine output from multiple runs:\n"
+             "hecatomb combine --comb outDir1/ --comb outDir2/ ...\n"
              "\n"
              "Complete documentation for Hecatomb is available at:\n"
              "https://hecatomb.readthedocs.io\n"
@@ -76,6 +80,7 @@ parser.add_argument('--hostfa', help='Host reference (for addHost command only)'
 parser.add_argument('--profile', help='Snakemake profile for use on cluster')
 parser.add_argument('--threads', help='Number of threads to use (ignored if using --profile)', default='32')
 parser.add_argument('--fast', help='Use faster but less sensitive settings for MMSeqs searches', action='store_true')
+parser.add_argument('--comb', help='Output directory to combine (for use with "hecatomb combine")', action='append')
 parser.add_argument('--snake',
                     help='Pass one or more commands to Snakemake e.g. --snake=--dry-run',
                     action='append')
@@ -203,6 +208,18 @@ def run():
     return None
 
 
+def combineOutput():
+    snakeCommand = initialiseSnakeCommand()
+    sys.stderr.write("Combining Hecatomb output\n")
+    snekFile = os.path.normpath(os.path.join(SNEKDIR, 'combineOutputs.smk'))
+    outDirs = '["' + '","'.join(c for c in args.comb) + '"]'
+    runCommand = (f'{snakeCommand} '
+                  f'-s {snekFile} '
+                  f'-C outDirs={outDirs} ')
+    runSnakeSys(runCommand)
+    return None
+
+
 def addHost():
     """
     Add a new host to the Hecatomb database
@@ -249,7 +266,7 @@ def listHosts():
     return None
 
 
-commands = {'install':install, 'run':run, 'config':dumpConfig, 'addHost':addHost, 'listHosts':listHosts}
+commands = {'install':install, 'run':run, 'config':dumpConfig, 'addHost':addHost, 'listHosts':listHosts, 'combine':combineOutput}
 commands[args.command]()
 
 time.sleep(1)

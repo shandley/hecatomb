@@ -8,7 +8,7 @@ rule map_seq_table:
         assembly = os.path.join(RESULTS, "assembly.fasta"),
         seqtable = os.path.join(RESULTS, "seqtable.fasta")
     output:
-        os.path.join(MAPPING, "assembly.seqtable.bam")
+        temp(os.path.join(MAPPING, "assembly.seqtable.bam"))
     log:
         mm2 = os.path.join(STDERR, "map_seq_table.mm2.log"),
         stool = os.path.join(STDERR, "map_seq_table.stools.log")
