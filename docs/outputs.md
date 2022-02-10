@@ -32,6 +32,35 @@ The header looks like this:
 ```text
 seqID  sampleID  count  CPM  alnType  targetID  evalue  pident  fident  nident  mismatches  qcov  tcov  qstart  qend  qlen  tstart  tend  tlen  alnlen  bits  targetName  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
 ```
+<details>
+    <summary>Column header definitions</summary>
+    <b>seqID:</b> Sequence ID (format = sampleID:count:uniqueInt)<br>
+    <b>sampleID:</b> The sample IDs derived from the read files<br>
+    <b>count:</b> The number of reads represented by the sequence<br>
+    <b>CPM:</b> Counts Per Million (counts normalized by library size)<br>
+    <b>alnType:</b> Type of alignment (aa = amino acid, nt = nucleotide)<br>
+    <b>targetID:</b> The UniProt or NCBI ID of the database target sequence<br>
+    <b>evalue:</b> expect value of the alignment (less is better)<br>
+    <b>pident:</b> percent identity (of the alignment)<br>
+    <b>fident:</b> fraction identity<br>
+    <b>nident:</b> number of identical bases/residues<br>
+    <b>mismatches:</b> number of mismatched bases/residues<br>
+    <b>qcov:</b> coverage of query sequence (query = seqtable sequence)<br>
+    <b>tcov:</b> coverage of target sequence (target = database sequence)<br>
+    <b>qstart:</b> query start position<br>
+    <b>qend:</b> query end position<br>
+    <b>qlen:</b> query sequence length<br>
+    <b>tstart:</b> target start position<br>
+    <b>tend:</b> target end position<br>
+    <b>tlen:</b> target sequence length<br>
+    <b>alnlen:</b> alignment length<br>
+    <b>bits:</b> bit score (more is better)<br>
+    <b>targetName:</b> target sequence name<br>
+    <b>taxMethod:</b> Method used to assign taxonomy (either Lowest Common Ancestor, "LCA"; or top hit sequence, "topHit")<br>
+    <b>kingdom/phylum/class/order/family/genus/species:</b> Taxonomy annotations<br>
+    <b>baltimoreType:</b> Baltimore classification (double/single strand, DNA/RNA, +/-)<br>
+    <b>baltimoreGroup:</b> Baltimore classification group<br>
+</details>
 
 ## TaxonLevelCounts
 
@@ -79,6 +108,23 @@ The header looks like this:
 ```text
 contigID  seqID  start  stop  len  qual  count  CPM  alnType  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
 ```
+
+<details>
+    <summary>Column header definitions</summary>
+    <b>contigID:</b> Contid ID from assembly.fasta<br>
+    <b>seqID:</b> Sequence ID (format = sampleID:count:uniqueInt)<br>
+    <b>start:</b> Alignment start position on contig<br>
+    <b>stop:</b> Alignment end position on contig<br>
+    <b>len:</b> Alignment length<br>
+    <b>qual:</b> Alignment quality<br>
+    <b>count:</b> The number of reads represented by the sequence<br>
+    <b>CPM:</b> Counts Per Million (counts normalized by library size)<br>
+    <b>alnType:</b> Type of alignment (aa = amino acid, nt = nucleotide)<br>
+    <b>taxMethod:</b> Method used to assign taxonomy (either Lowest Common Ancestor, "LCA"; or top hit sequence, "topHit")<br>
+    <b>kingdom/phylum/class/order/family/genus/species:</b> Taxonomy annotations<br>
+    <b>baltimoreType:</b> Baltimore classification (double/single strand, DNA/RNA, +/-)<br>
+    <b>baltimoreGroup:</b> Baltimore classification group<br>
+</details>
 
 ## Sankey
 
