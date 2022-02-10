@@ -65,7 +65,7 @@ parser = argparse.ArgumentParser(
              "https://hecatomb.readthedocs.io\n"
              )
 )
-parser.add_argument('command', choices=['install', 'run', 'config', 'listHosts', 'addHost'])
+parser.add_argument('command', choices=['install', 'run', 'config', 'listHosts', 'addHost', 'combine'])
 parser.add_argument('--reads', help=('Either directory containing seq data, or TSV specifying samples and seq files. '
                                      'See https://hecatomb.readthedocs.io/en/latest/usage/ for more info.'))
 parser.add_argument('--configfile',
