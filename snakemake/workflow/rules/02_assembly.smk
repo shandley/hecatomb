@@ -208,10 +208,10 @@ rule rescue_read_kmer_normalization:
     log:
         os.path.join(STDERR, "rescue_read_kmer_normalization.log")
     resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        mem_mb = MMSeqsMem,
+        javaAlloc = int(0.95 * MMSeqsMem)
     threads:
-        BBToolsCPU
+        MMSeqsCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
