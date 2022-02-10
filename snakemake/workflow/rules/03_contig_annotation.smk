@@ -27,7 +27,7 @@ rule mmseqs_contig_annotation:
         {{
         mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2;
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-            {MMSeqsSensNT} {config[filtNTsecondary]} \
+            {MMSeqsSensNT} --split-memory-limit {MMSeqsMemSplit} {config[filtNTsecondary]} \
             --search-type 3 ; }} &> {log}
         rm {log}
         """
