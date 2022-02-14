@@ -56,7 +56,10 @@ include: "rules/00_preflight.smk"
 
 
 # Parse the samples and read files
-include: "rules/00_samples.smk"
+if config['Sampling'] == 'single':
+    include: "rules/00_samples_se.smk"
+else:
+    include: "rules/00_samples.smk"
 sampleReads = parseSamples(READS)
 SAMPLES = sampleReads.keys()
 
@@ -64,7 +67,12 @@ SAMPLES = sampleReads.keys()
 # Import rules and functions
 include: "rules/00_functions.smk"
 include: "rules/00_targets.smk"
-include: "rules/01_preprocessing.smk"
+if config['QC'] == 'longreads':
+    include: "rules/01_preprocessing_longreads.smk"
+# elif config['QC'] == 'seShort':
+#     include: "rules/01_preprocessing_seShort.smk"
+else:
+    include: "rules/01_preprocessing.smk"
 include: "rules/02_assembly.smk"
 include: "rules/02_taxonomic_assignment.smk"
 include: "rules/03_mapping.smk"
