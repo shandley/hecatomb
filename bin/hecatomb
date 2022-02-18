@@ -183,16 +183,15 @@ def run():
     else:
         readDir = args.reads
     sampling = 'paired'
-    qc = 'short'
-    # is args.nonpaired:
-    #     sampling = 'single'
-    #     qc = 'seShort'
-    #     args.report = False
-    #     args.skipAssembly = True
+    qc = 'paired'
     if args.longreads:
         sampling = 'single'
         qc = 'longreads'
         args.report = False
+    # elif args.nonpaired:
+    #     qc = 'single'
+    #     sampling = 'single'
+    #     args.report = False
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))

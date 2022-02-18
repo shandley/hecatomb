@@ -71,6 +71,9 @@ include: "rules/00_targets.smk"
 if config['QC'] == 'longreads':
     include: "rules/01_preprocessing_longreads.smk"
     include: "rules/02_sample_assembly_longreads.smk"
+# elif config['QC'] == 'single':
+#     include: "rules/01_preprocessing_single.smk"
+#     include: "rules/02_sample_assembly_single.smk"
 else:
     include: "rules/01_preprocessing.smk"
     include: "rules/02_sample_assembly.smk"
