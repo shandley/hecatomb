@@ -70,8 +70,8 @@ parser.add_argument('--configfile',
 parser.add_argument('--test', help='Use the test dataset (ignores --reads)', action='store_true')
 parser.add_argument('--skipAssembly', help="Don't perform an assembly", action='store_true', default=False)
 parser.add_argument('--report', help='Generate a run report', action='store_true', default=False)
-parser.add_argument('--nonPaired', help='NOT IMPLEMENTED YET. Input files are not paired (se-sample, se-qc, no-report, no-assembly)', action='store_true', default=False)
-parser.add_argument('--longreads', help='Input files are longreads (se-sample, lr-qc, no-report, no-assembly)', action='store_true', default=False)
+parser.add_argument('--nonPaired', help='NOT IMPLEMENTED YET. Input files are non-paired short reads', action='store_true', default=False)
+parser.add_argument('--longreads', help='Input files are longreads (se-sample, lr-qc, no-report, lr-assembly)', action='store_true', default=False)
 parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
 parser.add_argument('--host', help='Host name for contaminant removal', default='human')
 parser.add_argument('--hostfa', help='Host reference (for addHost command only)')
@@ -183,7 +183,7 @@ def run():
     else:
         readDir = args.reads
     sampling = 'paired'
-    qc = 'peShort'
+    qc = 'short'
     # is args.nonpaired:
     #     sampling = 'single'
     #     qc = 'seShort'
@@ -193,7 +193,6 @@ def run():
         sampling = 'single'
         qc = 'longreads'
         args.report = False
-        args.skipAssembly = True
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))

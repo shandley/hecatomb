@@ -122,6 +122,43 @@ reqAA:
  --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage"
 
 
+###########################################
+# Canu settings (for longread assemblies) #
+###########################################
+
+# recommended correctedErrorRate is 0.16 to 0.12 (depending on coverage) for nanopore and
+# 0.105 to 0.040 (depending on coverage) for pacbio (non-HiFi) - below is low-coverage nanopore
+# https://canu.readthedocs.io/en/latest/faq.html#what-parameters-can-i-tweak
+canuSettings:
+ correctedErrorRate=0.16
+ maxInputCoverage=10000
+ minInputCoverage=0
+ corOutCoverage=10000
+ corMhapSensitivity=high
+ corMinCoverage=0
+ useGrid=False
+ stopOnLowCoverage=False
+ genomeSize=10M
+ -nanopore
+# -pacbio
+# -pacbio-hifi
+
+# e.g.
+# canu \
+# correctedErrorRate=0.16 \
+# maxInputCoverage=10000 \
+# minInputCoverage=0 \
+# corOutCoverage=10000 \
+# corMhapSensitivity=high \
+# corMinCoverage=0 \
+# useGrid=False \
+# stopOnLowCoverage=False \
+# genomeSize=10M \
+# -nanopore reads/SRR17869101.fastq.gz \
+# -p SRR17869101 \
+# -d SRR17869101
+
+
 #####################
 # Database download #
 #####################

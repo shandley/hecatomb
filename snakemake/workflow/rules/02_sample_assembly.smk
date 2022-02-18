@@ -1,9 +1,7 @@
 """
-What is accomplished with these rules?
-    - Assembly
-        - Sample assembly
-        - Population assembly
-        - Contig abundance esitmation
+Per-sample assemblies for short paired reads
+    Take all trimmed reads, create pooled contigs "all_samples_contigs_size_selected.fasta" for use
+    in 03_population_assembly.smk
 """
 
 rule assembly_kmer_normalization:
@@ -49,10 +47,10 @@ rule individual_sample_assembly:
         r1s = os.path.join(TMPDIR, "p07", "{sample}_R1.singletons.fastq"),
         r2s = os.path.join(TMPDIR, "p07", "{sample}_R2.singletons.fastq")
     output:
-        contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa")
+        contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
+        tar = os.path.join(ASSEMBLY,'{sample}.tar.zst')
     params:
-        mh_dir = directory(os.path.join(ASSEMBLY, '{sample}')),
-        contig_dic = directory(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY"))
+        mh_dir = directory(os.path.join(ASSEMBLY,'{sample}'))
     benchmark:
         os.path.join(BENCH, "megahit_{sample}.txt")
     log:
@@ -71,6 +69,7 @@ rule individual_sample_assembly:
         megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
             -o {params.mh_dir} --out-prefix {wildcards.sample} \
             --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
+        tar cf - {params.mh_dir} | zstd -T8 -9 > {output.tar} 2> {log}
         rm {log}
         """
 
@@ -79,7 +78,7 @@ rule mapSampleAssemblyPairedReads:
     input:
         r1 = os.path.join(TMPDIR,"p07","{sample}_R1.unmapped.fastq"),
         r2 = os.path.join(TMPDIR,"p07","{sample}_R2.unmapped.fastq"),
-        contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa")
+        contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
     output:
         temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.pe.bam'))
     conda:
@@ -103,7 +102,7 @@ rule mapSampleAssemblyUnpairedReads:
     input:
         r1s = os.path.join(TMPDIR,"p07","{sample}_R1.singletons.fastq"),
         r2s = os.path.join(TMPDIR,"p07","{sample}_R2.singletons.fastq"),
-        contigs= os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fa")
+        contigs = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fa")
     output:
         temp(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
     conda:
@@ -129,7 +128,7 @@ rule pullPairedUnmappedReads:
         os.path.join(ASSEMBLY,'{sample}','{sample}.pe.bam')
     output:
         r1 = temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R1.fastq')),
-        r2 = temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R2.fastq'))
+        r2 = temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R2.fastq')),
     conda:
         os.path.join('..','envs','samtools.yaml')
     threads:
@@ -188,11 +187,33 @@ rule poolR2Unmapped:
 rule poolUnpairedUnmapped:
     """Concatenate the unmapped, unpaired reads for all samples"""
     input:
-        expand(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.{sPe}.fastq'), sample=SAMPLES, sPe = ['s','pe.s'])
+        fq = expand(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.{sPe}.fastq'), sample=SAMPLES, sPe = ['s','pe.s']),
     output:
         temp(os.path.join(ASSEMBLY, 'unmapRescue.s.fastq'))
     shell:
-        """cat {input} > {output}"""
+        """
+        cat {input.fq} > {output}
+        """
+
+# rule archive_mhitDir:
+#     """tar and zip the megahit assembly directories.
+#
+#     We add the count table as a requirement to make sure the directory is only archive once it's no longer needed.
+#     """
+#     input:
+#         dir = os.path.join(ASSEMBLY,'{sample}'),
+#         req = os.path.join(RESULTS, "contig_count_table.tsv")
+#     output:
+#         os.path.join(ASSEMBLY,'{sample}.tar.zst')
+#     threads:
+#         BBToolsCPU
+#     resources:
+#         mem_mb = BBToolsMem
+#     shell:
+#         """
+#         tar cf - {input.dir} | zstd -T8 -9 > {output}
+#         rm -rf {input.dir}
+#         """
 
 rule rescue_read_kmer_normalization:
     """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
@@ -265,22 +286,27 @@ rule concatenate_contigs:
         expand(os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"), sample=SAMPLES),
         os.path.join(ASSEMBLY,'rescue',"rescue.contigs.fa")
     output:
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
+        temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta"))
+    params:
+        expand(os.path.join(ASSEMBLY,'{sample}'), sample=SAMPLES),
     benchmark:
         os.path.join(BENCH, "concatenate_assemblies.txt")
     log:
         os.path.join(STDERR, "concatenate_assemblies.log")
     shell:
-        "cat {input} > {output} 2> {log} && rm {log}"
+        """
+        cat {input} > {output} 2> {log} && rm {log}
+        rm -rf {params}
+        """
 
 rule contig_reformating_and_stats:
     """Assembly step 04: Remove short contigs (Default: 1000). Defined in config[CONTIG_MINLENGTH]"""
     input:
         os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
     output:
-        rename = temporary(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.renamed.fasta")),
-        size = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta"),
-        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats")
+        rename = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.renamed.fasta")),
+        size = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_samples_contigs_size_selected.fasta")),
+        stats = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats"))
     benchmark:
         os.path.join(BENCH, "contig_reformating.txt")
     log:
@@ -312,58 +338,20 @@ rule contig_reformating_and_stats:
         rm {log.log3}
         """
 
-rule population_assembly:
-    """Assembly step 05: Create 'contig dictionary' of all unique contigs present in the study (aka: population assembly)"""
-    input:
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs_size_selected.fasta")
-    output:
-        assembly = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta"),
-        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats")
-    params:
-        flye_out = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE")
-    benchmark:
-        os.path.join(BENCH, "population_assembly.txt")
-    log:
-        log1 = os.path.join(STDERR, "population_assembly.flye.log"),
-        log2 = os.path.join(STDERR, "population_assembly.stats.log")
-    resources:
-        mem_mb = MhitMem
-    threads:
-        MhitCPU
-    conda:
-        "../envs/metaflye.yaml"
-    shell:
-        """
-        flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} -g 1g &>> {log.log1}
-        rm {log.log1}
-        statswrapper.sh in={output.assembly} out={output.stats} \
-            format=2 \
-            ow=t 2> {log.log2}
-        rm {log.log2}
-        """
-
-rule link_assembly:
-    """Assembly step 06: Link the final assembly to the results directory; not really a step."""
-    input:
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
-    output:
-        os.path.join(RESULTS, "assembly.fasta")
-    run:
-        os.symlink(os.path.abspath(input[0]), os.path.abspath(output[0]))
 
 rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
         r1 = os.path.join(TMPDIR, "p07", "{sample}_R1.all.fastq"),
         r2 = os.path.join(TMPDIR, "p07", "{sample}_R2.all.fastq"),
-        ref = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
+        ref = os.path.join(RESULTS, "assembly.fasta")
     output:
-        sam = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz"),
-        unmap = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.unmapped.fastq"),
-        covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats"),
-        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm"),
-        statsfile = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.statsfile"),
-        scafstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.scafstats")
+        sam = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz")),
+        unmap = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.unmapped.fastq")),
+        covstats = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats")),
+        rpkm = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm")),
+        statsfile = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.statsfile")),
+        scafstats = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.scafstats"))
     benchmark:
         os.path.join(BENCH, "coverage_calculations.{sample}.txt")
     log:
@@ -391,43 +379,5 @@ rule coverage_calculations:
             maxindel=100 minid=90 \
             ow=t \
             threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
-        """
-
-rule create_contig_count_table:
-    """Assembly step 08: Transcript Per Million (TPM) calculator
-
-    Useful resource: https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/"""
-    input:
-        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm"),
-        covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats")
-    output:
-        count_tbl = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv")
-    benchmark:
-        os.path.join(BENCH, "create_contig_count_table.{sample}.txt")
-    log:
-        os.path.join(STDERR, "create_contig_count_table.{sample}.log")
-    script:
-        os.path.join('..', 'scripts', 'contigCountTable.py')
-
-rule concatentate_contig_count_tables:
-    """Assembly step 09: Concatenate contig count tables
-
-    Note: this is done as a separate rule due to how snakemake handles i/o files. It does not work well in Step 20b as 
-    the i/o PATTERNS are different.
-    """
-    input:
-        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv"), sample=SAMPLES)
-    output:
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "contig_count_table.tsv")
-    benchmark:
-        os.path.join(BENCH, "concatentate_contig_count_tables.txt")
-    log:
-        os.path.join(STDERR, "concatentate_contig_count_tables.log")
-    shell:
-        """
-        {{ cat {input} > {output};
-            sed -i '1i sample_id\tcontig_id\tlength\treads\tRPKM\tFPKM\tTPM\tavg_fold_cov\tcontig_GC\tcov_perc\tcov_bases\tmedian_fold_cov' {output};
-        }} 2> {log}
         rm {log}
         """

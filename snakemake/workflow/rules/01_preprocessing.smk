@@ -298,8 +298,7 @@ rule nonhost_read_repair:
     """Preprocessing step 07b: Parse R1/R2 singletons (if singletons at all)"""
     input:
         s = os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.singletons.fastq"),
-        o = os.path.join(TMPDIR, "p07", "{sample}_R1.other.singletons.fastq"),
-        summ = optionalSummary[7]
+        o = os.path.join(TMPDIR, "p07", "{sample}_R1.other.singletons.fastq")
     output:
         sr1 = temp(os.path.join(TMPDIR, "p07", "{sample}_R1.u.singletons.fastq")),
         sr2 = temp(os.path.join(TMPDIR, "p07", "{sample}_R2.u.singletons.fastq")),
@@ -358,7 +357,8 @@ rule remove_exact_dups:
     Exact duplicates are considered PCR generated and not accounted for in the count table (seqtable_all.tsv)
     """
     input:
-        os.path.join(TMPDIR, "p07", "{sample}_R1.all.fastq")
+        fq = os.path.join(TMPDIR, "p07", "{sample}_R1.all.fastq"),
+        summ = optionalSummary[7]
     output:
         temp(os.path.join(TMPDIR, "p08", "{sample}_R1.deduped.out.fastq"))
     benchmark:
@@ -374,7 +374,7 @@ rule remove_exact_dups:
         "../envs/bbmap.yaml"
     shell:
         """
-        dedupe.sh in={input} out={output} \
+        dedupe.sh in={input.fq} out={output} \
             ac=f ow=t \
             threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
@@ -471,7 +471,7 @@ rule merge_seq_table:
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
     params:
         samples = list(SAMPLES),
-        tmpdir = TMPDIR
+        tmpdir = os.path.join(TMPDIR, "p10")
     conda:
         os.path.join('..', 'envs', 'pysam.yaml')
     benchmark:

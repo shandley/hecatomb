@@ -62,19 +62,20 @@ else:
     include: "rules/00_samples.smk"
 sampleReads = parseSamples(READS)
 SAMPLES = sampleReads.keys()
-
+# wildcard_constraints:
+#     sample="[a-zA-Z0-9._-]+"
 
 # Import rules and functions
 include: "rules/00_functions.smk"
 include: "rules/00_targets.smk"
 if config['QC'] == 'longreads':
     include: "rules/01_preprocessing_longreads.smk"
-# elif config['QC'] == 'seShort':
-#     include: "rules/01_preprocessing_seShort.smk"
+    include: "rules/02_sample_assembly_longreads.smk"
 else:
     include: "rules/01_preprocessing.smk"
-include: "rules/02_assembly.smk"
+    include: "rules/02_sample_assembly.smk"
 include: "rules/02_taxonomic_assignment.smk"
+include: "rules/03_population_assembly.smk"
 include: "rules/03_mapping.smk"
 include: "rules/03_contig_annotation.smk"
 include: "rules/04_summaries.smk"
