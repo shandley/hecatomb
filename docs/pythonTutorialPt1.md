@@ -28,7 +28,7 @@ We use the fast MMSeqs settings with the default 32 threads and generate a summa
 This will give us an assembly and some read annotations.
 
 ```bash
-Hecatomb run --test --fast --report
+hecatomb run --test --fast --report
 ```
 
 We should now have all the files we need!
@@ -64,32 +64,37 @@ The dataset in this tutorial is small and manageable, but if you're working on a
 the size of the bigtable can be too big for loading into R. 
 If you run into this situation check out [prefiltering the bigtable](advanced.md#prefilter-the-bigtable).
 
-## Setting up Python
+## Setting up Python with PyCharm
 
-The remainder of the tutorial will be in [Python](https://www.python.org/) and [PyCharm](https://www.jetbrains.com/pycharm/), 
-and will use the packages [Pandas](https://pandas.pydata.org/) and [Seaborn](https://seaborn.pydata.org/) which is part of the [Anaconda](https://www.anaconda.com/) toolkit.
+The remainder of the tutorial will be in [Python](https://www.python.org/) using the [PyCharm](https://www.jetbrains.com/pycharm/) IDE,
+but you could use a [Jupyter](https://jupyter.org/) notebook, or a plain old Python shell.
+We will use the packages [Pandas](https://pandas.pydata.org/) and [Seaborn](https://seaborn.pydata.org/) which come with [Anaconda](https://www.anaconda.com/),
+or they can be installed with [pip](https://pypi.org/project/pip/) or [conda](https://docs.conda.io/en/latest/miniconda.html).
 In addition, for the Dunn's test we will install the scikit-posthocs package [scikit-posthocs](https://scikit-posthocs.readthedocs.io/).
-The installation and packages for this tutorial have been tested with a fresh installation of Python (3.9.7) and PyCharm (2021.2.3 Professional Edition Build PY-212.5457.59) for Mac.
+The installation and packages for this tutorial have been tested with a fresh installation of Python (3.9.7) and 
+PyCharm (2021.2.3 Professional Edition Build PY-212.5457.59) for Mac.
 
 Assuming you have installed Python and PyCharm for your operating system, you should be able to install the packages like so:
 
-```
-# in PyCharm
+```python
+# in PyCharm or bash
 pip install seaborn
 pip install pandas
 pip install numpy
 pip install scikit-posthocs
 ```
 
-If you run into an error message 'matplotlib: RuntimeError: Python is not installed as a framework' on a Mac, the creation of a file in ~/.matplotlib/matplotlibr as per [this article](https://stackoverflow.com/questions/34977388/matplotlib-runtimeerror-python-is-not-installed-as-a-framework) fixed this issue.
-```
-# in PyCharm
+If you run into an error message 'matplotlib: RuntimeError: Python is not installed as a framework' on a Mac, 
+the creation of a file in ~/.matplotlib/matplotlibr as per [this article](https://stackoverflow.com/questions/34977388/matplotlib-runtimeerror-python-is-not-installed-as-a-framework) fixed this issue.
+
+```python
+# in PyCharm/python
 import matplotlib.pyplot as plt
 ```
 
 You should also check in PyCharm what Python version is being used for the project as some of the functions will rely on Python 3.6+
 
-On a Windows the options should be under File -> Settings -> Preferences -> Project Interpreter-> Python Interpreters
+On Windows the options should be under File -> Settings -> Preferences -> Project Interpreter-> Python Interpreters
 
 On a Mac the options would be under PyCharm -> Preferences -> Project Name -> Python Interpreters
 

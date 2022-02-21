@@ -140,7 +140,8 @@ These count tables we will use for plotting and some statistical comparisons.
 # Visualising groups
 
 We have a few viral families that are very prominent in our samples.
-Let's see if there is a difference in viral loads according to our sample groups.
+For the purposes of the tutorial we have a completely made up sample group category called [MacGuffinGroup](https://en.wikipedia.org/wiki/MacGuffin).
+Let's see if there is a difference in viral loads according to our MacGuffinGroup groups.
 Collect sample counts for _Microviridae_.
 Include the metadata group in `group_by()` so you can use it in the plot.
 

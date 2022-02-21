@@ -28,7 +28,7 @@ We use the fast MMSeqs settings with the default 32 threads and generate a summa
 This will give us an assembly and some read annotations.
 
 ```bash
-Hecatomb run --test --fast --report
+hecatomb run --test --fast --report
 ```
 
 We should now have all the files we need!

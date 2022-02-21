@@ -6,10 +6,8 @@ building a table to combine the mapped coordinates and the reads' annotations.
 
 Load the table and have a look:
 
-```R
-contigTable = read.csv('contigSeqTable.tsv.gz',header=T,sep='\t')
-
-View(contigTable)
+```python
+contigTable = pd.read_csv('contigSeqTable.tsv.gz',compression='gzip',header=1,sep='\t')
 ```
 
 [![](img/pythonTutCtgTbl.png)](img/pythonTutCtgTbl.png)

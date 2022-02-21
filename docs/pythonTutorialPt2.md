@@ -50,7 +50,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 ```
 
-To render the scatterplot marker dots size based on count include the following:
+Render the scatterplot with marker dot size based on count like so:
 
 ```python
 #filter

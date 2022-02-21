@@ -90,6 +90,7 @@ plt.show()
 ![](img/pythonTutPodoJitterTTest.png)
 
 **Wilcoxon test**
+
 You might prefer to perform a Wilcoxon test; the syntax is very similar to the t.test.
 
 ```python
@@ -172,53 +173,59 @@ Let's focus on _Siphoviridae_, _Adenoviridae_, _Podoviridae_, and _Microviridae_
 Collect summary counts for these families for each sample and include the metadata we want to use:
 
 ```python
-#filter
+# filter out all but top families
 virusesFiltered = viruses[(viruses['family'].isin(['Siphoviridae','Adenoviridae','Podoviridae','Microviridae'])) & (viruses.alnType=='aa') & (viruses.evalue<1e-10)]
 
-#group by
-viralMajorFamCounts = virusesFiltered.groupby(by=['family','vaccine'], as_index=False)['normCount'].agg('sum')
+# group and collect the counts
+viralMajorFamCounts = virusesFiltered.groupby(by=['family','vaccine','sampleID'], as_index=False).sum('normCount')
 
-```
-TODO Dunn's Test In Python
-Now let's do the dunn's test for these families:
-
-```R
-viralMajorFamCounts %>% 
-    group_by(family) %>% 
-    dunn_test(n ~ vaccine,p.adjust.method='holm') %>% 
-    add_significance()
+# Dunn's test on Siphoviridae
+from scikit_posthocs import posthoc_dunn
+posthoc_dunn(viralMajorFamCounts[viralMajorFamCounts['family']=='Siphoviridae'], val_col = 'normCount', group_col = 'vaccine')
 ```
 
 ```text
-# A tibble: 12 × 10
-   family       .y.   group1     group2        n1    n2 statistic      p  p.adj p.adj.signif
- * <chr>        <chr> <chr>      <chr>      <int> <int>     <dbl>  <dbl>  <dbl> <chr>       
- 1 Adenoviridae n     Ad_alone   Ad_protein     3     2     0.467 0.641  1      ns          
- 2 Adenoviridae n     Ad_alone   sham           3     4     0.438 0.661  1      ns          
- 3 Adenoviridae n     Ad_protein sham           2     4    -0.105 0.916  1      ns          
- 4 Microviridae n     Ad_alone   Ad_protein     4     2    -1.43  0.153  0.458  ns          
- 5 Microviridae n     Ad_alone   sham           4     4    -0.584 0.559  0.681  ns          
- 6 Microviridae n     Ad_protein sham           2     4     0.953 0.340  0.681  ns          
- 7 Podoviridae  n     Ad_alone   Ad_protein     4     2     0.477 0.634  0.681  ns          
- 8 Podoviridae  n     Ad_alone   sham           4     4     1.75  0.0798 0.240  ns          
- 9 Podoviridae  n     Ad_protein sham           2     4     0.953 0.340  0.681  ns          
-10 Siphoviridae n     Ad_alone   Ad_protein     4     2     2.48  0.0132 0.0395 *           
-11 Siphoviridae n     Ad_alone   sham           4     4     1.40  0.161  0.322  ns          
-12 Siphoviridae n     Ad_protein sham           2     4    -1.33  0.182  0.322  ns  
+            Ad_alone  Ad_protein      sham
+Ad_alone    1.000000    0.017142  0.242908
+Ad_protein  0.017142    1.000000  0.152661
+sham        0.242908    0.152661  1.000000
 ```
 
-There's only one comparison that is significant.
-Let's put it on a plot
-
-```R
-ggplot(viralMajorFamCounts) +
-    geom_jitter(aes(x=vaccine,y=n)) +
-    facet_wrap(~family)
+```python
+# Use a loop to run Dunn's test on all families
+for i in viralMajorFamCounts['family'].unique():
+    print(i)
+    print(posthoc_dunn(viralMajorFamCounts[viralMajorFamCounts['family']==i], val_col = 'normCount', group_col = 'vaccine'))
+    print('\n')
 ```
 
-![](img/tuteDunns.png)
+```text
+Adenoviridae
+            Ad_alone  Ad_protein      sham
+Ad_alone    1.000000    0.640738  0.661205
+Ad_protein  0.640738    1.000000  0.916051
+sham        0.661205    0.916051  1.000000
 
-END TODO Dunn's Test In Python
+Microviridae
+            Ad_alone  Ad_protein      sham
+Ad_alone    1.000000    0.181926  0.350201
+Ad_protein  0.181926    1.000000  0.567269
+sham        0.350201    0.567269  1.000000
+
+Podoviridae
+            Ad_alone  Ad_protein      sham
+Ad_alone    1.000000    0.633553  0.079839
+Ad_protein  0.633553    1.000000  0.340356
+sham        0.079839    0.340356  1.000000
+
+Siphoviridae
+            Ad_alone  Ad_protein      sham
+Ad_alone    1.000000    0.017142  0.242908
+Ad_protein  0.017142    1.000000  0.152661
+sham        0.242908    0.152661  1.000000
+```
+
+We can then plot any interesting or significant differences like we did above for the Student's t-test or the Wilcoxon test.
 
 # Compare presence/absence
 
