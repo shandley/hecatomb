@@ -84,10 +84,10 @@ filtAAsecondary:
  -e 1e-5
 filtNTprimary:
  --min-length 90
- -e 1e-3
+ -e 1e-10
 filtNTsecondary:
  --min-length 90
- -e 1e-5
+ -e 1e-20
 
 # PERFORMANCE SETTINGS - SEE MMSEQS DOCUMENTATION FOR DETAILS
 # sensitive AA search
@@ -100,7 +100,7 @@ perfAA:
 # fast AA search
 perfAAfast:
  -s 4.0
- --lca-mode 1
+ --lca-mode 2
  --shuffle 0
 # sensitive NT search
 perfNT:
