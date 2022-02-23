@@ -18,11 +18,11 @@ import glob
 from shutil import copyfile
 
 
-### VERSION # This breaks the compiled version of hecatomb, so I've removed it for now. 
-#BINDIR = os.path.dirname(os.path.realpath(__file__))
-#vFH = open(os.path.join(BINDIR, '../', 'VERSION'), 'r')
-#VERSION = vFH.readline()
-#vFH.close()
+### VERSION 
+BINDIR = os.path.dirname(os.path.realpath(__file__))
+vFH = open(os.path.join(BINDIR, '../', 'VERSION'), 'r')
+VERSION = vFH.readline()
+vFH.close()
 
 BINDIR = os.path.join(os.getcwd(), 'bin')
 
@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser(
                  "██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗\n"
                  "██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝\n"
                  "╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝ \n"                                                   
-                 #f"\nVersion {VERSION}\n"
+                 f"\nVersion {VERSION}\n"
                  "\n"
                  "Commands:\n"
                  "    install     Download and install the databases (only have to do once)\n"
@@ -176,7 +176,7 @@ def install():
 
 def run():
     """
-    The run function. This will run the hecatome snakemake pipeline itself.
+    The run function. This will run the hecatomb snakemake pipeline itself.
     :return:
     """
     if args.test:
