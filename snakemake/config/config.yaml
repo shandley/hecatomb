@@ -20,7 +20,7 @@ Databases:
 ### STICK TO YOUR SYSTEM'S CPU:RAM RATIO FOR THESE
 BigJobMem: 64000     # Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
 BigJobCpu: 24        # Threads for MMSeqs (recommend >= 16)
-BigJobTimeMin: 5760  # Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
+BigJobTimeMin: 1440  # Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
 MediumJobMem: 32000  # Memory for Megahit/Flye in megabytes (recommend >= 32000)
 MediumJobCpu: 16     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
 SmallJobMem: 16000   # Memory for BBTools etc. in megabytes (recommend >= 16000)
