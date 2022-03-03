@@ -54,6 +54,13 @@ HOSTINDEX = HOSTFA + '.idx'
 
 ### PREFLIGHT CHECKS
 include: "rules/00_preflight.smk"
+# Parse the samples and read files
+if config['Sampling'] == 'single':
+    include: "rules/00_samples_se.smk"
+else:
+    include: "rules/00_samples.smk"
+sampleReads = parseSamples(READS)
+SAMPLES = sampleReads.keys()
 
 
 # Parse the samples and read files
@@ -65,6 +72,12 @@ SAMPLES = sampleReads.keys()
 # Import rules and functions
 include: "rules/00_functions.smk"
 include: "rules/00_targets.smk"
+if config['QC'] == 'single':
+     include: "rules/01_preprocessing_single.smk"
+     include: "rules/02_sample_assembly_single.smk"
+else:
+    include: "rules/01_preprocessing.smk"
+    include: "rules/02_sample_assembly.smk"
 include: "rules/01_preprocessing.smk"
 include: "rules/02_assembly.smk"
 include: "rules/02_taxonomic_assignment.smk"
