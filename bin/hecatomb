@@ -189,7 +189,7 @@ def run():
         readDir = args.reads
     sampling = 'paired'
     qc = 'paired'
-    if args.nonpaired:
+    if args.nonPaired:
          qc = 'single'
          sampling = 'single'
          args.report = False
