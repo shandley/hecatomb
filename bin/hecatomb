@@ -4,7 +4,6 @@
 Command-line interface for installing and running hecatomb.
 
 Michael Roach, Q2 2021
-Tweaked Sarah Beecroft Q1 2022
 """
 
 
@@ -18,13 +17,11 @@ import glob
 from shutil import copyfile
 
 
-### VERSION 
+### VERSION
 BINDIR = os.path.dirname(os.path.realpath(__file__))
 vFH = open(os.path.join(BINDIR, '../', 'VERSION'), 'r')
 VERSION = vFH.readline()
 vFH.close()
-
-BINDIR = os.path.join(os.getcwd(), 'bin')
 
 
 ### PARSE COMMAND LINE ARGUMENTS
@@ -73,13 +70,14 @@ parser.add_argument('--configfile',
 parser.add_argument('--test', help='Use the test dataset (ignores --reads)', action='store_true')
 parser.add_argument('--skipAssembly', help="Don't perform an assembly", action='store_true', default=False)
 parser.add_argument('--report', help='Generate a run report', action='store_true', default=False)
+parser.add_argument('--nonPaired', help='NOT IMPLEMENTED YET. Input files are non-paired short reads', action='store_true', default=False)
+parser.add_argument('--longreads', help='Input files are longreads (se-sample, lr-qc, no-report, lr-assembly)', action='store_true', default=False)
 parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
 parser.add_argument('--host', help='Host name for contaminant removal', default='human')
 parser.add_argument('--hostfa', help='Host reference (for addHost command only)')
 parser.add_argument('--profile', help='Snakemake profile for use on cluster')
 parser.add_argument('--threads', help='Number of threads to use (ignored if using --profile)', default='32')
 parser.add_argument('--fast', help='Use faster but less sensitive settings for MMSeqs searches', action='store_true')
-parser.add_argument('--nonPaired', help='NOT IMPLEMENTED YET. Input files are non-paired short reads', action='store_true', default=False)
 parser.add_argument('--snake',
                     help='Pass one or more commands to Snakemake e.g. --snake=--dry-run',
                     action='append')
@@ -125,10 +123,7 @@ def initialiseSnakeCommand():
     config = readConfig()
     if args.profile:
         runJobs = (f'--profile {args.profile} '
-                   '--default-resources '
-                      f'mem_mb={config["defaultMem"]} '
-                      f'time={config["defaultTime"]} '
-                      f'jobs={config["defaultJobs"]} ')
+                   f'--jobs {config["defaultJobs"]} ')
     else:
         runJobs = f'-j {args.threads}'
     # Decorate the Snakemake run command
@@ -177,7 +172,7 @@ def install():
 
 def run():
     """
-    The run function. This will run the hecatomb snakemake pipeline itself.
+    The run function. This will run the hecatome snakemake pipeline itself.
     :return:
     """
     if args.test:
@@ -189,17 +184,17 @@ def run():
         readDir = args.reads
     sampling = 'paired'
     qc = 'paired'
-    if args.nonPaired:
-         qc = 'single'
-         sampling = 'single'
-         args.report = False
+    if args.longreads:
+        sampling = 'single'
+        qc = 'longreads'
+        args.report = False
+    elif args.nonPaired:
+        qc = 'single'
+        sampling = 'single'
+        args.report = False
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    if args.report:
-        rept = 'Report=True'
-    else:
-        rept = 'Report=False'
     runCommand = (f'{snakeCommand} '
                   f'-s {snekFile} '
                   f'-C Reads={readDir} '
@@ -207,7 +202,9 @@ def run():
                     f'Output={args.results} '
                     f'SkipAssembly={args.skipAssembly} '
                     f'Fast={args.fast} '
-                    f'{rept}')
+                    f'Report={args.report} '
+                    f'Sampling={sampling} '
+                    f'QC={qc} ')
     runSnakeSys(runCommand)
     if args.report:
         sys.stderr.write("Generating run report\n")

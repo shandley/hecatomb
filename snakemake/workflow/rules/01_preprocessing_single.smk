@@ -1,5 +1,5 @@
 """
-Snakemake rule file to preprocess single ended Illumina sequence data for virome analysis.
+Snakemake rule file to preprocess Illumina sequence data for virome analysis.
 
 What is accomplished with these rules?
     - Non-biological sequence removal (primers, adapters)
@@ -20,11 +20,11 @@ rule fastp_preprocessing:
     Use fastP to remove adaptors, vector contaminants, low quality sequences, poly-A tails and reads shorts than minimum length, plus deduplicate.
     """
     input:
-        single_fa = lambda wildcards: sampleReads[wildcards.sample],
+        r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
         contaminants = os.path.join(CONPATH, "vector_contaminants.fa"),
         summ = optionalSummary[0]
     output:
-        single_fa = temp(os.path.join(TMPDIR, "p01", "{sample}.s1.out.fastq")),
+        r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
         stats = os.path.join(STATS, "p01", "{sample}.s1.stats.json")
     benchmark:
         os.path.join(BENCH, "fastp_preprocessing.{sample}.txt")
@@ -36,7 +36,7 @@ rule fastp_preprocessing:
         FastpCPU
     shell:
         """
-        fastp -i {input.single_fa} -o {output.single_fa} \
+        fastp -i {input.r1} -o {output.r1} \
         -z {config[COMPRESSION]} \
         -j {output.stats} \
         --qualified_quality_phred {config[QSCORE]} \
@@ -78,13 +78,13 @@ rule host_removal_mapping:
     If your reference is not available you need to add it using 'Hecatomb addHost'
     """
     input:
-        single_fa = os.path.join(TMPDIR, "p01", "{sample}.s1.out.fastq"),
+        r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq"),
         host = HOSTINDEX,
         summ = optionalSummary[6]
     output:
-        single_fa = temp(os.path.join(TMPDIR, "p02", "{sample}.unmapped.fastq")),
-        s = temp(os.path.join(TMPDIR, "p02", "{sample}.unmapped.singletons.fastq")),
-        o = temp(os.path.join(TMPDIR, "p02", "{sample}.other.singletons.fastq"))
+        r1 = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq")),
+        s = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq")),
+        o = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq"))
     benchmark:
         os.path.join(BENCH, "host_removal_mapping.{sample}.txt")
     log:
@@ -99,21 +99,21 @@ rule host_removal_mapping:
         "../envs/minimap2.yaml"
     shell:
         """
-        minimap2 -ax sr -t {threads} --secondary=no {input.host} {input.single_fa} 2> {log.mm} \
+        minimap2 -ax sr -t {threads} --secondary=no {input.host} {input.r1} 2> {log.mm} \
             | samtools view -f 4 -h 2> {log.sv} \
-            | samtools fastq -NO -1 {output.single_fa} -0 {output.o} -s {output.s} 2> {log.fq}
+            | samtools fastq -NO -1 {output.r1} -0 {output.o} -s {output.s} 2> {log.fq}
         rm {log.mm} {log.sv} {log.fq}
         """
 
 rule nonhost_read_repair:
     """Preprocessing step 03: Parse R1/R2 singletons (if singletons at all)"""
     input:
-        s = os.path.join(TMPDIR, "p02", "{sample}.unmapped.singletons.fastq"),
-        o = os.path.join(TMPDIR, "p02", "{sample}.other.singletons.fastq"),
+        s = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq"),
+        o = os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq"),
         summ = optionalSummary[7]
     output:
-        s = temp(os.path.join(TMPDIR, "p03", "{sample}.u.singletons.fastq")),
-        o = temp(os.path.join(TMPDIR, "p03", "{sample}.o.singletons.fastq"))
+        sr1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.u.singletons.fastq")),
+        or1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.o.singletons.fastq")),
     benchmark:
         os.path.join(BENCH, "nonhost_read_repair.{sample}.txt")
     log:
@@ -127,9 +127,9 @@ rule nonhost_read_repair:
         "../envs/bbmap.yaml"
     shell:
         """
-        {{ reformat.sh in={input.s} out={output.s} \
+        {{ reformat.sh in={input.s} out={output.sr1} \
             -Xmx{resources.javaAlloc}m;
-        reformat.sh in={input.o} out={output.o} \
+        reformat.sh in={input.o} out={output.or1} \
             -Xmx{resources.javaAlloc}m; }} 2>> {log}
         rm {log}
         """
@@ -137,20 +137,20 @@ rule nonhost_read_repair:
 rule nonhost_read_combine:
     """Preprocessing step 04: Combine paired and singleton reads. """
     input:
-        single_fa = os.path.join(TMPDIR, "p02", "{PATTERN}.unmapped.fastq"),
-        s = os.path.join(TMPDIR, "p03", "{PATTERN}.u.singletons.fastq"),
-        o = os.path.join(TMPDIR, "p03", "{PATTERN}.o.singletons.fastq")
+        r1 = os.path.join(TMPDIR, "p02", "{PATTERN}_R1.unmapped.fastq"),
+        sr1 = os.path.join(TMPDIR, "p03", "{PATTERN}_R1.u.singletons.fastq"),
+        or1 = os.path.join(TMPDIR, "p03", "{PATTERN}_R1.o.singletons.fastq")
     output:
-        t = os.path.join(TMPDIR, "p04", "{PATTERN}.singletons.fastq"),
-        r = os.path.join(TMPDIR, "p04", "{PATTERN}.all.fastq")
+        t1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.singletons.fastq"),
+        r1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.all.fastq")
     benchmark:
         os.path.join(BENCH, "nonhost_read_combine.{PATTERN}.txt")
     log:
         os.path.join(STDERR, "nonhost_read_combine.{PATTERN}.log")
     shell:
         """
-        {{ cat {input.s} {input.o} > {output.t};
-        cat {input.r} {output.t} > {output.r}; }} 2> {log}
+        {{ cat {input.sr1} {input.or1} > {output.t1};
+        cat {input.r1} {output.t1} > {output.r1}; }} 2> {log}
         rm {log}
         """
           
@@ -160,16 +160,16 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
      Sequences clustered at CLUSTERID in config.yaml.
     """
     input:
-        fq = os.path.join(TMPDIR, "p04", "{sample}.all.fastq"),
+        fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
         summ = optionalSummary[8]
     output:
-        temp(os.path.join(TMPDIR, "p05", "{sample}_rep_seq.fasta")),
-        temp(os.path.join(TMPDIR, "p05", "{sample}_cluster.tsv")),
-        temp(os.path.join(TMPDIR, "p05", "{sample}_all_seqs.fasta"))
+        temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
+        temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
+        temp(os.path.join(TMPDIR, "p05", "{sample}_R1_all_seqs.fasta"))
     params:
         respath = os.path.join(TMPDIR, "p05"),
         tmppath = os.path.join(TMPDIR, "p05", "{sample}_TMP"),
-        prefix = '{sample}',
+        prefix = '{sample}_R1',
         config = config['linclustParams']
     benchmark:
         os.path.join(BENCH, "cluster_similar_sequences.{sample}.txt")
@@ -196,13 +196,13 @@ rule create_individual_seqtables:
     sequence per sample.
     """
     input:
-        seqs = os.path.join(TMPDIR, "p05", "{sample}_rep_seq.fasta"),
-        counts = os.path.join(TMPDIR, "p05", "{sample}_cluster.tsv"),
+        seqs = os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta"),
+        counts = os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv"),
         summ = optionalSummary[9]
     output:
-        seqs = temp(os.path.join(TMPDIR, "p06", "{sample}.seqs")),
-        counts = temp(os.path.join(TMPDIR, "p06", "{sample}.counts")),
-        seqtable = temp(os.path.join(TMPDIR, "p06", "{sample}.seqtable"))
+        seqs = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqs")),
+        counts = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.counts")),
+        seqtable = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"))
     benchmark:
         os.path.join(BENCH, "individual_seqtables.{sample}.txt")
     log:
@@ -238,7 +238,7 @@ rule merge_seq_table:
     the pipline.
     """
     input:
-        seqtables = expand(os.path.join(TMPDIR, "p6", "{sample}.seqtable"), sample=SAMPLES),
+        seqtable = expand(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"), sample=SAMPLES),
         summ = optionalSummary[10]
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
