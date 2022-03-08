@@ -251,7 +251,7 @@ rule merge_seq_table:
     the pipline.
     """
     input:
-        seqtables = expand(os.path.join(TMPDIR, "p6", "{sample}_R1.seqtable"), sample=SAMPLES),
+        seqtables = expand(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"), sample=SAMPLES),
         summ = optionalSummary[10]
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
