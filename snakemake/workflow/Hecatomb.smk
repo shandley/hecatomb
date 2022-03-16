@@ -76,6 +76,9 @@ if config['QC'] == 'longreads':
 elif config['QC'] == 'single':
     include: "rules/01_preprocessing_single.smk"
     include: "rules/02_sample_assembly_single.smk"
+elif config['QC'] == 'round':
+    include: "rules/01_preprocessing_round.smk"
+    include: "rules/02_sample_assembly.smk"
 else:
     include: "rules/01_preprocessing.smk"
     include: "rules/02_sample_assembly.smk"
