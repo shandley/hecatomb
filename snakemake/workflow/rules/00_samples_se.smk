@@ -1,22 +1,34 @@
+
+"""
+Function for parsing the 'Reads' config and identifying samples and read files
+"""
+
 def samplesFromDirectory(dir):
     """Parse samples from a directory"""
     outDict = {}
-    samples, extensions = glob_wildcards(os.path.join(dir,'{sample}.{extension,fast[aq].*}'))
+    samples, extensions = glob_wildcards(os.path.join(dir,'{sample}_R1{extensions}'))
     if not extensions:
         sys.stderr.write("\n"
-                         "    FATAL: We could not parse the longread sample fasta/q files\n"
+                         "    FATAL: We could not parse the sequence file names from the specified directory.\n"
+                         "    We are expecting {sample}_R1{extension}, and so your files should contain the \n"
+                         "    characters '_R1' in the fwd reads and '_R2' in the rev reads. \n"
+                         "    Alternatively you can specify a 3-column TSV file instead to declare the sample\n"
+                         "    names and corresponding R1/R2 files. e.g. \n"
+                         "    sample1\tpath/to/reads/sample1.1.fastq.gz\tpath/to/reads/sample1.2.fastq.gz\n"
+                         "    sample2\tpath/to/reads/sample2.1.fastq.gz\tpath/to/reads/sample2.2.fastq.gz\n"
+                         "    ..."
                          "    See https://hecatomb.readthedocs.io/en/latest/usage/#read-directory for more info\n"
                          "\n")
         sys.exit(1)
     else:
         for sample in samples:
             outDict[sample] = {}
-            R1 = os.path.join(dir,f'{sample}.{extensions[0]}')
+            R1 = os.path.join(dir,f'{sample}_R1{extensions[0]}')
             if os.path.isfile(R1):
                 outDict[sample]['R1'] = R1
             else:
                 sys.stderr.write("\n"
-                                 f"    FATAL: Error globbing files. {R1} does not exist. complain to Mike."
+                                 "    FATAL: Error globbing files. Ensure consistent _R1 formatting and file extensions."
                                  "\n")
                 sys.exit(1)
     return outDict
@@ -33,8 +45,8 @@ def samplesFromTsv(tsvFile):
                     outDict[l[0]]['R1'] = l[1]
                 else:
                     sys.stderr.write("\n"
-                                     f"    FATAL: Error parsing {tsvFile}. {l[1]} does not exist.\n" 
-                                     "     complain to Mike.\n"
+                                     f"    FATAL: Error parsing {tsvFile}. Check formatting, and that \n" 
+                                     "    file names and file paths are correct.\n"
                                      "\n")
                     sys.exit(1)
     return outDict

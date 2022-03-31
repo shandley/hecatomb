@@ -195,26 +195,6 @@ rule poolUnpairedUnmapped:
         cat {input.fq} > {output}
         """
 
-# rule archive_mhitDir:
-#     """tar and zip the megahit assembly directories.
-#
-#     We add the count table as a requirement to make sure the directory is only archive once it's no longer needed.
-#     """
-#     input:
-#         dir = os.path.join(ASSEMBLY,'{sample}'),
-#         req = os.path.join(RESULTS, "contig_count_table.tsv")
-#     output:
-#         os.path.join(ASSEMBLY,'{sample}.tar.zst')
-#     threads:
-#         BBToolsCPU
-#     resources:
-#         mem_mb = BBToolsMem
-#     shell:
-#         """
-#         tar cf - {input.dir} | zstd -T8 -9 > {output}
-#         rm -rf {input.dir}
-#         """
-
 rule rescue_read_kmer_normalization:
     """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
     input:
