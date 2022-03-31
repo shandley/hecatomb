@@ -33,12 +33,13 @@ rule contig_read_taxonomy:
     1. read the tax information from bigtable.tsv to a dictionary
     2. parse the aligned sequences and print a row for each primary alignment
     output format:
-    contigID\tseqID\tstart\tstop\tlen\tqual\ttaxMethod\tK\tP\tC\tO\tF\tG\tS\n
+    contigID\tseqID\tstart\tstop\tlen\tqual\tcount\tCPM\ttaxMethod\tK\tP\tC\tO\tF\tG\tS\n
     """
     input:
         bam = os.path.join(MAPPING, "assembly.seqtable.bam"),
         bai = os.path.join(MAPPING, "assembly.seqtable.bam.bai"),
-        taxon = os.path.join(RESULTS, "bigtable.tsv")
+        taxon = os.path.join(RESULTS, "bigtable.tsv"),
+        counts = os.path.join(RESULTS, "sampleSeqCounts.tsv"),
     output:
         os.path.join(RESULTS, "contigSeqTable.tsv")
     threads:

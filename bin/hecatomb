@@ -74,6 +74,9 @@ parser.add_argument('--configfile',
 parser.add_argument('--test', help='Use the test dataset (ignores --reads)', action='store_true')
 parser.add_argument('--skipAssembly', help="Don't perform an assembly", action='store_true', default=False)
 parser.add_argument('--report', help='Generate a run report', action='store_true', default=False)
+parser.add_argument('--nonPaired', help='Input files are non-paired short reads', action='store_true', default=False)
+parser.add_argument('--longreads', help='Input files are longreads (se-sample, lr-qc, no-report, lr-assembly)', action='store_true', default=False)
+parser.add_argument('--round_seq', help='For round AB sequencing. Trims 5\' primer sequence. Cannot use with longreads or non-paired.', action='store_true', default=False)
 parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
 parser.add_argument('--host', help='Host name for contaminant removal', default='human')
 parser.add_argument('--hostfa', help='Host reference (for addHost command only)')
@@ -185,13 +188,22 @@ def run():
         exit(1)
     else:
         readDir = args.reads
+    sampling = 'paired'
+    qc = 'paired'
+    if args.longreads:
+        sampling = 'single'
+        qc = 'longreads'
+        args.report = False
+    elif args.nonPaired:
+        qc = 'single'
+        sampling = 'single'
+        args.report = False
+    elif args.round_seq:
+        qc = 'round'
+        args.report = False
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    if args.report:
-        rept = 'Report=True'
-    else:
-        rept = 'Report=False'
     runCommand = (f'{snakeCommand} '
                   f'-s {snekFile} '
                   f'-C Reads={readDir} '
@@ -199,7 +211,9 @@ def run():
                     f'Output={args.results} '
                     f'SkipAssembly={args.skipAssembly} '
                     f'Fast={args.fast} '
-                    f'{rept}')
+                    f'Report={args.report} '
+                    f'Sampling={sampling} '
+                    f'QC={qc} ')
     runSnakeSys(runCommand)
     if args.report:
         sys.stderr.write("Generating run report\n")

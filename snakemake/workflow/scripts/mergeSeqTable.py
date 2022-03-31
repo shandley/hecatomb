@@ -19,7 +19,7 @@ for sample in snakemake.params.samples:
     logging.debug(f'sample {sample}')
     seqId = 0
     seqCounts = 0
-    st = os.path.join(snakemake.params.tmpdir, "p10", f"{sample}_R1.seqtable")
+    st = os.path.join(snakemake.params.tmpdir, "p06", f"{sample}_R1.seqtable")
     counts = open(st, 'r')
     line = counts.readline()  # skip header
     for line in counts:

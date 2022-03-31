@@ -16,9 +16,11 @@ if skipAssembly:
 else:
     # Assembly files
     AssemblyFiles = [
-        os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","assembly.fasta"),
-        os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","MAPPING","contig_count_table.tsv"),
-        os.path.join(RESULTS,"assembly.properties.tsv")]
+        os.path.join(RESULTS,"assembly.fasta"),
+        os.path.join(RESULTS,"contig_count_table.tsv"),
+        os.path.join(RESULTS,"assembly.properties.tsv"),
+    #    expand(os.path.join(ASSEMBLY,'{sample}.tar.zst'), sample=SAMPLES)
+        ]
     # Contig annotations
     ContigAnnotFiles = [
         os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt.tsv"),

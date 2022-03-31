@@ -40,6 +40,8 @@ BBToolsMem = config['SmallJobMem']
 BBToolsCPU = config['SmallJobCpu']
 MiscMem = config['MoreRamMem']
 MiscCPU = config['MoreRamCpu']
+FastpMem = config['MediumJobMem']
+FastpCPU = config['MediumJobCpu']
 
 
 ### DIRECTORIES
@@ -56,17 +58,32 @@ include: "rules/00_preflight.smk"
 
 
 # Parse the samples and read files
-include: "rules/00_samples.smk"
+if config['Sampling'] == 'single':
+    include: "rules/00_samples_se.smk"
+else:
+    include: "rules/00_samples.smk"
 sampleReads = parseSamples(READS)
 SAMPLES = sampleReads.keys()
-
+# wildcard_constraints:
+#     sample="[a-zA-Z0-9._-]+"
 
 # Import rules and functions
 include: "rules/00_functions.smk"
 include: "rules/00_targets.smk"
-include: "rules/01_preprocessing.smk"
-include: "rules/02_assembly.smk"
+if config['QC'] == 'longreads':
+    include: "rules/01_preprocessing_longreads.smk"
+    include: "rules/02_sample_assembly_longreads.smk"
+elif config['QC'] == 'single':
+    include: "rules/01_preprocessing_single.smk"
+    include: "rules/02_sample_assembly_single.smk"
+elif config['QC'] == 'round':
+    include: "rules/01_preprocessing_round.smk"
+    include: "rules/02_sample_assembly.smk"
+else:
+    include: "rules/01_preprocessing.smk"
+    include: "rules/02_sample_assembly.smk"
 include: "rules/02_taxonomic_assignment.smk"
+include: "rules/03_population_assembly.smk"
 include: "rules/03_mapping.smk"
 include: "rules/03_contig_annotation.smk"
 include: "rules/04_summaries.smk"
