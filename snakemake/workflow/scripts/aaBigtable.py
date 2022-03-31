@@ -99,7 +99,7 @@ with open(snakemake.output[0], 'w') as out:
                     taxOut = '\t'.join((['NA'] * 8))
             # seq ID = sample:count:seqNum
             seqInf = l[0].split(':')
-            tName =  re.sub('.*\||\s+\S+=.*','',l[18])
+            tName =  re.sub('.*\||[a-zA-Z]+=.*','',l[18])
             cpm = str(( int(seqInf[1]) / smplCounts[seqInf[0]] ) * 1000000)
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], cpm))
             # convert aa alignment len to equivalent nt alignment len

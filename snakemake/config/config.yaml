@@ -26,8 +26,9 @@ MediumJobCpu: 16     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
 SmallJobMem: 16000   # Memory for BBTools etc. in megabytes (recommend >= 16000)
 SmallJobCpu: 8       # CPUs for BBTools etc. (recommend >= 8)
                      # default CPUs = 1
-defaultMem: 2000     # Default memory in megabytes (for use with --profile)
-defaultTime: 1440    # Default time in minutes (for use with --profile)
+# SPECIFY DEFAULT MEM AND TIME IN YOUR PROFILE - see example profile config.yaml
+#defaultMem: 2000     # Default memory in megabytes (for use with --profile)
+#defaultTime: 1440    # Default time in minutes (for use with --profile)
 defaultJobs: 100     # Default concurrent jobs (for use with --profile)
 
 # Some jobs need more RAM; go over your CPU:RAM ratio if needed
@@ -156,6 +157,43 @@ reqAA:
  --tax-lineage 1
  --lca-ranks "superkingdom,phylum,class,order,family,genus,species"
  --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage"
+
+
+###########################################
+# Canu settings (for longread assemblies) #
+###########################################
+
+# recommended correctedErrorRate is 0.16 to 0.12 (depending on coverage) for nanopore and
+# 0.105 to 0.040 (depending on coverage) for pacbio (non-HiFi) - below is low-coverage nanopore
+# https://canu.readthedocs.io/en/latest/faq.html#what-parameters-can-i-tweak
+canuSettings:
+ correctedErrorRate=0.16
+ maxInputCoverage=10000
+ minInputCoverage=0
+ corOutCoverage=10000
+ corMhapSensitivity=high
+ corMinCoverage=0
+ useGrid=False
+ stopOnLowCoverage=False
+ genomeSize=10M
+ -nanopore
+# -pacbio
+# -pacbio-hifi
+
+# e.g.
+# canu \
+# correctedErrorRate=0.16 \
+# maxInputCoverage=10000 \
+# minInputCoverage=0 \
+# corOutCoverage=10000 \
+# corMhapSensitivity=high \
+# corMinCoverage=0 \
+# useGrid=False \
+# stopOnLowCoverage=False \
+# genomeSize=10M \
+# -nanopore reads/SRR17869101.fastq.gz \
+# -p SRR17869101 \
+# -d SRR17869101
 
 
 #####################

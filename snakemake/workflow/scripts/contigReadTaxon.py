@@ -22,6 +22,12 @@ with open(snakemake.input.taxon, 'r') as inTSV:
         l = line.strip().split('\t')
         tax[l[0]] = '\t'.join((l[2:5] + l[22:]))
 
+smplCounts = {}     # Read in read counts for each sample for normalised counts
+with open(snakemake.input.counts, 'r') as countfh:
+    for line in countfh:
+        l = line.strip().split('\t')
+        smplCounts[l[0]] = int(l[1])
+
 logging.debug('Parsing mapped reads and pairing read taxon with mapped coords')
 with open(snakemake.output[0], 'w') as outFH:
     outFH.write('\t'.join((
@@ -58,7 +64,8 @@ with open(snakemake.output[0], 'w') as outFH:
         try:
             taxOut = tax[read.query_name]
         except KeyError:
-            taxOut = '\t'.join((['NA'] * 8))
+            c = read.query_name.split(':')
+            taxOut = '\t'.join(([c[1], str((int(c[1]) / smplCounts[c[0]]) * 1000000)] + ['NA'] * 11))
         outFH.write(f'{infOut}\t{taxOut}\n')
     bam.close()
 

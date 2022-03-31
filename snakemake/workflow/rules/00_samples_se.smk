@@ -1,3 +1,4 @@
+
 """
 Function for parsing the 'Reads' config and identifying samples and read files
 """

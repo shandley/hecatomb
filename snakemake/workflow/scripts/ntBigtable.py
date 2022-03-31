@@ -101,7 +101,7 @@ with open(snakemake.output[0], 'w') as out:
             # seq ID = sample:count:seqNum
             seqInf = l[0].split(':')
             cpm = str((int(seqInf[1]) / smplCounts[seqInf[0]]) * 1000000)
-            tName =  re.sub('.*\||\s+\S+=.*', '', l[18])
+            tName =  re.sub('.*\||[a-zA-Z]+=.*','',l[18])
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], cpm))
             alnOut = 'nt\t' + '\t'.join((l[1:17]))
             try:

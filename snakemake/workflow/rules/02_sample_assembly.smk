@@ -1,26 +1,23 @@
 """
-Snakemake rule file to remove 5' primer sequences from roundAB sequencing using BBTools.
+Per-sample assemblies for short paired reads
+    Take all trimmed reads, create pooled contigs "all_samples_contigs_size_selected.fasta" for use
+    in 03_population_assembly.smk
 """
 
-rule remove_5prime_primer:
-    """Preprocessing step 01a: Remove 5' primer.
-    
-    Default RdA/B Primer sequences are provided in the file primerB.fa. If your lab uses other primers you will need to
-    place them in CONPATH (defined in the Hecatomb.smk) and change the file name from primerB.fa to your file name below.
-    """
+rule assembly_kmer_normalization:
+    """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
     input:
-        r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
-        r2 = lambda wildcards: sampleReads[wildcards.sample]['R2'],
-        primers = os.path.join(CONPATH, "primerB.fa"),
-        summ = optionalSummary[0]
+        r1 = os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.fastq"),
+        r2 = os.path.join(TMPDIR, "p07", "{sample}_R2.unmapped.fastq"),
+        r1s = os.path.join(TMPDIR, "p07", "{sample}_R1.singletons.fastq"),
+        r2s = os.path.join(TMPDIR, "p07", "{sample}_R2.singletons.fastq")
     output:
-        r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.5pTrim.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.5pTrim.out.fastq")),
-        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.tsv")
+        r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
+        r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq")
     benchmark:
-        os.path.join(BENCH, "remove_5prime_primer.{sample}.txt")
+        os.path.join(BENCH, "kmer_normalization_{sample}.txt")
     log:
-        os.path.join(STDERR, "remove_5prime_primer.{sample}.log")
+        os.path.join(STDERR, "kmer_norm_{sample}.log")
     resources:
         mem_mb = BBToolsMem,
         javaAlloc = int(0.95 * BBToolsMem)
@@ -30,126 +27,187 @@ rule remove_5prime_primer:
         "../envs/bbmap.yaml"
     shell:
         """
-        bbduk.sh in={input.r1} in2={input.r2} \
-            ref={input.primers} \
-            out={output.r1} out2={output.r2} \
-            stats={output.stats} \
-            k=16 hdist=1 mink=11 ktrim=l restrictleft=20 \
-            removeifeitherbad=f trimpolya=10 ordered=t rcomp=f ow=t \
+        bbnorm.sh in={input.r1} in2={input.r2} \
+            extra={input.r1s},{input.r2s} \
+            out={output.r1_norm} out2={output.r2_norm} \
+            target=100 \
+            ow=t \
             threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 
-rule fastp_preprocessing:
-    """Preprocessing step 01b: fastp_preprocessing.
-    
-    Use fastP to remove adaptors, vector contaminants, low quality sequences, poly-A tails and reads shorts than minimum length, plus deduplicate.
+rule individual_sample_assembly:
+    """Assembly step 02: Individual sample assemblies
+
+    Megahit: https://github.com/voutcn/megahit
     """
     input:
-        r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.5pTrim.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p01", "{sample}_R2.s1.5pTrim.out.fastq"),
-        contaminants = os.path.join(CONPATH, "vector_contaminants.fa"),
-        summ = optionalSummary[0]
+        r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
+        r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq"),
+        r1s = os.path.join(TMPDIR, "p07", "{sample}_R1.singletons.fastq"),
+        r2s = os.path.join(TMPDIR, "p07", "{sample}_R2.singletons.fastq")
     output:
-        r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq")),
-        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.json")
+        contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
+        tar = os.path.join(ASSEMBLY,'{sample}.tar.zst')
+    params:
+        mh_dir = directory(os.path.join(ASSEMBLY,'{sample}'))
     benchmark:
-        os.path.join(BENCH, "fastp_preprocessing.{sample}.txt")
+        os.path.join(BENCH, "megahit_{sample}.txt")
     log:
-        os.path.join(STDERR, "fastp_preprocessing.{sample}.log")
+        os.path.join(STDERR, "megahit_{sample}.log")
     resources:
-        mem_mb = FastpMem
+        mem_mb = MhitMem
     threads:
-        FastpCPU
+        MhitCPU
+    conda:
+        "../envs/megahit.yaml"
     shell:
         """
-        fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
-        -z {config[COMPRESSION]} \
-        -j {output.stats} \
-        --qualified_quality_phred {config[QSCORE]} \
-        --length_required {config[READ_MINLENGTH]} \
-        --adapter_fasta {input.contaminants} \
-        --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]} \
-        --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} \
-        --trim_poly_x \
-        --thread {threads} 2> {log}
+        if [ -d {params.mh_dir} ]; then
+            rm -rf {params.mh_dir}
+        fi
+        megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
+            -o {params.mh_dir} --out-prefix {wildcards.sample} \
+            --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
+        tar cf - {params.mh_dir} | zstd -T8 -9 > {output.tar} 2> {log}
         rm {log}
         """
 
-rule create_host_index:
-    """Step 02. Create the minimap2 index for mapping to the host; this will save time."""
+rule mapSampleAssemblyPairedReads:
+    """Map the sample paired reads to the sample assembly"""
     input:
-        HOSTFA,
+        r1 = os.path.join(TMPDIR,"p07","{sample}_R1.unmapped.fastq"),
+        r2 = os.path.join(TMPDIR,"p07","{sample}_R2.unmapped.fastq"),
+        contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
     output:
-        HOSTINDEX
-    benchmark:
-        os.path.join(BENCH, "create_host_index.txt")
-    log:
-        os.path.join(STDERR, 'create_host_index.log')
-    resources:
-        mem_mb = BBToolsMem
+        temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.pe.bam'))
+    conda:
+        os.path.join('..', 'envs', 'minimap2.yaml')
     threads:
         BBToolsCPU
-    conda:
-        "../envs/minimap2.yaml"
-    shell:
-        """
-        minimap2 -t {threads} -d {output} <(cat {input}) 2> {log}
-        rm {log}
-        """
-
-rule host_removal_mapping:
-    """Preprocessing step 02a: Host removal: mapping to host.
-    
-    Must define host in config file (see Paths: Host: in config.yaml). Host should be masked of viral sequence.
-    If your reference is not available you need to add it using 'Hecatomb addHost'
-    """
-    input:
-        r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq"),
-        r2 = os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq"),
-        host = HOSTINDEX,
-        summ = optionalSummary[6]
-    output:
-        r1 = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq")),
-        r2 = temp(os.path.join(TMPDIR, "p02", "{sample}_R2.unmapped.fastq")),
-        s = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq")),
-        o = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq"))
-    benchmark:
-        os.path.join(BENCH, "host_removal_mapping.{sample}.txt")
-    log:
-        mm = os.path.join(STDERR, "host_removal_mapping.{sample}.minimap.log"),
-        sv = os.path.join(STDERR, "host_removal_mapping.{sample}.samtoolsView.log"),
-        fq = os.path.join(STDERR, "host_removal_mapping.{sample}.samtoolsFastq.log")
     resources:
         mem_mb = BBToolsMem
-    threads:
-        BBToolsCPU
-    conda:
-        "../envs/minimap2.yaml"
+    log:
+        os.path.join(STDERR, 'sampleAssemblyMapPe.{sample}.log')
+    benchmark:
+        os.path.join(BENCH, 'sampleAssemblyMapPe.{sample}.txt')
     shell:
         """
-        minimap2 -ax sr -t {threads} --secondary=no {input.host} {input.r1} {input.r2} 2> {log.mm} \
-            | samtools view -f 4 -h 2> {log.sv} \
-            | samtools fastq -NO -1 {output.r1} -2 {output.r2} -0 {output.o} -s {output.s} 2> {log.fq}
-        rm {log.mm} {log.sv} {log.fq}
+        minimap2 -t {threads} -ax sr {input.contigs} {input.r1} {input.r2} | \
+            samtools sort -n -o {output[0]}
         """
 
-rule nonhost_read_repair:
-    """Preprocessing step 03: Parse R1/R2 singletons (if singletons at all)"""
+rule mapSampleAssemblyUnpairedReads:
+    """Map the sample unpaired reads to the sample assembly"""
     input:
-        s = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq"),
-        o = os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq"),
-        summ = optionalSummary[7]
+        r1s = os.path.join(TMPDIR,"p07","{sample}_R1.singletons.fastq"),
+        r2s = os.path.join(TMPDIR,"p07","{sample}_R2.singletons.fastq"),
+        contigs = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fa")
     output:
-        sr1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.u.singletons.fastq")),
-        sr2 = temp(os.path.join(TMPDIR, "p03", "{sample}_R2.u.singletons.fastq")),
-        or1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.o.singletons.fastq")),
-        or2 = temp(os.path.join(TMPDIR, "p03", "{sample}_R2.o.singletons.fastq"))
-    benchmark:
-        os.path.join(BENCH, "nonhost_read_repair.{sample}.txt")
+        temp(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
+    conda:
+        os.path.join('..', 'envs', 'minimap2.yaml')
+    threads:
+        BBToolsCPU
+    resources:
+        mem_mb = BBToolsMem
     log:
-        os.path.join(STDERR, "nonhost_read_repair.{sample}.log")
+        os.path.join(STDERR, 'sampleAssemblyMapS.{sample}.log')
+    benchmark:
+        os.path.join(BENCH, 'sampleAssemblyMapS.{sample}.txt')
+    shell:
+        """
+        minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} {input.r2s} | \
+            samtools sort -n | \
+            samtools fastq -f 4 > {output[0]}
+        """
+
+rule pullPairedUnmappedReads:
+    """Grab the paired unmapped reads (neither pair mapped)"""
+    input:
+        os.path.join(ASSEMBLY,'{sample}','{sample}.pe.bam')
+    output:
+        r1 = temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R1.fastq')),
+        r2 = temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R2.fastq')),
+    conda:
+        os.path.join('..','envs','samtools.yaml')
+    threads:
+        BBToolsCPU
+    resources:
+        mem_mb = BBToolsMem
+    log:
+        os.path.join(STDERR, 'pullPairedUnmappedReads.{sample}.log')
+    benchmark:
+        os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
+    shell:
+        """
+        samtools fastq -f 77 {input} > {output.r1}
+        samtools fastq -f 141 {input} > {output.r2}
+        """
+
+rule pullPairedUnmappedReadsMateMapped:
+    """Grab the paired unmapped reads (mate is mapped)"""
+    input:
+        os.path.join(ASSEMBLY,'{sample}','{sample}.pe.bam')
+    output:
+        temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped.pe.s.fastq'))
+    conda:
+        os.path.join('..','envs','samtools.yaml')
+    threads:
+        BBToolsCPU
+    resources:
+        mem_mb = BBToolsMem
+    log:
+        os.path.join(STDERR, 'pullPairedUnmappedReads.{sample}.log')
+    benchmark:
+        os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
+    shell:
+        """
+        samtools fastq -f5 -F8 {input[0]} > {output[0]}
+        """
+
+rule poolR1Unmapped:
+    """Concatenate the unmapped, paired R1 reads for all samples"""
+    input:
+        expand(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R1.fastq'), sample=SAMPLES)
+    output:
+        temp(os.path.join(ASSEMBLY, 'unmapRescue_R1.fastq'))
+    shell:
+        """cat {input} > {output}"""
+
+rule poolR2Unmapped:
+    """Concatenate the unmapped, paired R2 reads for all samples"""
+    input:
+        expand(os.path.join(ASSEMBLY, '{sample}', '{sample}.assemblyUnmapped_R2.fastq'), sample=SAMPLES)
+    output:
+        temp(os.path.join(ASSEMBLY, 'unmapRescue_R2.fastq'))
+    shell:
+        """cat {input} > {output}"""
+
+rule poolUnpairedUnmapped:
+    """Concatenate the unmapped, unpaired reads for all samples"""
+    input:
+        fq = expand(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.{sPe}.fastq'), sample=SAMPLES, sPe = ['s','pe.s']),
+    output:
+        temp(os.path.join(ASSEMBLY, 'unmapRescue.s.fastq'))
+    shell:
+        """
+        cat {input.fq} > {output}
+        """
+
+rule rescue_read_kmer_normalization:
+    """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
+    input:
+        r1 = os.path.join(ASSEMBLY, 'unmapRescue_R1.fastq'),
+        r2 = os.path.join(ASSEMBLY, 'unmapRescue_R2.fastq'),
+        s = os.path.join(ASSEMBLY, 'unmapRescue.s.fastq')
+    output:
+        r1_norm = temp(os.path.join(ASSEMBLY, 'unmapRescueNorm_R1.fastq')),
+        r2_norm = temp(os.path.join(ASSEMBLY, 'unmapRescueNorm_R2.fastq'))
+    benchmark:
+        os.path.join(BENCH, "rescue_read_kmer_normalization.txt")
+    log:
+        os.path.join(STDERR, "rescue_read_kmer_normalization.log")
     resources:
         mem_mb = BBToolsMem,
         javaAlloc = int(0.95 * BBToolsMem)
@@ -159,137 +217,147 @@ rule nonhost_read_repair:
         "../envs/bbmap.yaml"
     shell:
         """
-        {{ reformat.sh in={input.s} out={output.sr1} out2={output.sr2} \
-            -Xmx{resources.javaAlloc}m;
-        reformat.sh in={input.o} out={output.or1} out2={output.or2} \
-            -Xmx{resources.javaAlloc}m; }} 2>> {log}
+        bbnorm.sh in={input.r1} in2={input.r2} \
+            extra={input.s} \
+            out={output.r1_norm} out2={output.r2_norm} \
+            target=100 \
+            ow=t \
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
         rm {log}
         """
 
-rule nonhost_read_combine:
-    """Preprocessing step 04: Combine paired and singleton reads. """
-    input:
-        r1 = os.path.join(TMPDIR, "p02", "{PATTERN}_R1.unmapped.fastq"),
-        r2 = os.path.join(TMPDIR, "p02", "{PATTERN}_R2.unmapped.fastq"),
-        sr1 = os.path.join(TMPDIR, "p03", "{PATTERN}_R1.u.singletons.fastq"),
-        sr2 = os.path.join(TMPDIR, "p03", "{PATTERN}_R2.u.singletons.fastq"),
-        or1 = os.path.join(TMPDIR, "p03", "{PATTERN}_R1.o.singletons.fastq"),
-        or2 = os.path.join(TMPDIR, "p03", "{PATTERN}_R2.o.singletons.fastq")
-    output:
-        t1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.singletons.fastq"),
-        t2 = os.path.join(TMPDIR, "p04", "{PATTERN}_R2.singletons.fastq"),
-        r1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.all.fastq"),
-        r2 = os.path.join(TMPDIR, "p04", "{PATTERN}_R2.all.fastq")
-    benchmark:
-        os.path.join(BENCH, "nonhost_read_combine.{PATTERN}.txt")
-    log:
-        os.path.join(STDERR, "nonhost_read_combine.{PATTERN}.log")
-    shell:
-        """
-        {{ cat {input.sr1} {input.or1} > {output.t1};
-        cat {input.sr2} {input.or2} > {output.t2};
-        cat {input.r1} {output.t1} > {output.r1};
-        cat {input.r2} {output.t2} > {output.r2}; }} 2> {log}
-        rm {log}
-        """
-          
-rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT AT THIS POINT
-    """Preprocessing step 05: Cluster similar sequences.
-     
-     Sequences clustered at CLUSTERID in config.yaml.
+rule unmapped_read_rescue_assembly:
+    """Assemble the unmapped reads from all samples
+
+    Megahit: https://github.com/voutcn/megahit
     """
     input:
-        fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
-        summ = optionalSummary[8]
+        r1_norm = os.path.join(ASSEMBLY, 'unmapRescueNorm_R1.fastq'),
+        r2_norm = os.path.join(ASSEMBLY, 'unmapRescueNorm_R2.fastq'),
+        s = os.path.join(ASSEMBLY, 'unmapRescue.s.fastq')
     output:
-        temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
-        temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
-        temp(os.path.join(TMPDIR, "p06", "{sample}_R1_all_seqs.fasta"))
+        contigs = os.path.join(ASSEMBLY, 'rescue', "rescue.contigs.fa")
     params:
-        respath = os.path.join(TMPDIR, "p05"),
-        tmppath = os.path.join(TMPDIR, "p05", "{sample}_TMP"),
-        prefix = '{sample}_R1',
-        config = config['linclustParams']
+        mh_dir = directory(os.path.join(ASSEMBLY, 'rescue'))
     benchmark:
-        os.path.join(BENCH, "cluster_similar_sequences.{sample}.txt")
+        os.path.join(BENCH, "unmapped_read_rescue_assembly.txt")
     log:
-        os.path.join(STDERR, "cluster_similar_sequences.{sample}.log")
+        os.path.join(STDERR, "unmapped_read_rescue_assembly.log")
     resources:
-        mem_mb = MMSeqsMem
+        mem_mb = MhitMem
     threads:
-        MMSeqsCPU
+        MhitCPU
     conda:
-        "../envs/mmseqs2.yaml"
-    shell:
-        """ 
-        mmseqs easy-linclust {input.fq} {params.respath}/{params.prefix} {params.tmppath} \
-            {params.config} \
-            --threads {threads} &> {log}
-        rm {log}
-        """
-        
-rule create_individual_seqtables:
-    """Preprocessing step 06: Create individual seqtables. 
-    
-    A seqtable is a count table with each sequence as a row, each column as a sample and each cell the counts of each 
-    sequence per sample.
-    """
-    input:
-        seqs = os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta"),
-        counts = os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv"),
-        summ = optionalSummary[9]
-    output:
-        seqs = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqs")),
-        counts = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.counts")),
-        seqtable = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"))
-    benchmark:
-        os.path.join(BENCH, "individual_seqtables.{sample}.txt")
-    log:
-        os.path.join(STDERR, "individual_seqtables.{sample}.txt")
-    resources:
-        mem_mb = MMSeqsMem
-    threads:
-        MMSeqsCPU
-    conda:
-        "../envs/seqkit.yaml"
+        "../envs/megahit.yaml"
     shell:
         """
-        {{ seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna \
-            | seqkit fx2tab -w 5000 -t dna \
-            | sed 's/\\t\\+$//' \
-            | cut -f2,3 \
-            | sed '1i sequence' > {output.seqs};
-        cut -f1 {input.counts} \
-            | sort \
-            | uniq -c \
-            | awk -F ' ' '{{print$2"\\t"$1}}' \
-            | cut -f2 \
-            | sed "1i {wildcards.sample}" > {output.counts};
-        paste {output.seqs} {output.counts} > {output.seqtable}; }} 2> {log}
+        if [ -d {params.mh_dir} ]; then
+            rm -rf {params.mh_dir}
+        fi
+        megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.s} \
+            -o {params.mh_dir} --out-prefix rescue \
+            --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
         rm {log}
         """
 
-
-rule merge_seq_table:
-    """Preprocessing step 07: Merge seq tables
-    
-    Reads the sequences and counts from each samples' seqtable text file and converts to fasta format for the rest of 
-    the pipline.
-    """
+rule concatenate_contigs:
+    """Assembly step 03: Concatenate individual assembly outputs (contigs) into a single file"""
     input:
-        seqtables = expand(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"), sample=SAMPLES),
-        summ = optionalSummary[10]
+        expand(os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"), sample=SAMPLES),
+        os.path.join(ASSEMBLY,'rescue',"rescue.contigs.fa")
     output:
-        fa = os.path.join(RESULTS, "seqtable.fasta"),
-        tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
+        temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta"))
     params:
-        samples = list(SAMPLES),
-        tmpdir = TMPDIR
-    conda:
-        os.path.join('..', 'envs', 'pysam.yaml')
+        expand(os.path.join(ASSEMBLY,'{sample}'), sample=SAMPLES),
     benchmark:
-        os.path.join(BENCH, "merge_seq_table.txt")
+        os.path.join(BENCH, "concatenate_assemblies.txt")
     log:
-        os.path.join(STDERR, 'merge_seq_table.log')
-    script:
-        os.path.join('../', 'scripts', 'mergeSeqTable.py')
+        os.path.join(STDERR, "concatenate_assemblies.log")
+    shell:
+        """
+        cat {input} > {output} 2> {log} && rm {log}
+        rm -rf {params}
+        """
+
+rule contig_reformating_and_stats:
+    """Assembly step 04: Remove short contigs (Default: 1000). Defined in config[CONTIG_MINLENGTH]"""
+    input:
+        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
+    output:
+        rename = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.renamed.fasta")),
+        size = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_samples_contigs_size_selected.fasta")),
+        stats = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats"))
+    benchmark:
+        os.path.join(BENCH, "contig_reformating.txt")
+    log:
+        log1 = os.path.join(STDERR, "contig_reformating_and_stats.rename.log"),
+        log2 = os.path.join(STDERR, "contig_reformating_and_stats.reformat.log"),
+        log3 = os.path.join(STDERR, "contig_reformating_and_stats.stats.log")
+    resources:
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
+    threads:
+        BBToolsCPU
+    conda:
+        "../envs/bbmap.yaml"
+    shell:
+        """
+        rename.sh in={input} out={output.rename} \
+            prefix=contig_ \
+            ow=t \
+            -Xmx{resources.javaAlloc}m 2> {log.log1}
+        rm {log.log1}
+        reformat.sh in={output.rename} out={output.size} \
+            ml={config[CONTIG_MINLENGTH]} \
+            ow=t \
+            -Xmx{resources.javaAlloc}m 2> {log.log2}
+        rm {log.log2}
+        statswrapper.sh in={input} out={output.stats} \
+            format=2 \
+            ow=t 2> {log.log3}
+        rm {log.log3}
+        """
+
+
+rule coverage_calculations:
+    """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
+    input:
+        r1 = os.path.join(TMPDIR, "p07", "{sample}_R1.all.fastq"),
+        r2 = os.path.join(TMPDIR, "p07", "{sample}_R2.all.fastq"),
+        ref = os.path.join(RESULTS, "assembly.fasta")
+    output:
+        sam = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz")),
+        unmap = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.unmapped.fastq")),
+        covstats = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats")),
+        rpkm = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm")),
+        statsfile = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.statsfile")),
+        scafstats = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.scafstats"))
+    benchmark:
+        os.path.join(BENCH, "coverage_calculations.{sample}.txt")
+    log:
+        os.path.join(STDERR, "coverage_calculations.{sample}.log")
+    resources:
+        mem_mb = BBToolsMem,
+        javaAlloc = int(0.95 * BBToolsMem)
+    threads:
+        BBToolsCPU
+    conda:
+        "../envs/bbmap.yaml"
+    shell:
+        """
+        bbmap.sh ref={input.ref} in={input.r1} in2={input.r2} \
+            nodisk \
+            out={output.sam} \
+            outu={output.unmap} \
+            ambiguous=random \
+            slow=t \
+            physcov=t \
+            covstats={output.covstats} \
+            rpkm={output.rpkm} \
+            statsfile={output.statsfile} \
+            scafstats={output.scafstats} \
+            maxindel=100 minid=90 \
+            ow=t \
+            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
+        rm {log}
+        """
