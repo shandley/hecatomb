@@ -26,6 +26,10 @@ Snakemake profiles for HPC Clusters.
 ### Install
 
 ```bash
+
+# install mamba if you haven't already
+conda install -n base -c conda-forge mamba
+
 # create conda env and install
 conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 

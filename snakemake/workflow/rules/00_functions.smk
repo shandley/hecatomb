@@ -191,3 +191,11 @@ rule seq_properties_table:
         out.close()
         logging.debug('Done')
 
+# rule archive_fasta:
+#     """Zip output files for storage"""
+#     input:
+#         '{file}.fasta'
+#     output:
+#         '{file}.fasta.gz'
+#     shell:
+#         """gzip -kc {input[0]}"""
