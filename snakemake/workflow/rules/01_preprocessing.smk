@@ -258,7 +258,7 @@ rule merge_seq_table:
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
     params:
         samples = list(SAMPLES),
-        tmpdir = os.path.join(TMPDIR, "p10")
+        tmpdir = os.path.join(TMPDIR, "p06")
     conda:
         os.path.join('..', 'envs', 'pysam.yaml')
     benchmark:

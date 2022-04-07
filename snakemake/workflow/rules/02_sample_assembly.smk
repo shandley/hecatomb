@@ -7,10 +7,10 @@ Per-sample assemblies for short paired reads
 rule assembly_kmer_normalization:
     """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
     input:
-        r1 = os.path.join(TMPDIR, "p07", "{sample}_R1.unmapped.fastq"),
-        r2 = os.path.join(TMPDIR, "p07", "{sample}_R2.unmapped.fastq"),
-        r1s = os.path.join(TMPDIR, "p07", "{sample}_R1.singletons.fastq"),
-        r2s = os.path.join(TMPDIR, "p07", "{sample}_R2.singletons.fastq")
+        r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq"),
+        r2 = os.path.join(TMPDIR, "p02", "{sample}_R2.unmapped.fastq"),
+        r1s = os.path.join(TMPDIR, "p04", "{sample}_R1.singletons.fastq"),
+        r2s = os.path.join(TMPDIR, "p04", "{sample}_R2.singletons.fastq")
     output:
         r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
         r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq")
@@ -44,8 +44,8 @@ rule individual_sample_assembly:
     input:
         r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
         r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq"),
-        r1s = os.path.join(TMPDIR, "p07", "{sample}_R1.singletons.fastq"),
-        r2s = os.path.join(TMPDIR, "p07", "{sample}_R2.singletons.fastq")
+        r1s = os.path.join(TMPDIR, "p04", "{sample}_R1.singletons.fastq"),
+        r2s = os.path.join(TMPDIR, "p04", "{sample}_R2.singletons.fastq")
     output:
         contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
         tar = os.path.join(ASSEMBLY,'{sample}.tar.zst')
@@ -76,8 +76,8 @@ rule individual_sample_assembly:
 rule mapSampleAssemblyPairedReads:
     """Map the sample paired reads to the sample assembly"""
     input:
-        r1 = os.path.join(TMPDIR,"p07","{sample}_R1.unmapped.fastq"),
-        r2 = os.path.join(TMPDIR,"p07","{sample}_R2.unmapped.fastq"),
+        r1 = os.path.join(TMPDIR,"p02","{sample}_R1.unmapped.fastq"),
+        r2 = os.path.join(TMPDIR,"p02","{sample}_R2.unmapped.fastq"),
         contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
     output:
         temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.pe.bam'))
@@ -100,8 +100,8 @@ rule mapSampleAssemblyPairedReads:
 rule mapSampleAssemblyUnpairedReads:
     """Map the sample unpaired reads to the sample assembly"""
     input:
-        r1s = os.path.join(TMPDIR,"p07","{sample}_R1.singletons.fastq"),
-        r2s = os.path.join(TMPDIR,"p07","{sample}_R2.singletons.fastq"),
+        r1s = os.path.join(TMPDIR,"p04","{sample}_R1.singletons.fastq"),
+        r2s = os.path.join(TMPDIR,"p04","{sample}_R2.singletons.fastq"),
         contigs = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fa")
     output:
         temp(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
@@ -322,8 +322,8 @@ rule contig_reformating_and_stats:
 rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1 = os.path.join(TMPDIR, "p07", "{sample}_R1.all.fastq"),
-        r2 = os.path.join(TMPDIR, "p07", "{sample}_R2.all.fastq"),
+        r1 = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
+        r2 = os.path.join(TMPDIR, "p04", "{sample}_R2.all.fastq"),
         ref = os.path.join(RESULTS, "assembly.fasta")
     output:
         sam = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz")),

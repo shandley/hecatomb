@@ -204,7 +204,7 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     output:
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
-        temp(os.path.join(TMPDIR, "p06", "{sample}_R1_all_seqs.fasta"))
+        temp(os.path.join(TMPDIR, "p05", "{sample}_R1_all_seqs.fasta"))
     params:
         respath = os.path.join(TMPDIR, "p05"),
         tmppath = os.path.join(TMPDIR, "p05", "{sample}_TMP"),
@@ -284,7 +284,7 @@ rule merge_seq_table:
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
     params:
         samples = list(SAMPLES),
-        tmpdir = TMPDIR
+        tmpdir = os.path.join(TMPDIR, 'p06')
     conda:
         os.path.join('..', 'envs', 'pysam.yaml')
     benchmark:

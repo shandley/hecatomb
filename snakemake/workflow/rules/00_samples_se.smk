@@ -6,29 +6,23 @@ Function for parsing the 'Reads' config and identifying samples and read files
 def samplesFromDirectory(dir):
     """Parse samples from a directory"""
     outDict = {}
-    samples, extensions = glob_wildcards(os.path.join(dir,'{sample}_R1{extensions}'))
-    if not extensions:
+    samples, = glob_wildcards(os.path.join(dir,'{sample}.fastq.gz'))
+    if not samples:
         sys.stderr.write("\n"
                          "    FATAL: We could not parse the sequence file names from the specified directory.\n"
-                         "    We are expecting {sample}_R1{extension}, and so your files should contain the \n"
-                         "    characters '_R1' in the fwd reads and '_R2' in the rev reads. \n"
-                         "    Alternatively you can specify a 3-column TSV file instead to declare the sample\n"
-                         "    names and corresponding R1/R2 files. e.g. \n"
-                         "    sample1\tpath/to/reads/sample1.1.fastq.gz\tpath/to/reads/sample1.2.fastq.gz\n"
-                         "    sample2\tpath/to/reads/sample2.1.fastq.gz\tpath/to/reads/sample2.2.fastq.gz\n"
-                         "    ..."
+                         "    We are expecting {sample}.fastq.gz, and so your files should be fastq format and gzipped.\n"
                          "    See https://hecatomb.readthedocs.io/en/latest/usage/#read-directory for more info\n"
                          "\n")
         sys.exit(1)
     else:
         for sample in samples:
             outDict[sample] = {}
-            R1 = os.path.join(dir,f'{sample}_R1{extensions[0]}')
+            R1 = os.path.join(dir,f'{sample}.fastq.gz')
             if os.path.isfile(R1):
                 outDict[sample]['R1'] = R1
             else:
                 sys.stderr.write("\n"
-                                 "    FATAL: Error globbing files. Ensure consistent _R1 formatting and file extensions."
+                                 "    FATAL: Error globbing files. Complain to Mike."
                                  "\n")
                 sys.exit(1)
     return outDict
