@@ -117,19 +117,19 @@ We will load the `bigtable.tsv.gz` into a dataframe called `data` with `pd.read_
 The file is tab-separated and contains a header.
 
 ```python
-data = pd.read_csv('bigtable.tsv.gz',compression='gzip',header=1,sep='\t')
+data = pd.read_csv('bigtable.tsv.gz',compression='gzip',header=0,sep='\t')
 ```
 
 Next, we will load the `metadata.tsv.gz` file into a dataframe called `meta` in the same way.
 
 ```python
-meta = pd.read_csv('metadata.tsv.gz',compression='gzip',header=1,sep='\t')
+meta = pd.read_csv('metadata.tsv.gz',compression='gzip',header=0,sep='\t')
 ```
 
 We'll load `taxonLevelCounts.tsv.gz` while we're at it.
 
 ```python
-taxonCounts = pd.read_csv('taxonLevelCounts.tsv.gz',compression='gzp',header=1,sep='\t')
+taxonCounts = pd.read_csv('taxonLevelCounts.tsv.gz',compression='gzip',header=0,sep='\t')
 ```
 
 Keep the `contigSeqTable.tsv.gz` file handy, we'll load that into python as well later on.
