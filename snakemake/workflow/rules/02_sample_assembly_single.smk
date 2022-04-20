@@ -253,7 +253,7 @@ rule unmapped_read_rescue_assembly:
         if [ -d {params.mh_dir} ]; then
             rm -rf {params.mh_dir}
         fi
-        megahit -1 {input.r1_norm} -r {input.s} \
+        megahit -r {input.r1_norm},{input.s} \
             -o {params.mh_dir} --out-prefix rescue \
             --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
         rm {log}
