@@ -23,6 +23,8 @@ rule canu_sample_assembly:
         MhitCPU
     log:
         os.path.join(STDERR, "canu_sample_assembly.{sample}.log")
+    conda:
+        "../envs/canu.yaml"
     shell:
         """
         canu {params.settings} {input} \
