@@ -37,7 +37,6 @@ rule link_assembly:
     run:
         os.rename(os.path.abspath(input[0]), os.path.abspath(output[0]))
 
-
 # rule coverage_calculations
 
 rule create_contig_count_table:
