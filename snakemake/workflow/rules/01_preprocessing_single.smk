@@ -39,16 +39,16 @@ rule fastp_preprocessing:
     shell:
         """
         fastp -i {input.r1} -o {output.r1} \
-        -z {config[COMPRESSION]} \
-        -j {output.stats} \
-        --qualified_quality_phred {config[QSCORE]} \
-        --length_required {config[READ_MINLENGTH]} \
-        --adapter_fasta {input.contaminants} \
-        --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]} \
-        --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} \
-        --trim_poly_x \
-        --thread {threads} 2> {log}
-        rm {log}
+            -z {config[COMPRESSION]} \
+            -j {output.stats} \
+            --qualified_quality_phred {config[QSCORE]} \
+            --length_required {config[READ_MINLENGTH]} \
+            --adapter_fasta {input.contaminants} \
+            --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]} \
+            --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} \
+            --trim_poly_x \
+            --thread {threads} 2> {log}
+            rm {log}
         """
 
 rule create_host_index:
@@ -247,9 +247,9 @@ rule merge_seq_table:
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
     params:
         samples = list(SAMPLES),
-        tmpdir = TMPDIR
-    conda:
-        os.path.join('..', 'envs', 'pysam.yaml')
+        tmpdir = os.path.join(TMPDIR, 'p06')
+    #conda:
+    #    os.path.join('..', 'envs', 'pysam.yaml')
     benchmark:
         os.path.join(BENCH, "merge_seq_table.txt")
     log:
