@@ -61,7 +61,7 @@ rule individual_sample_assembly:
         if [ -d {params.mh_dir} ]; then
             rm -rf {params.mh_dir}
         fi
-        megahit -1 {input.r1_norm} -r {input.r1s} \
+        megahit -r {input.r1_norm},{input.r1s} \
             -o {params.mh_dir} --out-prefix {wildcards.sample} \
             --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
         tar cf - {params.mh_dir} | zstd -T8 -9 > {output.tar} 2> {log}
