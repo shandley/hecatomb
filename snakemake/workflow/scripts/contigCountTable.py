@@ -18,8 +18,8 @@ logging.debug(f'Reading {snakemake.input.covstats}')
 with open(snakemake.input.covstats, 'r') as f:
     for line in f:
         if not line.startswith('#'):
-            l = line.split('\t')
-            covStat[l[0]] = [l[1] ,l[3] ,l[4] ,l[5] ,l[9]]
+            l = line.strip().split('\t')
+            covStat[l[0]] = [round(l[1],2) ,round(l[3],2) ,round(l[4],2) ,l[5] , round(l[9],2)]
 
 total = 0
 logging.debug(f'Reading {snakemake.input.rpkm}')
@@ -50,9 +50,9 @@ with open(snakemake.output.count_tbl ,'w') as o:
         for line in f:
             if not line.startswith('#'):
                 l = line.strip().split('\t')
-                rpk = int(l[2]) / (int(l[1]) / 1000)      # RPK
+                rpk = round(int(l[2]) / (int(l[1]) / 1000), 2)     # RPK
                 try:
-                    tpm = rpk / total               # TPM
+                    tpm = round(rpk / total,2)               # TPM
                 except ZeroDivisionError:
                     tpm = 0
                 o.write( '\t'.join([
@@ -60,8 +60,8 @@ with open(snakemake.output.count_tbl ,'w') as o:
                     l[0],                   # contig
                     l[1],                   # length
                     l[4],                   # reads
-                    l[5],                   # RPKM
-                    l[7],                   # FPKM
-                    str(tpm) ]+              # CPM
+                    round(l[5],2),          # RPKM
+                    round(l[7],2),          # FPKM
+                    str(tpm) ]+             # CPM
                     covStat[l[0]]           # aveFole -> medianFold
                 ) + '\n')
