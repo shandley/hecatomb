@@ -59,11 +59,11 @@ with open(snakemake.output.count_tbl ,'w') as o:
                     tpm = 0
                 o.write( '\t'.join([
                     snakemake.wildcards.sample,       # sample
-                    l[0],                   # contig
-                    l[1],                   # length
-                    l[4],                   # reads
-                    round(l[5],2),          # RPKM
-                    round(l[7],2),          # FPKM
-                    str(tpm) ]+             # CPM
-                    covStat[l[0]]           # aveFole -> medianFold
+                    l[0],                           # contig
+                    l[1],                           # length
+                    l[4],                           # reads
+                    str(round(float(l[5]),2)),          # RPKM
+                    str(round(float(l[7]),2)),          # FPKM
+                    str(tpm) ]+                     # CPM
+                    covStat[l[0]]                   # aveFole -> medianFold
                 ) + '\n')
