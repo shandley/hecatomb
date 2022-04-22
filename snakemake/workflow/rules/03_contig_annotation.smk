@@ -54,7 +54,7 @@ rule mmseqs_contig_annotation_summary:
     params:
         inputpath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
         respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit"),
-        header='\\t'.join(['contigID',
+        header='\\\t'.join(['contigID',
                            'evalue',
                            'pident',
                            'fident',
@@ -77,7 +77,7 @@ rule mmseqs_contig_annotation_summary:
                            'order',
                            'family',
                            'genus',
-                           'species\\n'])
+                           'species\\\n'])
     benchmark:
         os.path.join(BENCH, "mmseqs_contig_annotation_summary.txt")
     log:
@@ -103,7 +103,7 @@ rule mmseqs_contig_annotation_summary:
         
         # Assign taxonomy
         sed 's/tid|//' {output.align} | \
-            sed 's/|S*//' | \
+            sed 's/|\S*//' | \
             taxonkit lineage --data-dir {input.taxdb} -i 2 | \
             taxonkit reformat --data-dir {input.taxdb} -i 19 -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank | \
             cut --complement -f2,19 >> {output.tsv}
