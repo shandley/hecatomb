@@ -49,7 +49,7 @@ with open(snakemake.output.count_tbl ,'w') as o:
     with open(snakemake.input.rpkm ,'r') as f:
         for line in f:
             if not line.startswith('#'):
-                l = line.split('\t')
+                l = line.strip().split('\t')
                 rpk = int(l[2]) / (int(l[1]) / 1000)      # RPK
                 try:
                     tpm = rpk / total               # TPM

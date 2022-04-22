@@ -37,8 +37,6 @@ rule link_assembly:
     run:
         os.rename(os.path.abspath(input[0]), os.path.abspath(output[0]))
 
-# rule coverage_calculations
-
 rule create_contig_count_table:
     """Assembly step 08: Transcript Per Million (TPM) calculator
 
@@ -56,11 +54,7 @@ rule create_contig_count_table:
         os.path.join('..', 'scripts', 'contigCountTable.py')
 
 rule concatentate_contig_count_tables:
-    """Assembly step 09: Concatenate contig count tables
-
-    Note: this is done as a separate rule due to how snakemake handles i/o files. It does not work well in Step 20b as 
-    the i/o PATTERNS are different.
-    """
+    """Assembly step 09: Concatenate contig count tables"""
     input:
         expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv"), sample=SAMPLES)
     output:
@@ -71,8 +65,9 @@ rule concatentate_contig_count_tables:
         os.path.join(STDERR, "concatentate_contig_count_tables.log")
     shell:
         """
-        {{ cat {input} > {output};
-            sed -i '1i sample_id\tcontig_id\tlength\treads\tRPKM\tFPKM\tTPM\tavg_fold_cov\tcontig_GC\tcov_perc\tcov_bases\tmedian_fold_cov' {output};
+        {{ 
+        head -1 {input[0]} > {output};
+        cat {input} | grep -v ^\# >> {output};
         }} 2> {log}
         rm {log}
         """
