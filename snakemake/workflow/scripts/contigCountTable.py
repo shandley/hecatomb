@@ -19,7 +19,9 @@ with open(snakemake.input.covstats, 'r') as f:
     for line in f:
         if not line.startswith('#'):
             l = line.strip().split('\t')
-            covStat[l[0]] = [round(l[1],2) ,round(l[3],2) ,round(l[4],2) ,l[5] , round(l[9],2)]
+            for i in [1,2,4,9]:
+                l[i] = str(round(float(l[i]),2))
+            covStat[l[0]] = [l[1], l[3], l[4], l[5], l[9]]
 
 total = 0
 logging.debug(f'Reading {snakemake.input.rpkm}')
