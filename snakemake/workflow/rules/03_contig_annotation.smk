@@ -5,7 +5,7 @@ rule mmseqs_contig_annotation:
     """
     input:
         contigs=os.path.join(RESULTS,"assembly.fasta"),
-        db=os.path.join(NCBIVIRDB, "sequenceDB")
+        db=os.path.join(POLYMICRODB, "sequenceDB")
     output:
         queryDB=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","queryDB"),
         result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result.index")
@@ -37,7 +37,7 @@ rule mmseqs_contig_annotation_summary:
     """Contig annotation step 02: Summarize mmseqs contig annotation results"""
     input:
         queryDB=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","queryDB"),
-        db=os.path.join(NCBIVIRDB, "sequenceDB"),
+        db=os.path.join(POLYMICRODB, "sequenceDB"),
         taxdb=TAX
     output:
         result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit.index"),
@@ -54,7 +54,7 @@ rule mmseqs_contig_annotation_summary:
     params:
         inputpath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
         respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit"),
-        header='\\\t'.join(['contigID',
+        header='\\t'.join(['contigID',
                            'evalue',
                            'pident',
                            'fident',
@@ -77,7 +77,7 @@ rule mmseqs_contig_annotation_summary:
                            'order',
                            'family',
                            'genus',
-                           'species\\\n'])
+                           'species\\n'])
     benchmark:
         os.path.join(BENCH, "mmseqs_contig_annotation_summary.txt")
     log:
@@ -99,14 +99,14 @@ rule mmseqs_contig_annotation_summary:
             --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,target";
         
         # Header for output table
-        printf {params.header} > {output.tsv}
+        printf {params.header} > {output.tsv};
         
         # Assign taxonomy
         sed 's/tid|//' {output.align} | \
             sed 's/|\S*//' | \
             taxonkit lineage --data-dir {input.taxdb} -i 2 | \
-            taxonkit reformat --data-dir {input.taxdb} -i 19 -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank | \
-            cut --complement -f2,19 >> {output.tsv}
+            taxonkit reformat --data-dir {input.taxdb} -i 19 -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank | \
+            cut --complement -f2,19 >> {output.tsv};
         }} 2> {log}
         rm {log}
         """
