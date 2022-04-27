@@ -139,8 +139,7 @@ rule nonhost_read_repair:
     """Preprocessing step 03: Parse R1/R2 singletons (if singletons at all)"""
     input:
         s = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq"),
-        o = os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq"),
-        summ = optionalSummary[7]
+        o = os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq")
     output:
         sr1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.u.singletons.fastq")),
         sr2 = temp(os.path.join(TMPDIR, "p03", "{sample}_R2.u.singletons.fastq")),
@@ -237,7 +236,7 @@ rule create_individual_seqtables:
     input:
         seqs = os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta"),
         counts = os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv"),
-        summ = optionalSummary[9]
+        summ = optionalSummary[2]
     output:
         seqs = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqs")),
         counts = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.counts")),
@@ -277,8 +276,7 @@ rule merge_seq_table:
     the pipline.
     """
     input:
-        seqtables = expand(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"), sample=SAMPLES),
-        summ = optionalSummary[2]
+        seqtables = expand(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"), sample=SAMPLES)
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
