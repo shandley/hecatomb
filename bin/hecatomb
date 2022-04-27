@@ -76,8 +76,8 @@ parser.add_argument('--test', help='Use the test dataset (ignores --reads)', act
 parser.add_argument('--skipAssembly', help="Don't perform an assembly", action='store_true', default=False)
 parser.add_argument('--report', help='Generate a run report', action='store_true', default=False)
 parser.add_argument('--nonPaired', help='Input files are non-paired short reads', action='store_true', default=False)
-parser.add_argument('--longreads', help='Input files are longreads (se-sample, lr-qc, no-report, lr-assembly)', action='store_true', default=False)
-parser.add_argument('--round_seq', help='For round AB sequencing. Trims 5\' primer sequence. Cannot use with longreads or non-paired.', action='store_true', default=False)
+parser.add_argument('--longreads', help='Input files are longreads.', action='store_true', default=False)
+parser.add_argument('--roundAB', help='For round A/B sequencing. Trims 5\' primer sequence. Cannot use with --longreads or --nonPaired.', action='store_true', default=False)
 parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
 parser.add_argument('--host', help='Host name for contaminant removal', default='human')
 parser.add_argument('--hostfa', help='Host reference (for addHost command only)')
@@ -141,14 +141,14 @@ def updateConfig(_config):
     if args.longreads:
         _config['Sampling'] = 'single'
         _config['QC'] = 'longreads'
-        _config['Report'] = False
+        # _config['Report'] = False
     elif args.nonPaired:
         _config['QC'] = 'single'
         _config['Sampling'] = 'single'
-        _config['Report'] = False
-    elif args.round_seq:
-        _config['QC'] = 'round'
-        _config['Report'] = False
+        # _config['Report'] = False
+    elif args.roundAB:
+        _config['QC'] = 'roundAB'
+        # _config['Report'] = False
     return _config
 
 
