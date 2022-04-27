@@ -44,8 +44,8 @@ def collect_start_counts(sampleReads, outFile):
         for sample in SAMPLES:
             R1c = file_len(sampleReads[sample]['R1']) / 4
             R2c = file_len(sampleReads[sample]['R2']) / 4
-            outfh.write(f'{sample}\tStep_00\tR1\t{R1c}\n')
-            outfh.write(f'{sample}\tStep_00\tR2\t{R2c}\n')
+            outfh.write(f'{sample}\tInitial_Count\tR1\t{R1c}\n')
+            outfh.write(f'{sample}\tInitial_Count\tR2\t{R2c}\n')
     return None
 
 def collect_counts(inPrefix, inSuffix, stepName, outFile):
@@ -53,9 +53,10 @@ def collect_counts(inPrefix, inSuffix, stepName, outFile):
     with open(outFile,'w') as outfh:
         for sample in SAMPLES:
             R1c = file_len(os.path.join(inPrefix, f'{sample}_R1{inSuffix}')) / 4
-            R2c = file_len(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')) / 4
             outfh.write(f'{sample}\t{stepName}\tR1\t{R1c}\n')
-            outfh.write(f'{sample}\t{stepName}\tR2\t{R2c}\n')
+            if os.path.isfile(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')):
+                R2c = file_len(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')) / 4
+                outfh.write(f'{sample}\t{stepName}\tR2\t{R2c}\n')
     return None
 
 def sum_counts(fname, R1=False):

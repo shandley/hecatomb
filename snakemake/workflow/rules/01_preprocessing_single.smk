@@ -81,8 +81,7 @@ rule host_removal_mapping:
     """
     input:
         r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq"),
-        host = HOSTINDEX,
-        summ = optionalSummary[6]
+        host = HOSTINDEX
     output:
         r1 = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq")),
         s = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq")),
@@ -111,8 +110,7 @@ rule nonhost_read_repair:
     """Preprocessing step 03: Parse R1/R2 singletons (if singletons at all)"""
     input:
         s = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq"),
-        o = os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq"),
-        summ = optionalSummary[7]
+        o = os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq")
     output:
         sr1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.u.singletons.fastq")),
         or1 = temp(os.path.join(TMPDIR, "p03", "{sample}_R1.o.singletons.fastq")),
@@ -156,14 +154,14 @@ rule nonhost_read_combine:
         rm {log}
         """
           
-rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT AT THIS POINT
+rule cluster_similar_sequences:
     """Preprocessing step 05: Cluster similar sequences.
      
      Sequences clustered at CLUSTERID in config.yaml.
     """
     input:
         fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
-        summ = optionalSummary[8]
+        summ = optionalSummary[1]
     output:
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
@@ -200,7 +198,7 @@ rule create_individual_seqtables:
     input:
         seqs = os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta"),
         counts = os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv"),
-        summ = optionalSummary[9]
+        summ = optionalSummary[2]
     output:
         seqs = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqs")),
         counts = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.counts")),
@@ -240,8 +238,7 @@ rule merge_seq_table:
     the pipline.
     """
     input:
-        seqtable = expand(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"), sample=SAMPLES),
-        summ = optionalSummary[10]
+        seqtable = expand(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"), sample=SAMPLES)
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")

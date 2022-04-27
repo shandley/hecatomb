@@ -1,3 +1,10 @@
+import yaml
+with open(os.path.join(workflow.basedir, '..', 'config', 'dbFiles.yaml'),'r') as stream:
+    dbConfig = yaml.safe_load(stream)
+
+# update config with DB files
+config = config | dbConfig
+
 # Check for Database files
 dbFail = False
 for f in config['dbFiles']:

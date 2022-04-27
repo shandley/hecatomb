@@ -30,10 +30,10 @@ rule host_removal_mapping:
     """
     input:
         r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
-        host=HOSTINDEX,
-        summ=optionalSummary[6]
+        host = HOSTINDEX,
+        summ = optionalSummary[0]
     output:
-        r1=temp(os.path.join(TMPDIR,"p01","{sample}_R1.unmapped.fasta")),
+        r1=temp(os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")),
     benchmark:
         os.path.join(BENCH,"host_removal_mapping.{sample}.txt")
     log:
@@ -60,15 +60,15 @@ rule cluster_similar_sequences:  ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT
      Sequences clustered at CLUSTERID in config.yaml.
     """
     input:
-        fa=os.path.join(TMPDIR,"p01","{sample}_R1.unmapped.fasta"),
-        summ=optionalSummary[8]
+        fa=os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta"),
+        summ=optionalSummary[1]
     output:
-        temp(os.path.join(TMPDIR,"p02","{sample}_R1_rep_seq.fasta")),
-        temp(os.path.join(TMPDIR,"p02","{sample}_R1_cluster.tsv")),
-        temp(os.path.join(TMPDIR,"p02","{sample}_R1_all_seqs.fasta"))
+        temp(os.path.join(TMPDIR,"p05","{sample}_R1_rep_seq.fasta")),
+        temp(os.path.join(TMPDIR,"p05","{sample}_R1_cluster.tsv")),
+        temp(os.path.join(TMPDIR,"p05","{sample}_R1_all_seqs.fasta"))
     params:
-        respath=os.path.join(TMPDIR,"p02"),
-        tmppath=os.path.join(TMPDIR,"p02","{sample}_TMP"),
+        respath=os.path.join(TMPDIR,"p05"),
+        tmppath=os.path.join(TMPDIR,"p05","{sample}_TMP"),
         prefix='{sample}_R1',
         config=config['linclustParams']
     benchmark:
@@ -96,13 +96,13 @@ rule create_individual_seqtables:
     sequence per sample.
     """
     input:
-        seqs=os.path.join(TMPDIR,"p02","{sample}_R1_rep_seq.fasta"),
-        counts=os.path.join(TMPDIR,"p02","{sample}_R1_cluster.tsv"),
-        summ=optionalSummary[9]
+        seqs=os.path.join(TMPDIR,"p05","{sample}_R1_rep_seq.fasta"),
+        counts=os.path.join(TMPDIR,"p05","{sample}_R1_cluster.tsv"),
+        summ=optionalSummary[2]
     output:
-        seqs=temp(os.path.join(TMPDIR,"p03","{sample}_R1.seqs")),
-        counts=temp(os.path.join(TMPDIR,"p03","{sample}_R1.counts")),
-        seqtable=temp(os.path.join(TMPDIR,"p03","{sample}_R1.seqtable"))
+        seqs=temp(os.path.join(TMPDIR,"p06","{sample}_R1.seqs")),
+        counts=temp(os.path.join(TMPDIR,"p06","{sample}_R1.counts")),
+        seqtable=temp(os.path.join(TMPDIR,"p06","{sample}_R1.seqtable"))
     benchmark:
         os.path.join(BENCH,"individual_seqtables.{sample}.txt")
     log:
@@ -138,8 +138,7 @@ rule merge_seq_table:
     the pipline.
     """
     input:
-        seqtables=expand(os.path.join(TMPDIR,"p03","{sample}_R1.seqtable"),sample=SAMPLES),
-        summ=optionalSummary[10]
+        seqtables=expand(os.path.join(TMPDIR,"p06","{sample}_R1.seqtable"),sample=SAMPLES)
     output:
         fa=os.path.join(RESULTS,"seqtable.fasta"),
         tsv=os.path.join(RESULTS,"sampleSeqCounts.tsv")

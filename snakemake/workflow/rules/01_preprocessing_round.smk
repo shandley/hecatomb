@@ -48,8 +48,7 @@ rule fastp_preprocessing:
     input:
         r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.5pTrim.out.fastq"),
         r2 = os.path.join(TMPDIR, "p01", "{sample}_R2.s1.5pTrim.out.fastq"),
-        contaminants = os.path.join(CONPATH, "vector_contaminants.fa"),
-        summ = optionalSummary[0]
+        contaminants = os.path.join(CONPATH, "vector_contaminants.fa")
     output:
         r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq")),
@@ -67,15 +66,15 @@ rule fastp_preprocessing:
     shell:
         """
         fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
-        -z {config[COMPRESSION]} \
-        -j {output.stats} \
-        --qualified_quality_phred {config[QSCORE]} \
-        --length_required {config[READ_MINLENGTH]} \
-        --adapter_fasta {input.contaminants} \
-        --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]} \
-        --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} \
-        --trim_poly_x \
-        --thread {threads} 2> {log}
+            -z {config[COMPRESSION]} \
+            -j {output.stats} \
+            --qualified_quality_phred {config[QSCORE]} \
+            --length_required {config[READ_MINLENGTH]} \
+            --adapter_fasta {input.contaminants} \
+            --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]} \
+            --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} \
+            --trim_poly_x \
+            --thread {threads} 2> {log}
         rm {log}
         """
 
@@ -110,8 +109,7 @@ rule host_removal_mapping:
     input:
         r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq"),
         r2 = os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq"),
-        host = HOSTINDEX,
-        summ = optionalSummary[6]
+        host = HOSTINDEX
     output:
         r1 = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p02", "{sample}_R2.unmapped.fastq")),
@@ -202,7 +200,7 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     """
     input:
         fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
-        summ = optionalSummary[8]
+        summ = optionalSummary[1]
     output:
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
@@ -280,7 +278,7 @@ rule merge_seq_table:
     """
     input:
         seqtables = expand(os.path.join(TMPDIR, "p06", "{sample}_R1.seqtable"), sample=SAMPLES),
-        summ = optionalSummary[10]
+        summ = optionalSummary[2]
     output:
         fa = os.path.join(RESULTS, "seqtable.fasta"),
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
