@@ -14,6 +14,7 @@ import subprocess
 import time
 import yaml
 import glob
+from datetime import datetime
 from shutil import copyfile
 
 
@@ -94,6 +95,12 @@ args = parser.parse_args()
 SNEKDIR = os.path.normpath(os.path.join(BINDIR, '../', 'snakemake', 'workflow'))
 TESTDIR = os.path.normpath(os.path.join(BINDIR, '../', 'test_data'))
 CONDDIR = os.path.normpath(os.path.join(SNEKDIR, 'conda'))
+OUTDIR = os.path.normpath(args.results)
+if not os.path.exists(OUTDIR):
+    os.makedirs(OUTDIR)
+templateConfig = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
+runtimeConfigName = 'hecatomb.' + datetime.now().strftime("%M%H%d%m%Y") + '.yaml'
+runtimeConfig = os.path.normpath(os.path.join(OUTDIR, runtimeConfigName))
 
 
 def dumpConfig():
@@ -102,12 +109,47 @@ def dumpConfig():
     :return:
     """
     if not os.path.isfile(args.configfile):
-        sys.stderr.write(f'Copyting system default config file to {args.configfile}\n')
-        templateConfig = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
+        sys.stderr.write(f'    Copying template config file to {args.configfile}\n')
         copyfile(templateConfig, args.configfile)
     else:
-        sys.stderr.write(f"Config file {args.configfile} already exists.\n")
+        sys.stderr.write(f"    Config file {args.configfile} already exists. Using existing config template.\n")
     return None
+
+
+def updateConfig(_config):
+    """
+    Update config from config file with command-line config options
+    :return:
+    """
+    # init
+    _config['Host'] = args.host
+    _config['Sampling'] = 'paired'
+    _config['QC'] = 'paired'
+    _config['Output'] = args.results
+    _config['SkipAssembly'] = args.skipAssembly
+    _config['Fast'] = args.fast
+    _config['Report'] = args.report
+    # read dir
+    if args.test:
+        _config['Reads'] = TESTDIR
+    elif not args.reads:
+        sys.stderr.write('\n    ERROR: please specify the directory or TSV file of reads with --reads\n')
+        exit(1)
+    else:
+        _config['Reads'] = args.reads
+    # preprocessing method
+    if args.longreads:
+        _config['Sampling'] = 'single'
+        _config['QC'] = 'longreads'
+        _config['Report'] = False
+    elif args.nonPaired:
+        _config['QC'] = 'single'
+        _config['Sampling'] = 'single'
+        _config['Report'] = False
+    elif args.round_seq:
+        _config['QC'] = 'round'
+        _config['Report'] = False
+    return _config
 
 
 def readConfig():
@@ -118,6 +160,12 @@ def readConfig():
     dumpConfig()
     with open(args.configfile, 'r') as stream:
         config = yaml.safe_load(stream)
+    config = updateConfig(config)
+    sys.stderr.write(f'    Writing runtime config file to {runtimeConfig}.\n')
+    with open(runtimeConfig, 'w') as stream:
+        yaml.dump(config, stream)
+        sys.stderr.write('\n    Runtime config settings:\n')
+        sys.stderr.write(yaml.dump(config, Dumper=yaml.Dumper) + '\n')
     return config
 
 
@@ -142,7 +190,7 @@ def initialiseSnakeCommand():
                '--show-failed-logs '
                f'--conda-prefix {CONDDIR} ')
     # Config is now always passed via --configfile
-    command = command + f' --configfile {args.configfile} '
+    command = command + f' --configfile {runtimeConfig} '
     # Additional Snakemake commands
     if args.snake:
         command = command + ' '.join(c for c in args.snake)
@@ -156,7 +204,7 @@ def runSnakeSys(command):
     :param command: The snakemake command to run
     :return: none
     """
-    sys.stderr.write(f'Running snakemake command:\n{command}\n')
+    sys.stderr.write(f'    Running snakemake command:\n{command}\n')
     if not subprocess.run(command.split()).returncode==0:
         exit(1)
     return None
@@ -169,7 +217,7 @@ def install():
     :return:
     """
     snakeCommand = initialiseSnakeCommand()
-    sys.stderr.write("Checking and downloading database files\n")
+    sys.stderr.write("    Checking and downloading database files\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'DownloadDB.smk'))
     runCommand = f'{snakeCommand} -s {snekFile} -C Output={args.results}'
     runSnakeSys(runCommand)
@@ -181,42 +229,13 @@ def run():
     The run function. This will run the hecatome snakemake pipeline itself.
     :return:
     """
-    if args.test:
-        readDir = TESTDIR
-    elif not args.reads:
-        sys.stderr.write('ERROR: please specify the directory or TSV file of reads with --reads\n')
-        exit(1)
-    else:
-        readDir = args.reads
-    sampling = 'paired'
-    qc = 'paired'
-    if args.longreads:
-        sampling = 'single'
-        qc = 'longreads'
-        args.report = False
-    elif args.nonPaired:
-        qc = 'single'
-        sampling = 'single'
-        args.report = False
-    elif args.round_seq:
-        qc = 'round'
-        args.report = False
     snakeCommand = initialiseSnakeCommand()
-    sys.stderr.write("Running Hecatomb\n")
+    sys.stderr.write("    Running Hecatomb\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    runCommand = (f'{snakeCommand} '
-                  f'-s {snekFile} '
-                  f'-C Reads={readDir} '
-                    f'Host={args.host} '
-                    f'Output={args.results} '
-                    f'SkipAssembly={args.skipAssembly} '
-                    f'Fast={args.fast} '
-                    f'Report={args.report} '
-                    f'Sampling={sampling} '
-                    f'QC={qc} ')
+    runCommand = (f'{snakeCommand} -s {snekFile} ')
     runSnakeSys(runCommand)
     if args.report:
-        sys.stderr.write("Generating run report\n")
+        sys.stderr.write("    Generating run report\n")
         runCommand = runCommand + ' --report'
         runSnakeSys(runCommand)
     return None
@@ -224,7 +243,7 @@ def run():
 
 def combineOutput():
     snakeCommand = initialiseSnakeCommand()
-    sys.stderr.write("Combining Hecatomb output\n")
+    sys.stderr.write("    Combining Hecatomb output\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'combineOutputs.smk'))
     outDirs = '["' + '","'.join(c for c in args.comb) + '"]'
     runCommand = (f'{snakeCommand} '
@@ -240,11 +259,11 @@ def addHost():
     :return:
     """
     if not args.hostfa:
-        sys.stderr.write('ERROR: Host fasta file required when adding new host genome\n')
+        sys.stderr.write('    ERROR: Host fasta file required when adding new host genome\n')
         exit(1)
-    sys.stderr.write('Adding new virus-masked host for use with hecatomb\n')
+    sys.stderr.write('    Adding new virus-masked host for use with hecatomb\n')
     if args.host == 'human':
-        sys.stderr.write(f'Enter host name [{args.host}]:')
+        sys.stderr.write(f'    Enter host name [{args.host}]:')
         host = input()
         host = host.rstrip()
         if host == '':
@@ -270,7 +289,7 @@ def listHosts():
     else:
         DBDIR = config['Databases']
     # print host genomes
-    sys.stdout.write('Available host genomes:\n')
+    sys.stdout.write('    Available host genomes:\n')
     HOSTPATH = os.path.join(DBDIR, "host", "*")
     hostFastas = [os.path.basename(x) for x in glob.glob(HOSTPATH)]
     for h in hostFastas:
