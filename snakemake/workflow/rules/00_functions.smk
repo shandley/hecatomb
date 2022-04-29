@@ -43,9 +43,12 @@ def collect_start_counts(sampleReads, outFile):
     with open(outFile, 'w') as outfh:
         for sample in SAMPLES:
             R1c = file_len(sampleReads[sample]['R1']) / 4
-            R2c = file_len(sampleReads[sample]['R2']) / 4
             outfh.write(f'{sample}\tInitial_Count\tR1\t{R1c}\n')
-            outfh.write(f'{sample}\tInitial_Count\tR2\t{R2c}\n')
+            try:
+                R2c = file_len(sampleReads[sample]['R2']) / 4
+                outfh.write(f'{sample}\tInitial_Count\tR2\t{R2c}\n')
+            except KeyError:
+                pass
     return None
 
 def collect_counts(inPrefix, inSuffix, stepName, outFile):
