@@ -6,18 +6,18 @@ Function for parsing the 'Reads' config and identifying samples and read files
 def samplesFromDirectory(dir):
     """Parse samples from a directory"""
     outDict = {}
-    samples, = glob_wildcards(os.path.join(dir,'{sample}.fastq.gz'))
-    if not samples:
+    samples,extensions = glob_wildcards(os.path.join(dir,'{sample}.{ext,fast[aq].gz}'))
+    if not samples or not extensions:
         sys.stderr.write("\n"
                          "    FATAL: We could not parse the sequence file names from the specified directory.\n"
-                         "    We are expecting {sample}.fastq.gz, and so your files should be fastq format and gzipped.\n"
+                         "    We are expecting {sample}.fast[aq].gz, and so your files should be fastq format and gzipped.\n"
                          "    See https://hecatomb.readthedocs.io/en/latest/usage/#read-directory for more info\n"
                          "\n")
         sys.exit(1)
     else:
         for sample in samples:
             outDict[sample] = {}
-            R1 = os.path.join(dir,f'{sample}.fastq.gz')
+            R1 = os.path.join(dir,f'{sample}.{extensions[0]}')
             if os.path.isfile(R1):
                 outDict[sample]['R1'] = R1
             else:
