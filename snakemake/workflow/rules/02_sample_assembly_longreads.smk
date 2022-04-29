@@ -7,7 +7,7 @@ Per-sample assemblies for longreads
 rule canu_sample_assembly:
     """Per-sample assembly with canu; also works for unmapped rescue reads"""
     input:
-        os.path.join(TMPDIR,"p01","{sample}_R1.unmapped.fasta")
+        os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")
     output:
         ctg = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fasta"),
         ctgq = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.uniq.fasta"),
@@ -44,7 +44,7 @@ rule combine_canu_unassembled:
     input:
         expand(os.path.join(ASSEMBLY,"{sample}","{sample}.unassembled.uniq.fasta"), sample=SAMPLES)
     output:
-        temp(os.path.join(TMPDIR,"p01","unmappedRescue_R1.unmapped.fasta"))
+        temp(os.path.join(TMPDIR,"p01","unmappedRescue_R1.all.fasta"))
     shell:
         """cat {input} > {output}"""
 
@@ -60,7 +60,7 @@ rule combine_canu_contigs:
 rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1 = os.path.join(TMPDIR,"p01","{sample}_R1.unmapped.fasta"),
+        r1 = os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta"),
         ref = os.path.join(RESULTS, "assembly.fasta")
     output:
         sam = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz")),
