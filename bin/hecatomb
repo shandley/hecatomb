@@ -129,6 +129,10 @@ def updateConfig(_config):
     _config['SkipAssembly'] = args.skipAssembly
     _config['Fast'] = args.fast
     _config['Report'] = args.report
+    # combine
+    if args.command == 'combine':
+        args.reads = 'NA'
+        _config['outDirs'] = args.comb
     # read dir
     if args.test:
         _config['Reads'] = TESTDIR
@@ -182,12 +186,12 @@ def initialiseSnakeCommand():
         runJobs = f'-j {args.threads}'
     # Decorate the Snakemake run command
     command = (f'snakemake {runJobs} '
-               '--use-conda '
-               '--conda-frontend mamba '
                '--rerun-incomplete '
                '--printshellcmds '
                '--nolock '
                '--show-failed-logs '
+               '--use-conda '
+               '--conda-frontend mamba '
                f'--conda-prefix {CONDDIR} ')
     # Config is now always passed via --configfile
     command = command + f' --configfile {runtimeConfig} '
@@ -245,10 +249,11 @@ def combineOutput():
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("    Combining Hecatomb output\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'combineOutputs.smk'))
-    outDirs = '["' + '","'.join(c for c in args.comb) + '"]'
     runCommand = (f'{snakeCommand} '
                   f'-s {snekFile} '
-                  f'-C outDirs={outDirs} ')
+                  '--use-conda '
+                  '--conda-frontend mamba '
+                  f'--conda-prefix {CONDDIR} ')
     runSnakeSys(runCommand)
     return None
 
