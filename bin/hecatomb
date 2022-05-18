@@ -103,7 +103,7 @@ runtimeConfigName = 'hecatomb.' + datetime.now().strftime("%M%H%d%m%Y") + '.yaml
 runtimeConfig = os.path.normpath(os.path.join(OUTDIR, runtimeConfigName))
 
 
-def dumpConfig():
+def dumpConfigTemplate():
     """
     Copy the system template config file to the working directory (or to --configfile declaration)
     :return:
@@ -131,16 +131,16 @@ def updateConfig(_config):
     _config['Report'] = args.report
     # combine
     if args.command == 'combine':
-        args.reads = 'NA'
         _config['outDirs'] = args.comb
-    # read dir
-    if args.test:
-        _config['Reads'] = TESTDIR
-    elif not args.reads:
-        sys.stderr.write('\n    ERROR: please specify the directory or TSV file of reads with --reads\n')
-        exit(1)
-    else:
-        _config['Reads'] = args.reads
+    # read dir - only need if running the main pipeline
+    if args.command == 'run':
+        if args.test:
+            _config['Reads'] = TESTDIR
+        elif not args.reads:
+            sys.stderr.write('\n    ERROR: please specify the directory or TSV file of reads with --reads\n')
+            exit(1)
+        else:
+            _config['Reads'] = args.reads
     # preprocessing method
     if args.longreads:
         _config['Sampling'] = 'single'
@@ -156,20 +156,29 @@ def updateConfig(_config):
     return _config
 
 
+def writeConfig(_config):
+    """
+    Write the runtime config file prior to running hecatomb - not the same as the template config file
+    :return: None
+    """
+    sys.stderr.write(f'    Writing runtime config file to {runtimeConfig}.\n')
+    with open(runtimeConfig, 'w') as stream:
+        yaml.dump(_config, stream)
+        if args.command == 'run':
+            sys.stderr.write('\n    Runtime config settings:\n')
+            sys.stderr.write(yaml.dump(_config, Dumper=yaml.Dumper) + '\n')
+
 def readConfig():
     """
-    Read in the config file; must be run after dumpConfig()
+    Read in the config file; must be run after dumpConfigTemplate()
     :return: config dictionary
     """
-    dumpConfig()
+    dumpConfigTemplate()
     with open(args.configfile, 'r') as stream:
         config = yaml.safe_load(stream)
     config = updateConfig(config)
-    sys.stderr.write(f'    Writing runtime config file to {runtimeConfig}.\n')
-    with open(runtimeConfig, 'w') as stream:
-        yaml.dump(config, stream)
-        sys.stderr.write('\n    Runtime config settings:\n')
-        sys.stderr.write(yaml.dump(config, Dumper=yaml.Dumper) + '\n')
+    if args.command in ['run', 'combine', 'install', 'addHost']:
+        writeConfig(config)
     return config
 
 
@@ -223,7 +232,7 @@ def install():
     snakeCommand = initialiseSnakeCommand()
     sys.stderr.write("    Checking and downloading database files\n")
     snekFile = os.path.normpath(os.path.join(SNEKDIR, 'DownloadDB.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C Output={args.results}'
+    runCommand = f'{snakeCommand} -s {snekFile}'
     runSnakeSys(runCommand)
     return None
 
@@ -247,14 +256,19 @@ def run():
 
 def combineOutput():
     snakeCommand = initialiseSnakeCommand()
-    sys.stderr.write("    Combining Hecatomb output\n")
-    snekFile = os.path.normpath(os.path.join(SNEKDIR, 'combineOutputs.smk'))
-    runCommand = (f'{snakeCommand} '
-                  f'-s {snekFile} '
-                  '--use-conda '
-                  '--conda-frontend mamba '
-                  f'--conda-prefix {CONDDIR} ')
-    runSnakeSys(runCommand)
+    if not args.comb or len(args.comb) < 2:
+        sys.stderr.write("\n    ERROR: Please specify two or more hecatomb output directories\n"
+                         "           to combine with --comb.\n\n")
+        exit(1)
+    else:
+        sys.stderr.write("    Combining Hecatomb output\n")
+        snekFile = os.path.normpath(os.path.join(SNEKDIR, 'combineOutputs.smk'))
+        runCommand = (f'{snakeCommand} '
+                      f'-s {snekFile} '
+                      '--use-conda '
+                      '--conda-frontend mamba '
+                      f'--conda-prefix {CONDDIR} ')
+        runSnakeSys(runCommand)
     return None
 
 
@@ -304,7 +318,7 @@ def listHosts():
     return None
 
 
-commands = {'install':install, 'run':run, 'config':dumpConfig, 'addHost':addHost, 'listHosts':listHosts, 'combine':combineOutput}
+commands = {'install':install, 'run':run, 'config':dumpConfigTemplate, 'addHost':addHost, 'listHosts':listHosts, 'combine':combineOutput}
 commands[args.command]()
 
 time.sleep(1)
