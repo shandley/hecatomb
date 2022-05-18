@@ -54,7 +54,7 @@ rule mmseqs_contig_annotation_summary:
     params:
         inputpath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
         respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit"),
-        header='\\t'.join(['contigID',
+        header='\\\t'.join(['contigID',
                            'evalue',
                            'pident',
                            'fident',
@@ -77,7 +77,7 @@ rule mmseqs_contig_annotation_summary:
                            'order',
                            'family',
                            'genus',
-                           'species\\n'])
+                           'species\\\n'])
     benchmark:
         os.path.join(BENCH, "mmseqs_contig_annotation_summary.txt")
     log:

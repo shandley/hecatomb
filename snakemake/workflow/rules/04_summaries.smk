@@ -127,6 +127,8 @@ rule contig_krona_plot:
         os.path.join('../', 'envs', 'krona.yaml')
     log:
         os.path.join(STDERR, 'contig_krona_plot.log')
+    resources:
+        mem_mb = MiscMem
     shell:
         """
         ktImportText {input} -o {output} &> {log}

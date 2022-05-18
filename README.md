@@ -26,10 +26,6 @@ Snakemake profiles for HPC Clusters.
 ### Install
 
 ```bash
-
-# install mamba if you haven't already
-conda install -n base -c conda-forge mamba
-
 # create conda env and install
 conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 
@@ -40,10 +36,10 @@ conda activate hecatomb
 hecatomb -h
 
 # download the databases - you only have to do this once
-  # locally: uses 32 threads by default
-hecatomb install
+  # locally: using 8 threads (default is 32 threads)
+hecatomb install --threads 8
 
-  # HPC: using a profile named 'slurm'
+  # HPC: using a snakemake profile named 'slurm'
 hecatomb install --profile slurm
 ```
 
