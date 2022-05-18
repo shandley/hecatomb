@@ -11,8 +11,8 @@ Updated: Michael Roach, Q2 2021
 """
 
 
-# load default config
-# configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
+# load db file config
+configfile: os.path.join(workflow.basedir, '../', 'config', 'dbFiles.yaml')
 
 
 # directories
