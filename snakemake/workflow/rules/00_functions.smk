@@ -90,7 +90,7 @@ rule fasta_index:
     resources:
         mem_mb=MiscMem
     shell:
-        "samtools faidx {input[0]} > {output[0]} 2> {log}"
+        "samtools faidx {input} > {output} 2> {log}"
 
 rule bam_index:
     """Index a .bam file for rapid access with samtools."""
@@ -107,7 +107,7 @@ rule bam_index:
     resources:
         mem_mb=MiscMem
     shell:
-        "samtools index -@ {threads} {input[0]} {output[0]} 2> {log}"
+        "samtools index -@ {threads} {input} {output} 2> {log}"
 
 rule calculate_gc:
     """Calculate GC content for sequences"""
