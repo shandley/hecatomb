@@ -32,6 +32,7 @@ The header looks like this:
 ```text
 seqID  sampleID  count  CPM  alnType  targetID  evalue  pident  fident  nident  mismatches  qcov  tcov  qstart  qend  qlen  tstart  tend  tlen  alnlen  bits  targetName  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
 ```
+
 <details>
     <summary>Column header definitions</summary>
     <b>seqID:</b> Sequence ID (format = sampleID:count:uniqueInt)<br>
@@ -62,6 +63,8 @@ seqID  sampleID  count  CPM  alnType  targetID  evalue  pident  fident  nident  
     <b>baltimoreGroup:</b> Baltimore classification group<br>
 </details>
 
+<br>
+
 ## TaxonLevelCounts
 
 `hecatomb_report/taxonLevelCounts.tsv`
@@ -87,12 +90,43 @@ etc.
 
 `hecatomb_out/RESULTS/assembly.fasta`
 
-These are the contigs generated UNLESS you run Hecatomb with the `--skipAssembly` flag.
+These are the contigs generated, unless you run Hecatomb with the `--skipAssembly` flag.
 The assembly is used for producing the ContigSeqTable and ContigKrona plots, as well as the direct contig annotations.
 
-## CONTIG ANNOTATIONS
+`hecatomb_out/RESULTS/contig_count_table.tsv`
 
-TODO
+The contig count table contains the coverage information of all contigs for each sample.
+
+```text
+Sample  Contig  Length  Reads  RPKM  FPKM  CPM  AverageFold  ReferenceGC  CoveragePercentage  CoverageBases  MedianFold
+```
+
+<details>
+    <summary>Column header definitions</summary>
+    <b>Sample:</b> The sample IDs derived from the read files <br>
+    <b>Contig:</b> The contig ID in assembly.fasta <br>
+    <b>RPKM:</b> Reads Per Kilobase Million - see https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/ <br>
+    <b>FPKM:</b> Fragments Per Kilobase Million - see https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/ <br>
+    <b>CPM:</b> Counts Per Million (counts normalized by library size) <br>
+    <b>AverageFold:</b> Average read coverage of contig <br>
+    <b>ReferenceGC:</b> Contig GC content <br>
+    <b>CoveragePercentage:</b> Percent of contig covered by alignments <br>
+    <b>CoverageBases:</b> Total bases of contig covered by alignments <br>
+    <b>MedianFold:</b> Median read coverage of contig <br>
+</details>
+
+<br>
+
+## Contig Annotations
+
+`hecatomb_out/RESULTS/contigAnnotations.tsv`
+
+The contig annotations follows a similar format to the bigtable.
+Refer to bigtable for column definitions.
+
+```text
+contigID  evalue  pident  fident  nident  mismatch  qcov  tcov  qstart  qend  qlen  tstart  tend  tlen  alnlen  bits  target  kingdom  phylum  class  order  family  genus  species
+```
 
 ## ContigSeqTable
 
@@ -126,16 +160,24 @@ contigID  seqID  start  stop  len  qual  count  CPM  alnType  taxMethod  kingdom
     <b>baltimoreGroup:</b> Baltimore classification group<br>
 </details>
 
-## Sankey
+<br>
 
-`hecatomb_report/Sankey.svg`
+[//]: # (## Sankey)
 
-The sankey diagram shows the fate of all reads throughout the preprocessing and read-based taxonomic assignment steps.
-It serves to visualise the read filtering and distribution of taxonomic assignment methods and give you an overall impression of how well things went.
-The sankey diagram produced for the test dataset is shown below. 
-This dataset is relatively rich in viral sequences and yet the majority of reads are either filtered or non-viral (that we know of).
+[//]: # ()
+[//]: # (`hecatomb_report/Sankey.svg`)
 
-[![](img/Sankey.svg)](img/Sankey.svg)
+[//]: # ()
+[//]: # (The sankey diagram shows the fate of all reads throughout the preprocessing and read-based taxonomic assignment steps.)
+
+[//]: # (It serves to visualise the read filtering and distribution of taxonomic assignment methods and give you an overall impression of how well things went.)
+
+[//]: # (The sankey diagram produced for the test dataset is shown below. )
+
+[//]: # (This dataset is relatively rich in viral sequences and yet the majority of reads are either filtered or non-viral &#40;that we know of&#41;.)
+
+[//]: # ()
+[//]: # ([![]&#40;img/Sankey.svg&#41;]&#40;img/Sankey.svg&#41;)
 
 ## krona.html and contigKrona.html
 
@@ -145,6 +187,6 @@ This dataset is relatively rich in viral sequences and yet the majority of reads
 
 The Krona plots are to assist in visual exploration of the read annotations.
 krona.html is derived from the bigtable and shows the raw distribution of taxon assignments.
-contigKrona.html is derived from the contigSeqTable and includeds the taxon assignment method (either tophit or LCA).
+contigKrona.html is derived from the contigSeqTable and includes the taxon assignment method (either tophit or LCA).
 The contigKrona plot helps to visualise the distributions of topHit versus LCA assigned reads as well as the 
 distributions over contigs of the identified species, and the distribution of taxonomic assignments for each contig.

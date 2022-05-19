@@ -56,6 +56,12 @@ flaviviridaeSeqs = data %>%
 lapply(flaviviridaeSeqs, write, "flavSeqIDs.list", append=TRUE, ncolumns=1)
 ```
 
+You could also do this in the shell:
+
+```bash
+grep Flaviviridae bigtable.tsv | cut -f1 > flavSeqIDs.list
+```
+
 Use Samtools to grab all these sequences from the seqtable.fasta file:
 
 ```shell

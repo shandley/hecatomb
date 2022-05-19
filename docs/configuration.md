@@ -15,16 +15,20 @@ which hecatomb
 The Hecatomb configuration file `hecatomb/snakemake/config/config.yaml` contains settings related to resources and 
 cutoffs for various stages of the pipeline. The different config settings are outlined further on.
 You can permanently change the behaviour of your Hecatomb installation by modifying the values in this config file.
-Alternatively, you can specify your own config file. To do this, you first copy the system default config file like so:
+
+Alternatively, you can specify a customised config file for a specific run.
+Before Hecatomb runs, it will copy the system default config file to your working directory and use it for your analysis.
+To customise your run, you can copy the system default config file like so:
 
 ```bash
 hecatomb config
 ```
 
-You can then edit your new `hecatomb.config.yaml` file to suit your needs and used it in a Hecatomb run like so:
+You can then edit your new `hecatomb.config.yaml` file to suit your needs.
+It will be automatically used in your Hecatomb run, or if you rename it you can specify the file with `--configfile`:
 
 ```bash
-hecatomb run --configfile hecatomb.config.yaml
+hecatomb run --configfile myRenamedHecatomb.config.yaml
 ```
 
 ## Database location
@@ -39,7 +43,7 @@ e.g:
 Databases: /scratch/HecatombDatabases
 ```
 
-and run or rerun the installation 
+and rerun the installation 
 
 ```bash
 hecatomb install
@@ -56,34 +60,21 @@ The other settings (for Megahit and Minimap2, BBTools, and misc) will probably o
 The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
 
 ```yaml
-# Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
-MMSeqsMem: 64000
-# Threads for MMSeqs (recommend >= 16)
-MMSeqsCPU: 32
-# Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
-MMSeqsTimeMin: 5760  # 4 days
+### STICK TO YOUR SYSTEM'S CPU:RAM RATIO FOR THESE
+BigJobMem: 64000     # Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
+BigJobCpu: 24        # Threads for MMSeqs (recommend >= 16)
+BigJobTimeMin: 1440  # Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
+MediumJobMem: 32000  # Memory for Megahit/Flye in megabytes (recommend >= 32000)
+MediumJobCpu: 16     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
+SmallJobMem: 16000   # Memory for BBTools etc. in megabytes (recommend >= 16000)
+SmallJobCpu: 8       # CPUs for BBTools etc. (recommend >= 8)
+                     # default CPUs = 1
+# SPECIFY DEFAULT MEM AND TIME IN YOUR PROFILE - see example profile config.yaml
+defaultJobs: 100     # Default concurrent jobs (for use with --profile)
 
-# Memory for BBTools in megabytes (recommend >= 16000)
-BBToolsMem: 16000
-# CPUs for BBTools (recommend >= 8)
-BBToolsCPU: 8
-
-# Memory for Megahit/Flye in megabytes (recommend >= 32000)
-MhitMem: 32000
-# CPUs for Megahit/Flye in megabytes (recommend >= 16)
-MhitCPU: 16
-
-# Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
-MiscMem: 16000
-# CPUs for slightly RAM-hungry jobs (recommend >= 2)
-MiscCPU: 2
-
-# Default memory in megabytes (for use with --profile)
-defaultMem: 2000
-# Default time in minutes (for use with --profile)
-defaultTime: 1440
-# Default concurrent jobs (for use with --profile)
-defaultJobs: 100
+# Some jobs need more RAM; go over your CPU:RAM ratio if needed
+MoreRamMem: 16000    # Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
+MoreRamCpu: 2        # CPUs for slightly RAM-hungry jobs (recommend >= 2)
 ```
 
 ## Preprocessing settings
@@ -95,20 +86,21 @@ The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
 
 ```yaml
 # Preprocessing
-QSCORE: 15 # Read quality trimming score (rule remove_low_quality in 01_preprocessing.smk)
-READ_MINLENGTH: 90 # Minimum read length during QC steps (rule remove_low_quality in 01_preprocessing.smk)
+QSCORE: 15 # Read quality trimming score (rule fastp_preprocessing in 01_preprocessing.smk)
+READ_MINLENGTH: 90 # Minimum read length during QC steps (rule fastp_preprocessing in 01_preprocessing.smk)
 CONTIG_MINLENGTH: 1000 # Read minimum length (rule contig_reformating_and_stats in 01_preprocessing.smk)
-ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 01_preprocessing.smk)
-ENTROPYWINDOW: 25 # entropy window for low qual read filter
+CUTTAIL_WINDOW: 25 # Sliding window size for low qual read filter rule fastp_preprocessing in 01_preprocessing.smk)
+DEDUP_ACCURACY: 4 # Specify the level (1 ~ 6). The higher level means more memory usage and more running time, but lower risk of incorrect deduplication marking (rule fastp_preprocessing in 01_preprocessing.smk)
+COMPRESSION: 1 # Compression level for gzip output (1 ~ 9). 1 is fastest, 9 is smallest. Default is 1, based on assumption of large scratch space (rule fastp_preprocessing in 01_preprocessing.smk)
 
 # CLUSTER READS TO SEQTABLE (MMSEQS EASY-LINCLUST)
  # -c = req coverage of target seq
  # --min-seq-id = req identity [0-1] of alignment
 linclustParams:
  --kmer-per-seq-scale 0.3
- -c 0.7
+ -c 0.8
  --cov-mode 1
- --min-seq-id 0.95
+ --min-seq-id 0.97
  --alignment-mode 3
 ```
 
@@ -141,6 +133,24 @@ filtNTprimary:
 filtNTsecondary:
  --min-length 90
  -e 1e-5
+```
+
+## Assembly settings
+
+If you're using longreads and are familiar with Canu then you might want to customise your Canu settings.
+
+```yaml
+canuSettings:
+ correctedErrorRate=0.16
+ maxInputCoverage=10000
+ minInputCoverage=0
+ corOutCoverage=10000
+ corMhapSensitivity=high
+ corMinCoverage=0
+ useGrid=False
+ stopOnLowCoverage=False
+ genomeSize=10M
+ -nanopore
 ```
 
 ## Alignment settings
@@ -191,23 +201,6 @@ hecatomb run --reads fasq/ --profile slurm --snake=--dry-run
 ```
 
 Hecatomb prints the Snakemake command to the terminal window before running and you should see these additional options 
-added to the Snakemake command:
-
-```bash
-hecatomb run --test --snake=--dry-run
-```
-```text
-Running Hecatomb
-Running snakemake command:
-snakemake -j 32 --use-conda --conda-frontend mamba --rerun-incomplete --printshellcmds \
-  --nolock --conda-prefix /scratch/hecatomb/snakemake/workflow/conda \
-  --dry-run -s /scratch/hecatomb/snakemake/workflow/Hecatomb.smk \
-  -C Reads=/scratch/hecatomb/test_data Host=human Output=hecatomb_out Assembly=False
-Building DAG of jobs...
-```
-
-Have a look at the full list of available Snakemake options with `snakemake --help`. 
+added to the Snakemake command. Have a look at the full list of available Snakemake options with `snakemake --help`. 
 The launcher will pass anything in `--snake=` verbatim, so use with care.
 
-**NOTE: Don't use hecatomb's --snake arg to pass additional config settings with Snakemake's -C/--config arg**,
-instead, follow the directions above [for changing the config of a Hecatomb run](configuration.md#changing-the-hecatomb-configuration).

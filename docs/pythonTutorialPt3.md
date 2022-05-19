@@ -1,4 +1,4 @@
-This section assumes you have finished Tutorials [Part 1](pythontTutorialPt1.md) and [Part 2](pythonTutorialPt2.md)
+This section assumes you have finished Tutorials [Part 1](pythonTutorialPt1.md) and [Part 2](pythonTutorialPt2.md)
 
 ## Unfiltered taxon counts
 

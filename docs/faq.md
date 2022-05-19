@@ -45,5 +45,5 @@ If you don't need an assembly, you can skip those steps with `--skipAssembly` wh
 
 ## I've run the pipeline, now what?
 
-Have a look at [the tutoria](#) which goes through some example plots and analyses.
+Have a look at [the tutorial](tutorialPt1.md) which goes through some example plots and analyses.
 

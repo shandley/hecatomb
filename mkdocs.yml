@@ -1,5 +1,6 @@
 site_name: Hecatomb
-site_url: "https://github.com/shandley/hecatomb"
+site_description: User documentation for the viral metagenomics platform Hecatomb
+site_author: Michae Roach
 theme:
     name: readthedocs
     highlightjs: true
@@ -9,6 +10,7 @@ theme:
         - shell
         - text
 nav:
+    - View on GitHub: "https://github.com/shandley/hecatomb"
     - ABOUT:
       - Motivation: index.md
       - Pipeline: pipeline.md

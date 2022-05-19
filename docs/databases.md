@@ -20,37 +20,19 @@ We therefore must process host reference genomes to mask viral-like sequence pri
 Hecatomb comes with several processed host genomes and a tool for users to add their own genomes.
 See [Adding your own host genome](usage.md#adding-your-own-host-genome) for more info.
 
-## Amino acid databases
+## Databases
 
-`databases/aa/`
+`databases/aa/` and `databases/nt/`
+These are the amino acid (AA) and nucleotide (NT) databases used for sequence annotation of both reads and contigs. 
+For each of the AA and NT databases, there is a primary viral database used for identifying reads that match a known virus, 
+and a secondary multi-kingdom database which is used for assigning taxonomy to either reads and contigs. 
 
-**Primary AA**
-
-The primary AA database is used to quickly identify any reads that are viral-like.
-This database is all UniProt viral protein entires clusterd at 99% identity. 
-This clustering greatly reduces the size of the database with minimal sacrifice to information content. 
-For example, there were 4,635,541 protein entires for viruses in UniProt on October 29, 2020. 
-When clustered at 99% identity only 1,840,337 representative sequences remained, 
-this is about a 60% reduction in target query space.
-
-**Secondary AA**
-
-The secondary AA database is used to check if any viral-like reads (from the primary AA search) have a better non-viral match.
-TODO ...
-
-## Nucleotide databases
-
-`databases/nt/`
-
-**Primary NT**
-
-The primary NT database is used to quickly identify any viral-like reads that were not identified in the primary AA search.
-TODO ...
-
-**Secondary NT**
-
-The secondary NT database is used to check if the viral-like reads (from the primary NT search) have a better non-viral match.
-TODO ...
+The primary AA database includes all UniProt viral protein entries clustered at 99% identity. 
+The secondary AA database consists of the Uniclust50 database [Mirdita et al. 2017](https://doi.org/10.1093/nar/gkw1081) 
+supplemented with the primary AA database. 
+The primary NT database consists of all viral sequences in GenBank clustered at 100% identity to remove redundancy. 
+The secondary NT database consists of a customised polymicrobial nucleotide database containing representative RefSeq 
+genomes from Bacteria (n = 14,933), Archaea (n = 511), Fungi (n = 423), Protozoa (n = 90) and plant (n = 145) genomes. 
 
 ## Taxonomy
 
