@@ -1,6 +1,6 @@
 site_name: Hecatomb
 site_description: User documentation for the viral metagenomics platform Hecatomb
-site_author: Michae Roach
+site_author: Michael Roach
 theme:
     name: readthedocs
     highlightjs: true
