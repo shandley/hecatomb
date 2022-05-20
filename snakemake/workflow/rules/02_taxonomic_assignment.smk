@@ -231,7 +231,7 @@ rule PRIMARY_NT_taxonomic_assignment:
         tmppath = os.path.join(PRIMARY_NT_OUT, "mmseqs_aa_tmp"),
         filtnt = config['filtNTprimary'],
         ntsens = MMSeqsSensNT,
-        mamsplit = MMSeqsMemSplit
+        memsplit = MMSeqsMemSplit
     benchmark:
         os.path.join(BENCH, "PRIMARY_NT_taxonomic_assignment.txt")
     log:
