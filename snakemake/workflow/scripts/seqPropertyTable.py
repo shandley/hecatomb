@@ -23,11 +23,14 @@ with open(snakemake.input.gc, 'r') as fh:
 
 with open(snakemake.output[0], 'w') as out:
     logging.debug('Parsing tet feqs and printing output')
-    for l in stream_tsv(snakemake.input.tet):
-        if l[0] == 'scaffold':
-            out.write('id\tGC\t')
-        else:
-            out.write(f'{l[0]}\t{gc[l[0]]}\t')
-        out.write('\t'.join(l[2:]))
-        out.write('\n')
+    with open(snakemake.input.tet, 'r') as fh:
+        for line in fh:
+            l = line.strip().split('\t')
+            if l[0] == 'scaffold':
+                out.write('id\tGC\t')
+            else:
+                out.write(f'{l[0]}\t{gc[l[0]]}\t')
+            out.write('\t'.join(l[2:]))
+            out.write('\n')
+
 logging.debug('Done')
