@@ -173,33 +173,5 @@ rule seq_properties_table:
         mem_mb = MiscMem
     log:
         os.path.join(STDERR, '{file}.seq_properties_table.log')
-    run:
-        import logging
-        import atexit
-        atexit.register(exitLogCleanup,log[0])
-        logging.basicConfig(filename=log[0],filemode='w',level=logging.DEBUG)
-        gc = {}
-        logging.debug('Reading GC counts')
-        for l in stream_tsv(input.gc):
-            if len(l) == 2:
-                gc[l[0]] = l[1]
-        out = open(output[0],'w')
-        logging.debug('Parsing tet feqs and printing output')
-        for l in stream_tsv(input.tet):
-            if l[0] == 'scaffold':
-                out.write('id\tGC\t')
-            else:
-                out.write(f'{l[0]}\t{gc[l[0]]}\t')
-            out.write('\t'.join(l[2:]))
-            out.write('\n')
-        out.close()
-        logging.debug('Done')
-
-# rule archive_fasta:
-#     """Zip output files for storage"""
-#     input:
-#         '{file}.fasta'
-#     output:
-#         '{file}.fasta.gz'
-#     shell:
-#         """gzip -kc {input[0]}"""
+    script:
+        os.path.join('..', 'scripts', 'seqPropertyTable.py')

@@ -6,7 +6,7 @@ rule population_assembly:
         assembly = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")),
         stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats")
     params:
-        flye_out = lambda w, output: os.path.split(output.assembly)
+        flye_out = lambda w, output: os.path.split(output.assembly)[0]
     benchmark:
         os.path.join(BENCH, "population_assembly.txt")
     log:

@@ -38,16 +38,22 @@ rule fastp_preprocessing:
         FastpCPU
     conda:
         "../envs/fastp.yaml"
+    params:
+        compression = config[COMPRESSION],
+        qscore = config[QSCORE],
+        readlen = config[READ_MINLENGTH],
+        cuttail = config[CUTTAIL_WINDOW],
+        dedupacc = config[DEDUP_ACCURACY]
     shell:
         """
         fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
-            -z {config[COMPRESSION]} \
+            -z {params.compression} \
             -j {output.stats} \
-            --qualified_quality_phred {config[QSCORE]} \
-            --length_required {config[READ_MINLENGTH]} \
+            --qualified_quality_phred {params.qscore} \
+            --length_required {params.readlen} \
             --adapter_fasta {input.contaminants} \
-            --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]} \
-            --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} \
+            --cut_tail --cut_tail_window_size {params.cuttail} --cut_tail_mean_quality {params.qscore} \
+            --dedup --dup_calc_accuracy {params.dedupacc} \
             --trim_poly_x \
             --thread {threads} 2> {log}
         rm {log}
@@ -180,8 +186,8 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_all_seqs.fasta"))
     params:
-        respath = os.path.join(TMPDIR, "p05"),
-        tmppath = os.path.join(TMPDIR, "p05", "{sample}_TMP"),
+        respath = lambda w, output: os.path.split(output[0])[0],
+        tmppath = lambda wildcards, output: os.path.join(os.path.split(output[0])[0], f"{wildcards.sample}_TMP"),
         prefix = '{sample}_R1',
         config = config['linclustParams']
     benchmark:
@@ -257,7 +263,7 @@ rule merge_seq_table:
         tsv = os.path.join(RESULTS, "sampleSeqCounts.tsv")
     params:
         samples = list(SAMPLES),
-        tmpdir = os.path.join(TMPDIR, "p06")
+        tmpdir = lambda w, input: os.path.split(input[0])[0]
     conda:
         os.path.join('..', 'envs', 'pysam.yaml')
     benchmark:

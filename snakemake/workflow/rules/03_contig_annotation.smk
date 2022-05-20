@@ -11,7 +11,10 @@ rule mmseqs_contig_annotation:
         result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result.index")
     params:
         respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
-        tmppath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","mmseqs_nt_tmp")
+        tmppath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","mmseqs_nt_tmp"),
+        sensnt = MMSeqsSensNT,
+        memsplit = MMSeqsMemSplit,
+        filtnt = config[filtNTsecondary]
     benchmark:
         os.path.join(BENCH, "mmseqs_contig_annotation.txt")
     log:
@@ -27,7 +30,7 @@ rule mmseqs_contig_annotation:
         {{
         mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2;
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-            {MMSeqsSensNT} --split-memory-limit {MMSeqsMemSplit} {config[filtNTsecondary]} \
+            {params.sensnt} --split-memory-limit {params.memsplit} {params.filtnt} \
             --search-type 3 ; }} &> {log}
         rm {log}
         """
@@ -43,14 +46,6 @@ rule mmseqs_contig_annotation_summary:
         result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit.index"),
         align=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit.m8"),
         tsv = os.path.join(RESULTS, "contigAnnotations.tsv")
-        # lineage=temporary(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt.lineage")),
-        # reformated=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt.tsv"),
-        # phyl_sum=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_phylum_summary.tsv"),
-        # class_sum=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_class_summary.tsv"),
-        # ord_sum=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_order_summary.tsv"),
-        # fam_sum=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_family_summary.tsv"),
-        # gen_sum=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_genus_summary.tsv"),
-        # spe_sum=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_species_summary.tsv")
     params:
         inputpath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
         respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit"),
@@ -110,32 +105,3 @@ rule mmseqs_contig_annotation_summary:
         }} 2> {log}
         rm {log}
         """
-        # ## Generate summary tables
-        # # Phylum
-        # cut -f3 {output.reformated} | \
-        #     csvtk freq -H -n -r -T -t | \
-        #     sed '1i Phylum\tSECONDARY_NT_Phylum_Frequency'> {output.phyl_sum};
-        # # Class
-        # cut -f4 {output.reformated} | \
-        #     csvtk freq -H -n -r -T -t | \
-        #     sed '1i Class\tSECONDARY_NT_Class_Frequency'> {output.class_sum};
-        # # Order
-        # cut -f5 {output.reformated} | \
-        #     csvtk freq -H -n -r -T -t | \
-        #     sed '1i Order\tSECONDARY_NT_Order_Frequency'> {output.ord_sum};
-        # # Family
-        # cut -f6 {output.reformated} | \
-        #     csvtk freq -H -n -r -T -t | \
-        #     sed '1i Family\tSECONDARY_NT_Family_Frequency'> {output.fam_sum};
-        # # Genus
-        # cut -f7 {output.reformated} | \
-        #     csvtk freq -H -n -r -T -t | \
-        #     sed '1i Genus\tSECONDARY_NT_Genus_Frequency'> {output.gen_sum};
-        # # Species
-        # cut -f3 {output.reformated} | \
-        #     csvtk freq -H -n -r -T -t | \
-        #     sed '1i Species\tSECONDARY_NT_Species_Frequency'> {output.spe_sum}; }} &> {log}
-        # rm {log}
-        # """
-
-

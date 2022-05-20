@@ -50,7 +50,7 @@ rule individual_sample_assembly:
         contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
         tar = os.path.join(ASSEMBLY,'{sample}.tar.zst')
     params:
-        mh_dir = directory(os.path.join(ASSEMBLY,'{sample}'))
+        mh_dir = lambda w, output: os.path.split(output.contigs)[0]
     benchmark:
         os.path.join(BENCH, "megahit_{sample}.txt")
     log:
@@ -94,7 +94,7 @@ rule mapSampleAssemblyPairedReads:
     shell:
         """
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1} {input.r2} | \
-            samtools sort -n -o {output[0]}
+            samtools sort -n -o {output}
         """
 
 rule mapSampleAssemblyUnpairedReads:
@@ -119,7 +119,7 @@ rule mapSampleAssemblyUnpairedReads:
         """
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} {input.r2s} | \
             samtools sort -n | \
-            samtools fastq -f 4 > {output[0]}
+            samtools fastq -f 4 > {output}
         """
 
 rule pullPairedUnmappedReads:
@@ -163,7 +163,7 @@ rule pullPairedUnmappedReadsMateMapped:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools fastq -f5 -F8 {input[0]} > {output[0]}
+        samtools fastq -f5 -F8 {input} > {output}
         """
 
 rule poolR1Unmapped:
@@ -238,7 +238,7 @@ rule unmapped_read_rescue_assembly:
     output:
         contigs = os.path.join(ASSEMBLY, 'rescue', "rescue.contigs.fa")
     params:
-        mh_dir = directory(os.path.join(ASSEMBLY, 'rescue'))
+        mh_dir = lambda w, output: os.path.split(output.contigs)[0]
     benchmark:
         os.path.join(BENCH, "unmapped_read_rescue_assembly.txt")
     log:
@@ -298,6 +298,8 @@ rule contig_reformating_and_stats:
         javaAlloc = int(0.95 * BBToolsMem)
     threads:
         BBToolsCPU
+    params:
+        contiglen = config[CONTIG_MINLENGTH]
     conda:
         "../envs/bbmap.yaml"
     shell:
@@ -308,7 +310,7 @@ rule contig_reformating_and_stats:
             -Xmx{resources.javaAlloc}m 2> {log.log1}
         rm {log.log1}
         reformat.sh in={output.rename} out={output.size} \
-            ml={config[CONTIG_MINLENGTH]} \
+            ml={params.contiglen} \
             ow=t \
             -Xmx{resources.javaAlloc}m 2> {log.log2}
         rm {log.log2}

@@ -21,7 +21,11 @@ rule PRIMARY_AA_taxonomy_assignment:
         alnsort = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY_tophit_aln_sorted")
     params:
         alnRes = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY"),
-        tmppath = os.path.join(PRIMARY_AA_OUT, "mmseqs_aa_tmp")
+        tmppath = os.path.join(PRIMARY_AA_OUT, "mmseqs_aa_tmp"),
+        filtaa = config[filtAAprimary],
+        formataa = config[reqAA],
+        sensaa = MMSeqsSensAA,
+        memsplit = MMSeqsMemSplit
     benchmark:
         os.path.join(BENCH, "PRIMARY_AA_taxonomy_assignment.txt")
     log:
@@ -37,8 +41,8 @@ rule PRIMARY_AA_taxonomy_assignment:
         """
         {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
-            {config[filtAAprimary]} {MMSeqsSensAA} {config[reqAA]} \
-            --threads {threads} --split-memory-limit {MMSeqsMemSplit};
+            {params.filtaa} {params.sensaa} {params.formataa} \
+            --threads {threads} --split-memory-limit {params.memsplit};
             
         # Add headers
         sort -k1 -n {output.aln} | \
@@ -80,7 +84,11 @@ rule SECONDARY_AA_taxonomy_assignment:
         alnsort = os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY_tophit_aln_sorted")
     params:
         alnRes=os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY"),
-        tmppath=os.path.join(SECONDARY_AA_OUT, "mmseqs_aa_tmp")
+        tmppath=os.path.join(SECONDARY_AA_OUT, "mmseqs_aa_tmp"),
+        filtaa = config[filtAAsecondary],
+        formataa = config[reqAA],
+        sensaa = MMSeqsSensAA,
+        memsplit = MMSeqsMemSplit
     benchmark:
         os.path.join(BENCH, "SECONDARY_AA_taxonomy_assignment.txt")
     log:
@@ -96,8 +104,8 @@ rule SECONDARY_AA_taxonomy_assignment:
         """
         {{ # Run mmseqs taxonomy module
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
-            {config[filtAAsecondary]} {MMSeqsSensAA} {config[reqAA]} \
-            --threads {threads} --split-memory-limit {MMSeqsMemSplit};
+            {params.filtaa} {params.sensaa} {params.formataa} \
+            --threads {threads} --split-memory-limit {params.memsplit};
             
         # Add headers
         sort -k1 -n {output.aln} | \
@@ -220,7 +228,10 @@ rule PRIMARY_NT_taxonomic_assignment:
         type = os.path.join(PRIMARY_NT_OUT, "results", "result.dbtype")
     params:
         respath = os.path.join(PRIMARY_NT_OUT, "results", "result"),
-        tmppath = os.path.join(PRIMARY_NT_OUT, "mmseqs_aa_tmp")
+        tmppath = os.path.join(PRIMARY_NT_OUT, "mmseqs_aa_tmp"),
+        filtnt = config[filtNTprimary],
+        ntsens = MMSeqsSensNT,
+        mamsplit = MMSeqsMemSplit
     benchmark:
         os.path.join(BENCH, "PRIMARY_NT_taxonomic_assignment.txt")
     log:
@@ -239,8 +250,8 @@ rule PRIMARY_NT_taxonomic_assignment:
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2;
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-            {MMSeqsSensNT} {config[filtNTprimary]} \
-            --search-type 3 --threads {threads} --split-memory-limit {MMSeqsMemSplit};
+            {params.ntsens} {params.filtnt} \
+            --search-type 3 --threads {threads} --split-memory-limit {params.memsplit};
         }} &> {log}
         rm {log}
         """
@@ -323,7 +334,10 @@ rule SECONDARY_NT_taxonomic_assignment:
         type = os.path.join(SECONDARY_NT_OUT, "results", "result.dbtype")
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result"),
-        tmppath = os.path.join(SECONDARY_NT_OUT, "mmseqs_aa_tmp")
+        tmppath = os.path.join(SECONDARY_NT_OUT, "mmseqs_aa_tmp"),
+        ntfilt = config[filtNTsecondary],
+        sensnt = MMSeqsSensNT,
+        memsplit = MMSeqsMemSplit
     benchmark:
         os.path.join(BENCH, "SECONDARY_NT_taxonomic_assignment.txt")
     log:
@@ -342,8 +356,8 @@ rule SECONDARY_NT_taxonomic_assignment:
         mmseqs createdb {input.seqs} {output.queryDB} --dbtype 2
         # mmseqs search
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
-            {MMSeqsSensNT} {config[filtNTsecondary]} \
-            --search-type 3 --threads {threads} --split-memory-limit {MMSeqsMemSplit};
+            {params.sensnt} {params.ntfilt} \
+            --search-type 3 --threads {threads} --split-memory-limit {params.memsplit};
         }} &> {log}
         rm {log}
         """

@@ -16,7 +16,7 @@ rule canu_sample_assembly:
         tar = os.path.join(ASSEMBLY,'{sample}.tar.zst')
     params:
         settings = config['canuSettings'],
-        canu_dir = os.path.join(ASSEMBLY,"{sample}")
+        canu_dir = lambda w, output: os.path.split(output.ctg)[0]
     resources:
         mem_mb = MhitMem
     threads:
