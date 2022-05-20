@@ -22,8 +22,8 @@ rule PRIMARY_AA_taxonomy_assignment:
     params:
         alnRes = os.path.join(PRIMARY_AA_OUT, "MMSEQS_AA_PRIMARY"),
         tmppath = os.path.join(PRIMARY_AA_OUT, "mmseqs_aa_tmp"),
-        filtaa = config[filtAAprimary],
-        formataa = config[reqAA],
+        filtaa = config['filtAAprimary'],
+        formataa = config['reqAA'],
         sensaa = MMSeqsSensAA,
         memsplit = MMSeqsMemSplit
     benchmark:
@@ -85,8 +85,8 @@ rule SECONDARY_AA_taxonomy_assignment:
     params:
         alnRes=os.path.join(SECONDARY_AA_OUT, "MMSEQS_AA_SECONDARY"),
         tmppath=os.path.join(SECONDARY_AA_OUT, "mmseqs_aa_tmp"),
-        filtaa = config[filtAAsecondary],
-        formataa = config[reqAA],
+        filtaa = config['filtAAsecondary'],
+        formataa = config['reqAA'],
         sensaa = MMSeqsSensAA,
         memsplit = MMSeqsMemSplit
     benchmark:
@@ -229,7 +229,7 @@ rule PRIMARY_NT_taxonomic_assignment:
     params:
         respath = os.path.join(PRIMARY_NT_OUT, "results", "result"),
         tmppath = os.path.join(PRIMARY_NT_OUT, "mmseqs_aa_tmp"),
-        filtnt = config[filtNTprimary],
+        filtnt = config['filtNTprimary'],
         ntsens = MMSeqsSensNT,
         mamsplit = MMSeqsMemSplit
     benchmark:
@@ -335,7 +335,7 @@ rule SECONDARY_NT_taxonomic_assignment:
     params:
         respath = os.path.join(SECONDARY_NT_OUT, "results", "result"),
         tmppath = os.path.join(SECONDARY_NT_OUT, "mmseqs_aa_tmp"),
-        ntfilt = config[filtNTsecondary],
+        ntfilt = config['filtNTsecondary'],
         sensnt = MMSeqsSensNT,
         memsplit = MMSeqsMemSplit
     benchmark:

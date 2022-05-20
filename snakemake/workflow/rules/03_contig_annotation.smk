@@ -14,7 +14,7 @@ rule mmseqs_contig_annotation:
         tmppath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","mmseqs_nt_tmp"),
         sensnt = MMSeqsSensNT,
         memsplit = MMSeqsMemSplit,
-        filtnt = config[filtNTsecondary]
+        filtnt = config['filtNTsecondary']
     benchmark:
         os.path.join(BENCH, "mmseqs_contig_annotation.txt")
     log:

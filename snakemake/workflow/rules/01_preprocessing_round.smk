@@ -63,16 +63,22 @@ rule fastp_preprocessing:
         FastpCPU
     conda:
         "../envs/fastp.yaml"
+    params:
+        compression = config['COMPRESSION'],
+        qscore = config['QSCORE'],
+        readlen = config['READ_MINLENGTH'],
+        cutwind = config['CUTTAIL_WINDOW'],
+        dedupacc = config['DEDUP_ACCURACY']
     shell:
         """
         fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
-            -z {config[COMPRESSION]} \
+            -z {params.compression} \
             -j {output.stats} \
-            --qualified_quality_phred {config[QSCORE]} \
-            --length_required {config[READ_MINLENGTH]} \
+            --qualified_quality_phred {params.qscore} \
+            --length_required {params.readlen} \
             --adapter_fasta {input.contaminants} \
-            --cut_tail --cut_tail_window_size {config[CUTTAIL_WINDOW]} --cut_tail_mean_quality {config[QSCORE]} \
-            --dedup --dup_calc_accuracy {config[DEDUP_ACCURACY]} \
+            --cut_tail --cut_tail_window_size {params.cutwind} --cut_tail_mean_quality {params.qscore} \
+            --dedup --dup_calc_accuracy {params.dedupacc} \
             --trim_poly_x \
             --thread {threads} 2> {log}
         rm {log}

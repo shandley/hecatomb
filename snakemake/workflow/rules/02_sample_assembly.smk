@@ -299,7 +299,7 @@ rule contig_reformating_and_stats:
     threads:
         BBToolsCPU
     params:
-        contiglen = config[CONTIG_MINLENGTH]
+        contiglen = config['CONTIG_MINLENGTH']
     conda:
         "../envs/bbmap.yaml"
     shell:

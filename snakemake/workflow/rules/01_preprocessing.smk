@@ -39,11 +39,11 @@ rule fastp_preprocessing:
     conda:
         "../envs/fastp.yaml"
     params:
-        compression = config[COMPRESSION],
-        qscore = config[QSCORE],
-        readlen = config[READ_MINLENGTH],
-        cuttail = config[CUTTAIL_WINDOW],
-        dedupacc = config[DEDUP_ACCURACY]
+        compression = config['COMPRESSION'],
+        qscore = config['QSCORE'],
+        readlen = config['READ_MINLENGTH'],
+        cuttail = config['CUTTAIL_WINDOW'],
+        dedupacc = config['DEDUP_ACCURACY']
     shell:
         """
         fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \

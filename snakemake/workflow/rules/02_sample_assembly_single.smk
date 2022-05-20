@@ -299,6 +299,8 @@ rule contig_reformating_and_stats:
         BBToolsCPU
     conda:
         "../envs/bbmap.yaml"
+    params:
+        ctglen = config['CONTIG_MINLENGTH']
     shell:
         """
         rename.sh in={input} out={output.rename} \
@@ -307,7 +309,7 @@ rule contig_reformating_and_stats:
             -Xmx{resources.javaAlloc}m 2> {log.log1}
         rm {log.log1}
         reformat.sh in={output.rename} out={output.size} \
-            ml={config[CONTIG_MINLENGTH]} \
+            ml={params.ctglen} \
             ow=t \
             -Xmx{resources.javaAlloc}m 2> {log.log2}
         rm {log.log2}
