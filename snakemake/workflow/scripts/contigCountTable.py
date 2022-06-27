@@ -35,7 +35,7 @@ with open(snakemake.input.rpkm, 'r') as f:
 logging.debug(f'Writing to {snakemake.output.count_tbl}')
 with open(snakemake.output.count_tbl ,'w') as o:
     o.write('\t'.join([
-        '#Sample',
+        'Sample',
         'Contig',
         'Length',
         'Reads',
