@@ -72,7 +72,7 @@ rule mmseqs_contig_annotation_summary:
                            'order',
                            'family',
                            'genus',
-                           'species\\\n'])
+                           'species\\\\n'])
     benchmark:
         os.path.join(BENCH, "mmseqs_contig_annotation_summary.txt")
     log:

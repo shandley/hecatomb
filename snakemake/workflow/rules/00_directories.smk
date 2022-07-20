@@ -7,10 +7,13 @@ and the addHost script.
 
 
 ### DATABASE BASE DIRECTORY
-if config['Databases'] is None:
-    DBDIR = os.path.join(workflow.basedir, '..', '..', 'databases')
-else:
-    DBDIR = config['Databases']
+try:
+    if config['Databases'] is None:
+        DBDIR = os.path.join(workflow.basedir, '..', '..', 'databases')
+    else:
+        DBDIR = config['Databases']
+except KeyError:
+    DBDIR = os.path.join(workflow.basedir,'..','..','databases')
 
 
 ### OUTPUT DIRECTORY
