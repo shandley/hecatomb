@@ -20,7 +20,7 @@ from time import localtime, strftime
 
 
 ### VERSION
-BINDIR = os.path.dirname(__file__)
+BINDIR = os.path.dirname(os.path.realpath(__file__))
 vFH = open(os.path.join(BINDIR, '../', 'VERSION'), 'r')
 VERSION = vFH.readline()
 vFH.close()
