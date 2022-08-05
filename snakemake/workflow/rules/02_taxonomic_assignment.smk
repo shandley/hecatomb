@@ -25,7 +25,8 @@ rule PRIMARY_AA_taxonomy_assignment:
         filtaa = config['filtAAprimary'],
         formataa = config['reqAA'],
         sensaa = MMSeqsSensAA,
-        memsplit = MMSeqsMemSplit
+        memsplit = MMSeqsMemSplit,
+        aaHeader = config['mmseqsHeaderAA']
     benchmark:
         os.path.join(BENCH, "PRIMARY_AA_taxonomy_assignment.txt")
     log:
@@ -46,7 +47,7 @@ rule PRIMARY_AA_taxonomy_assignment:
             
         # Add headers
         sort -k1 -n {output.aln} | \
-            sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
+            sed '1i {params.aaHeader}' > {output.alnsort};
         }} &> {log}
         rm {log}
         """
@@ -88,7 +89,8 @@ rule SECONDARY_AA_taxonomy_assignment:
         filtaa = config['filtAAsecondary'],
         formataa = config['reqAA'],
         sensaa = MMSeqsSensAA,
-        memsplit = MMSeqsMemSplit
+        memsplit = MMSeqsMemSplit,
+        aaHeader = config['mmseqsHeaderAA']
     benchmark:
         os.path.join(BENCH, "SECONDARY_AA_taxonomy_assignment.txt")
     log:
@@ -109,7 +111,7 @@ rule SECONDARY_AA_taxonomy_assignment:
             
         # Add headers
         sort -k1 -n {output.aln} | \
-            sed '1i query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage' > {output.alnsort};
+            sed '1i {params.aaHeader}' > {output.alnsort};
         }} &> {log}
         rm {log}
         """
@@ -128,6 +130,8 @@ rule SECONDARY_AA_tophit_lineage:
         mem_mb=MiscMem
     threads:
         MiscCPU
+    params:
+        taxonFormat = config['taxonkitReformat']
     benchmark:
         os.path.join(BENCH, "SECONDARY_AA_tophit_lineage.txt")
     log:
@@ -137,8 +141,7 @@ rule SECONDARY_AA_tophit_lineage:
         {{ # Make a table: SeqID <tab> taxID
         cut -f1,20 {input.tophit} \
             | taxonkit lineage --data-dir {input.db} -i 2 \
-            | taxonkit reformat --data-dir {input.db} -i 3 \
-                -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank \
+            | taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} \
             | cut --complement -f3 \
             > {output.tophit_lineage_refomated}; }} &> {log}
         rm {log}
@@ -158,6 +161,8 @@ rule SECONDARY_AA_refactor_finalize:
         mem_mb = MiscMem
     threads:
         MiscCPU
+    params:
+        taxonFormat = config['taxonkitReformat']
     benchmark:
         os.path.join(BENCH, "SECONDARY_AA_refactor_finalize.txt")
     log:
@@ -166,8 +171,7 @@ rule SECONDARY_AA_refactor_finalize:
         """
         {{ cut -f1,2 {input.lca} \
             | taxonkit lineage --data-dir {input.db} -i 2 \
-            | taxonkit reformat --data-dir {input.db} -i 3 \
-                -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank \
+            | taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} \
             | cut --complement -f3 \
             > {output.lca_reformated}; }} &> {log}
         rm {log}
@@ -270,7 +274,8 @@ rule PRIMARY_NT_reformat:
         reformated = os.path.join(PRIMARY_NT_OUT, "primary_nt.tsv"),
     params:
         inputpath = os.path.join(PRIMARY_NT_OUT, "results", "result"),
-        respath = os.path.join(PRIMARY_NT_OUT, "results", "firsthit")
+        respath = os.path.join(PRIMARY_NT_OUT, "results", "firsthit"),
+        taxonFormat = config['taxonkitReformat']
     conda:
         os.path.join("..", "envs", "mmseqs2.yaml")
     resources:
@@ -292,8 +297,7 @@ rule PRIMARY_NT_reformat:
             awk -F '|' '{{ print$2 }}' | \
             taxonkit lineage --data-dir {input.taxdb} > {output.lineage};
         # Reformat TopHit viral lineage information
-        taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 2 \
-            -f "{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" -F --fill-miss-rank |
+        taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 2 {params.taxonFormat} | \
             cut --complement -f2 > {output.reformated};
         }} &> {log}
         rm {log}
@@ -376,7 +380,9 @@ rule SECONDARY_NT_summary:
         reformated = os.path.join(SECONDARY_NT_OUT, "SECONDARY_nt.tsv"),
     params:
         inputpath = os.path.join(SECONDARY_NT_OUT, "results", "result"),
-        respath = os.path.join(SECONDARY_NT_OUT, "results", "tophit")
+        respath = os.path.join(SECONDARY_NT_OUT, "results", "tophit"),
+        taxonFormat = config['taxonkitReformat'],
+        convertAli = config['mmseqConvertAliFormat']
     conda:
         os.path.join("..", "envs", "mmseqs2.yaml")
     resources:
@@ -393,15 +399,14 @@ rule SECONDARY_NT_summary:
         mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1;
         # Convert to alignments
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
-            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader";
+            --format-output {params.convertAli};
         # Assign taxonomy
         cut -f1,2 {output.align} \
             | sed 's/tid|//' \
             | sed 's/|.*//' \
             | taxonkit lineage -i 2 --data-dir {input.taxdb} > {output.lineage};
         # Reformat TopHit viral lineage information
-        taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 3 \
-            -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank |
+        taxonkit reformat --data-dir {input.taxdb} {output.lineage} -i 3 {params.taxonFormat} | \
             cut --complement -f3 \
             > {output.reformated};
         }} &> {log}
@@ -463,6 +468,8 @@ rule secondary_nt_calc_lca:
         mem_mb = MMSeqsMem
     threads:
         MMSeqsCPU
+    params:
+        taxonFormat = config['taxonkitReformat'],
     conda:
         os.path.join("..", "envs", "mmseqs2.yaml")
     benchmark:
@@ -480,8 +487,7 @@ rule secondary_nt_calc_lca:
         
         # Reformat lineages
         awk -F '\t' '$2 != 0' {output.lca_lineage} | \
-            taxonkit reformat --data-dir {input.taxdb} -i 3 \
-                -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank 2>> {log} |
+            taxonkit reformat --data-dir {input.taxdb} -i 3 {params.taxonFormat} 2>> {log} |
             cut --complement -f3 > {output.reformated}
         }} &> {log}
         rm {log}
