@@ -89,7 +89,7 @@ rule host_removal_mapping:
         r1 = os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq"),
         host = HOSTINDEX
     output:
-        r1 = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq")),
+        r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq"),
         s = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.singletons.fastq")),
         o = temp(os.path.join(TMPDIR, "p02", "{sample}_R1.other.singletons.fastq"))
     benchmark:
@@ -148,7 +148,7 @@ rule nonhost_read_combine:
         or1 = os.path.join(TMPDIR, "p03", "{PATTERN}_R1.o.singletons.fastq")
     output:
         t1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.singletons.fastq"),
-        r1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.all.fastq")
+        r1 = temp(os.path.join(TMPDIR, "p04", "{PATTERN}_R1.all.fastq"))
     benchmark:
         os.path.join(BENCH, "nonhost_read_combine.{PATTERN}.txt")
     log:

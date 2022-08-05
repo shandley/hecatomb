@@ -33,7 +33,7 @@ rule host_removal_mapping:
         host = HOSTINDEX,
         summ = optionalSummary[0]
     output:
-        r1=temp(os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")),
+        r1=os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta"),
     benchmark:
         os.path.join(BENCH,"host_removal_mapping.{sample}.txt")
     log:
@@ -144,7 +144,7 @@ rule merge_seq_table:
         tsv=os.path.join(RESULTS,"sampleSeqCounts.tsv")
     params:
         samples=list(SAMPLES),
-        tmpdir=os.path.join(TMPDIR, "p03")
+        tmpdir=lambda w, input: os.path.split(input[0])[0]
     conda:
         os.path.join('..','envs','pysam.yaml')
     benchmark:
