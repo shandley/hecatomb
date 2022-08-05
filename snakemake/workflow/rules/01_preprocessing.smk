@@ -159,7 +159,7 @@ rule nonhost_read_combine:
         t1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.singletons.fastq"),
         t2 = os.path.join(TMPDIR, "p04", "{PATTERN}_R2.singletons.fastq"),
         r1 = temp(os.path.join(TMPDIR, "p04", "{PATTERN}_R1.all.fastq")),
-        #r2 = os.path.join(TMPDIR, "p04", "{PATTERN}_R2.all.fastq")
+        r2 = temp(os.path.join(TMPDIR, "p04", "{PATTERN}_R2.all.fastq"))
     benchmark:
         os.path.join(BENCH, "nonhost_read_combine.{PATTERN}.txt")
     log:
@@ -168,7 +168,8 @@ rule nonhost_read_combine:
         """
         {{ cat {input.sr1} {input.or1} > {output.t1};
         cat {input.sr2} {input.or2} > {output.t2};
-        cat {input.r1} {output.t1} > {output.r1}; }} 2> {log}
+        cat {input.r1} {output.t1} > {output.r1};
+        cat {input.r2} {output.t2} > {output.r2}; }} 2> {log}
         rm {log}
         """
           
