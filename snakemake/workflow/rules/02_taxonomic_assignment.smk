@@ -131,7 +131,7 @@ rule SECONDARY_AA_tophit_lineage:
     threads:
         MiscCPU
     params:
-        taxonFormat = config['taxonkitReformat']
+        taxonFormat = lambda wildcards: config['taxonkitReformat']
     benchmark:
         os.path.join(BENCH, "SECONDARY_AA_tophit_lineage.txt")
     log:
@@ -162,7 +162,7 @@ rule SECONDARY_AA_refactor_finalize:
     threads:
         MiscCPU
     params:
-        taxonFormat = config['taxonkitReformat']
+        taxonFormat = lambda wildcards: config['taxonkitReformat']
     benchmark:
         os.path.join(BENCH, "SECONDARY_AA_refactor_finalize.txt")
     log:
@@ -275,7 +275,7 @@ rule PRIMARY_NT_reformat:
     params:
         inputpath = os.path.join(PRIMARY_NT_OUT, "results", "result"),
         respath = os.path.join(PRIMARY_NT_OUT, "results", "firsthit"),
-        taxonFormat = config['taxonkitReformat']
+        taxonFormat = lambda wildcards: config['taxonkitReformat']
     conda:
         os.path.join("..", "envs", "mmseqs2.yaml")
     resources:
@@ -381,7 +381,7 @@ rule SECONDARY_NT_summary:
     params:
         inputpath = os.path.join(SECONDARY_NT_OUT, "results", "result"),
         respath = os.path.join(SECONDARY_NT_OUT, "results", "tophit"),
-        taxonFormat = config['taxonkitReformat'],
+        taxonFormat = lambda wildcards: config['taxonkitReformat'],
         convertAli = config['mmseqConvertAliFormat']
     conda:
         os.path.join("..", "envs", "mmseqs2.yaml")
@@ -469,7 +469,7 @@ rule secondary_nt_calc_lca:
     threads:
         MMSeqsCPU
     params:
-        taxonFormat = config['taxonkitReformat'],
+        taxonFormat = lambda wildcards: config['taxonkitReformat'],
     conda:
         os.path.join("..", "envs", "mmseqs2.yaml")
     benchmark:
