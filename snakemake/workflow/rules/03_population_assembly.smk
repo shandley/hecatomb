@@ -67,7 +67,7 @@ rule concatentate_contig_count_tables:
         """
         {{ 
         head -1 {input[0]} > {output};
-        cat {input} | grep -v ^\# >> {output};
+        tail -n +2 {input} | grep -vP '^Sample\s' >> {output};
         }} 2> {log}
         rm {log}
         """
