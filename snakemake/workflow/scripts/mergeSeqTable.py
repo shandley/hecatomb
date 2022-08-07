@@ -35,8 +35,11 @@ for sample in snakemake.params.samples:
         seqCounts += int(l[1])
     outTsv.write(f'{sample}\t{seqCounts}\n')
     for l in streamCountTable(st):
-        percCount = (int(l[1]) / seqCounts) * 100
-        id = ':'.join((sample, l[1], str(percCount), str(seqId)))  # fasta header = >sample:count:percentCount:seqId
+        # fasta header = >sample:count:percentCount:seqId
+        id = ':'.join((sample,
+                       l[1],
+                       "{:.3e}".format((int(l[1]) / seqCounts) * 100),
+                       str(seqId)))
         seqId = seqId + 1
         outFa.write(f'>{id}\n{l[0]}\n')
 outFa.close()
