@@ -9,7 +9,9 @@ Michael Roach, Q2 2021
 
 
 # load default config
-# configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
+configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
+configfile: os.path.join(workflow.basedir, '../', 'config', 'dbFiles.yaml')
+configfile: os.path.join(workflow.basedir, '../', 'config', 'immutable.yaml')
 
 
 # directories
@@ -21,8 +23,8 @@ virShred = os.path.join(HOSTPATH, 'virus_shred.fasta.gz')
 hostFasta = config['HostFa']
 hostName = config['HostName']
 entropy = config['ENTROPY']
-BBToolsMem = config['BBToolsMem']
-BBToolsCPU = config['BBToolsCPU']
+BBToolsMem = config['MediumJobMem']
+BBToolsCPU = config['MediumJobCpu']
 
 # output files
 hostOutFasta = os.path.join(HOSTPATH, hostName, 'masked_ref.fa.gz')
