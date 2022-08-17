@@ -51,6 +51,7 @@ rule fastp_preprocessing:
             -j {output.stats} \
             --qualified_quality_phred {params.qscore} \
             --length_required {params.readlen} \
+            --detect_adapter_for_pe \
             --cut_tail --cut_tail_window_size {params.cuttail} --cut_tail_mean_quality {params.qscore} \
             --dedup --dup_calc_accuracy {params.dedupacc} \
             --trim_poly_x \
