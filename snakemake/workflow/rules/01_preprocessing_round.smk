@@ -252,8 +252,8 @@ rule host_removal_mapping:
     If your reference is not available you need to add it using 'Hecatomb addHost'
     """
     input:
-        r1 = temp(os.path.join(TMPDIR,"p06","{sample}_R1.s6.out.fastq")),
-        r2 = temp(os.path.join(TMPDIR,"p06","{sample}_R2.s6.out.fastq")),
+        r1 = os.path.join(TMPDIR,"p06","{sample}_R1.s6.out.fastq"),
+        r2 = os.path.join(TMPDIR,"p06","{sample}_R2.s6.out.fastq"),
         host = HOSTINDEX
     output:
         r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq"),
@@ -436,3 +436,24 @@ rule merge_seq_table:
         os.path.join(STDERR, 'merge_seq_table.log')
     script:
         os.path.join('../', 'scripts', 'mergeSeqTable.py')
+
+rule archive_for_assembly:
+    """Copy the files that will be required in the assembly steps; fastq.gz files will be generated from these"""
+    input:
+        os.path.join(TMPDIR,"p02","{sample}_R1.unmapped.fastq"),
+        os.path.join(TMPDIR,"p02","{sample}_R2.unmapped.fastq"),
+        os.path.join(TMPDIR,"p04","{sample}_R1.singletons.fastq"),
+        os.path.join(TMPDIR,"p04","{sample}_R2.singletons.fastq"),
+        os.path.join(TMPDIR,"p04","{sample}_R1.all.fastq"),
+        os.path.join(TMPDIR,"p04","{sample}_R2.all.fastq"),
+    output:
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.all.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R2.all.fastq")),
+    params:
+        ASSEMBLY
+    shell:
+        """cp {input} {params}"""

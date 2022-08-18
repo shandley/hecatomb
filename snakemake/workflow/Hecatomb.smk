@@ -97,13 +97,28 @@ rule all:
         PreprocessingFiles,
         ## Assembly
         AssemblyFiles,
-        ## Translated (nt-to-aa) search
-        SecondarySearchFilesAA,
-        ## Untranslated (nt-to-nt) search
-        SecondarySearchFilesNT,
+        ## Bigtable
+        ReadAnnotationFiles,
         ## Contig annotation
         ContigAnnotFiles,
         ## Mapping (read-based contig id)
         MappingFiles,
         ## Summary
         SummaryFiles
+
+rule preprocessing:
+    input:
+        PreprocessingFiles
+
+rule assembly:
+    input:
+        AssemblyFiles
+
+rule readAnnotations:
+    input:
+        SecondarySearchFilesAA,
+        SecondarySearchFilesNT
+
+rule contigAnnotations:
+    input:
+        ContigAnnotFiles

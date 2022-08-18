@@ -4,16 +4,27 @@ Per-sample assemblies for short paired reads
     in 03_population_assembly.smk
 """
 
+"""
+
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.all.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R2.all.fastq")),
+        
+"""
+
 rule assembly_kmer_normalization:
     """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
     input:
-        r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq"),
-        r2 = os.path.join(TMPDIR, "p02", "{sample}_R2.unmapped.fastq"),
-        r1s = os.path.join(TMPDIR, "p04", "{sample}_R1.singletons.fastq"),
-        r2s = os.path.join(TMPDIR, "p04", "{sample}_R2.singletons.fastq")
+        r1 = os.path.join(ASSEMBLY, "{sample}_R1.unmapped.fastq.gz"),
+        r2 = os.path.join(ASSEMBLY, "{sample}_R2.unmapped.fastq.gz"),
+        r1s = os.path.join(ASSEMBLY, "{sample}_R1.singletons.fastq.gz"),
+        r2s = os.path.join(ASSEMBLY, "{sample}_R2.singletons.fastq.gz")
     output:
-        r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
-        r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq")
+        r1_norm = temp(os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq")),
+        r2_norm = temp(os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq")),
     benchmark:
         os.path.join(BENCH, "kmer_normalization_{sample}.txt")
     log:
@@ -44,8 +55,8 @@ rule individual_sample_assembly:
     input:
         r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
         r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq"),
-        r1s = os.path.join(TMPDIR, "p04", "{sample}_R1.singletons.fastq"),
-        r2s = os.path.join(TMPDIR, "p04", "{sample}_R2.singletons.fastq")
+        r1s = os.path.join(ASSEMBLY, "{sample}_R1.singletons.fastq.gz"),
+        r2s = os.path.join(ASSEMBLY, "{sample}_R2.singletons.fastq.gz")
     output:
         contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
         tar = os.path.join(ASSEMBLY,'{sample}.tar.zst')
@@ -76,8 +87,8 @@ rule individual_sample_assembly:
 rule mapSampleAssemblyPairedReads:
     """Map the sample paired reads to the sample assembly"""
     input:
-        r1 = os.path.join(TMPDIR,"p02","{sample}_R1.unmapped.fastq"),
-        r2 = os.path.join(TMPDIR,"p02","{sample}_R2.unmapped.fastq"),
+        r1 = os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq.gz"),
+        r2 = os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq.gz"),
         contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
     output:
         temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.pe.bam'))
@@ -93,15 +104,18 @@ rule mapSampleAssemblyPairedReads:
         os.path.join(BENCH, 'sampleAssemblyMapPe.{sample}.txt')
     shell:
         """
+        {{
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1} {input.r2} | \
-            samtools sort -n -o {output}
+            samtools sort -n -o {output};
+        }} 2> {log} 
+        rm {log}
         """
 
 rule mapSampleAssemblyUnpairedReads:
     """Map the sample unpaired reads to the sample assembly"""
     input:
-        r1s = os.path.join(TMPDIR,"p04","{sample}_R1.singletons.fastq"),
-        r2s = os.path.join(TMPDIR,"p04","{sample}_R2.singletons.fastq"),
+        r1s = os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"),
+        r2s = os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq.gz"),
         contigs = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fa")
     output:
         temp(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
@@ -117,9 +131,12 @@ rule mapSampleAssemblyUnpairedReads:
         os.path.join(BENCH, 'sampleAssemblyMapS.{sample}.txt')
     shell:
         """
+        {{
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} {input.r2s} | \
             samtools sort -n | \
-            samtools fastq -f 4 > {output}
+            samtools fastq -f 4 > {output};
+        }} 2> {log}
+        rm {log}
         """
 
 rule pullPairedUnmappedReads:
@@ -141,8 +158,9 @@ rule pullPairedUnmappedReads:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools fastq -f 77 {input} > {output.r1}
-        samtools fastq -f 141 {input} > {output.r2}
+        samtools fastq -f 77 {input} > {output.r1} 2> {log}
+        samtools fastq -f 141 {input} > {output.r2} 2>> {log}
+        rm {log}
         """
 
 rule pullPairedUnmappedReadsMateMapped:
@@ -163,7 +181,7 @@ rule pullPairedUnmappedReadsMateMapped:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools fastq -f5 -F8 {input} > {output}
+        samtools fastq -f5 -F8 {input} > {output} 2> {log}
         """
 
 rule poolR1Unmapped:
@@ -187,7 +205,10 @@ rule poolR2Unmapped:
 rule poolUnpairedUnmapped:
     """Concatenate the unmapped, unpaired reads for all samples"""
     input:
-        fq = expand(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.{sPe}.fastq'), sample=SAMPLES, sPe = ['s','pe.s']),
+        fq = expand(os.path.join(
+            ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.{sPe}.fastq'),
+            sample=SAMPLES,
+            sPe = ['s','pe.s']),
     output:
         temp(os.path.join(ASSEMBLY, 'unmapRescue.s.fastq'))
     shell:
@@ -324,8 +345,8 @@ rule contig_reformating_and_stats:
 rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1 = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
-        r2 = os.path.join(TMPDIR, "p04", "{sample}_R2.all.fastq"),
+        r1 = os.path.join(ASSEMBLY, "{sample}_R1.all.fastq.gz"),
+        r2 = os.path.join(ASSEMBLY, "{sample}_R2.all.fastq.gz"),
         ref = os.path.join(RESULTS, "assembly.fasta")
     output:
         sam = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz")),

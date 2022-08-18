@@ -33,7 +33,7 @@ rule host_removal_mapping:
         host = HOSTINDEX,
         summ = optionalSummary[0]
     output:
-        r1=os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta"),
+        r1=temp(os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")),
     benchmark:
         os.path.join(BENCH,"host_removal_mapping.{sample}.txt")
     log:
@@ -153,3 +153,14 @@ rule merge_seq_table:
         os.path.join(STDERR,'merge_seq_table.log')
     script:
         os.path.join('../','scripts','mergeSeqTable.py')
+
+rule archive_for_assembly:
+    """Copy the files that will be required in the assembly steps; fastq.gz files will be generated from these"""
+    input:
+        os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")
+    output:
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.all.fasta"))
+    params:
+        ASSEMBLY
+    shell:
+        """cp {input} {params}"""

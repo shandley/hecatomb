@@ -4,13 +4,22 @@ Per-sample assemblies for short paired reads
     in 03_population_assembly.smk
 """
 
+"""
+
+        r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq"),
+        r1s = os.path.join(TMPDIR, "p04", "{sample}_R1.singletons.fastq")
+        r1 = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
+        
+"""
+
 rule assembly_kmer_normalization:
     """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
     input:
-        r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq"),
-        r1s = os.path.join(TMPDIR, "p04", "{sample}_R1.singletons.fastq")
+        r1 = os.path.join(ASSEMBLY, "{sample}_R1.unmapped.fastq.gz"),
+        r1s = os.path.join(ASSEMBLY, "{sample}_R1.singletons.fastq.gz")
     output:
-        r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq")
+        r1_norm = temp(os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq")),
+        r1s = temp(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq"))
     benchmark:
         os.path.join(BENCH, "kmer_normalization_{sample}.txt")
     log:
@@ -30,6 +39,7 @@ rule assembly_kmer_normalization:
             target=100 \
             ow=t \
             threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
+        cp {input.r1s} {output.r1s}
         rm {log}
         """
 
@@ -40,7 +50,7 @@ rule individual_sample_assembly:
     """
     input:
         r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
-        r1s = os.path.join(TMPDIR, "p04", "{sample}_R1.singletons.fastq"),
+        r1s = os.path.join(ASSEMBLY, "{sample}_R1.singletons.fastq.gz"),
     output:
         contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
         tar = os.path.join(ASSEMBLY,'{sample}.tar.zst')
@@ -71,7 +81,7 @@ rule individual_sample_assembly:
 rule mapSampleAssemblyPairedReads:
     """Map the sample paired reads to the sample assembly"""
     input:
-        r1 = os.path.join(TMPDIR,"p02","{sample}_R1.unmapped.fastq"),
+        r1 = os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq.gz"),
         contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
     output:
         temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.se.bam'))
@@ -87,14 +97,17 @@ rule mapSampleAssemblyPairedReads:
         os.path.join(BENCH, 'sampleAssemblyMapSe.{sample}.txt')
     shell:
         """
+        {{
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1} | \
-            samtools sort -n -o {output[0]}
+            samtools sort -n -o {output[0]};
+        }} 2> {log}
+        rm {log}
         """
 
 rule mapSampleAssemblyUnpairedReads:
     """Map the sample unpaired reads to the sample assembly"""
     input:
-        r1s = os.path.join(TMPDIR,"p04","{sample}_R1.singletons.fastq"),
+        r1s = os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"),
         contigs = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fa")
     output:
         temp(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
@@ -110,9 +123,12 @@ rule mapSampleAssemblyUnpairedReads:
         os.path.join(BENCH, 'sampleAssemblyMapS.{sample}.txt')
     shell:
         """
+        {{
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} | \
             samtools sort -n | \
-            samtools fastq -f 4 > {output[0]}
+            samtools fastq -f 4 > {output[0]};
+        }} 2> {log}
+        rm {log}
         """
 
 rule pullPairedUnmappedReads:
@@ -133,7 +149,8 @@ rule pullPairedUnmappedReads:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools fastq -f 77 {input} > {output.r1}
+        samtools fastq -f 77 {input} > {output.r1} 2> {log}
+        rm {log}
         """
 
 rule pullPairedUnmappedReadsMateMapped:
@@ -154,7 +171,8 @@ rule pullPairedUnmappedReadsMateMapped:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools fastq -f5 -F8 {input[0]} > {output[0]}
+        samtools fastq -f5 -F8 {input[0]} > {output[0]} 2> {log}
+        rm {log}
         """
 
 rule poolR1Unmapped:
@@ -176,26 +194,6 @@ rule poolUnpairedUnmapped:
         """
         cat {input.fq} > {output}
         """
-
-# rule archive_mhitDir:
-#     """tar and zip the megahit assembly directories.
-#
-#     We add the count table as a requirement to make sure the directory is only archive once it's no longer needed.
-#     """
-#     input:
-#         dir = os.path.join(ASSEMBLY,'{sample}'),
-#         req = os.path.join(RESULTS, "contig_count_table.tsv")
-#     output:
-#         os.path.join(ASSEMBLY,'{sample}.tar.zst')
-#     threads:
-#         BBToolsCPU
-#     resources:
-#         mem_mb = BBToolsMem
-#     shell:
-#         """
-#         tar cf - {input.dir} | zstd -T8 -9 > {output}
-#         rm -rf {input.dir}
-#         """
 
 rule rescue_read_kmer_normalization:
     """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
@@ -323,7 +321,7 @@ rule contig_reformating_and_stats:
 rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1 = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
+        r1 = os.path.join(ASSEMBLY, "{sample}_R1.all.fastq.gz"),
         ref = os.path.join(RESULTS, "assembly.fasta")
     output:
         sam = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz")),

@@ -6,8 +6,24 @@ All target output files for Hecatomb are declared here
 PreprocessingFiles = [
     os.path.join(RESULTS, "seqtable.fasta"),
     os.path.join(RESULTS, "sampleSeqCounts.tsv"),
-    os.path.join(RESULTS, "seqtable.properties.tsv")
+    os.path.join(RESULTS, "seqtable.properties.tsv"),
 ]
+if config['QC'] == 'longreads':
+    PreprocessingFiles += [
+        os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz")
+    ]
+else:
+    PreprocessingFiles += [
+        os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq.gz"),
+        os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"),
+        os.path.join(ASSEMBLY,"{sample}_R1.all.fastq.gz"),
+    ]
+    if config['Sampling'] == 'paired':
+        PreprocessingFiles += [
+            os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq.gz"),
+            os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq.gz"),
+            os.path.join(ASSEMBLY,"{sample}_R2.all.fastq.gz"),
+        ]
 
 if skipAssembly:
     AssemblyFiles = []
@@ -42,12 +58,8 @@ else:
 
 
 # Secondary AA search files
-SecondarySearchFilesAA = [
+ReadAnnotationFiles = [
     os.path.join(SECONDARY_AA_OUT, "AA_bigtable.tsv"),
-]
-
-# Secondary NT search files
-SecondarySearchFilesNT = [
     os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv"),
     os.path.join(RESULTS, "bigtable.tsv"),
 ]

@@ -175,3 +175,12 @@ rule seq_properties_table:
         os.path.join(STDERR, '{file}.seq_properties_table.log')
     script:
         os.path.join('..', 'scripts', 'seqPropertyTable.py')
+
+rule zip_fastq:
+    """zip a fastq file"""
+    input:
+        '{filepath}.fastq'
+    output:
+        '{filepath}.fastq.gz'
+    shell:
+        """gzip -1 {input}"""
