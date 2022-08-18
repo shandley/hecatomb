@@ -184,3 +184,12 @@ rule zip_fastq:
         '{filepath}.fastq.gz'
     shell:
         """gzip -1 {input}"""
+
+rule zip_fasta:
+    """zip a fastq file"""
+    input:
+        '{filepath}.fasta'
+    output:
+        '{filepath}.fasta.gz'
+    shell:
+        """gzip -1 {input}"""
