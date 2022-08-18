@@ -116,8 +116,7 @@ rule assembly:
 
 rule readAnnotations:
     input:
-        SecondarySearchFilesAA,
-        SecondarySearchFilesNT
+        ReadAnnotationFiles
 
 rule contigAnnotations:
     input:

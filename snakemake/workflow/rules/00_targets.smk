@@ -10,19 +10,19 @@ PreprocessingFiles = [
 ]
 if config['QC'] == 'longreads':
     PreprocessingFiles += [
-        os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz")
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz"), sample=SAMPLES)
     ]
 else:
     PreprocessingFiles += [
-        os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq.gz"),
-        os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"),
-        os.path.join(ASSEMBLY,"{sample}_R1.all.fastq.gz"),
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fastq.gz"), sample=SAMPLES),
     ]
     if config['Sampling'] == 'paired':
         PreprocessingFiles += [
-            os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq.gz"),
-            os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq.gz"),
-            os.path.join(ASSEMBLY,"{sample}_R2.all.fastq.gz"),
+            expand(os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq.gz"), sample=SAMPLES),
+            expand(os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq.gz"), sample=SAMPLES),
+            expand(os.path.join(ASSEMBLY,"{sample}_R2.all.fastq.gz"), sample=SAMPLES),
         ]
 
 if skipAssembly:
