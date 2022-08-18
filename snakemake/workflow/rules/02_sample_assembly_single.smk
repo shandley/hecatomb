@@ -110,9 +110,12 @@ rule mapSampleAssemblyUnpairedReads:
         os.path.join(BENCH, 'sampleAssemblyMapS.{sample}.txt')
     shell:
         """
+        {{
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} | \
             samtools sort -n | \
             samtools fastq -f 4 > {output[0]}
+        }} 2> {log}
+        rm {log}
         """
 
 rule pullPairedUnmappedReads:
@@ -133,7 +136,8 @@ rule pullPairedUnmappedReads:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools fastq -f 77 {input} > {output.r1}
+        samtools fastq -f 77 {input} > {output.r1} 2> {log}
+        rm {log}
         """
 
 rule pullPairedUnmappedReadsMateMapped:
@@ -154,7 +158,8 @@ rule pullPairedUnmappedReadsMateMapped:
         os.path.join(BENCH, 'pullPairedUnmappedReads.{sample}.txt')
     shell:
         """
-        samtools fastq -f5 -F8 {input[0]} > {output[0]}
+        samtools fastq -f5 -F8 {input[0]} > {output[0]} 2> {log}
+        rm {log}
         """
 
 rule poolR1Unmapped:
@@ -176,26 +181,6 @@ rule poolUnpairedUnmapped:
         """
         cat {input.fq} > {output}
         """
-
-# rule archive_mhitDir:
-#     """tar and zip the megahit assembly directories.
-#
-#     We add the count table as a requirement to make sure the directory is only archive once it's no longer needed.
-#     """
-#     input:
-#         dir = os.path.join(ASSEMBLY,'{sample}'),
-#         req = os.path.join(RESULTS, "contig_count_table.tsv")
-#     output:
-#         os.path.join(ASSEMBLY,'{sample}.tar.zst')
-#     threads:
-#         BBToolsCPU
-#     resources:
-#         mem_mb = BBToolsMem
-#     shell:
-#         """
-#         tar cf - {input.dir} | zstd -T8 -9 > {output}
-#         rm -rf {input.dir}
-#         """
 
 rule rescue_read_kmer_normalization:
     """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
