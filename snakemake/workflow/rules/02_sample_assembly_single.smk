@@ -18,8 +18,7 @@ rule assembly_kmer_normalization:
         r1 = os.path.join(ASSEMBLY, "{sample}_R1.unmapped.fastq.gz"),
         r1s = os.path.join(ASSEMBLY, "{sample}_R1.singletons.fastq.gz")
     output:
-        r1_norm = temp(os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq")),
-        r1s = temp(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq"))
+        r1_norm = temp(os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"))
     benchmark:
         os.path.join(BENCH, "kmer_normalization_{sample}.txt")
     log:
@@ -39,7 +38,6 @@ rule assembly_kmer_normalization:
             target=100 \
             ow=t \
             threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        cp {input.r1s} {output.r1s}
         rm {log}
         """
 
