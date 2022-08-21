@@ -14,6 +14,10 @@
 # Run Parameters #
 ##################
 
+# Inputs and outputs (specify here or on the command line)
+Reads:
+Output:
+
 # Database installation location, leave blank = use hecatomb install location
 Databases:
 

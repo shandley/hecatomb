@@ -21,9 +21,8 @@ configfile: os.path.join(workflow.basedir, '../', 'config', 'immutable.yaml')
 ### LAUNCHER-CONTROLLED CONFIG--"Reads" MUST BE PASSED TO SNAKEMAKE
 READS = config['Reads']
 HOST = config['Host']
-skipAssembly = config['SkipAssembly']
 makeReport = config['Report']
-if config['Fast']:
+if config['Search'] == 'fast':
     MMSeqsSensAA = config['perfAAfast']
     MMSeqsSensNT = config['perfNTfast']
 else:
@@ -60,30 +59,36 @@ include: "rules/00_preflight.smk"
 
 
 # Parse the samples and read files
-if config['Sampling'] == 'single':
-    include: "rules/00_samples_se.smk"
-else:
+if config['Preprocess'] == 'paired':
     include: "rules/00_samples.smk"
+elif config['Preprocess'] == 'single':
+    include: "rules/00_samples_se.smk"
+elif config['Preprocess'] == 'longread':
+    include: "rules/00_samples_se.smk"
+else: # config['Preprocess'] == 'roundAB'
+    include: "rules/00_samples.smk"
+
 sampleReads = parseSamples(READS)
 SAMPLES = sampleReads.keys()
 # wildcard_constraints:
 #     sample="[a-zA-Z0-9._-]+"
 
-# Import rules and functions
 include: "rules/00_functions.smk"
 include: "rules/00_targets.smk"
-if config['QC'] == 'longreads':
-    include: "rules/01_preprocessing_longreads.smk"
-    include: "rules/02_sample_assembly_longreads.smk"
-elif config['QC'] == 'single':
-    include: "rules/01_preprocessing_single.smk"
-    include: "rules/02_sample_assembly_single.smk"
-elif config['QC'] == 'roundAB':
-    include: "rules/01_preprocessing_round.smk"
-    include: "rules/02_sample_assembly.smk"
-else:
+
+if config['Preprocess'] == 'paired':
     include: "rules/01_preprocessing.smk"
     include: "rules/02_sample_assembly.smk"
+elif config['Preprocess'] == 'single':
+    include: "rules/01_preprocessing_single.smk"
+    include: "rules/02_sample_assembly_single.smk"
+elif config['Preprocess'] == 'longread':
+    include: "rules/01_preprocessing_longreads.smk"
+    include: "rules/02_sample_assembly_longreads.smk"
+else: # config['Preprocess'] == 'roundAB'
+    include: "rules/01_preprocessing_round.smk"
+    include: "rules/02_sample_assembly.smk"
+
 include: "rules/02_taxonomic_assignment.smk"
 include: "rules/03_population_assembly.smk"
 include: "rules/03_mapping.smk"

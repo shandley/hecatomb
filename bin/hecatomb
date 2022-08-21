@@ -7,342 +7,306 @@ Michael Roach, Q2 2021
 """
 
 
-import argparse
 import sys
 import os
 import subprocess
-import time
-import hashlib
 import yaml
 import glob
 from shutil import copyfile
 from time import localtime, strftime
 
-
-### VERSION
-BINDIR = os.path.dirname(os.path.realpath(__file__))
-vFH = open(os.path.join(BINDIR, '../', 'VERSION'), 'r')
-VERSION = vFH.readline()
-vFH.close()
-
-### DIRS ETC
-SNEKDIR = os.path.normpath(os.path.join(BINDIR, '../', 'snakemake', 'workflow'))
-TESTDIR = os.path.normpath(os.path.join(BINDIR, '../', 'test_data'))
-CONDDIR = os.path.normpath(os.path.join(SNEKDIR, 'conda'))
-snakeDefaults = (
-    '--rerun-incomplete '
-    '--printshellcmds '
-    '--nolock '
-    '--show-failed-logs '
-    '--use-conda '
-    '--conda-frontend mamba '
-    f'--conda-prefix {CONDDIR} ')
+import click
 
 
-
-### PARSE COMMAND LINE ARGUMENTS
-parser = argparse.ArgumentParser(
-    formatter_class=argparse.RawDescriptionHelpFormatter,
-    description=("\n"
-                 "██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗ \n"
-                 "██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗\n"
-                 "███████║█████╗  ██║     ███████║   ██║   ██║   ██║██╔████╔██║██████╔╝\n"
-                 "██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗\n"
-                 "██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝\n"
-                 "╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝ \n"                                                   
-                 f"\nVersion {VERSION}\n"
-                 "\n"
-                 "Commands:\n"
-                 "    install     Download and install the databases (only have to do once)\n"
-                 "    run         Run the Hecatomb pipeline\n"
-                 "    config      Copy the default configfile to the current directory\n"
-                 "                (for use with --configfile)\n"
-                 "    listHosts   List the available host genomes for contaminant removal\n"
-                 "    addHost     Process and add a new host genome for contaminant removal\n"
-                 "    combine     Combine output from multiple Hecatomb runs\n"
-                 "\n"),
-    epilog= ("\n"
-             "To Run Hecatomb:\n"
-             "hecatomb run --reads fastq/\n"
-             "\n"
-             "Run Hecatomb and skip assembly:\n"
-             "hecatomb run --reads fastq/ --skipAssembly\n"
-             "\n"
-             "Run test dataset (will take a few hours):\n"
-             "hecatomb run --test \n"
-             "\n"
-             "To run hecatomb on a HPC cluster (e.g. slurm, sge, etc.):\n"
-             "hecatomb run --profile slurm\n\n"
-             "\n"
-             "Combine output from multiple runs:\n"
-             "hecatomb combine --comb outDir1/ --comb outDir2/ ...\n"
-             "\n"
-             "Complete documentation for Hecatomb is available at:\n"
-             "https://hecatomb.readthedocs.io\n"
-             )
-)
-parser.add_argument('command', choices=['install', 'run', 'config', 'listHosts', 'addHost', 'combine'])
-parser.add_argument('--reads', help=('Either directory containing seq data, or TSV specifying samples and seq files. '
-                                     'See https://hecatomb.readthedocs.io/en/latest/usage/ for more info.'))
-parser.add_argument('--configfile',
-                    help='Specify your own config file. First copy the template with "hecatomb config".',
-                    default='hecatomb.config.yaml')
-parser.add_argument('--test', help='Use the test dataset (ignores --reads)', action='store_true')
-parser.add_argument('--skipAssembly', help="Don't perform an assembly", action='store_true', default=False)
-parser.add_argument('--report', help='Generate a run report', action='store_true', default=False)
-parser.add_argument('--nonPaired', help='Input files are non-paired short reads', action='store_true', default=False)
-parser.add_argument('--longreads', help='Input files are longreads.', action='store_true', default=False)
-parser.add_argument('--roundAB', help='For round A/B sequencing. Trims 5\' primer sequence. Cannot use with --longreads or --nonPaired.', action='store_true', default=False)
-parser.add_argument('--results', help='Directory to write the output files', default='hecatomb_out')
-parser.add_argument('--host', help='Host name for contaminant removal', default='human')
-parser.add_argument('--hostfa', help='Host reference (for addHost command only)')
-parser.add_argument('--profile', help='Snakemake profile for use on cluster')
-parser.add_argument('--threads', help='Number of threads to use (ignored if using --profile)', default='32')
-parser.add_argument('--fast', help='Use faster but less sensitive settings for MMSeqs searches', action='store_true')
-parser.add_argument('--comb', help='Output directory to combine (for use with "hecatomb combine")', action='append')
-parser.add_argument('--snakemake-defaults',
-                    help=f'Commandline options passed by default to Snakemake. (default {snakeDefaults})',
-                    default=snakeDefaults)
-parser.add_argument('--snake',
-                    help='Pass one or more commands to Snakemake e.g. --snake=--dry-run',
-                    action='append')
-args = parser.parse_args()
+def snake_base(rel_path):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), rel_path)
 
 
-def msg(errMessage):
-    """
-    Pretty printing of STDERR messages
-    :param errMessage: string to print
-    :return: None
-    """
+def print_version():
+    with open(snake_base(os.path.join('..','VERSION')), 'r') as f:
+        version = f.readline()
+    click.echo('\n' + 'Hecatomb version ' + version)
+
+
+def msg(err_message):
     tstamp = strftime('[%Y:%m:%d %H:%M:%S] ', localtime())
-    sys.stderr.write(tstamp + errMessage + '\n')
+    click.echo(tstamp + err_message)
 
 
-def msgBox(splash, errMessage):
-    """
-    Big, pretty STDERR messages
-    :param splash: short string to print in a box
-    :param errMessage: string to print below splash
-    :return:
-    """
+def msg_box(splash, errmsg=None):
     msg('-' * (len(splash) + 4))
     msg(f'| {splash} |')
-    msg(('-' * (len(splash) + 4)) + '\n\n' + errMessage + '\n')
+    msg(('-' * (len(splash) + 4)))
+    if errmsg:
+        click.echo('\n' + errmsg)
 
 
-def copyConfig():
-    """
-    Copy the system template config file to the --configfile declaration (working directory by default)
-    :return: None
-    """
-    templateConfig = os.path.join(BINDIR, '../', 'snakemake', 'config', 'config.yaml')
-    if not os.path.isfile(args.configfile):
-        msg(f'Copying template config file to {args.configfile}')
-        copyfile(templateConfig, args.configfile)
+def copy_config(local_config, system_config=snake_base(os.path.join('..', 'snakemake', 'config', 'config.yaml'))):
+    if not os.path.isfile(local_config):
+        msg(f'Copying system default config to {local_config}')
+        copyfile(system_config, local_config)
     else:
-        msg(f'Config file {args.configfile} already exists. Using existing config template')
-    return None
+        msg(f'Config file {local_config} already exists. Using existing config file.')
 
 
-def updateConfig(_config):
-    """
-    Update config from config file with command-line config options
-    :param _config: config dictionary as read from config file
-    :return: config dictionary updated with command line options
-    """
-    _config['Host'] = args.host
-    _config['Sampling'] = 'paired'
-    _config['QC'] = 'paired'
-    _config['Output'] = args.results
-    _config['SkipAssembly'] = args.skipAssembly
-    _config['Fast'] = args.fast
-    _config['Report'] = args.report
-    # combine
-    if args.command == 'combine':
-        _config['outDirs'] = args.comb
-    # read dir - only need if running the main pipeline
-    if args.command == 'run':
-        if args.test:
-            _config['Reads'] = TESTDIR
-        elif not args.reads:
-            msg('ERROR: please specify the directory or TSV file of reads with --reads')
-            exit(1)
-        else:
-            _config['Reads'] = args.reads
-    # preprocessing method
-    if args.longreads:
-        _config['Sampling'] = 'single'
-        _config['QC'] = 'longreads'
-        # _config['Report'] = False
-    elif args.nonPaired:
-        _config['QC'] = 'single'
-        _config['Sampling'] = 'single'
-        # _config['Report'] = False
-    elif args.roundAB:
-        _config['QC'] = 'roundAB'
-        # _config['Report'] = False
+def read_config(file):
+    with open(file, 'r') as stream:
+        _config = yaml.safe_load(stream)
     return _config
 
 
-def writeConfig(_config):
-    """
-    Write the runtime config file for Snakemake after updating with the commandline options.
-    :param _config: updated configuration to write
-    :return: runtime config file name
-    """
-    OUTDIR = os.path.normpath(args.results)
-    if not os.path.exists(OUTDIR):
-        os.makedirs(OUTDIR)
-    configMd5 = hashlib.md5(yaml.dump(_config, sort_keys=True).encode('utf-8')).hexdigest()
-    runtimeConfigName = 'hecatomb.' + configMd5 + '.yaml'
-    runtimeConfig = os.path.normpath(os.path.join(OUTDIR, runtimeConfigName))
-    msg(f'Writing runtime config file to {runtimeConfig}')
-    with open(runtimeConfig, 'w') as stream:
+def write_config(_config, file):
+    msg(f'Writing runtime config file to {file}')
+    with open(file, 'w') as stream:
         yaml.dump(_config, stream)
-    msgBox('Runtime config settings', yaml.dump(_config, Dumper=yaml.Dumper))
-    return runtimeConfig
 
 
-def generateRuntimeConfig():
-    """
-    Read in the config file (after checking and copying the system default), update, and write.
-    :return: runtime config file name
-    """
-    copyConfig()
-    with open(args.configfile, 'r') as stream:
-        config = yaml.safe_load(stream)
-    config = updateConfig(config)
-    runtimeConfig = writeConfig(config)
-    return runtimeConfig
+class OrderedCommands(click.Group):
+    """Preserve the order of subcommands when printing --help"""
+    def list_commands(self, ctx: click.Context):
+        return list(self.commands)
 
 
-def initialiseSnakeCommand():
-    """
-    Initialise the Snakemake command (add profile or threads args, default args, and additional snake args)
-    :return command: string for use with subprocess.run()
-    """
-    runtimeConfig = generateRuntimeConfig()
-    if args.profile:
-        runJobs = f'--profile {args.profile}'
+def run_snakemake(configfile=None, snakefile_path=None, merge_config=None, threads=1, use_conda=False,
+                  conda_frontend=None, conda_prefix=None, snake_default_args=None, snake_extra=None):
+    """Run a Snakefile"""
+    snake_command = ['snakemake', '-s', snakefile_path]
+
+    # if using a configfile
+    if configfile:
+        # copy sys default config if needed
+        copy_config(configfile)
+
+        # read the config
+        snake_config = read_config(configfile)
+
+        # merge in command line config if provided
+        if merge_config:
+            snake_config.update(merge_config)
+
+        # update the config file
+        write_config(snake_config, configfile)
+
+        # add config
+        snake_command += ['--configfile', configfile]
+
+        # display the runtime configuration
+        msg_box('Runtime config', errmsg=yaml.dump(snake_config, Dumper=yaml.Dumper))
+
+    # add threads
+    snake_command += ['--cores', threads]
+
+    # add conda args if using conda
+    if use_conda:
+        snake_command += ['--use-conda']
+        if conda_frontend:
+            snake_command += ['--conda-frontend', conda_frontend]
+        if conda_prefix:
+            snake_command += ['--conda-prefix', conda_prefix]
+
+    # add snakemake default args
+    if snake_default_args:
+        snake_command += snake_default_args
+
+    # add any additional snakemake commands
+    if snake_extra:
+        snake_command += list(snake_extra)
+
+    # Run Snakemake!!!
+    snake_command = ' '.join(str(s) for s in snake_command)
+    msg_box('Snakemake command', errmsg=snake_command)
+    if not subprocess.run(snake_command, shell=True).returncode == 0:
+        msg('Error: Snakemake failed')
+        sys.exit(1)
     else:
-        runJobs = f'-j {args.threads}'
-    command = (f'snakemake {runJobs} '
-               f'--configfile {runtimeConfig} '
-               f' {args.snakemake_defaults} ')
-    if args.snake:
-        command = command + ' '.join(c for c in args.snake)
-    return command
+        msg('Snakemake finished successfully')
+    return 0
 
 
-def runSnakeSys(command):
+def common_options(func):
+    """Common options decorator for use with click commands."""
+    options = [
+        click.option('--output', help='Output directory', type=click.Path(), default='hecatomb.out', show_default=True),
+        click.option('--configfile', default='hecatomb.config.yaml', help='Custom config file', show_default=True),
+        click.option('--threads', help='Number of threads to use', default=1, show_default=True),
+        click.option('--test', help='Run the test dataset', is_flag=True, show_default=True, default=False),
+        click.option('--use-conda/--no-use-conda', default=True, help='Use conda for Snakemake rules',
+                     show_default=True),
+        click.option('--conda-frontend',
+                     type=click.Choice(['mamba', 'conda'], case_sensitive=True),
+                     default='mamba', help='Specify Conda frontend', show_default=True),
+        click.option('--conda-prefix', default=snake_base(os.path.join('workflow', 'conda')),
+                     help='Custom conda env directory', type=click.Path(), show_default=False),
+        click.option('--snake-default', multiple=True,
+                     default=['--rerun-incomplete', '--printshellcmds', '--nolock', '--show-failed-logs'],
+                     help="Customise Snakemake runtime args", show_default=True),
+        click.argument('snake_args', nargs=-1)
+    ]
+    for option in reversed(options):
+        func = option(func)
+    return func
+
+
+@click.group(cls=OrderedCommands)
+def cli():
     """
-    Function to run snakemake and confirm success
-    :param command: The snakemake command to run
-    :return: none
+\b
+██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗
+██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗
+███████║█████╗  ██║     ███████║   ██║   ██║   ██║██╔████╔██║██████╔╝
+██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗
+██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝
+╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝
     """
-    msgBox('Snakemake command', command)
-    if not subprocess.run(command.split()).returncode==0:
-        exit(1)
-    return None
+    pass
 
 
-# Functions for installing and running hecatomb
-def install():
-    """
-    The install function. This will run the download and install database snakemake pipeline.
-    :return:
-    """
-    snakeCommand = initialiseSnakeCommand()
-    msg("Checking and downloading database files")
-    snekFile = os.path.normpath(os.path.join(SNEKDIR, 'DownloadDB.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile}'
-    runSnakeSys(runCommand)
-    return None
+EPILOG = """
+\b
+CLUSTER EXECUTION:
+hecatomb run ... --profile [profile]
+For information on Snakemake profiles see:
+https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles
+\b
+RUN EXAMPLES:
+Required:           hecatomb run --input [file]
+Specify threads:    hecatomb run ... --threads [threads]
+Disable conda:      hecatomb run ... --no-use-conda 
+Change defaults:    hecatomb run ... --snake-default="-k --nolock"
+Add Snakemake args: hecatomb run ... --dry-run --keep-going --touch
+Specify targets:    hecatomb run ... all print_targets
+Available targets:
+    all             Run everything (default)
+    preprocessing   Preprocessing only
+    assembly        Preprocessing + assembly steps
+    annotations     Preprocessing + read annotations
+    print_targets   List available targets
+"""
 
 
-def run():
-    """
-    The run function. This will run the hecatome snakemake pipeline itself.
-    :return:
-    """
-    snakeCommand = initialiseSnakeCommand()
-    msg("Running Hecatomb")
-    snekFile = os.path.normpath(os.path.join(SNEKDIR, 'Hecatomb.smk'))
-    runCommand = (f'{snakeCommand} -s {snekFile} ')
-    runSnakeSys(runCommand)
-    if args.report:
-        sys.stderr.write("    Generating run report\n")
-        runCommand = runCommand + ' --report'
-        runSnakeSys(runCommand)
-    return None
+@click.command(epilog=EPILOG, context_settings={"ignore_unknown_options": True})
+@click.option('--reads', 'reads', help='Input file/directory', type=str, default=None)
+@click.option('--preprocess', help='Preprocessing method', default='paired', show_default=True,
+              type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
+@click.option('--search', help='MMSeqs search speed settings', default='sensitive',
+              type=click.Choice(['fast', 'sensitive']), show_default=True)
+@click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
+@common_options
+@click.option('--report/--no-report', help='Generate Snakemake report?', default=False, show_default=True)
+def run(reads, preprocess, search, host, report, test,
+        configfile, output, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args, **kwargs):
+    """Run Hecatomb"""
+    if test:
+        reads = snake_base(os.path.join('..', 'test_data'))
+
+    merge_config = {
+        'Reads': reads,
+        'Output': output,
+        'Host': host,
+        'Preprocess': preprocess,
+        'Search': search,
+        'Report': report,
+    }
+
+    run_snakemake(
+        snakefile_path=snake_base(os.path.join('..', 'snakemake', 'workflow', 'Hecatomb.smk')),
+        configfile=configfile,
+        merge_config=merge_config,
+        threads=threads,
+        use_conda=use_conda,
+        conda_frontend=conda_frontend,
+        conda_prefix=conda_prefix,
+        snake_default_args=snake_default,
+        snake_extra=snake_args,
+    )
 
 
-def combineOutput():
-    snakeCommand = initialiseSnakeCommand()
-    if not args.comb or len(args.comb) < 2:
-        msg("ERROR: Please specify two or more hecatomb output directories to combine with --comb")
-        exit(1)
-    else:
-        msg("Combining Hecatomb output")
-        snekFile = os.path.normpath(os.path.join(SNEKDIR, 'combineOutputs.smk'))
-        runCommand = (f'{snakeCommand} '
-                      f'-s {snekFile} '
-                      '--use-conda '
-                      '--conda-frontend mamba '
-                      f'--conda-prefix {CONDDIR} ')
-        runSnakeSys(runCommand)
-    return None
+@click.command()
+@common_options
+def config(configfile, **kwargs):
+    """Copy the system default config file"""
+    copy_config(configfile)
 
 
-def addHost():
-    """
-    Add a new host to the Hecatomb database
-    :return:
-    """
-    if not args.hostfa:
-        msg('ERROR: Host fasta file required when adding new host genome')
-        exit(1)
-    msg('Adding new virus-masked host for use with hecatomb')
-    if args.host == 'human':
-        msg(f'Enter host name [{args.host}]:')
-        host = input()
-        host = host.rstrip()
-        if host == '':
-            host = args.host
-    else:
-        host = args.host
-    snakeCommand = initialiseSnakeCommand()
-    snekFile = os.path.normpath(os.path.join(SNEKDIR, 'AddHost.smk'))
-    runCommand = f'{snakeCommand} -s {snekFile} -C HostFa={args.hostfa} HostName={host} Output={args.results}'
-    runSnakeSys(runCommand)
-    return None
+@click.command(context_settings={"ignore_unknown_options": True})
+@common_options
+def install(configfile, output, **kwargs):
+    """Install the Hecatomb databases"""
+    merge_config = {
+        'Output': output,
+    }
+    run_snakemake(
+        snakefile_path=snake_base(os.path.join('..', 'snakemake', 'workflow', 'DownloadDB.smk')),
+        configfile=configfile,
+        merge_config=merge_config,
+    )
 
 
-def listHosts():
-    """
-    Print the list of available host genomes and exit
-    :return:
-    """
-    configFile = generateRuntimeConfig()
-    with open(configFile, 'r') as stream:
-        config = yaml.safe_load(stream)
-    # check DB location
+@click.command(context_settings={"ignore_unknown_options": True})
+@click.option('--comb', multiple=True, help='Hecatomb output directory to combine', show_default=False)
+@common_options
+def combine(comb, configfile, output, **kwargs):
+    """Combine multiple Hecatomb runs"""
+    merge_config = {
+        'Output': output,
+        'outDirs': comb,
+    }
+    run_snakemake(
+        snakefile_path=snake_base(os.path.join('..', 'snakemake', 'workflow', 'combineOutputs.smk')),
+        configfile=configfile,
+        merge_config=merge_config,
+    )
+
+
+@click.command(context_settings={"ignore_unknown_options": True})
+@click.option('--host', help='Name for your host genome', show_default=False, required=True)
+@click.option('--host-fa', help='Host genome fasta file', show_default=False, required=True)
+@common_options
+def add_host(host, host_fa, output, configfile, **kwargs):
+    """Add a new host genome to use with Hecatomb"""
+    merge_config = {
+        'Output': output,
+        'HostFa': host_fa,
+        'HostName': host,
+    }
+    run_snakemake(
+        snakefile_path=snake_base(os.path.join('..', 'snakemake', 'workflow', 'AddHost.smk')),
+        configfile=configfile,
+        merge_config=merge_config,
+    )
+
+
+@click.command()
+@common_options
+def list_hosts(configfile, **kwargs):
+    """List the available host genomes"""
+    with open(configfile, 'r') as f:
+        config = yaml.safe_load(f)
     if config['Databases'] is None:
-        DBDIR = os.path.join(BINDIR, '../databases')
+        DBDIR = snake_base(os.path.join('..', 'databases'))
     else:
         DBDIR = config['Databases']
-    # print host genomes
     HOSTPATH = os.path.join(DBDIR, "host", "*")
     hostFastas = list([os.path.basename(x) for x in glob.glob(HOSTPATH)])
-    hostFastas.remove('virus_shred.fasta.gz')
-    msgBox('Available host genomes', '\n'.join(hostFastas))
-    return None
+    try:
+        hostFastas.remove('virus_shred.fasta.gz')
+    except ValueError:
+        pass
+    msg_box('Available host genomes', '\n'.join(hostFastas))
 
 
-commands = {'install':install, 'run':run, 'config':copyConfig, 'addHost':addHost, 'listHosts':listHosts, 'combine':combineOutput}
-commands[args.command]()
+cli.add_command(run)
+cli.add_command(config)
+cli.add_command(install)
+cli.add_command(combine)
+cli.add_command(add_host)
+cli.add_command(list_hosts)
 
-time.sleep(1)
-exit(0)
 
+def main():
+    print_version()
+    cli()
+
+
+if __name__ == '__main__':
+    main()

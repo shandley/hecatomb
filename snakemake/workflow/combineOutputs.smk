@@ -1,6 +1,9 @@
 
 # folders to combine
 allOutputDir = config['outDirs']
+if len(allOutputDir) < 2:
+    sys.stderr.write('Error: Please specify two or more Hecatomb directories to combine\n')
+    sys.exit(1)
 
 def is_non_zero_file(fpath):
     return os.path.isfile(fpath) and os.path.getsize(fpath) > 0

@@ -8,7 +8,7 @@ PreprocessingFiles = [
     os.path.join(RESULTS, "sampleSeqCounts.tsv"),
     os.path.join(RESULTS, "seqtable.properties.tsv"),
 ]
-if config['QC'] == 'longreads':
+if config['Preprocess'] == 'longread':
     PreprocessingFiles += [
         expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz"), sample=SAMPLES)
     ]
@@ -18,43 +18,31 @@ else:
         expand(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"), sample=SAMPLES),
         expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fastq.gz"), sample=SAMPLES),
     ]
-    if config['Sampling'] == 'paired':
+    if config['Preprocess'] != 'single':
         PreprocessingFiles += [
             expand(os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq.gz"), sample=SAMPLES),
             expand(os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq.gz"), sample=SAMPLES),
             expand(os.path.join(ASSEMBLY,"{sample}_R2.all.fastq.gz"), sample=SAMPLES),
         ]
 
-if skipAssembly:
-    AssemblyFiles = []
-    ContigAnnotFiles = []
-    MappingFiles = []
-else:
-    # Assembly files
-    AssemblyFiles = [
-        os.path.join(RESULTS,"assembly.fasta"),
-        os.path.join(RESULTS,"contig_count_table.tsv"),
-        os.path.join(RESULTS,"assembly.properties.tsv"),
-    #    expand(os.path.join(ASSEMBLY,'{sample}.tar.zst'), sample=SAMPLES)
-        ]
-    # Contig annotations
-    ContigAnnotFiles = [
-        os.path.join(RESULTS,"contigAnnotations.tsv"),
-        # os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt.tsv"),
-        # os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_phylum_summary.tsv"),
-        # os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_class_summary.tsv"),
-        # os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_order_summary.tsv"),
-        # os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_family_summary.tsv"),
-        # os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_genus_summary.tsv"),
-        # os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","SECONDARY_nt_species_summary.tsv")
+
+# Assembly files
+AssemblyFiles = [
+    os.path.join(RESULTS,"assembly.fasta"),
+    os.path.join(RESULTS,"contig_count_table.tsv"),
+    os.path.join(RESULTS,"assembly.properties.tsv"),
     ]
-    # Mapping files
-    MappingFiles = [
-        os.path.join(MAPPING,"assembly.seqtable.bam"),
-        os.path.join(MAPPING,"assembly.seqtable.bam.bai"),
-        os.path.join(RESULTS,"contigSeqTable.tsv"),
-        os.path.join(SUMDIR,"contigKrona.html")
-    ]
+# Contig annotations
+ContigAnnotFiles = [
+    os.path.join(RESULTS,"contigAnnotations.tsv"),
+]
+# Mapping files
+MappingFiles = [
+    os.path.join(MAPPING,"assembly.seqtable.bam"),
+    os.path.join(MAPPING,"assembly.seqtable.bam.bai"),
+    os.path.join(RESULTS,"contigSeqTable.tsv"),
+    os.path.join(SUMDIR,"contigKrona.html")
+]
 
 
 # Secondary AA search files
