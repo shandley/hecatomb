@@ -29,7 +29,7 @@ MappingFiles = [
     os.path.join(MAPPING,"assembly.seqtable.bam"),
     os.path.join(MAPPING,"assembly.seqtable.bam.bai"),
     os.path.join(RESULTS,"contigSeqTable.tsv"),
-    os.path.join(SUMDIR,"contigKrona.html")
+    os.path.join(RESULTS,"contigKrona.html")
 ]
 
 
