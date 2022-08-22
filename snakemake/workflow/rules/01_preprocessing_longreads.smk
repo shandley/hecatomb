@@ -1,5 +1,11 @@
 
+# Add longread-specific targets
+PreprocessingFiles += [
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz"), sample=SAMPLES)
+    ]
 
+
+# rules
 rule create_host_index:
     """Create the minimap2 index for mapping to the host; this will save time."""
     input:

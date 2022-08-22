@@ -21,7 +21,6 @@ configfile: os.path.join(workflow.basedir, '../', 'config', 'immutable.yaml')
 ### LAUNCHER-CONTROLLED CONFIG--"Reads" MUST BE PASSED TO SNAKEMAKE
 READS = config['Reads']
 HOST = config['Host']
-makeReport = config['Report']
 if config['Search'] == 'fast':
     MMSeqsSensAA = config['perfAAfast']
     MMSeqsSensNT = config['perfNTfast']
@@ -56,7 +55,8 @@ HOSTINDEX = f"{HOSTFA}.idx"
 
 ### PREFLIGHT CHECKS
 include: "rules/00_preflight.smk"
-
+include: "rules/00_functions.smk"
+include: "rules/00_targets.smk"
 
 # Parse the samples and read files
 if config['Preprocess'] == 'paired':
@@ -72,9 +72,6 @@ sampleReads = parseSamples(READS)
 SAMPLES = sampleReads.keys()
 # wildcard_constraints:
 #     sample="[a-zA-Z0-9._-]+"
-
-include: "rules/00_functions.smk"
-include: "rules/00_targets.smk"
 
 if config['Preprocess'] == 'paired':
     include: "rules/01_preprocessing.smk"
@@ -96,33 +93,46 @@ include: "rules/03_contig_annotation.smk"
 include: "rules/04_summaries.smk"
 
 
+# Mark target rules
+target_rules = []
+def targetRule(fn):
+    assert fn.__name__.startswith('__')
+    target_rules.append(fn.__name__[2:])
+    return fn
+
+@targetRule
 rule all:
     input:
-        ## Preprocessing
         PreprocessingFiles,
-        ## Assembly
         AssemblyFiles,
-        ## Bigtable
         ReadAnnotationFiles,
-        ## Contig annotation
         ContigAnnotFiles,
-        ## Mapping (read-based contig id)
         MappingFiles,
-        ## Summary
         SummaryFiles
 
+@targetRule
 rule preprocessing:
     input:
         PreprocessingFiles
 
+@targetRule
 rule assembly:
     input:
         AssemblyFiles
 
-rule readAnnotations:
+@targetRule
+rule annotations:
     input:
         ReadAnnotationFiles
 
-rule contigAnnotations:
+@targetRule
+rule ctg_annotations:
     input:
-        ContigAnnotFiles
+        ContigAnnotFiles,
+        MappingFiles
+
+@targetRule
+rule print_targets:
+    run:
+        print("\nTop level rules are: \n", file=sys.stderr)
+        print("* " + "\n* ".join(target_rules) + "\n\n", file=sys.stderr)

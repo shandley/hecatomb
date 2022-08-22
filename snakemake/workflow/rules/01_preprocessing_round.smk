@@ -1,7 +1,16 @@
-"""
-Snakemake rule file to remove 5' primer sequences from roundAB sequencing using BBTools.
-"""
 
+# Add preprocessing-specific targets
+PreprocessingFiles += [
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq.gz"),sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq.gz"),sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R2.all.fastq.gz"),sample=SAMPLES),
+    ]
+
+
+# rules
 rule remove_5prime_primer:
     """Preprocessing step 01: Remove 5' primer.
 

@@ -15,7 +15,7 @@ rule tax_level_counts:
     input:
         os.path.join(RESULTS, "bigtable.tsv")
     output:
-        report(os.path.join(SUMDIR, "taxonLevelCounts.tsv"),
+        report(os.path.join(RESULTS, "taxonLevelCounts.tsv"),
             caption = "../report/tax_level_counts.rst",
             category = "Output")
     params:
@@ -32,7 +32,7 @@ rule tax_level_counts:
 
 rule dumpSamplesTsv:
     output:
-        os.path.join(SUMDIR, 'hecatomb.samples.tsv')
+        os.path.join(RESULTS, 'hecatomb.samples.tsv')
     run:
         writeSamplesTsv(sampleReads, output[0])
 
@@ -56,7 +56,7 @@ rule krona_plot:
     input:
         os.path.join(SUMDIR, "krona.txt")
     output:
-        os.path.join(SUMDIR, "krona.html")
+        os.path.join(RESULTS, "krona.html")
     conda:
         os.path.join('../', 'envs', 'krona.yaml')
     benchmark:
@@ -85,7 +85,7 @@ rule contig_krona_plot:
     input:
         os.path.join(SUMDIR, "contigKrona.txt")
     output:
-        os.path.join(SUMDIR, "contigKrona.html")
+        os.path.join(RESULTS, "contigKrona.html")
     conda:
         os.path.join('../', 'envs', 'krona.yaml')
     log:

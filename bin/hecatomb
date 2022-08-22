@@ -174,13 +174,14 @@ Specify threads:    hecatomb run ... --threads [threads]
 Disable conda:      hecatomb run ... --no-use-conda 
 Change defaults:    hecatomb run ... --snake-default="-k --nolock"
 Add Snakemake args: hecatomb run ... --dry-run --keep-going --touch
-Specify targets:    hecatomb run ... all print_targets
-Available targets:
-    all             Run everything (default)
-    preprocessing   Preprocessing only
-    assembly        Preprocessing + assembly steps
-    annotations     Preprocessing + read annotations
-    print_targets   List available targets
+Specify stages:     hecatomb run ... all print_targets
+Available stages:
+    all                 Run everything (default)
+    preprocessing       Preprocessing steps only
+    assembly            Assembly steps (+ preprocessing)
+    annotations         Read annotations (+ preprocessing)
+    ctg_annotations     Contig annotations (+ preprocessing,assembly)
+    print_stages        List available stages
 """
 
 
@@ -192,7 +193,6 @@ Available targets:
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
 @common_options
-@click.option('--report/--no-report', help='Generate Snakemake report?', default=False, show_default=True)
 def run(reads, preprocess, search, host, report, test,
         configfile, output, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args, **kwargs):
     """Run Hecatomb"""
@@ -205,7 +205,6 @@ def run(reads, preprocess, search, host, report, test,
         'Host': host,
         'Preprocess': preprocess,
         'Search': search,
-        'Report': report,
     }
 
     run_snakemake(

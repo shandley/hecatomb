@@ -14,7 +14,7 @@
 # Run Parameters #
 ##################
 
-# Inputs and outputs (specify here or on the command line)
+# Inputs and outputs (specify Reads here or on the command line, Output blank = use default)
 Reads:
 Output:
 

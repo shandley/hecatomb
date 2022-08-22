@@ -1,19 +1,16 @@
-"""
-Snakemake rule file to preprocess Illumina sequence data for virome analysis.
 
-What is accomplished with these rules?
-    - Non-biological sequence removal (primers, adapters)
-    - Host sequence removal
-    - Removal of redundant sequences (duplicates + clustering)
-        - Creation of sequence count table
-        - Calculation of sequence properties (e.g. GC content, tetramer frequencies)
+# Add preprocessing-specific targets
+PreprocessingFiles += [
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq.gz"),sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq.gz"),sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R2.all.fastq.gz"),sample=SAMPLES),
+    ]
 
-Rob Edwards, Jan 2020
-Updated: Scott Handley, March 2021
-Updated: Michael Roach, Q2/3 2021
-Updated: Sarah Beecroft Q1 2022
-"""
 
+# rules
 rule fastp_preprocessing:
     """Preprocessing step 01: fastp_preprocessing.
     
