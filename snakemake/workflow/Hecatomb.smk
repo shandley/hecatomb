@@ -100,6 +100,8 @@ def targetRule(fn):
     target_rules.append(fn.__name__[2:])
     return fn
 
+localrules: all, preprocessing, assembly, annotations, ctg_annotations, print_stages
+
 @targetRule
 rule all:
     input:
