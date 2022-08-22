@@ -43,7 +43,6 @@ ReadAnnotationFiles = [
 
 # Summary files
 SummaryFiles = [
-    optionalSummary,
     os.path.join(RESULTS, 'hecatomb.samples.tsv'),
     os.path.join(RESULTS, "taxonLevelCounts.tsv"),
     os.path.join(RESULTS, "krona.html")

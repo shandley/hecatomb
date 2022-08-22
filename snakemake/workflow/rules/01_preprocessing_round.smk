@@ -353,7 +353,7 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     """
     input:
         fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
-        summ = optionalSummary[1]
+        # summ = optionalSummary[1]
     output:
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
@@ -390,7 +390,7 @@ rule create_individual_seqtables:
     input:
         seqs = os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta"),
         counts = os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv"),
-        summ = optionalSummary[2]
+        # summ = optionalSummary[2]
     output:
         seqs = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqs")),
         counts = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.counts")),

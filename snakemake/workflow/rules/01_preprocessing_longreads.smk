@@ -37,7 +37,7 @@ rule host_removal_mapping:
     input:
         r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
         host = HOSTINDEX,
-        summ = optionalSummary[0]
+        # summ = optionalSummary[0]
     output:
         r1=temp(os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")),
     benchmark:
@@ -67,7 +67,7 @@ rule cluster_similar_sequences:  ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT
     """
     input:
         fa=os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta"),
-        summ=optionalSummary[1]
+        # summ=optionalSummary[1]
     output:
         temp(os.path.join(TMPDIR,"p05","{sample}_R1_rep_seq.fasta")),
         temp(os.path.join(TMPDIR,"p05","{sample}_R1_cluster.tsv")),
@@ -104,7 +104,7 @@ rule create_individual_seqtables:
     input:
         seqs=os.path.join(TMPDIR,"p05","{sample}_R1_rep_seq.fasta"),
         counts=os.path.join(TMPDIR,"p05","{sample}_R1_cluster.tsv"),
-        summ=optionalSummary[2]
+        # summ=optionalSummary[2]
     output:
         seqs=temp(os.path.join(TMPDIR,"p06","{sample}_R1.seqs")),
         counts=temp(os.path.join(TMPDIR,"p06","{sample}_R1.counts")),

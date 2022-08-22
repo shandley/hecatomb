@@ -20,7 +20,7 @@ rule fastp_preprocessing:
         r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
         r2 = lambda wildcards: sampleReads[wildcards.sample]['R2'],
         contaminants = os.path.join(CONPATH, "vector_contaminants.fa"),
-        summ = optionalSummary[0]
+        # summ = optionalSummary[0]
     output:
         r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq")),
@@ -177,7 +177,7 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     """
     input:
         fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
-        summ = optionalSummary[1]
+        # summ = optionalSummary[1]
     output:
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
@@ -214,7 +214,7 @@ rule create_individual_seqtables:
     input:
         seqs = os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta"),
         counts = os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv"),
-        summ = optionalSummary[2]
+        # summ = optionalSummary[2]
     output:
         seqs = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqs")),
         counts = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.counts")),

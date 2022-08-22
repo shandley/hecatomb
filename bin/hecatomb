@@ -193,7 +193,7 @@ Available stages:
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
 @common_options
-def run(reads, preprocess, search, host, report, test,
+def run(reads, preprocess, search, host, test,
         configfile, output, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args, **kwargs):
     """Run Hecatomb"""
     if test:
