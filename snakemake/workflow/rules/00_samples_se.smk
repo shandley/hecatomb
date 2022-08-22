@@ -33,7 +33,7 @@ def samplesFromTsv(tsvFile):
     with open(tsvFile,'r') as tsv:
         for line in tsv:
             l = line.strip().split('\t')
-            if len(l) == 3:
+            if len(l) == 2:
                 outDict[l[0]] = {}
                 if os.path.isfile(l[1]):
                     outDict[l[0]]['R1'] = l[1]
