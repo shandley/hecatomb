@@ -186,7 +186,7 @@ Available stages:
 
 
 @click.command(epilog=EPILOG, context_settings={"ignore_unknown_options": True})
-@click.option('--reads', 'reads', help='Input file/directory', type=str, default=None)
+@click.option('--reads', 'reads', help='Input file/directory', type=str, default=None, required=True)
 @click.option('--preprocess', help='Preprocessing method', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
 @click.option('--search', help='MMSeqs search speed settings', default='sensitive',
@@ -279,6 +279,7 @@ def add_host(host, host_fa, output, configfile, **kwargs):
 @common_options
 def list_hosts(configfile, **kwargs):
     """List the available host genomes"""
+    copy_config(configfile)
     with open(configfile, 'r') as f:
         config = yaml.safe_load(f)
     if config['Databases'] is None:
