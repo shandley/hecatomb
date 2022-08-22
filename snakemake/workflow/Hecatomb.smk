@@ -132,7 +132,7 @@ rule ctg_annotations:
         MappingFiles
 
 @targetRule
-rule print_targets:
+rule print_stages:
     run:
-        print("\nTop level rules are: \n", file=sys.stderr)
+        print("\nIndividual Hecatomb stages to run: \n", file=sys.stderr)
         print("* " + "\n* ".join(target_rules) + "\n\n", file=sys.stderr)
