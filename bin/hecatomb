@@ -25,7 +25,17 @@ def snake_base(rel_path):
 def print_version():
     with open(snake_base(os.path.join('..','VERSION')), 'r') as f:
         version = f.readline()
+    click.echo("""
+\b
+██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗
+██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗
+███████║█████╗  ██║     ███████║   ██║   ██║   ██║██╔████╔██║██████╔╝
+██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗
+██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝
+╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝
+""")
     click.echo('\n' + 'Hecatomb version ' + version)
+
 
 
 def msg(err_message):
@@ -149,15 +159,7 @@ def common_options(func):
 
 @click.group(cls=OrderedCommands)
 def cli():
-    """
-\b
-██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗
-██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗
-███████║█████╗  ██║     ███████║   ██║   ██║   ██║██╔████╔██║██████╔╝
-██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗
-██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝
-╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝
-    """
+    """Subcommand usage: hecatomb subcommand --help"""
     pass
 
 
@@ -185,7 +187,7 @@ Available stages:
 """
 
 
-@click.command(epilog=EPILOG, context_settings={"ignore_unknown_options": True})
+@click.command(epilog=EPILOG, context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
 @click.option('--reads', 'reads', help='Input file/directory', type=str, default=None, required=True)
 @click.option('--preprocess', help='Preprocessing method', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
@@ -245,14 +247,15 @@ def install(configfile, output, threads, snake_default, snake_args, **kwargs):
 
 
 @click.command(context_settings={"ignore_unknown_options": True})
-@click.option('--comb', multiple=True, help='Hecatomb output directory to combine', show_default=False)
+@click.option('--comb', multiple=True, required=True, show_default=False,
+              help='Two or more Hecatomb output directories to combine. e.g. --comb dir1/ --comb dir2/ ...')
 @common_options
 def combine(comb, configfile, output, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args,
             **kwargs):
     """Combine multiple Hecatomb runs"""
     merge_config = {
         'Output': output,
-        'outDirs': comb,
+        'outDirs': list(comb),
     }
     run_snakemake(
         snakefile_path=snake_base(os.path.join('..', 'snakemake', 'workflow', 'combineOutputs.smk')),
