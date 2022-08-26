@@ -1,5 +1,5 @@
 {% set name = "Hecatomb" %}
-{% set version = "1.0.1" %}
+{% set version = "1.1.0" %}
 
 package:
   name: {{ name|lower }}
@@ -34,7 +34,7 @@ test:
 about:
   home: https://github.com/shandley/hecatomb
   license: MIT
-  license_file: LICENSE
+  license_file: hecatomb.LICENSE
   summary: Accurate classification of viral sequences from metagenome samples
   dev_url: https://github.com/shandley/hecatomb
   doc_url: https://hecatomb.readthedocs.io/en/latest/

@@ -23,7 +23,7 @@ def snake_base(rel_path):
 
 
 def print_version():
-    with open(snake_base(os.path.join('..','VERSION')), 'r') as f:
+    with open(snake_base(os.path.join('..','hecatomb.VERSION')), 'r') as f:
         version = f.readline()
     click.echo("""
 \b
@@ -104,7 +104,7 @@ def run_snakemake(configfile=None, snakefile_path=None, merge_config=None, threa
         msg_box('Runtime config', errmsg=yaml.dump(snake_config, Dumper=yaml.Dumper))
 
     # add threads
-    snake_command += ['--cores', threads]
+    snake_command += ['--jobs', threads]
 
     # add conda args if using conda
     if use_conda:
