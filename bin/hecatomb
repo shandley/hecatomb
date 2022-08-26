@@ -78,7 +78,7 @@ class OrderedCommands(click.Group):
 
 
 def run_snakemake(configfile=None, snakefile_path=None, merge_config=None, threads=1, use_conda=False,
-                  conda_frontend=None, conda_prefix=None, snake_default_args=None, snake_extra=None):
+                  conda_frontend=None, conda_prefix=None, snake_default_args=None, snake_extra=[]):
     """Run a Snakefile"""
     snake_command = ['snakemake', '-s', snakefile_path]
 
@@ -104,7 +104,8 @@ def run_snakemake(configfile=None, snakefile_path=None, merge_config=None, threa
         msg_box('Runtime config', errmsg=yaml.dump(snake_config, Dumper=yaml.Dumper))
 
     # add threads
-    snake_command += ['--jobs', threads]
+    if not '--profile' in snake_extra:
+        snake_command += ['--jobs', threads]
 
     # add conda args if using conda
     if use_conda:
@@ -119,8 +120,7 @@ def run_snakemake(configfile=None, snakefile_path=None, merge_config=None, threa
         snake_command += snake_default_args
 
     # add any additional snakemake commands
-    if snake_extra:
-        snake_command += list(snake_extra)
+    snake_command += list(snake_extra)
 
     # Run Snakemake!!!
     snake_command = ' '.join(str(s) for s in snake_command)
@@ -138,8 +138,7 @@ def common_options(func):
     options = [
         click.option('--output', help='Output directory', type=click.Path(), default='hecatomb.out', show_default=True),
         click.option('--configfile', default='hecatomb.config.yaml', help='Custom config file', show_default=True),
-        click.option('--threads', help='Number of threads to use', default=1, show_default=True),
-        click.option('--test', help='Run the test dataset', is_flag=True, show_default=True, default=False),
+        click.option('--threads', help='Number of threads to use', default=32, show_default=True),
         click.option('--use-conda/--no-use-conda', default=True, help='Use conda for Snakemake rules',
                      show_default=True),
         click.option('--conda-frontend',
@@ -195,11 +194,9 @@ Available stages:
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
 @common_options
-def run(reads, preprocess, search, host, test,
+def run(reads, preprocess, search, host,
         configfile, output, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args, **kwargs):
     """Run Hecatomb"""
-    if test:
-        reads = snake_base(os.path.join('..', 'test_data'))
 
     merge_config = {
         'Reads': reads,
@@ -221,6 +218,38 @@ def run(reads, preprocess, search, host, test,
         snake_extra=snake_args,
     )
 
+
+@click.command(epilog=EPILOG, context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
+@click.option('--preprocess', help='Preprocessing method', default='paired', show_default=True,
+              type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
+@click.option('--search', help='MMSeqs search speed settings', default='sensitive',
+              type=click.Choice(['fast', 'sensitive']), show_default=True)
+@click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
+@common_options
+def test(preprocess, search, host,
+        configfile, output, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args, **kwargs):
+    """Run Hecatomb"""
+    reads = snake_base(os.path.join('..', 'test_data'))
+
+    merge_config = {
+        'Reads': reads,
+        'Output': output,
+        'Host': host,
+        'Preprocess': preprocess,
+        'Search': search,
+    }
+
+    run_snakemake(
+        snakefile_path=snake_base(os.path.join('..', 'snakemake', 'workflow', 'Hecatomb.smk')),
+        configfile=configfile,
+        merge_config=merge_config,
+        threads=threads,
+        use_conda=use_conda,
+        conda_frontend=conda_frontend,
+        conda_prefix=conda_prefix,
+        snake_default_args=snake_default,
+        snake_extra=snake_args,
+    )
 
 @click.command()
 @common_options
@@ -316,6 +345,7 @@ def list_hosts(configfile, **kwargs):
 
 
 cli.add_command(run)
+cli.add_command(test)
 cli.add_command(config)
 cli.add_command(install)
 cli.add_command(combine)
