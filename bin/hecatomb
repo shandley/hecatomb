@@ -258,7 +258,7 @@ def config(configfile, **kwargs):
     copy_config(configfile)
 
 
-@click.command(context_settings={"ignore_unknown_options": True})
+@click.command(context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
 @common_options
 def install(configfile, output, threads, snake_default, snake_args, **kwargs):
     """Install the Hecatomb databases"""
@@ -275,7 +275,7 @@ def install(configfile, output, threads, snake_default, snake_args, **kwargs):
     )
 
 
-@click.command(context_settings={"ignore_unknown_options": True})
+@click.command(context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
 @click.option('--comb', multiple=True, required=True, show_default=False,
               help='Two or more Hecatomb output directories to combine. e.g. --comb dir1/ --comb dir2/ ...')
 @common_options
@@ -299,7 +299,7 @@ def combine(comb, configfile, output, threads, use_conda, conda_frontend, conda_
     )
 
 
-@click.command(context_settings={"ignore_unknown_options": True})
+@click.command(context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
 @click.option('--host', help='Name for your host genome', show_default=False, required=True)
 @click.option('--host-fa', help='Host genome fasta file', show_default=False, required=True)
 @common_options
