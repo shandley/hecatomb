@@ -31,7 +31,7 @@ That's it!
 conda activate hecatomb
 
 # Check that it's installed
-hecatomb -h
+hecatomb --help
 ```
 
 ## Customisation
@@ -63,10 +63,10 @@ Use `--test` in place of specifying your read directory with `--reads`.
 
 ```bash
 # run locally
-hecatomb run --test
+hecatomb test
 
 # run on cluster using a Snakemake profile
-hecatomb run --test --profile slurm
+hecatomb test --profile slurm
 ```
 
 ## Build the docs

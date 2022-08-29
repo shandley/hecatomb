@@ -162,22 +162,6 @@ contigID  seqID  start  stop  len  qual  count  CPM  alnType  taxMethod  kingdom
 
 <br>
 
-[//]: # (## Sankey)
-
-[//]: # ()
-[//]: # (`hecatomb_report/Sankey.svg`)
-
-[//]: # ()
-[//]: # (The sankey diagram shows the fate of all reads throughout the preprocessing and read-based taxonomic assignment steps.)
-
-[//]: # (It serves to visualise the read filtering and distribution of taxonomic assignment methods and give you an overall impression of how well things went.)
-
-[//]: # (The sankey diagram produced for the test dataset is shown below. )
-
-[//]: # (This dataset is relatively rich in viral sequences and yet the majority of reads are either filtered or non-viral &#40;that we know of&#41;.)
-
-[//]: # ()
-[//]: # ([![]&#40;img/Sankey.svg&#41;]&#40;img/Sankey.svg&#41;)
 
 ## krona.html and contigKrona.html
 

@@ -2,6 +2,7 @@
 
 * `hecatomb install` - Install the databases (you should only need to do this once)
 * `hecatomb run` - Run the pipeline
+* `hecatomb test` - Run the test dataset
 * `hecatomb config` - Copy the default config file to the current directory (for use with `--configfile`)
 * `hecatomb listHosts` - List the currently-available host genomes
 * `hecatomb addHost` - Add your own host genome
@@ -69,23 +70,29 @@ hecatomb run --reads fastq/ --profile slurm
 Running Hecatomb on a HPC with a Snakemake profile is THE BEST WAY to run the pipeline.
 But if you're feeling lazy, just submit a single job with the max resources and use `--threads`.
 
-## Read annotation only
+## Run specific stages
 
-To optionally skip generating an assembly when running Hecatomb, 
-the command is exactly the same as above with the addition of the `--skipAssembly` flag:
+Optionally skip specific stages of Hecatomb by specifying the stages you want to run.
+For instance, skip assembly and run the read-annotations only:
 
-```bash
-hecatomb run --reads fastq/ --profile slurm --skipAssembly
+```shell
+hecatomb run --reads fastq/ --profile slurm preprocessing annotations
+```
+
+View the stages that are available to run:
+
+```shell
+hecatomb run print_stages
 ```
 
 ## Quicker read annotation
 
 The main pipeline bottleneck is the MMSeqs searches.
-Use the `--fast` flag to run Hecatomb with less sensitive settings for MMSeqs.
+Use the `--search fast` flag to run Hecatomb with less sensitive settings for MMSeqs.
 In limited testing, we find it performs almost as well but with considerable runtime improvements.
 
 ```bash
-hecatomb run --reads fastq/ --profile slurm --fast
+hecatomb run --reads fastq/ --profile slurm --search fast
 ```
 
 ## Specifying a host genome
@@ -139,7 +146,7 @@ However, the assembly files need to be coalesced with FlyE, and the assembly-ass
 To run:
 
 ```bash
-hecatomb run --comb hecOutDir1/ --comb hecOutDir2/
+hecatomb combine --comb hecOutDir1/ --comb hecOutDir2/
 ```
 
 and use `--threads` or `--profile` like you normally would.

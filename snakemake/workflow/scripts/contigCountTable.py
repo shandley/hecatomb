@@ -41,7 +41,7 @@ with open(snakemake.output.count_tbl ,'w') as o:
         'Reads',
         'RPKM',
         'FPKM',
-        'CPM',
+        'SPM',
         'AverageFold',
         'ReferenceGC',
         'CoveragePercentage',
@@ -64,6 +64,6 @@ with open(snakemake.output.count_tbl ,'w') as o:
                     l[4],                               # reads
                     str(round(float(l[5]),2)),          # RPKM
                     str(round(float(l[7]),2)),          # FPKM
-                    str(tpm) ]+                         # CPM
+                    str(tpm) ]+                         # SPM
                     covStat[l[0]]                       # aveFole -> medianFold
                 ) + '\n')

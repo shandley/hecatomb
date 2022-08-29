@@ -107,5 +107,5 @@ There is more detail on the [GitHub page for this profile](https://github.com/Sn
 Use the profile with Hecatomb:
 
 ```bash
-hecatomb run --test --fast --profile slurm
+hecatomb test --search fast --profile slurm
 ```
