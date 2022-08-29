@@ -4,10 +4,6 @@ Per-sample assemblies for longreads
     in 03_population_assembly.smk
 """
 
-"""
-os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz")
-"""
-
 rule canu_sample_assembly:
     """Per-sample assembly with canu; also works for unmapped rescue reads"""
     input:
@@ -57,7 +53,7 @@ rule combine_canu_contigs:
     input:
         expand(os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.uniq.fasta"), sample=list(SAMPLES) + ['unmappedRescue'])
     output:
-        temp(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","all_samples_contigs_size_selected.fasta"))
+        temp(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","all_sample_contigs.fasta"))
     shell:
         """cat {input} > {output}"""
 

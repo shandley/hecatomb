@@ -228,7 +228,7 @@ def run(reads, preprocess, search, host,
 @common_options
 def test(preprocess, search, host,
         configfile, output, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args, **kwargs):
-    """Run Hecatomb"""
+    """Run the Hecatomb test dataset"""
     reads = snake_base(os.path.join('..', 'test_data'))
 
     merge_config = {
