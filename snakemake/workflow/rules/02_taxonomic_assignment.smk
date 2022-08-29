@@ -187,7 +187,8 @@ rule SECONDARY_AA_generate_output_table:
         counts = os.path.join(RESULTS, "sampleSeqCounts.tsv"),
         balt = os.path.join(TABLES, '2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
-        os.path.join(SECONDARY_AA_OUT, "AA_bigtable.tsv")
+        vir = os.path.join(SECONDARY_AA_OUT, "AA_bigtable.tsv"),
+        nonvir = os.path.join(SECONDARY_AA_OUT, "AA_bigtable.nonviral.tsv")
     resources:
         mem_mb = MiscMem
     threads:
@@ -503,7 +504,8 @@ rule SECONDARY_NT_generate_output_table:
         counts = os.path.join(RESULTS,"sampleSeqCounts.tsv"),
         balt = os.path.join(TABLES,'2020_07_27_Viral_classification_table_ICTV2019.txt')
     output:
-        os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv")
+        vir = os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv"),
+        nonvir = os.path.join(SECONDARY_NT_OUT, "NT_bigtable.nonviral.tsv")
     resources:
         mem_mb = MiscMem
     threads:

@@ -4,7 +4,6 @@ import os
 import atexit
 import logging
 import re
-from statistics import median
 
 def exitLogCleanup(*args):
     """Cleanup the logging file(s) prior to exiting"""
@@ -16,7 +15,6 @@ atexit.register(exitLogCleanup, snakemake.log[0])
 logging.basicConfig(filename=snakemake.log[0] ,filemode='w' ,level=logging.DEBUG)
 
 logging.debug('Slurping baltimore classifications')
-smplCounts = {}
 balt = {}
 with open(snakemake.input.balt, 'r') as balfh:
     balfh.readline()    # skip header
@@ -30,45 +28,51 @@ lcaLin = {}
 with open(snakemake.input.lca, 'r') as lcafh:
     for line in lcafh:
         l = line.strip().split('\t')
-        # dont use lca lineage for root taxIDs - see config.yaml for IDs
         if not l[1] in snakemake.params.taxIdIgnore:
-            lcaLin[l[0]] = '\t'.join((l[2:]))
+            lcaLin[l[0]] = l[2:]
 
 logging.debug('Reading in tophit seq IDs')
 topLin = {}
 with open(snakemake.input.top, 'r') as topfh:
     for line in topfh:
         l = line.strip().split('\t')
-        # skip if using lca lineage
         try:
             lcaLin[l[0]]
         except KeyError:
-            topLin[l[0]] = '\t'.join((l[2:]))
+            topLin[l[0]] = l[2:]
 
 logging.debug('Parsing alignments and writing NT bigtable output')
-with open(snakemake.output[0], 'w') as out:
-    out.write('\t'.join((snakemake.config['bigtableHeader'])) + '\n')
-    out.write('\n')
-    with open(snakemake.input.aln, 'r') as alnfh:
-        for line in alnfh:
-            l = line.strip().split('\t')
+outVir = open(snakemake.output.vir, 'w')
+outNonVir = open(snakemake.output.nonvir, 'w')
+
+outVir.write('\t'.join((snakemake.config['bigtableHeader'])) + '\n')
+outNonVir.write('\t'.join((snakemake.config['bigtableHeader'])) + '\n')
+
+with open(snakemake.input.aln, 'r') as alnfh:
+    for line in alnfh:
+        l = line.strip().split('\t')
+        try:
+            taxOut = ['LCA'] + lcaLin[l[0]]
+        except KeyError:
             try:
-                taxOut = 'LCA\t' + lcaLin[l[0]]
+                taxOut = ['TopHit'] + topLin[l[0]]
             except KeyError:
-                try:
-                    taxOut = 'TopHit\t' + topLin[l[0]]
-                except KeyError:
-                    taxOut = '\t'.join((['NA'] * 8))
-            # seq ID = sample:count:seqNum
-            seqInf = l[0].split(':')
-            tName =  re.sub('.*\||[a-zA-Z]+=.*','',l[18])
-            seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], seqInf[2]))
-            alnOut = 'nt\t' + '\t'.join((l[1:17]))
-            try:
-                baltOut = balt[taxOut.split()[5]]
-            except KeyError:
-                baltOut = 'NA\tNA'
-            out.write('\t'.join((seqOut, alnOut, tName, taxOut, baltOut)))
-            out.write('\n')
+                taxOut = ['NA'] * 8
+        taxOutPrint = '\t'.join(taxOut)
+        if taxOut[3] == 'Viruses':
+            out = outVir
+        else:
+            out = outNonVir
+        seqInf = l[0].split(':')
+        tName =  re.sub('.*\||[a-zA-Z]+=.*','',l[18])
+        seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], seqInf[2]))
+
+        alnOut = 'nt\t' + '\t'.join((l[1:17]))
+        try:
+            baltOut = balt[taxOut[5]]
+        except KeyError:
+            baltOut = 'NA\tNA'
+        out.write('\t'.join((seqOut, alnOut, tName, taxOutPrint, baltOut)))
+        out.write('\n')
 
 logging.debug('Done')
