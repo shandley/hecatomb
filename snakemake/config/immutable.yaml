@@ -43,4 +43,4 @@ bigtableHeader: [ 'seqID',
                   'genus',
                   'species',
                   'baltimoreType',
-                  'baltimoreGroup\n']
+                  'baltimoreGroup']

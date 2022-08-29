@@ -45,7 +45,7 @@ with open(snakemake.input.top, 'r') as topfh:
 
 logging.debug('Parsing alignments and printing output on the fly')
 with open(snakemake.output[0], 'w') as out:
-    out.write('\t'.join((snakemake.config['bigtableHeader'])))
+    out.write('\t'.join((snakemake.config['bigtableHeader'])) + '\n')
 
     with open(snakemake.input.aln, 'r') as alnfh:
         for line in alnfh:
