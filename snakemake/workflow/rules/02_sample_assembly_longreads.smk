@@ -79,7 +79,7 @@ rule coverage_calculations:
         os.path.join(STDERR, "coverage_calculations.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:

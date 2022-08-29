@@ -31,7 +31,7 @@ rule remove_5prime_primer:
         os.path.join(STDERR,"remove_5prime_primer.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -69,7 +69,7 @@ rule remove_3prime_contaminant:
         os.path.join(STDERR,"remove_3prime_contaminant.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -105,7 +105,7 @@ rule remove_primer_free_adapter:
         os.path.join(STDERR,"remove_primer_free_adapter.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -141,7 +141,7 @@ rule remove_adapter_free_primer:
         os.path.join(STDERR,"remove_adapter_free_primer.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -173,7 +173,7 @@ rule remove_vector_contamination:
         os.path.join(STDERR,"remove_vector_contamination.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -207,7 +207,7 @@ rule remove_low_quality:
         os.path.join(STDERR,"remove_low_quality.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     params:
@@ -305,7 +305,7 @@ rule nonhost_read_repair:
         os.path.join(STDERR, "nonhost_read_repair.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:

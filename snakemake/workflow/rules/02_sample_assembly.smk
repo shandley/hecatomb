@@ -231,7 +231,7 @@ rule rescue_read_kmer_normalization:
         os.path.join(STDERR, "rescue_read_kmer_normalization.log")
     resources:
         mem_mb = MMSeqsMem,
-        javaAlloc = int(0.95 * MMSeqsMem)
+        javaAlloc = int(0.9 * MMSeqsMem)
     threads:
         MMSeqsCPU
     conda:
@@ -316,7 +316,7 @@ rule contig_reformating_and_stats:
         log3 = os.path.join(STDERR, "contig_reformating_and_stats.stats.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     params:
@@ -361,7 +361,7 @@ rule coverage_calculations:
         os.path.join(STDERR, "coverage_calculations.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:

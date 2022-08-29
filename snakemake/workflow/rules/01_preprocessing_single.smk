@@ -119,7 +119,7 @@ rule nonhost_read_repair:
         os.path.join(STDERR, "nonhost_read_repair.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
