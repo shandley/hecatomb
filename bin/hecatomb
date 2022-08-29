@@ -144,7 +144,7 @@ def common_options(func):
         click.option('--conda-frontend',
                      type=click.Choice(['mamba', 'conda'], case_sensitive=True),
                      default='mamba', help='Specify Conda frontend', show_default=True),
-        click.option('--conda-prefix', default=snake_base(os.path.join('workflow', 'conda')),
+        click.option('--conda-prefix', default=snake_base(os.path.join('..', 'snakemake', 'conda')),
                      help='Custom conda env directory', type=click.Path(), show_default=False),
         click.option('--snake-default', multiple=True,
                      default=['--rerun-incomplete', '--printshellcmds', '--nolock', '--show-failed-logs'],
