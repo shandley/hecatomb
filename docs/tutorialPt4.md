@@ -10,7 +10,7 @@ We can compare the normalised counts for these two groups to see if they're sign
 
 Let's check out the dataframe we made earlier that we'll be using for the test:
 
-```R
+```r
 View(podoCounts)
 ```
 
@@ -20,7 +20,7 @@ We'll use the base-r function `t.test()`, which takes two vectors--one with the
 group A counts and one with the group B counts.
 We can use the `filter()` and `pull()` functions within the `t.test()` function like so:
 
-```R
+```r
 t.test(
     podoCounts %>% 
         filter(MacGuffinGroup=='A') %>% 
@@ -54,7 +54,7 @@ mean of x mean of y
 
 You might prefer to perform a Wilcoxon test; the syntax is very similar to the t.test:
 
-```R
+```r
 wilcox.test(
     podoCounts %>% 
         filter(MacGuffinGroup=='A') %>% 
@@ -82,7 +82,7 @@ Let's use Dunn's test to check all the major families at the same time.
 Dunn's is good for if you have three or more categories for a metadata field, such as our vaccine column.
 First find out what the major families are by summing the hits for each family and sorting the table.
 
-```R
+```r
 # collect the family counts
 viralFamCounts = virusesFiltered %>% 
     group_by(family) %>% 
@@ -95,7 +95,7 @@ viralFamCounts$family = factor(viralFamCounts$family,levels=viralFamCounts$famil
 
 and plot:
 
-```R
+```r
 ggplot(viralFamCounts) +
     geom_bar(aes(x=family,y=n),stat='identity') +
     coord_flip()
@@ -106,7 +106,7 @@ ggplot(viralFamCounts) +
 Let's focus on _Siphoviridae_, _Adenoviridae_, _Podoviridae_, and _Microviridae_.
 Collect summary counts for these families for each sample and include the metadata we want to use:
 
-```R
+```r
 viralMajorFamCounts = viruses %>% 
     filter(family %in% c('Siphoviridae','Adenoviridae','Podoviridae','Microviridae')) %>% 
     group_by(sampleID,family,vaccine) %>% 
@@ -115,7 +115,7 @@ viralMajorFamCounts = viruses %>%
 
 Now let's do the dunn's test for these families:
 
-```R
+```r
 viralMajorFamCounts %>% 
     group_by(family) %>% 
     dunn_test(n ~ vaccine,p.adjust.method='holm') %>% 
@@ -143,7 +143,7 @@ viralMajorFamCounts %>%
 There's only one comparison that is significant.
 Let's put it on a plot
 
-```R
+```r
 ggplot(viralMajorFamCounts) +
     geom_jitter(aes(x=vaccine,y=n)) +
     facet_wrap(~family)
@@ -162,7 +162,7 @@ I want to be sure about the alignments, so I'll apply some stringent filtering c
 Then I'll assign anything with _any_ hits as 'present' for that viral family.
 Let's look at _Myoviridae_ ... for no particular reason.
  
-```R
+```r
 # apply a stringent filter
 virusesStringent = viruses %>% 
     filter(evalue<1e-30,alnlen>150,pident>75,alnType=='aa')
@@ -187,7 +187,7 @@ To do the Fisher's exact test we need to specify a 2x2 grid;
 The first column will be the number with _Myoviridae_ for each group.
 The second column will be the numbers without for each group.
 
-```R
+```r
 # matrix rows
 mtxGroupA = c(
     myovirPresAbs %>% 
@@ -221,7 +221,7 @@ View(myovirFishMtx)
 
 ![](img/tuteFishMtx.png)
 
-```R
+```r
 # Run Fisher's exact test
 fisher.test(myovirFishMtx)
 ```

@@ -6,7 +6,7 @@ and have loaded them in Rstudio into dataframes called `data` and `meta`.
 
 Let's look at the bigtable file:
 
-```R
+```r
 # in R/Rstudio
 View(data)
 ```
@@ -15,7 +15,7 @@ View(data)
 
 And the metadata:
 
-```R
+```r
 View(meta)
 ```
 
@@ -31,7 +31,7 @@ Merging in your metadata is easy.
 The merge function with perform an inner join by default, or you can specify outer, and left- and right-outer.
 This shouldn't matter if you have metadata for all of your samples.
 
-```R
+```r
 # save the merged tables to a new dataframe
 dataMeta = merge(data, meta, by='sampleID')
 
@@ -44,7 +44,7 @@ dataMeta = merge(data, meta, by='sampleID', all=T)
 Let's look at the raw alignments.
 First, extract the viral hits to a new data frame. 
 
-```R
+```r
 viruses = dataMeta %>% 
     filter(kingdom=="Viruses")
 ```
@@ -53,7 +53,7 @@ I like to plot the alignment length against identity, and facet by viral family.
 We show the different alignment types by color, and we can scale the point size by the cluster number.
 I've added in `alpha=0.1` to set it to 10% opacity and the points will overlap a lot at this scale.
 
-```R
+```r
 ggplot(viruses) + 
     geom_point(
         aes(x=alnlen,y=pident,color=alnType,size=count),
@@ -68,7 +68,7 @@ You can use these plots to help guide filtering strategies.
 We can divide the alignments into 'quadrants' by adding alignment length and percent identity thresholds,
 for instance alignment length of 150 and percent identity of 75. 
 
-```R
+```r
 ggplot(viruses) +
     geom_point(
         aes(x=alnlen,y=pident,color=alnType,size=count),
@@ -107,14 +107,14 @@ Let's see what hits would be removed if we used a fairly stringent cutoff of 1e-
 
 You can return a filtered dataframe like so:
 
-```R
+```r
 virusesFiltered = viruses %>% 
     filter(evalue<1e-20)
 ```
 
 But let's instead add a flag to the original dataframe for purging hits:
 
-```R
+```r
 # mutate() will add or modify columns, ifelse() will return a value base on a condition
 viruses = viruses %>% 
     mutate(filter=ifelse(evalue<1e-20,'pass','filter'))
@@ -122,7 +122,7 @@ viruses = viruses %>%
 
 And plot:
 
-```R
+```r
 ggplot(viruses) +
     geom_point(
         aes(x=alnlen,y=pident,color=filter),
@@ -137,7 +137,7 @@ Some viral families will be removed altogether, which is probably a good thing i
 
 Going back to the quadrant concept, you might only want to keep sequences above a certain length and percent identity:
 
-```R
+```r
 # this will overwrite the flags with the new designations
 viruses = viruses %>% 
     mutate(filter=ifelse(alnlen>150 & pident>75,'pass','filter'))
@@ -145,7 +145,7 @@ viruses = viruses %>%
 
 Plot with the vertical and horizontal lines to match our cutoffs:
 
-```R
+```r
 ggplot(viruses) +
     geom_point(
         aes(x=alnlen,y=pident,color=filter),

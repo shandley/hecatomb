@@ -46,7 +46,7 @@ Databases: /scratch/HecatombDatabases
 
 and rerun the installation 
 
-```bash
+```shell
 hecatomb install
 ```
 
@@ -216,7 +216,7 @@ jobs are submitted, just to see if everything is configured correctly.
 To do that, Snakemake needs the dry run flag (`--dry-run`, `--dryrun`, or `-n`).
 In Hecatomb, simply tack it on to the end of your command:
 
-```bash
+```shell
 hecatomb run --reads fasq/ --profile slurm --dry-run
 ```
 

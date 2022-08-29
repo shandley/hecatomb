@@ -10,7 +10,7 @@ While this is fine for smaller datasets, larger datasets will require HPC resour
 
 ## New install
 
-```bash
+```shell
 # create new conda env and install hecatomb
 conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 
@@ -27,8 +27,8 @@ We will run hecatomb on the test dataset, which is a subset of the dataset descr
 We use the fast MMSeqs settings with the default 32 threads and generate a summary report. 
 This will give us an assembly and some read annotations.
 
-```bash
-hecatomb run --test --fast --report
+```shell
+hecatomb test --search fast
 ```
 
 We should now have all the files we need!
@@ -72,7 +72,7 @@ The installation and packages for this tutorial have been tested with a fresh in
 
 Assuming you have installed R and Rstudio for your operating system, you should be able to install the packages like so:
 
-```R
+```r
 # in R/Rstudio
 install.packages("tidyr")
 install.packages("dplyr")
@@ -81,19 +81,19 @@ install.packages("ggplot2")
 
 Alternatively, you can install the whole tidyverse with:
 
-```R
+```r
 install.packages("tidyverse")
 ```
 
 We'll also need 'rstatix' for some of the statistical tests:
 
-```R
+```r
 install.packages("rstatix")
 ```
 
 Once installed, load the packages:
 
-```R
+```r
 library(tidyr)
 library(dplyr)
 library(ggplot2)
@@ -106,19 +106,19 @@ Make sure you set your working directory and have downloaded the files into this
 We will load the `bigtable.tsv.gz` into a dataframe called `data` with `load.csv()`.
 The file is tab-separated and contains a header.
 
-```R
+```r
 data = read.csv('bigtable.tsv.gz',header=T,sep='\t')
 ```
 
 Next, we will load the `metadata.tsv.gz` file into a dataframe called `meta` in the same way.
 
-```R
+```r
 meta = read.csv('metadata.tsv.gz',header=T,sep='\t')
 ```
 
 We'll load `taxonLevelCounts.tsv.gz` while we're at it.
 
-```R
+```r
 taxonCounts = read.csv('taxonLevelCounts.tsv.gz',header=T,sep='\t')
 ```
 

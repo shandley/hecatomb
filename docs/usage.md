@@ -53,7 +53,7 @@ but you can mix and match FASTAs and FASTQs to your heart's content.
 By default, Hecatomb will annotate your reads and perform an assembly.
 If you have more than 32 threads available, you can increase the threads provided to the pipeline with `--threads`:
 
-```bash
+```shell
 hecatomb run --reads fastq/ --threads 64
 ```
 
@@ -63,7 +63,7 @@ If you're running on a HPC cluster, you should first set up a
 Then you would specify your profile name when running Hecatomb.
 Assuming your profile is called `slurm`:
 
-```bash
+```shell
 hecatomb run --reads fastq/ --profile slurm
 ```
 
@@ -91,7 +91,7 @@ The main pipeline bottleneck is the MMSeqs searches.
 Use the `--search fast` flag to run Hecatomb with less sensitive settings for MMSeqs.
 In limited testing, we find it performs almost as well but with considerable runtime improvements.
 
-```bash
+```shell
 hecatomb run --reads fastq/ --profile slurm --search fast
 ```
 
@@ -105,7 +105,7 @@ If your sample is from a different source you will need to specify the host geno
 
 To see what host genomes are available:
 
-```bash
+```shell
 hecatomb listHosts
 ```
 
@@ -114,7 +114,7 @@ bat, mouse, camel, celegans, macaque, rat, dog, cat, tick, mosquito, cow, human
 
 So if you are working with mouse samples you would run:
 
-```bash
+```shell
 hecatomb run --reads fastq/ --host mouse
 ```
 
@@ -127,13 +127,13 @@ This script will mask viral-like regions from your genome and add it to your Hec
 You will need to specify the host genome FASTA file, as well as a name for this host.
 Assuming you want to add the llama genome and the FASTA genome file is called `llama.fasta`:
 
-```bash
+```shell
 hecatomb addHost --host llama --hostfa llama.fasta
 ```
 
 You will then be able to run Hecatomb with your new host genome:
 
-```bash
+```shell
 hecatomb run --reads fastq/ --host llama
 ```
 
@@ -145,7 +145,7 @@ However, the assembly files need to be coalesced with FlyE, and the assembly-ass
 
 To run:
 
-```bash
+```shell
 hecatomb combine --comb hecOutDir1/ --comb hecOutDir2/
 ```
 
