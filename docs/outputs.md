@@ -30,7 +30,7 @@ This file is big, hence the name, but is designed to make merging with sample me
 The header looks like this:
 
 ```text
-seqID  sampleID  count  CPM  alnType  targetID  evalue  pident  fident  nident  mismatches  qcov  tcov  qstart  qend  qlen  tstart  tend  tlen  alnlen  bits  targetName  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
+seqID  sampleID  count  percent  alnType  targetID  evalue  pident  fident  nident  mismatches  qcov  tcov  qstart  qend  qlen  tstart  tend  tlen  alnlen  bits  targetName  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
 ```
 
 <details>
@@ -38,7 +38,7 @@ seqID  sampleID  count  CPM  alnType  targetID  evalue  pident  fident  nident  
     <b>seqID:</b> Sequence ID (format = sampleID:count:uniqueInt)<br>
     <b>sampleID:</b> The sample IDs derived from the read files<br>
     <b>count:</b> The number of reads represented by the sequence<br>
-    <b>CPM:</b> Counts Per Million (counts normalized by library size)<br>
+    <b>percent:</b> Percent of the host-removed reads (normalised count)<br>
     <b>alnType:</b> Type of alignment (aa = amino acid, nt = nucleotide)<br>
     <b>targetID:</b> The UniProt or NCBI ID of the database target sequence<br>
     <b>evalue:</b> expect value of the alignment (less is better)<br>
@@ -98,7 +98,7 @@ The assembly is used for producing the ContigSeqTable and ContigKrona plots, as 
 The contig count table contains the coverage information of all contigs for each sample.
 
 ```text
-Sample  Contig  Length  Reads  RPKM  FPKM  CPM  AverageFold  ReferenceGC  CoveragePercentage  CoverageBases  MedianFold
+Sample  Contig  Length  Reads  RPKM  FPKM  SPM  AverageFold  ReferenceGC  CoveragePercentage  CoverageBases  MedianFold
 ```
 
 <details>
@@ -107,7 +107,7 @@ Sample  Contig  Length  Reads  RPKM  FPKM  CPM  AverageFold  ReferenceGC  Covera
     <b>Contig:</b> The contig ID in assembly.fasta <br>
     <b>RPKM:</b> Reads Per Kilobase Million - see https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/ <br>
     <b>FPKM:</b> Fragments Per Kilobase Million - see https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/ <br>
-    <b>CPM:</b> Counts Per Million (counts normalized by library size) <br>
+    <b>SPM:</b> Sequences Per Million (counts normalized by library size) <br>
     <b>AverageFold:</b> Average read coverage of contig <br>
     <b>ReferenceGC:</b> Contig GC content <br>
     <b>CoveragePercentage:</b> Percent of contig covered by alignments <br>
@@ -140,7 +140,7 @@ chimeric contigs, recombination or horizontal transfer events.
 The header looks like this:
 
 ```text
-contigID  seqID  start  stop  len  qual  count  CPM  alnType  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
+contigID  seqID  start  stop  len  qual  count  percent  alnType  taxMethod  kingdom  phylum  class  order  family  genus  species  baltimoreType  baltimoreGroup
 ```
 
 <details>
@@ -152,7 +152,7 @@ contigID  seqID  start  stop  len  qual  count  CPM  alnType  taxMethod  kingdom
     <b>len:</b> Alignment length<br>
     <b>qual:</b> Alignment quality<br>
     <b>count:</b> The number of reads represented by the sequence<br>
-    <b>CPM:</b> Counts Per Million (counts normalized by library size)<br>
+    <b>percent:</b> Percent of the host-removed reads (normalised count)<br>
     <b>alnType:</b> Type of alignment (aa = amino acid, nt = nucleotide)<br>
     <b>taxMethod:</b> Method used to assign taxonomy (either Lowest Common Ancestor, "LCA"; or top hit sequence, "topHit")<br>
     <b>kingdom/phylum/class/order/family/genus/species:</b> Taxonomy annotations<br>
