@@ -3,7 +3,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)](https://anaconda.org/bioconda/hecatomb)
 [![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/downloads.svg)](https://anaconda.org/bioconda/hecatomb)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/hecatomb/README.html)
 
 ![](docs/img/hecatombLogo.png)
 
@@ -15,17 +15,17 @@ This process frequently results in a great loss of suspected viral sequences / c
 ## Contents
 
 - [Documentation](#documentation)
+- [Citation](#citation)
 - [Quick Start Guide](#quick-start-guide)
 - [Inputs](#inputs)
 - [Dependencies](#dependencies)
-- [Citation](#citation)
 - [Links](#links)
 
 ## Documentation
 
 [Complete documentation is hosted at Read the Docs](https://hecatomb.readthedocs.io)
 
-### Citation
+## Citation
 
 [Hecatomb is currently on BioRxiv!](https://www.biorxiv.org/content/10.1101/2022.05.15.492003v1)
 
@@ -73,10 +73,10 @@ Hecatomb can process paired- or single-end short-read sequencing, longread seque
 and paired-end sequencing for round A/B library protocol.
 
 ```bash
-hecatomb run --preprocessing paired
-hecatomb run --preprocessing single
-hecatomb run --preprocessing longread
-hecatomb run --preprocessing roundAB
+hecatomb run --preprocess paired
+hecatomb run --preprocess single
+hecatomb run --preprocess longread
+hecatomb run --preprocess roundAB
 ```
 
 When you specify a directory of reads with `--reads` for paried-end sequencing, 
@@ -104,11 +104,6 @@ The only dependency you need to get up and running with Hecatomb is [conda](http
 Hecatomb relies on [conda](https://docs.conda.io/en/latest/) (and [mamba](https://github.com/mamba-org/mamba))
 to ensure portability and ease of installation of its dependencies.
 All of Hecatomb's dependencies are installed during installation or runtime, so you don't have to worry about a thing!
-
-## Citation
-
-The Hecatomb preprint is available on BioRxiv:
-[https://doi.org/10.1101/2022.05.15.492003](https://doi.org/10.1101/2022.05.15.492003)
 
 ## Links
 
