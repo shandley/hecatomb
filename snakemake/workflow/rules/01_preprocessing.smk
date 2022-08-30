@@ -24,7 +24,8 @@ rule fastp_preprocessing:
     output:
         r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq")),
-        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.json")
+        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.json"),
+        html = os.path.join(STATS, "p01", "{sample}.s1.stats.html")
     benchmark:
         os.path.join(BENCH, "fastp_preprocessing.{sample}.txt")
     log:
@@ -45,7 +46,7 @@ rule fastp_preprocessing:
         """
         fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
             -z {params.compression} \
-            -j {output.stats} \
+            -j {output.stats} -h {output.html} \
             --qualified_quality_phred {params.qscore} \
             --length_required {params.readlen} \
             --detect_adapter_for_pe \

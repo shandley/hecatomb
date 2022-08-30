@@ -19,7 +19,8 @@ rule fastp_preprocessing:
         # summ = optionalSummary[0]
     output:
         r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
-        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.json")
+        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.json"),
+        html = os.path.join(STATS, "p01", "{sample}.s1.stats.html")
     benchmark:
         os.path.join(BENCH, "fastp_preprocessing.{sample}.txt")
     log:
@@ -40,7 +41,7 @@ rule fastp_preprocessing:
         """
         fastp -i {input.r1} -o {output.r1} \
             -z {params.compress} \
-            -j {output.stats} \
+            -j {output.stats} -h {output.html} \
             --qualified_quality_phred {params.qscore} \
             --length_required {params.minlen} \
             --cut_tail --cut_tail_window_size {params.cutwind} --cut_tail_mean_quality {params.qscore} \
