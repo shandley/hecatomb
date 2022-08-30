@@ -25,6 +25,10 @@ This process frequently results in a great loss of suspected viral sequences / c
 
 [Complete documentation is hosted at Read the Docs](https://hecatomb.readthedocs.io)
 
+### Citation
+
+[Hecatomb is currently on BioRxiv!](https://www.biorxiv.org/content/10.1101/2022.05.15.492003v1)
+
 ## Quick start guide
 
 ### Running on HPC

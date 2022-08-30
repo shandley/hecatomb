@@ -174,6 +174,7 @@ rule pullPairedUnmappedReadsMateMapped:
     shell:
         """
         samtools fastq -f5 -F8 {input} > {output} 2> {log}
+        rm {log}
         """
 
 rule poolR1Unmapped:
