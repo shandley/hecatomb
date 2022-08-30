@@ -13,11 +13,11 @@ allDirSmplLen = {}     # RESULTS:sample:len
 allSamples = []
 assemblyFiles = True
 for f in allOutputDir:
-    for assemblyFile in [os.path.join(f, 'RESULTS', 'assembly.fasta'), os.path.join(f, 'RESULTS', 'contigSeqTable.tsv')]:
+    for assemblyFile in [os.path.join(f, 'results', 'assembly.fasta'), os.path.join(f, 'results', 'contigSeqTable.tsv')]:
         if not is_non_zero_file(assemblyFile):
             sys.stderr.write(f'No/missing assembly files for {f}, skipping assembly files.\n')
             assemblyFiles=False
-    with open(os.path.join(f,'RESULTS','sampleSeqCounts.tsv'),'r') as t:
+    with open(os.path.join(f,'results','sampleSeqCounts.tsv'),'r') as t:
         for line in t:
             l = line.strip().split()
             if not l[0] in allSamples:
@@ -65,10 +65,10 @@ targets = [
 def combineResultDirOutput(outFile, inFileName, sampleCol=1, header=True, dirs=list(allDirSmplLen.keys())):
     with open(outFile,'w') as o:
         if header:
-            with open(os.path.join(dirs[0],'RESULTS',inFileName),'r') as f:
+            with open(os.path.join(dirs[0],'results',inFileName),'r') as f:
                 o.write(f.readline())   # print header
         for d in dirs:
-            with open(os.path.join(d,'RESULTS',inFileName),'r') as f:
+            with open(os.path.join(d,'results',inFileName),'r') as f:
                 if header:
                     f.readline()  # skip header
                 for line in f:
@@ -88,7 +88,7 @@ rule all:
 rule combineSampleSeqCounts:
     """Combine all sampleSeqCounts.tsv files"""
     input:
-        expand(os.path.join('{dir}','RESULTS','sampleSeqCounts.tsv'), dir=allOutputDir)
+        expand(os.path.join('{dir}','results','sampleSeqCounts.tsv'), dir=allOutputDir)
     output:
         os.path.join(RESULTS, 'sampleSeqCounts.tsv')
     run:
@@ -100,7 +100,7 @@ rule combineSampleSeqCounts:
 rule combineBigtables:
     """Combine all bigtable.tsv files"""
     input:
-        expand(os.path.join('{dir}','RESULTS','bigtable.tsv'),dir=allOutputDir)
+        expand(os.path.join('{dir}','results','bigtable.tsv'),dir=allOutputDir)
     output:
         os.path.join(RESULTS, 'bigtable.tsv')
     run:
@@ -109,7 +109,7 @@ rule combineBigtables:
 rule combineSeqtableProperties:
     """Combine all seqtable.properties.tsv files"""
     input:
-        expand(os.path.join('{dir}','RESULTS','seqtable.properties.tsv'),dir=allOutputDir)
+        expand(os.path.join('{dir}','results','seqtable.properties.tsv'),dir=allOutputDir)
     output:
         os.path.join(RESULTS, 'seqtable.properties.tsv')
     run:
@@ -118,13 +118,13 @@ rule combineSeqtableProperties:
 rule combineSeqTables:
     """Combine all seqtable.fasta files"""
     input:
-        expand(os.path.join('{dir}','RESULTS','seqtable.fasta'),dir=allOutputDir)
+        expand(os.path.join('{dir}','results','seqtable.fasta'),dir=allOutputDir)
     output:
         os.path.join(RESULTS, 'seqtable.fasta')
     run:
         with open(output[0],'w') as o:
             for oDir in allDirSmplLen.keys():
-                with open(os.path.join(oDir,'RESULTS','seqtable.fasta'),'r') as f:
+                with open(os.path.join(oDir,'results','seqtable.fasta'),'r') as f:
                     p=True
                     for line in f:
                         if line.startswith('>'):
@@ -142,7 +142,7 @@ rule combineSeqTables:
 rule combineAssemblies:
     "Combine assemblies by running flye with subassemblies"
     input:
-        expand(os.path.join('{dir}','RESULTS','assembly.fasta'),dir=allOutputDir)
+        expand(os.path.join('{dir}','results','assembly.fasta'),dir=allOutputDir)
     output:
         assembly = os.path.join(RESULTS, 'assembly.fasta'),
         contigs = temp(os.path.join(RESULTS, 'allContigs.fa')),
