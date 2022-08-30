@@ -59,12 +59,12 @@ with open(snakemake.input.aln, 'r') as alnfh:
             except KeyError:
                 taxOut = ['NA'] * 8
         taxOutPrint = '\t'.join(taxOut)
-        if taxOut[3] == 'Viruses':
+        if taxOut[1] == 'Viruses':
             out = outVir
         else:
             out = outNonVir
         seqInf = l[0].split(':')
-        tName =  re.sub('.*\||[a-zA-Z]+=.*','',l[18])
+        tName = re.sub('.*\||[a-zA-Z]+=.*','',l[18])
         seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], seqInf[2]))
 
         alnOut = 'nt\t' + '\t'.join((l[1:17]))

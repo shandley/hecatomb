@@ -38,20 +38,20 @@ POLYMICRODB = os.path.join(DBDIR, "nt", "virus_secondary_nt")
 
 
 ### OUTPUT DIRs
-RESULTS = os.path.join(OUTPUT, 'RESULTS')
-WORKDIR = os.path.join(OUTPUT, 'PROCESSING')
-TMPDIR = os.path.join(WORKDIR, 'TMP')
-STDERR = os.path.join(OUTPUT, 'STDERR')
-BENCH = os.path.join(OUTPUT, 'BENCHMARKS')
+RESULTS = os.path.join(OUTPUT, 'results')
+WORKDIR = os.path.join(OUTPUT, 'processing')
+TMPDIR = os.path.join(WORKDIR, 'temp')
+STDERR = os.path.join(OUTPUT, 'stderr')
+BENCH = os.path.join(OUTPUT, 'benchmarks')
 # SUMDIR = os.path.join('hecatomb_report')
-ASSEMBLY = os.path.join(WORKDIR, 'ASSEMBLY')
-MAPPING = os.path.join(WORKDIR, 'MAPPING')
-STATS = os.path.join(WORKDIR, 'STATS')
+ASSEMBLY = os.path.join(WORKDIR, 'assembly')
+MAPPING = os.path.join(WORKDIR, 'mapping')
+STATS = os.path.join(WORKDIR, 'stats')
 
 
 # MMSEQS OUTPUT DIRs
-PRIMARY_AA_OUT = os.path.join(WORKDIR, "MMSEQS_AA_PRIMARY")
-SECONDARY_AA_OUT = os.path.join(WORKDIR, "MMSEQS_AA_SECONDARY")
-PRIMARY_NT_OUT = os.path.join(WORKDIR, "MMSEQS_NT_PRIMARY")
-SECONDARY_NT_OUT = os.path.join(WORKDIR, "MMSEQS_NT_SECONDARY")
+PRIMARY_AA_OUT = os.path.join(WORKDIR, "mmseqs_aa_primary")
+SECONDARY_AA_OUT = os.path.join(WORKDIR, "mmseqs_aa_secondary")
+PRIMARY_NT_OUT = os.path.join(WORKDIR, "mmseqs_nt_primary")
+SECONDARY_NT_OUT = os.path.join(WORKDIR, "mmseqs_nt_secondary")
 
