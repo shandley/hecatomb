@@ -14,6 +14,10 @@
 # Run Parameters #
 ##################
 
+# Inputs and outputs (specify Reads here or on the command line, Output blank = use default)
+Reads:
+Output:
+
 # Database installation location, leave blank = use hecatomb install location
 Databases:
 
@@ -25,9 +29,6 @@ MediumJobMem: 32000  # Memory for Megahit/Flye in megabytes (recommend >= 32000)
 MediumJobCpu: 16     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
 SmallJobMem: 16000   # Memory for BBTools etc. in megabytes (recommend >= 16000)
 SmallJobCpu: 8       # CPUs for BBTools etc. (recommend >= 8)
-                     # default CPUs = 1
-# SPECIFY DEFAULT MEM AND TIME IN YOUR PROFILE - see example profile config.yaml
-defaultJobs: 100     # Default concurrent jobs (for use with --profile)
 
 # Some jobs need more RAM; go over your CPU:RAM ratio if needed
 MoreRamMem: 16000    # Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
@@ -45,7 +46,8 @@ CONTIG_MINLENGTH: 1000 # Read minimum length (rule contig_reformating_and_stats 
 CUTTAIL_WINDOW: 25 # Sliding window size for low qual read filter rule fastp_preprocessing in 01_preprocessing.smk)
 DEDUP_ACCURACY: 4 # Specify the level (1 ~ 6). The higher level means more memory usage and more running time, but lower risk of incorrect deduplication marking (rule fastp_preprocessing in 01_preprocessing.smk)
 COMPRESSION: 1 # Compression level for gzip output (1 ~ 9). 1 is fastest, 9 is smallest. Default is 1, based on assumption of large scratch space (rule fastp_preprocessing in 01_preprocessing.smk)
-
+ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 01_preprocessing.smk)
+ENTROPYWINDOW: 25 # entropy window for low qual read filter
 
 # CLUSTER READS TO SEQTABLE (MMSEQS EASY-LINCLUST)
  # -c = req coverage of target seq
@@ -130,13 +132,3 @@ perfNT:
 # fast NT search
 perfNTfast:
  -s 4.0
-
-# REQUIRED ADDITIONAL AA MMSEQS SETTINGS
-# DON'T TOUCH THIS BIT IT WILL BREAK THE PIPELINE
-reqAA:
- -a
- --tax-output-mode 2
- --search-type 2
- --tax-lineage 1
- --lca-ranks "superkingdom,phylum,class,order,family,genus,species"
- --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage"

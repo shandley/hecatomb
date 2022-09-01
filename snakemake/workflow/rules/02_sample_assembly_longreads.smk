@@ -7,7 +7,7 @@ Per-sample assemblies for longreads
 rule canu_sample_assembly:
     """Per-sample assembly with canu; also works for unmapped rescue reads"""
     input:
-        os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")
+        os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz")
     output:
         ctg = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fasta"),
         ctgq = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.uniq.fasta"),
@@ -44,7 +44,7 @@ rule combine_canu_unassembled:
     input:
         expand(os.path.join(ASSEMBLY,"{sample}","{sample}.unassembled.uniq.fasta"), sample=SAMPLES)
     output:
-        temp(os.path.join(TMPDIR,"p01","unmappedRescue_R1.all.fasta"))
+        temp(os.path.join(ASSEMBLY,"unmappedRescue_R1.all.fasta.gz"))
     shell:
         """cat {input} > {output}"""
 
@@ -53,14 +53,14 @@ rule combine_canu_contigs:
     input:
         expand(os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.uniq.fasta"), sample=list(SAMPLES) + ['unmappedRescue'])
     output:
-        temp(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","all_samples_contigs_size_selected.fasta"))
+        temp(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","all_sample_contigs.fasta"))
     shell:
         """cat {input} > {output}"""
 
 rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1 = os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta"),
+        r1 = os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz"),
         ref = os.path.join(RESULTS, "assembly.fasta")
     output:
         sam = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz")),
@@ -75,7 +75,7 @@ rule coverage_calculations:
         os.path.join(STDERR, "coverage_calculations.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:

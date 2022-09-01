@@ -7,13 +7,13 @@ Per-sample assemblies for short paired reads
 rule assembly_kmer_normalization:
     """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
     input:
-        r1 = os.path.join(TMPDIR, "p02", "{sample}_R1.unmapped.fastq"),
-        r2 = os.path.join(TMPDIR, "p02", "{sample}_R2.unmapped.fastq"),
-        r1s = os.path.join(TMPDIR, "p04", "{sample}_R1.singletons.fastq"),
-        r2s = os.path.join(TMPDIR, "p04", "{sample}_R2.singletons.fastq")
+        r1 = os.path.join(ASSEMBLY, "{sample}_R1.unmapped.fastq.gz"),
+        r2 = os.path.join(ASSEMBLY, "{sample}_R2.unmapped.fastq.gz"),
+        r1s = os.path.join(ASSEMBLY, "{sample}_R1.singletons.fastq.gz"),
+        r2s = os.path.join(ASSEMBLY, "{sample}_R2.singletons.fastq.gz")
     output:
-        r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
-        r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq")
+        r1_norm = temp(os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq")),
+        r2_norm = temp(os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq")),
     benchmark:
         os.path.join(BENCH, "kmer_normalization_{sample}.txt")
     log:
@@ -44,13 +44,15 @@ rule individual_sample_assembly:
     input:
         r1_norm = os.path.join(ASSEMBLY, "{sample}_R1.norm.fastq"),
         r2_norm = os.path.join(ASSEMBLY, "{sample}_R2.norm.fastq"),
-        r1s = os.path.join(TMPDIR, "p04", "{sample}_R1.singletons.fastq"),
-        r2s = os.path.join(TMPDIR, "p04", "{sample}_R2.singletons.fastq")
+        r1s = os.path.join(ASSEMBLY, "{sample}_R1.singletons.fastq.gz"),
+        r2s = os.path.join(ASSEMBLY, "{sample}_R2.singletons.fastq.gz")
     output:
         contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
+        renamed = os.path.join(ASSEMBLY, "{sample}", "{sample}.rename.contigs.fa"),
         tar = os.path.join(ASSEMBLY,'{sample}.tar.zst')
     params:
-        mh_dir = lambda w, output: os.path.split(output.contigs)[0]
+        mh_dir = lambda w, output: os.path.split(output.contigs)[0],
+        minlen = config['CONTIG_MINLENGTH']
     benchmark:
         os.path.join(BENCH, "megahit_{sample}.txt")
     log:
@@ -67,8 +69,9 @@ rule individual_sample_assembly:
             rm -rf {params.mh_dir}
         fi
         megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
-            -o {params.mh_dir} --out-prefix {wildcards.sample} \
+            -o {params.mh_dir} --out-prefix {wildcards.sample} --min-contig-len {params.minlen} \
             --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
+        sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}
         tar cf - {params.mh_dir} | zstd -T8 -9 > {output.tar} 2> {log}
         rm {log}
         """
@@ -76,8 +79,8 @@ rule individual_sample_assembly:
 rule mapSampleAssemblyPairedReads:
     """Map the sample paired reads to the sample assembly"""
     input:
-        r1 = os.path.join(TMPDIR,"p02","{sample}_R1.unmapped.fastq"),
-        r2 = os.path.join(TMPDIR,"p02","{sample}_R2.unmapped.fastq"),
+        r1 = os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq.gz"),
+        r2 = os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq.gz"),
         contigs = os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"),
     output:
         temp(os.path.join(ASSEMBLY, '{sample}', '{sample}.pe.bam'))
@@ -95,16 +98,16 @@ rule mapSampleAssemblyPairedReads:
         """
         {{
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1} {input.r2} | \
-            samtools sort -n -o {output}
-        }} 2> {log}
+            samtools sort -n -o {output};
+        }} 2> {log} 
         rm {log}
         """
 
 rule mapSampleAssemblyUnpairedReads:
     """Map the sample unpaired reads to the sample assembly"""
     input:
-        r1s = os.path.join(TMPDIR,"p04","{sample}_R1.singletons.fastq"),
-        r2s = os.path.join(TMPDIR,"p04","{sample}_R2.singletons.fastq"),
+        r1s = os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"),
+        r2s = os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq.gz"),
         contigs = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fa")
     output:
         temp(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
@@ -123,8 +126,9 @@ rule mapSampleAssemblyUnpairedReads:
         {{
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} {input.r2s} | \
             samtools sort -n | \
-            samtools fastq -f 4 > {output}
+            samtools fastq -f 4 > {output};
         }} 2> {log}
+        rm {log}
         """
 
 rule pullPairedUnmappedReads:
@@ -147,7 +151,7 @@ rule pullPairedUnmappedReads:
     shell:
         """
         samtools fastq -f 77 {input} > {output.r1} 2> {log}
-        samtools fastq -f 141 {input} > {output.r2} 2> {log}
+        samtools fastq -f 141 {input} > {output.r2} 2>> {log}
         rm {log}
         """
 
@@ -194,7 +198,10 @@ rule poolR2Unmapped:
 rule poolUnpairedUnmapped:
     """Concatenate the unmapped, unpaired reads for all samples"""
     input:
-        fq = expand(os.path.join(ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.{sPe}.fastq'), sample=SAMPLES, sPe = ['s','pe.s']),
+        fq = expand(os.path.join(
+            ASSEMBLY,'{sample}','{sample}.assemblyUnmapped.{sPe}.fastq'),
+            sample=SAMPLES,
+            sPe = ['s','pe.s']),
     output:
         temp(os.path.join(ASSEMBLY, 'unmapRescue.s.fastq'))
     shell:
@@ -217,7 +224,7 @@ rule rescue_read_kmer_normalization:
         os.path.join(STDERR, "rescue_read_kmer_normalization.log")
     resources:
         mem_mb = MMSeqsMem,
-        javaAlloc = int(0.95 * MMSeqsMem)
+        javaAlloc = int(0.9 * MMSeqsMem)
     threads:
         MMSeqsCPU
     conda:
@@ -243,9 +250,11 @@ rule unmapped_read_rescue_assembly:
         r2_norm = os.path.join(ASSEMBLY, 'unmapRescueNorm_R2.fastq'),
         s = os.path.join(ASSEMBLY, 'unmapRescue.s.fastq')
     output:
-        contigs = os.path.join(ASSEMBLY, 'rescue', "rescue.contigs.fa")
+        contigs = os.path.join(ASSEMBLY, 'rescue', 'rescue.contigs.fa'),
+        renamed = os.path.join(ASSEMBLY, 'rescue', 'rescue.rename.contigs.fa')
     params:
-        mh_dir = lambda w, output: os.path.split(output.contigs)[0]
+        mh_dir = lambda w, output: os.path.split(output.contigs)[0],
+        minlen = config['CONTIG_MINLENGTH']
     benchmark:
         os.path.join(BENCH, "unmapped_read_rescue_assembly.txt")
     log:
@@ -262,18 +271,19 @@ rule unmapped_read_rescue_assembly:
             rm -rf {params.mh_dir}
         fi
         megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.s} \
-            -o {params.mh_dir} --out-prefix rescue \
+            -o {params.mh_dir} --out-prefix rescue --min-contig-len {params.minlen} \
             --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
+        sed 's/>/>rescue/' {output.contigs} > {output.renamed}
         rm {log}
         """
 
 rule concatenate_contigs:
     """Assembly step 03: Concatenate individual assembly outputs (contigs) into a single file"""
     input:
-        expand(os.path.join(ASSEMBLY, "{sample}", "{sample}.contigs.fa"), sample=SAMPLES),
-        os.path.join(ASSEMBLY,'rescue',"rescue.contigs.fa")
+        expand(os.path.join(ASSEMBLY, "{sample}", "{sample}.rename.contigs.fa"), sample=SAMPLES),
+        os.path.join(ASSEMBLY,'rescue',"rescue.rename.contigs.fa")
     output:
-        temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta"))
+        temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_sample_contigs.fasta"))
     params:
         expand(os.path.join(ASSEMBLY,'{sample}'), sample=SAMPLES),
     benchmark:
@@ -286,53 +296,12 @@ rule concatenate_contigs:
         rm -rf {params}
         """
 
-rule contig_reformating_and_stats:
-    """Assembly step 04: Remove short contigs (Default: 1000). Defined in config[CONTIG_MINLENGTH]"""
-    input:
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.fasta")
-    output:
-        rename = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.renamed.fasta")),
-        size = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_samples_contigs_size_selected.fasta")),
-        stats = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_megahit_contigs.stats"))
-    benchmark:
-        os.path.join(BENCH, "contig_reformating.txt")
-    log:
-        log1 = os.path.join(STDERR, "contig_reformating_and_stats.rename.log"),
-        log2 = os.path.join(STDERR, "contig_reformating_and_stats.reformat.log"),
-        log3 = os.path.join(STDERR, "contig_reformating_and_stats.stats.log")
-    resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
-    threads:
-        BBToolsCPU
-    params:
-        contiglen = config['CONTIG_MINLENGTH']
-    conda:
-        "../envs/bbmap.yaml"
-    shell:
-        """
-        rename.sh in={input} out={output.rename} \
-            prefix=contig_ \
-            ow=t \
-            -Xmx{resources.javaAlloc}m 2> {log.log1}
-        rm {log.log1}
-        reformat.sh in={output.rename} out={output.size} \
-            ml={params.contiglen} \
-            ow=t \
-            -Xmx{resources.javaAlloc}m 2> {log.log2}
-        rm {log.log2}
-        statswrapper.sh in={input} out={output.stats} \
-            format=2 \
-            ow=t 2> {log.log3}
-        rm {log.log3}
-        """
-
 
 rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1 = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
-        r2 = os.path.join(TMPDIR, "p04", "{sample}_R2.all.fastq"),
+        r1 = os.path.join(ASSEMBLY, "{sample}_R1.all.fastq.gz"),
+        r2 = os.path.join(ASSEMBLY, "{sample}_R2.all.fastq.gz"),
         ref = os.path.join(RESULTS, "assembly.fasta")
     output:
         sam = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz")),
@@ -347,7 +316,7 @@ rule coverage_calculations:
         os.path.join(STDERR, "coverage_calculations.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:

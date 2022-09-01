@@ -36,9 +36,9 @@ reduce the size of your seqtable, and use more stringent e-value cutoffs for you
 
 ## Hecatomb takes too long, what can I do?
 
-First, try running Hecatomb with the `--fast` flag.
-The MMSeqs steps are by far the most time consuming steps. 
-The `--fast` flag will tell Hecatomb to use MMSeqs settings that are much much faster, but not quite as sensitive.
+First, try running Hecatomb with the `--search fast` setting.
+The MMSeqs steps are by far the most time-consuming steps. 
+The `--search fast` setting will tell Hecatomb to use MMSeqs settings that are much much faster, but not quite as sensitive.
 You should also configure your installation to utilise as many CPUs and as much memory as possible.
 See [default resources config](https://hecatomb.readthedocs.io/en/latest/advanced/#default-resources) for more info.
 If you don't need an assembly, you can skip those steps with `--skipAssembly` which will also save a bit of time.

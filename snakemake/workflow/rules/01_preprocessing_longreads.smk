@@ -1,5 +1,11 @@
 
+# Add longread-specific targets
+PreprocessingFiles += [
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz"), sample=SAMPLES)
+    ]
 
+
+# rules
 rule create_host_index:
     """Create the minimap2 index for mapping to the host; this will save time."""
     input:
@@ -31,7 +37,7 @@ rule host_removal_mapping:
     input:
         r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
         host = HOSTINDEX,
-        summ = optionalSummary[0]
+        # summ = optionalSummary[0]
     output:
         r1=temp(os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")),
     benchmark:
@@ -61,7 +67,7 @@ rule cluster_similar_sequences:  ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT
     """
     input:
         fa=os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta"),
-        summ=optionalSummary[1]
+        # summ=optionalSummary[1]
     output:
         temp(os.path.join(TMPDIR,"p05","{sample}_R1_rep_seq.fasta")),
         temp(os.path.join(TMPDIR,"p05","{sample}_R1_cluster.tsv")),
@@ -98,7 +104,7 @@ rule create_individual_seqtables:
     input:
         seqs=os.path.join(TMPDIR,"p05","{sample}_R1_rep_seq.fasta"),
         counts=os.path.join(TMPDIR,"p05","{sample}_R1_cluster.tsv"),
-        summ=optionalSummary[2]
+        # summ=optionalSummary[2]
     output:
         seqs=temp(os.path.join(TMPDIR,"p06","{sample}_R1.seqs")),
         counts=temp(os.path.join(TMPDIR,"p06","{sample}_R1.counts")),
@@ -144,7 +150,7 @@ rule merge_seq_table:
         tsv=os.path.join(RESULTS,"sampleSeqCounts.tsv")
     params:
         samples=list(SAMPLES),
-        tmpdir=os.path.join(TMPDIR, "p03")
+        tmpdir=lambda w, input: os.path.split(input[0])[0]
     conda:
         os.path.join('..','envs','pysam.yaml')
     benchmark:
@@ -153,3 +159,14 @@ rule merge_seq_table:
         os.path.join(STDERR,'merge_seq_table.log')
     script:
         os.path.join('../','scripts','mergeSeqTable.py')
+
+rule archive_for_assembly:
+    """Copy the files that will be required in the assembly steps; fastq.gz files will be generated from these"""
+    input:
+        os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")
+    output:
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.all.fasta"))
+    params:
+        ASSEMBLY
+    shell:
+        """cp {input} {params}"""

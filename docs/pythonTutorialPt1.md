@@ -10,7 +10,7 @@ While this is fine for smaller datasets, larger datasets will require HPC resour
 
 ## New install
 
-```bash
+```shell
 # create new conda env and install hecatomb
 conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 
@@ -27,8 +27,8 @@ We will run hecatomb on the test dataset, which is a subset of the dataset descr
 We use the fast MMSeqs settings with the default 32 threads and generate a summary report. 
 This will give us an assembly and some read annotations.
 
-```bash
-hecatomb run --test --fast --report
+```shell
+hecatomb test --search fast
 ```
 
 We should now have all the files we need!

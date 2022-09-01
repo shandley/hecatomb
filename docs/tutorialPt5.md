@@ -6,7 +6,7 @@ building a table to combine the mapped coordinates and the reads' annotations.
 
 Load the table and have a look:
 
-```R
+```r
 contigTable = read.csv('contigSeqTable.tsv.gz',header=T,sep='\t')
 
 View(contigTable)
@@ -25,7 +25,7 @@ but we will show some example plots to demonstrate the idea.
 Let's look at what reads are mapping to contig_6.
 We will separate out the reads by genus and color by family:
 
-```R
+```r
 ggplot(contigTable %>% 
         filter(contigID=='contig_6')
     ) +
@@ -38,7 +38,7 @@ There is a nice clear consensus that this is a Mastadenovirus.
 The handful of other reads we could fairly confidently reassign as such if we wanted.
 Given the clear consensus, it might be possible to assign it to a specific species:
 
-```R
+```r
 ggplot(contigTable %>% 
         filter(contigID=='contig_6')
     ) +
@@ -52,7 +52,7 @@ However, its next closest hits are to Rhesus adenoviruses, which makes sense for
 
 Lets look at contig_56:
 
-```R
+```r
 ggplot(contigTable %>% 
            filter(contigID=='contig_56')
 ) +
@@ -64,7 +64,7 @@ ggplot(contigTable %>%
 Most of the hits remain unclassified, and the classified hits are split between kingdoms.
 Let's see what species the sequences are hitting:
 
-```R
+```r
 ggplot(contigTable %>% 
            filter(contigID=='contig_56')
 ) +

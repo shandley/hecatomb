@@ -1,6 +1,6 @@
 rule rawReadCounts:
     output:
-        report(os.path.join(SUMDIR,"Step00_counts.tsv"),
+        report(os.path.join(TMPDIR,"Step00_counts.tsv"),
             caption = "../report/step00.rst",
             category = "Preprocessing")
     run:
@@ -10,7 +10,7 @@ rule hostRemovedCounts:
     input:
         expand(os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),sample=SAMPLES)
     output:
-        report(os.path.join(SUMDIR, "Step01_counts.tsv"),
+        report(os.path.join(TMPDIR, "Step01_counts.tsv"),
             caption = "../report/step01.rst",
             category = "Preprocessing")
     run:
@@ -20,7 +20,7 @@ rule hostRemovedCountsLongreads:
     input:
         expand(os.path.join(TMPDIR, "p01", "{sample}_R1.all.fasta"), sample=SAMPLES)
     output:
-        report(os.path.join(SUMDIR, "Step01_counts.tsv"),
+        report(os.path.join(TMPDIR, "Step01_counts.tsv"),
             caption = "../report/step01.rst",
             category = "Preprocessing")
     run:
@@ -34,7 +34,7 @@ rule clusteredCounts:
     input:
         expand(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta"), sample=SAMPLES)
     output:
-        report(os.path.join(SUMDIR, "Step02_counts.tsv"),
+        report(os.path.join(TMPDIR, "Step02_counts.tsv"),
             caption = "../report/step02.rst",
             category = "Preprocessing")
     run:
@@ -149,7 +149,7 @@ rule step10_counts:
         classSeq = os.path.join(PRIMARY_AA_OUT,"MMSEQS_AA_PRIMARY_classified.fasta"),
         unclassSeq = os.path.join(PRIMARY_AA_OUT,"MMSEQS_AA_PRIMARY_unclassified.fasta")
     output:
-        report(os.path.join(SUMDIR, "Step10_counts.tsv"),
+        report(os.path.join(TMPDIR, "Step10_counts.tsv"),
             caption = "../report/step10.rst",
             category = "Read annotation")
     run:
@@ -164,7 +164,7 @@ rule step11_counts:
     input:
         tsv = os.path.join(SECONDARY_AA_OUT,"AA_bigtable.tsv")
     output:
-        report(os.path.join(SUMDIR, "Step11_counts.tsv"),
+        report(os.path.join(TMPDIR, "Step11_counts.tsv"),
             caption = "../report/step11.rst",
             category = "Read annotation")
     run:
@@ -189,7 +189,7 @@ rule step12_counts:
         classSeq = os.path.join(PRIMARY_NT_OUT,"classified_seqs.fasta"),
         unclassSeq = os.path.join(PRIMARY_NT_OUT,"unclassified_seqs.fasta")
     output:
-        report(os.path.join(SUMDIR,"Step12_counts.tsv"),
+        report(os.path.join(TMPDIR,"Step12_counts.tsv"),
             caption = "../report/step12.rst",
             category = "Read annotation")
     run:
@@ -204,7 +204,7 @@ rule step13_counts:
     input:
         os.path.join(SECONDARY_NT_OUT,"NT_bigtable.tsv")
     output:
-        report(os.path.join(SUMDIR,"Step13_counts.tsv"),
+        report(os.path.join(TMPDIR,"Step13_counts.tsv"),
             caption = "../report/step13.rst",
             category = "Read annotation")
     run:

@@ -90,7 +90,7 @@ rule fasta_index:
     resources:
         mem_mb=MiscMem
     shell:
-        "samtools faidx {input} > {output} 2> {log}"
+        "samtools faidx {input} > {output} 2> {log} && rm {log}"
 
 rule bam_index:
     """Index a .bam file for rapid access with samtools."""
@@ -107,7 +107,7 @@ rule bam_index:
     resources:
         mem_mb=MiscMem
     shell:
-        "samtools index -@ {threads} {input} {output} 2> {log}"
+        "samtools index -@ {threads} {input} {output} 2> {log} && rm {log}"
 
 rule calculate_gc:
     """Calculate GC content for sequences"""
@@ -175,3 +175,21 @@ rule seq_properties_table:
         os.path.join(STDERR, '{file}.seq_properties_table.log')
     script:
         os.path.join('..', 'scripts', 'seqPropertyTable.py')
+
+rule zip_fastq:
+    """zip a fastq file"""
+    input:
+        '{filepath}.fastq'
+    output:
+        '{filepath}.fastq.gz'
+    shell:
+        """gzip -1 {input}"""
+
+rule zip_fasta:
+    """zip a fastq file"""
+    input:
+        '{filepath}.fasta'
+    output:
+        '{filepath}.fasta.gz'
+    shell:
+        """gzip -1 {input}"""

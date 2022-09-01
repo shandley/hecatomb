@@ -10,6 +10,17 @@ def exitLogCleanup(*args):
         os.unlink(logFile)
     return None
 
+def streamCountTable(file):
+    """Parse the seq count table"""
+    with open(file, 'r') as counts:
+        line = counts.readline() # skip header
+        for line in counts:
+            l = line.split()
+            if len(l) == 2:
+                yield l
+            else:
+                logging.warning(f'Possible malformed sample seqtable {file}')
+
 atexit.register(exitLogCleanup, snakemake.log[0])
 logging.basicConfig(filename=snakemake.log[0], filemode='w', level=logging.DEBUG)
 logging.debug('Reading in individual sample seqtables')
@@ -20,19 +31,17 @@ for sample in snakemake.params.samples:
     seqId = 0
     seqCounts = 0
     st = os.path.join(snakemake.params.tmpdir, f"{sample}_R1.seqtable")
-    counts = open(st, 'r')
-    line = counts.readline()  # skip header
-    for line in counts:
-        l = line.split()
-        if len(l) == 2:
-            id = ':'.join((sample, l[1], str(seqId)))  # fasta header = >sample:count:seqId
-            seqCounts += int(l[1])
-            seqId = seqId + 1
-            outFa.write(f'>{id}\n{l[0]}\n')
-        else:
-            logging.warning(f'Possible malformed sample seqtable {st}')
-    counts.close()
+    for l in streamCountTable(st):
+        seqCounts += int(l[1])
     outTsv.write(f'{sample}\t{seqCounts}\n')
+    for l in streamCountTable(st):
+        # fasta header = >sample:count:percentCount:seqId
+        id = ':'.join((sample,
+                       l[1],
+                       "{:.3e}".format((int(l[1]) / seqCounts) * 100),
+                       str(seqId)))
+        seqId = seqId + 1
+        outFa.write(f'>{id}\n{l[0]}\n')
 outFa.close()
 outTsv.close()
 logging.debug('Done')

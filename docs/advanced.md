@@ -6,7 +6,7 @@ If your bigtable is too big, you can remove the stuff you don't want using the l
 
 Use `awk` to apply evalue/bitscore/alignemnt lenght/etcetera cutoffs:
 
-```bash
+```shell
 # copy the header for your new file
 head -1 bigtable.tsv > newBigtable.tsv
 
@@ -18,7 +18,7 @@ awk -F '\t' '$7<1e-20' bigtable.tsv >> newBigtable.tsv
 
 If you only plan on analysing viruses or say protein hits, you can remove everything else with `awk`:
 
-```bash
+```shell
 # copy the header
 head -1 bigtable.tsv > newBigtable.tsv
 
@@ -34,7 +34,7 @@ awk -F '\t' '$5=="aa"' bigtable.tsv >> newBigtable.tsv
 If you've finished prefiltering, or you only plan on using say the evalues for filtering, 
 you can remove all the other alignment metrics, this time using `cut`:
 
-```bash
+```shell
 # remove all the alignment metrics except for evalue
 cut --complement -f8-22 bigtable.tsv > newBigtable.tsv
 ```
@@ -46,7 +46,7 @@ To retrieve the relevant sequences from your `seqtable.fasta` file you will only
 
 For instance, get all seqIDs for the Viral family 'Flaviviridae' and save it to a file:
 
-```R
+```r
 # in R using tidyr/dplyr get the seq IDs
 flaviviridaeSeqs = data %>% 
     filter(family=='Flaviviridae') %>% 
@@ -58,7 +58,7 @@ lapply(flaviviridaeSeqs, write, "flavSeqIDs.list", append=TRUE, ncolumns=1)
 
 You could also do this in the shell:
 
-```bash
+```shell
 grep Flaviviridae bigtable.tsv | cut -f1 > flavSeqIDs.list
 ```
 

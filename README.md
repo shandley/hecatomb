@@ -3,7 +3,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)](https://anaconda.org/bioconda/hecatomb)
 [![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/downloads.svg)](https://anaconda.org/bioconda/hecatomb)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/hecatomb/README.html)
 
 ![](docs/img/hecatombLogo.png)
 
@@ -12,10 +12,20 @@ Heactomb the software empowers an analyst to make data driven decisions to *'sac
 metagenomes to enrich for true-positive viral reads. 
 This process frequently results in a great loss of suspected viral sequences / contigs.
 
-**For detailed pipeline overview, installation, usage and customisation instructions,
-[please refer to the documentation hosted at Read the Docs](https://hecatomb.readthedocs.io).**
+## Contents
 
-### Citation
+- [Documentation](#documentation)
+- [Citation](#citation)
+- [Quick Start Guide](#quick-start-guide)
+- [Inputs](#inputs)
+- [Dependencies](#dependencies)
+- [Links](#links)
+
+## Documentation
+
+[Complete documentation is hosted at Read the Docs](https://hecatomb.readthedocs.io)
+
+## Citation
 
 [Hecatomb is currently on BioRxiv!](https://www.biorxiv.org/content/10.1101/2022.05.15.492003v1)
 
@@ -37,7 +47,7 @@ conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 conda activate hecatomb
 
 # check the installation
-hecatomb -h
+hecatomb --help
 
 # download the databases - you only have to do this once
   # locally: using 8 threads (default is 32 threads)
@@ -51,19 +61,26 @@ hecatomb install --profile slurm
 
 ```bash
 # locally: uses 32 threads and 64 GB RAM by default
-hecatomb run --test
+hecatomb test
 
 # HPC: using a profile named 'slurm'
-hecatomb run --test --profile slurm
+hecatomb test --profile slurm
 ```
 
-### Current limitations
+## Inputs
 
-Hecatomb is currently designed to only work with paired-end reads. 
-We have considered making a branch for single-end reads, but that is not currently available.
+Hecatomb can process paired- or single-end short-read sequencing, longread sequencing, 
+and paired-end sequencing for round A/B library protocol.
 
-When you specify a directory of reads with `--reads`, Hecatomb expects paired sequencing reads in the format 
-sampleName_R1/R2.fastq(.gz). e.g. 
+```bash
+hecatomb run --preprocess paired
+hecatomb run --preprocess single
+hecatomb run --preprocess longread
+hecatomb run --preprocess roundAB
+```
+
+When you specify a directory of reads with `--reads` for paried-end sequencing, 
+Hecatomb expects paired-end sequencing reads in the format sampleName_R1/R2.fastq(.gz). e.g. 
 
 ```text
 sample1_R1.fastq.gz
@@ -72,22 +89,23 @@ sample2_R1.fastq.gz
 sample2_R2.fastq.gz
 ```
 
-When you specify a TSV file with `--reads`, Hecatomb expects a 3-column tab separated file with the first column
-specifying a sample name, and the other columns the relative or full paths to the forward and reverse read files. e.g.
+When you specify a TSV file with `--reads`, Hecatomb expects a 2- or 3-column tab separated file (depending on 
+preprocessing method) with the first column specifying a sample name, and the other columns the relative or full paths 
+to the forward (and reverse) read files. e.g.
 
 ```text
 sample1    /path/to/reads/sample1.1.fastq.gz    /path/to/reads/sample1.2.fastq.gz
 sample2    /path/to/reads/sample2.1.fastq.gz    /path/to/reads/sample2.2.fastq.gz
 ```
 
-### Dependencies
+## Dependencies
 
 The only dependency you need to get up and running with Hecatomb is [conda](https://docs.conda.io/en/latest/).
 Hecatomb relies on [conda](https://docs.conda.io/en/latest/) (and [mamba](https://github.com/mamba-org/mamba))
 to ensure portability and ease of installation of its dependencies.
 All of Hecatomb's dependencies are installed during installation or runtime, so you don't have to worry about a thing!
 
-### Links
+## Links
 
 [Hecatomb @ bio.tools](https://bio.tools/hecatomb)
 

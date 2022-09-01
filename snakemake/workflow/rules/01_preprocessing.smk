@@ -1,19 +1,16 @@
-"""
-Snakemake rule file to preprocess Illumina sequence data for virome analysis.
 
-What is accomplished with these rules?
-    - Non-biological sequence removal (primers, adapters)
-    - Host sequence removal
-    - Removal of redundant sequences (duplicates + clustering)
-        - Creation of sequence count table
-        - Calculation of sequence properties (e.g. GC content, tetramer frequencies)
+# Add preprocessing-specific targets
+PreprocessingFiles += [
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fastq.gz"), sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq.gz"),sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq.gz"),sample=SAMPLES),
+        expand(os.path.join(ASSEMBLY,"{sample}_R2.all.fastq.gz"),sample=SAMPLES),
+    ]
 
-Rob Edwards, Jan 2020
-Updated: Scott Handley, March 2021
-Updated: Michael Roach, Q2/3 2021
-Updated: Sarah Beecroft Q1 2022
-"""
 
+# rules
 rule fastp_preprocessing:
     """Preprocessing step 01: fastp_preprocessing.
     
@@ -23,11 +20,12 @@ rule fastp_preprocessing:
         r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
         r2 = lambda wildcards: sampleReads[wildcards.sample]['R2'],
         contaminants = os.path.join(CONPATH, "vector_contaminants.fa"),
-        summ = optionalSummary[0]
+        # summ = optionalSummary[0]
     output:
         r1 = temp(os.path.join(TMPDIR, "p01", "{sample}_R1.s1.out.fastq")),
         r2 = temp(os.path.join(TMPDIR, "p01", "{sample}_R2.s1.out.fastq")),
-        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.json")
+        stats = os.path.join(STATS, "p01", "{sample}.s1.stats.json"),
+        html = os.path.join(STATS, "p01", "{sample}.s1.stats.html")
     benchmark:
         os.path.join(BENCH, "fastp_preprocessing.{sample}.txt")
     log:
@@ -48,10 +46,10 @@ rule fastp_preprocessing:
         """
         fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
             -z {params.compression} \
-            -j {output.stats} \
+            -j {output.stats} -h {output.html} \
             --qualified_quality_phred {params.qscore} \
             --length_required {params.readlen} \
-            --adapter_fasta {input.contaminants} \
+            --detect_adapter_for_pe \
             --cut_tail --cut_tail_window_size {params.cuttail} --cut_tail_mean_quality {params.qscore} \
             --dedup --dup_calc_accuracy {params.dedupacc} \
             --trim_poly_x \
@@ -132,7 +130,7 @@ rule nonhost_read_repair:
         os.path.join(STDERR, "nonhost_read_repair.{sample}.log")
     resources:
         mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        javaAlloc = int(0.9 * BBToolsMem)
     threads:
         BBToolsCPU
     conda:
@@ -156,10 +154,10 @@ rule nonhost_read_combine:
         or1 = os.path.join(TMPDIR, "p03", "{PATTERN}_R1.o.singletons.fastq"),
         or2 = os.path.join(TMPDIR, "p03", "{PATTERN}_R2.o.singletons.fastq")
     output:
-        t1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.singletons.fastq"),
-        t2 = os.path.join(TMPDIR, "p04", "{PATTERN}_R2.singletons.fastq"),
-        r1 = os.path.join(TMPDIR, "p04", "{PATTERN}_R1.all.fastq"),
-        r2 = os.path.join(TMPDIR, "p04", "{PATTERN}_R2.all.fastq")
+        t1 = temp(os.path.join(TMPDIR, "p04", "{PATTERN}_R1.singletons.fastq")),
+        t2 = temp(os.path.join(TMPDIR, "p04", "{PATTERN}_R2.singletons.fastq")),
+        r1 = temp(os.path.join(TMPDIR, "p04", "{PATTERN}_R1.all.fastq")),
+        r2 = temp(os.path.join(TMPDIR, "p04", "{PATTERN}_R2.all.fastq"))
     benchmark:
         os.path.join(BENCH, "nonhost_read_combine.{PATTERN}.txt")
     log:
@@ -180,7 +178,7 @@ rule cluster_similar_sequences: ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT 
     """
     input:
         fq = os.path.join(TMPDIR, "p04", "{sample}_R1.all.fastq"),
-        summ = optionalSummary[1]
+        # summ = optionalSummary[1]
     output:
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta")),
         temp(os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv")),
@@ -217,7 +215,7 @@ rule create_individual_seqtables:
     input:
         seqs = os.path.join(TMPDIR, "p05", "{sample}_R1_rep_seq.fasta"),
         counts = os.path.join(TMPDIR, "p05", "{sample}_R1_cluster.tsv"),
-        summ = optionalSummary[2]
+        # summ = optionalSummary[2]
     output:
         seqs = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.seqs")),
         counts = temp(os.path.join(TMPDIR, "p06", "{sample}_R1.counts")),
@@ -272,3 +270,24 @@ rule merge_seq_table:
         os.path.join(STDERR, 'merge_seq_table.log')
     script:
         os.path.join('../', 'scripts', 'mergeSeqTable.py')
+
+rule archive_for_assembly:
+    """Copy the files that will be required in the assembly steps; fastq.gz files will be generated from these"""
+    input:
+        os.path.join(TMPDIR,"p02","{sample}_R1.unmapped.fastq"),
+        os.path.join(TMPDIR,"p02","{sample}_R2.unmapped.fastq"),
+        os.path.join(TMPDIR,"p04","{sample}_R1.singletons.fastq"),
+        os.path.join(TMPDIR,"p04","{sample}_R2.singletons.fastq"),
+        os.path.join(TMPDIR,"p04","{sample}_R1.all.fastq"),
+        os.path.join(TMPDIR,"p04","{sample}_R2.all.fastq"),
+    output:
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.unmapped.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R2.unmapped.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.singletons.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R2.singletons.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R1.all.fastq")),
+        temp(os.path.join(ASSEMBLY,"{sample}_R2.all.fastq")),
+    params:
+        ASSEMBLY
+    shell:
+        """cp {input} {params}"""

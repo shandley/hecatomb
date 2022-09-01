@@ -4,9 +4,10 @@ If you're running Hecatomb on a HPC cluster, we absolutely recommend setting up 
 [Snakemake profile](profiles.md).
 
 We also recommend reviewing the Snakemake `config.yaml` file in your Hecatomb installation directory.
+This file is copied to your working directory during Hecatomb runs, but customising the default file is more convenient.
 The config file will be at `hecatomb/snakemake/config/config.yaml` and you can find your installation directory with:
 
-```bash
+```shell
 which hecatomb
 ```
 
@@ -14,20 +15,20 @@ which hecatomb
 
 The Hecatomb configuration file `hecatomb/snakemake/config/config.yaml` contains settings related to resources and 
 cutoffs for various stages of the pipeline. The different config settings are outlined further on.
-You can permanently change the behaviour of your Hecatomb installation by modifying the values in this config file.
+You can permanently change the behaviour of your Hecatomb installation by modifying the values in the system config file.
 
 Alternatively, you can specify a customised config file for a specific run.
 Before Hecatomb runs, it will copy the system default config file to your working directory and use it for your analysis.
 To customise your run, you can copy the system default config file like so:
 
-```bash
+```shell
 hecatomb config
 ```
 
 You can then edit your new `hecatomb.config.yaml` file to suit your needs.
-It will be automatically used in your Hecatomb run, or if you rename it you can specify the file with `--configfile`:
+It will automatically be used in your Hecatomb run, or if you rename it you can specify the file with `--configfile`:
 
-```bash
+```shell
 hecatomb run --configfile myRenamedHecatomb.config.yaml
 ```
 
@@ -45,7 +46,7 @@ Databases: /scratch/HecatombDatabases
 
 and rerun the installation 
 
-```bash
+```shell
 hecatomb install
 ```
 
@@ -68,9 +69,6 @@ MediumJobMem: 32000  # Memory for Megahit/Flye in megabytes (recommend >= 32000)
 MediumJobCpu: 16     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
 SmallJobMem: 16000   # Memory for BBTools etc. in megabytes (recommend >= 16000)
 SmallJobCpu: 8       # CPUs for BBTools etc. (recommend >= 8)
-                     # default CPUs = 1
-# SPECIFY DEFAULT MEM AND TIME IN YOUR PROFILE - see example profile config.yaml
-defaultJobs: 100     # Default concurrent jobs (for use with --profile)
 
 # Some jobs need more RAM; go over your CPU:RAM ratio if needed
 MoreRamMem: 16000    # Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
@@ -92,6 +90,8 @@ CONTIG_MINLENGTH: 1000 # Read minimum length (rule contig_reformating_and_stats 
 CUTTAIL_WINDOW: 25 # Sliding window size for low qual read filter rule fastp_preprocessing in 01_preprocessing.smk)
 DEDUP_ACCURACY: 4 # Specify the level (1 ~ 6). The higher level means more memory usage and more running time, but lower risk of incorrect deduplication marking (rule fastp_preprocessing in 01_preprocessing.smk)
 COMPRESSION: 1 # Compression level for gzip output (1 ~ 9). 1 is fastest, 9 is smallest. Default is 1, based on assumption of large scratch space (rule fastp_preprocessing in 01_preprocessing.smk)
+ENTROPY: 0.5 # Read minimum entropy (rule remove_low_quality in 01_preprocessing.smk)
+ENTROPYWINDOW: 25 # entropy window for low qual read filter
 
 # CLUSTER READS TO SEQTABLE (MMSEQS EASY-LINCLUST)
  # -c = req coverage of target seq
@@ -104,8 +104,7 @@ linclustParams:
  --alignment-mode 3
 ```
 
-There are additional settings further down in the config file for users that are familiar with MMSeqs, 
-as well as some settings that you should not alter.
+There are additional settings further down in the config file for users that are familiar with MMSeqs etc.
 
 ## Alignment filtering
 
@@ -129,10 +128,10 @@ filtAAsecondary:
  -e 1e-5
 filtNTprimary:
  --min-length 90
- -e 1e-3
+ -e 1e-10
 filtNTsecondary:
  --min-length 90
- -e 1e-5
+ -e 1e-20
 ```
 
 ## Assembly settings
@@ -140,6 +139,9 @@ filtNTsecondary:
 If you're using longreads and are familiar with Canu then you might want to customise your Canu settings.
 
 ```yaml
+# recommended correctedErrorRate is 0.16 to 0.12 (depending on coverage) for nanopore and
+# 0.105 to 0.040 (depending on coverage) for pacbio (non-HiFi) - below is low-coverage nanopore
+# https://canu.readthedocs.io/en/latest/faq.html#what-parameters-can-i-tweak
 canuSettings:
  correctedErrorRate=0.16
  maxInputCoverage=10000
@@ -151,16 +153,34 @@ canuSettings:
  stopOnLowCoverage=False
  genomeSize=10M
  -nanopore
+# -pacbio
+# -pacbio-hifi
 ```
 
 ## Alignment settings
 
-Hecatomb can perform MMSeqs alignments using either sensitive (default) or fast (`--fast`) parameters.
+Hecatomb can perform MMSeqs alignments using either the default sensitive (`--search sensitive`) or fast (`--search fast`) parameters.
 You can tweak the setting in the config file but you should consult the MMSeqs documentation before making any changes.
 
 The relevant section in `hecatomb/snakemake/config/config.yaml` is shown below:
 
 ```yaml
+# ALIGNMENT FILTERING CUTOFFS
+  # --min-length for AA should be equal or less than 1/3 of READ_MINLENGTH
+  # --min-length for NT should be equal or less than READ_MINLENGTH
+filtAAprimary:
+ --min-length 30
+ -e 1e-3
+filtAAsecondary:
+ --min-length 30
+ -e 1e-5
+filtNTprimary:
+ --min-length 90
+ -e 1e-10
+filtNTsecondary:
+ --min-length 90
+ -e 1e-20
+
 # PERFORMANCE SETTINGS - SEE MMSEQS DOCUMENTATION FOR DETAILS
 # sensitive AA search
 perfAA:
@@ -172,7 +192,7 @@ perfAA:
 # fast AA search
 perfAAfast:
  -s 4.0
- --lca-mode 1
+ --lca-mode 2
  --shuffle 0
 # sensitive NT search
 perfNT:
@@ -189,18 +209,18 @@ perfNTfast:
 As mentioned, Hecatomb is powered by Snakemake but runs via a launcher for your convenience.
 The launcher--called with `hecatomb`--lets you specify the directory with your reads, host genome, where to save the results,
 whether to do an assembly, and either specify the number of threads to use or a profile to use.
-Snakemake itself has many command line options and the launcher can pass additional commands to Snakemake using the `--snake` option.
+Snakemake itself has many command line options, and the launcher can pass additional commands on to Snakemake.
 
 One such example is if you're not production ready you might wish to do a 'dry-run', where the run is simulated but no 
 jobs are submitted, just to see if everything is configured correctly.
 To do that, Snakemake needs the dry run flag (`--dry-run`, `--dryrun`, or `-n`).
-In Hecatomb, you can pass this flag like so:
+In Hecatomb, simply tack it on to the end of your command:
 
-```bash
-hecatomb run --reads fasq/ --profile slurm --snake=--dry-run
+```shell
+hecatomb run --reads fasq/ --profile slurm --dry-run
 ```
 
 Hecatomb prints the Snakemake command to the terminal window before running and you should see these additional options 
 added to the Snakemake command. Have a look at the full list of available Snakemake options with `snakemake --help`. 
-The launcher will pass anything in `--snake=` verbatim, so use with care.
+__Any unrecognised command will be passed on to Snakemake verbatim__, so use with caution :p
 

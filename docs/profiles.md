@@ -76,7 +76,7 @@ Done!
 You can now use this profile with hecatomb:
 
 ```bash
-hecatomb run --test --fast --profile slurm
+hecatomb test --search fast --profile slurm
 ```
 
 ## Create a profile with cookiecutter
@@ -107,5 +107,5 @@ There is more detail on the [GitHub page for this profile](https://github.com/Sn
 Use the profile with Hecatomb:
 
 ```bash
-hecatomb run --test --fast --profile slurm
+hecatomb test --search fast --profile slurm
 ```
