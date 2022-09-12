@@ -63,6 +63,8 @@ rule krona_plot:
         os.path.join(BENCH, "krona_plot.txt")
     log:
         os.path.join(STDERR, 'krona_plot.log')
+    resources:
+        mem_mb=MiscMem
     shell:
         """
         ktImportText {input} -o {output} &> {log}
