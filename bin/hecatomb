@@ -33,14 +33,14 @@ def print_version():
 ██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗
 ██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝
 ╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝
-""")
-    click.echo('\n' + 'Hecatomb version ' + version)
+""", err=True)
+    click.echo('\n' + 'Hecatomb version ' + version, err=True)
 
 
 
 def msg(err_message):
     tstamp = strftime('[%Y:%m:%d %H:%M:%S] ', localtime())
-    click.echo(tstamp + err_message)
+    click.echo(tstamp + err_message, err=True)
 
 
 def msg_box(splash, errmsg=None):
@@ -48,7 +48,7 @@ def msg_box(splash, errmsg=None):
     msg(f'| {splash} |')
     msg(('-' * (len(splash) + 4)))
     if errmsg:
-        click.echo('\n' + errmsg)
+        click.echo('\n' + errmsg, err=True)
 
 
 def copy_config(local_config, system_config=snake_base(os.path.join('..', 'snakemake', 'config', 'config.yaml'))):
