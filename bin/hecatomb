@@ -51,23 +51,33 @@ def msg_box(splash, errmsg=None):
         click.echo('\n' + errmsg, err=True)
 
 
+def default_to_ouput(ctx, param, value):
+    """Callback for --configfile and --snake-dir; place value in output directory unless specified"""
+    if param.default == value:
+        return os.path.join(ctx.params['output'], value)
+    return value
+
+
 def copy_config(local_config, system_config=snake_base(os.path.join('..', 'snakemake', 'config', 'config.yaml'))):
     if not os.path.isfile(local_config):
         msg(f'Copying system default config to {local_config}')
+        if len(os.path.dirname(local_config)) > 0:
+            os.makedirs(os.path.dirname(local_config), exist_ok=True)
         copyfile(system_config, local_config)
     else:
         msg(f'Config file {local_config} already exists. Using existing config file.')
 
 
-def read_config(file):
-    with open(file, 'r') as stream:
+def read_config(local_config):
+    msg(f'Reading config file {local_config}')
+    with open(local_config, 'r') as stream:
         _config = yaml.safe_load(stream)
     return _config
 
 
-def write_config(_config, file):
-    msg(f'Writing runtime config file to {file}')
-    with open(file, 'w') as stream:
+def write_config(_config, local_config):
+    msg(f'Updating runtime config file {local_config}')
+    with open(local_config, 'w') as stream:
         yaml.dump(_config, stream)
 
 
@@ -136,8 +146,11 @@ def run_snakemake(configfile=None, snakefile_path=None, merge_config=None, threa
 def common_options(func):
     """Common options decorator for use with click commands."""
     options = [
-        click.option('--output', help='Output directory', type=click.Path(), default='hecatomb.out', show_default=True),
-        click.option('--configfile', default='hecatomb.config.yaml', help='Custom config file', show_default=True),
+        click.option('--output', help='Output directory', type=click.Path(dir_okay=True, writable=True, readable=True),
+                     default='hecatomb.out', show_default=True),
+        click.option('--configfile', default='hecatomb.config.yaml', type=click.Path(writable=True, readable=True),
+                     help='Custom config file [default: (outputDir)/hecatomb.config.yaml]', show_default=False,
+                     callback=default_to_ouput),
         click.option('--threads', help='Number of threads to use', default=32, show_default=True),
         click.option('--use-conda/--no-use-conda', default=True, help='Use conda for Snakemake rules',
                      show_default=True),
@@ -229,6 +242,7 @@ def run(reads, preprocess, search, host,
 def test(preprocess, search, host,
         configfile, output, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args, **kwargs):
     """Run the Hecatomb test dataset"""
+
     reads = snake_base(os.path.join('..', 'test_data'))
 
     merge_config = {
@@ -262,6 +276,7 @@ def config(configfile, **kwargs):
 @common_options
 def install(configfile, output, threads, snake_default, snake_args, **kwargs):
     """Install the Hecatomb databases"""
+
     merge_config = {
         'Output': output,
     }
@@ -282,6 +297,7 @@ def install(configfile, output, threads, snake_default, snake_args, **kwargs):
 def combine(comb, configfile, output, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args,
             **kwargs):
     """Combine multiple Hecatomb runs"""
+
     merge_config = {
         'Output': output,
         'outDirs': list(comb),
@@ -303,9 +319,9 @@ def combine(comb, configfile, output, threads, use_conda, conda_frontend, conda_
 @click.option('--host', help='Name for your host genome', show_default=False, required=True)
 @click.option('--host-fa', help='Host genome fasta file', show_default=False, required=True)
 @common_options
-def add_host(host, host_fa, output, configfile, threads, use_conda, conda_frontend, conda_prefix, snake_default,
-             snake_args, **kwargs):
+def add_host(host, host_fa, output, configfile, threads, use_conda, conda_frontend, conda_prefix, snake_default, snake_args, **kwargs):
     """Add a new host genome to use with Hecatomb"""
+
     merge_config = {
         'Output': output,
         'HostFa': host_fa,
@@ -328,6 +344,7 @@ def add_host(host, host_fa, output, configfile, threads, use_conda, conda_fronte
 @common_options
 def list_hosts(configfile, **kwargs):
     """List the available host genomes"""
+
     copy_config(configfile)
     with open(configfile, 'r') as f:
         config = yaml.safe_load(f)
