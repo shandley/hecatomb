@@ -22,10 +22,12 @@ onstart:
 
 # Success message
 onsuccess:
+    copy_log()
     sys.stderr.write('\n\n    Hecatomb finished successfully!\n\n')
 
 # Fail message and dump failed log outputs to a crash report file
 onerror:
+    copy_log()
     sys.stderr.write('\n    FATAL: Hecatomb encountered an error.')
     logfiles = list(filter(re.compile(r'^(?!old_).*.log').match, os.listdir(STDERR)))
     if len(logfiles) > 0:

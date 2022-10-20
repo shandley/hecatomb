@@ -76,6 +76,14 @@ def sum_counts(fname, R1=False):
     return count
 
 
+def copy_log():
+    try:
+        if config['log']:
+            shell("cat {log} >> " + config['log'])
+    except KeyError:
+        pass
+
+
 ### RECIPES
 rule fasta_index:
     """Index a .fasta file for rapid access with samtools faidx."""

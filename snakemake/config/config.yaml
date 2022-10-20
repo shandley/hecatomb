@@ -17,6 +17,7 @@
 # Inputs and outputs (specify Reads here or on the command line, Output blank = use default)
 Reads:
 Output:
+log:
 
 # Database installation location, leave blank = use hecatomb install location
 Databases:
