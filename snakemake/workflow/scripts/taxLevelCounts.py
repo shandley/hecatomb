@@ -20,7 +20,7 @@ short = {'23' :'k', '24' :'p', '25' :'c', '26' :'o', '27' :'f', '28' :'g', '29' 
 
 logging.debug(f'Opening {snakemake.output[0]} for writing\n')
 out = open(snakemake.output[0], 'w')
-out.write('sampleID\ttaxonLevel\ttaxonPath\ttaxonName\tcount\tCPM\n')
+out.write('sampleID\ttaxonLevel\ttaxonPath\ttaxonName\tcount\tpercent\n')
 # re-read the file for each sample to keep the memory happy - this is probably not necessary
 for sample in snakemake.params.samples:
     logging.debug(f'parsing {snakemake.input[0]} for sample {sample}\n')
