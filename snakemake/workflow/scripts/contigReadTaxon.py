@@ -38,7 +38,7 @@ with open(snakemake.output[0], 'w') as outFH:
         'len',
         'qual',
         'count',
-        'CPM',
+        'percent',
         'alnType',
         'taxMethod',
         'kingdom',
