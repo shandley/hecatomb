@@ -19,10 +19,10 @@ rule assembly_kmer_normalization:
     log:
         os.path.join(STDERR, "kmer_norm_{sample}.log")
     resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.95 * BBToolsMem)
+        mem_mb = MhitMem,
+        javaAlloc = int(0.95 * MhitMem)
     threads:
-        BBToolsCPU
+        MhitCPU
     conda:
         "../envs/bbmap.yaml"
     shell:
