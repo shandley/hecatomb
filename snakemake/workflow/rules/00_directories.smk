@@ -8,12 +8,14 @@ and the addHost script.
 
 ### DATABASE BASE DIRECTORY
 try:
-    if config['Databases'] is None:
-        DBDIR = os.path.join(workflow.basedir, '..', '..', 'databases')
-    else:
-        DBDIR = config['Databases']
-except KeyError:
-    DBDIR = os.path.join(workflow.basedir,'..','..','databases')
+    assert(config['Databases']) is not None
+    DBDIR = config['Databases']
+except (KeyError,AssertionError):
+    try:
+        assert(os.environ["HECATOMB_DB"]) is not None
+        DBDIR = os.environ["HECATOMB_DB"]
+    except (KeyError, AssertionError):
+        DBDIR = os.path.join(workflow.basedir,'..','..','databases')
 
 
 ### OUTPUT DIRECTORY
