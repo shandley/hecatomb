@@ -169,7 +169,8 @@ def common_options(func):
         click.option('--snake-default', multiple=True,
                      default=['--rerun-incomplete', '--printshellcmds', '--nolock', '--show-failed-logs'],
                      help="Customise Snakemake runtime args", show_default=True),
-        click.option('--log', default='hecatomb.log', callback=default_to_ouput, hidden=True),
+        click.option('--log', default='hecatomb.log', callback=default_to_ouput, hidden=True,
+                     type=click.Path(writable=True, readable=True)),
         click.argument('snake_args', nargs=-1)
     ]
     for option in reversed(options):
