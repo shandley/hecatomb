@@ -16,7 +16,7 @@ config = ap.AttrMap(config)
 
 
 # directories
-include: "rules/00_directories.smk"
+include: "rules/preflight/directories.smk"
 
 
 # host files

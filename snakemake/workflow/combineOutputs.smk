@@ -40,10 +40,10 @@ for f in config.args.combineRuns:
                 sys.stderr.write(f'Ignoring duplicated sample {l[0]} in {f}\n')
 
 
-# hijack 03_mapping.smk for remaking the contigSeqTable
-include: "rules/00_directories.smk"
-include: "rules/00_functions.smk"
-include: "rules/03_mapping.smk"
+# hijack contig_mapping.smk for remaking the contigSeqTable
+include: "rules/preflight/directories.smk"
+include: "rules/preflight/functions.smk"
+include: "rules/preflight/contig_mapping.smk"
 
 
 # TARGETS

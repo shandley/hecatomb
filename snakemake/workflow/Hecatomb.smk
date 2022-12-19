@@ -31,7 +31,7 @@ else:
 
 
 ### DIRECTORIES
-include: "rules/00_directories.smk"
+include: "rules/preflight/directories.smk"
 
 
 ### HOST ORGANISM
@@ -40,23 +40,23 @@ dir.dbs.host.index = dir.dbs.host.fasta + ".idx"
 
 
 ### PREFLIGHT CHECKS
-include: "rules/00_preflight.smk"
-include: "rules/00_functions.smk"
+include: "rules/preflight/validate.smk"
+include: "rules/preflight/functions.smk"
 
 
 ### TARGETS
-include: "rules/00_targets.smk"
+include: "rules/preflight/targets.smk"
 
 
 ### PARSE SAMPLES
 if config.args.preprocess == 'paired':
-    include: "rules/00_samples.smk"
+    include: "rules/preflight/samples.smk"
 elif config.args.preprocess == 'single':
-    include: "rules/00_samples_se.smk"
+    include: "rules/preflight/samples_se.smk"
 elif config.args.preprocess == 'longread':
-    include: "rules/00_samples_se.smk"
+    include: "rules/preflight/samples_se.smk"
 else: # config.args.preprocess == 'roundAB'
-    include: "rules/00_samples.smk"
+    include: "rules/preflight/samples.smk"
 
 
 samples = ap.AttrMap()
@@ -68,25 +68,25 @@ samples.names = list(samples.reads.keys())
 
 ### PREPROCESSING
 if config.args.preprocess == 'paired':
-    include: "rules/01_preprocessing.smk"
-    include: "rules/02_sample_assembly.smk"
+    include: "rules/preprocessing/paired_end.smk"
+    include: "rules/assembly/paired_end.smk"
 elif config.args.preprocess == 'single':
-    include: "rules/01_preprocessing_single.smk"
-    include: "rules/02_sample_assembly_single.smk"
+    include: "rules/preprocessing/single_end.smk"
+    include: "rules/assembly/single_end.smk"
 elif config.args.preprocess == 'longread':
-    include: "rules/01_preprocessing_longreads.smk"
-    include: "rules/02_sample_assembly_longreads.smk"
+    include: "rules/preprocessing/longreads.smk"
+    include: "rules/assembly/longreads.smk"
 else: # config.args.preprocess == 'roundAB'
-    include: "rules/01_preprocessing_round.smk"
-    include: "rules/02_sample_assembly.smk"
+    include: "rules/preprocessing/roundAB.smk"
+    include: "rules/assembly/paired_end.smk"
 
 
 ### REMAINING PIPELINE RULES
-include: "rules/02_taxonomic_assignment.smk"
-include: "rules/03_population_assembly.smk"
-include: "rules/03_mapping.smk"
-include: "rules/03_contig_annotation.smk"
-include: "rules/04_summaries.smk"
+include: "rules/annotation/read_annotation.smk"
+include: "rules/assembly/combine_sample_assemblies.smk"
+include: "rules/annotation/contig_mapping.smk"
+include: "rules/annotation/contig_annotation.smk"
+include: "rules/reports/summaries.smk"
 
 
 # Mark target rules

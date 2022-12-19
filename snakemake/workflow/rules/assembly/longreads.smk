@@ -1,7 +1,7 @@
 """
 Per-sample assemblies for longreads
     Take all host-removed reads, create pooled contigs "all_samples_contigs_size_selected.fasta" for use
-    in 03_population_assembly.smk
+    in combine_sample_assemblies.smk
 """
 
 rule canu_sample_assembly:

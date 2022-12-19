@@ -1,5 +1,5 @@
 # if makeReport:
-#     include: '04_summaries_optional.smk'
+#     include: 'summaries_optional.smk'
 # else:
 #     rule touchSummCounts:
 #         """dummy rule to 'skip' summary counting"""
