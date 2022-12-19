@@ -5,27 +5,28 @@ rule map_seq_table:
     the organism to which each contig belongs.
     """
     input:
-        assembly = os.path.join(RESULTS, "assembly.fasta"),
-        seqtable = os.path.join(RESULTS, "seqtable.fasta")
+        assembly = os.path.join(dir.out.results, "assembly.fasta"),
+        seqtable = os.path.join(dir.out.results, "seqtable.fasta")
     output:
-        temp(os.path.join(MAPPING, "assembly.seqtable.bam"))
+        temp(os.path.join(dir.out.mapping, "assembly.seqtable.bam"))
     log:
-        mm2 = os.path.join(STDERR, "map_seq_table.mm2.log"),
-        stool = os.path.join(STDERR, "map_seq_table.stools.log")
+        mm2 = os.path.join(dir.out.stderr, "map_seq_table.mm2.log"),
+        stool = os.path.join(dir.out.stderr, "map_seq_table.stools.log")
     conda:
         os.path.join('../', 'envs', 'minimap2.yaml')
     benchmark:
-        os.path.join(BENCH, 'map_seq_table.txt')
+        os.path.join(dir.out.bench, 'map_seq_table.txt')
     threads:
-        MhitCPU
+        config.resources.med.cpu
     resources:
-        mem_mb = MhitMem
+        mem_mb = config.resources.med.mem
     shell:
         """
         minimap2 -ax sr --secondary=no -t {threads} {input.assembly} {input.seqtable} 2> {log.mm2} \
             | samtools sort -m 1G -o {output} 2> {log.stool}
         rm {log.mm2} {log.stool}
         """
+
 
 rule contig_read_taxonomy:
     """Mapping step 02: Create a table of seq mapping info and their taxonomic information
@@ -36,20 +37,20 @@ rule contig_read_taxonomy:
     contigID\tseqID\tstart\tstop\tlen\tqual\tcount\tpercent\ttaxMethod\tK\tP\tC\tO\tF\tG\tS\n
     """
     input:
-        bam = os.path.join(MAPPING, "assembly.seqtable.bam"),
-        bai = os.path.join(MAPPING, "assembly.seqtable.bam.bai"),
-        taxon = os.path.join(RESULTS, "bigtable.tsv"),
-        counts = os.path.join(RESULTS, "sampleSeqCounts.tsv"),
+        bam = os.path.join(dir.out.mapping, "assembly.seqtable.bam"),
+        bai = os.path.join(dir.out.mapping, "assembly.seqtable.bam.bai"),
+        taxon = os.path.join(dir.out.results, "bigtable.tsv"),
+        counts = os.path.join(dir.out.results, "sampleSeqCounts.tsv"),
     output:
-        os.path.join(RESULTS, "contigSeqTable.tsv")
+        os.path.join(dir.out.results, "contigSeqTable.tsv")
     threads:
-        MiscCPU
+        config.resources.ram.cpu
     resources:
-        mem_mb = MiscMem
+        mem_mb = config.resources.ram.mem
     benchmark:
-        os.path.join(BENCH, 'contig_read_taxonomy.txt')
+        os.path.join(dir.out.bench, 'contig_read_taxonomy.txt')
     log:
-        os.path.join(STDERR, 'contig_read_taxonomy.log')
+        os.path.join(dir.out.stderr, 'contig_read_taxonomy.log')
     conda:
         os.path.join('..', 'envs', 'pysam.yaml')
     script:

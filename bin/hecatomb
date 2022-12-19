@@ -220,12 +220,14 @@ def run(reads, preprocess, search, host, output, log, **kwargs):
     """Run Hecatomb"""
 
     merge_config = {
-        'Reads': reads,
-        'Output': output,
-        'Host': host,
-        'Preprocess': preprocess,
-        'Search': search,
-        'log': log
+        'args': {
+            'reads': reads,
+            'output': output,
+            'host': host,
+            'preprocess': preprocess,
+            'search': search,
+            'log': log
+        }
     }
 
     run_snakemake(
@@ -249,12 +251,14 @@ def test(preprocess, search, host, output, log, **kwargs):
     reads = snake_base(os.path.join('..', 'test_data'))
 
     merge_config = {
-        'Reads': reads,
-        'Output': output,
-        'Host': host,
-        'Preprocess': preprocess,
-        'Search': search,
-        'log': log
+        'args': {
+            'reads': reads,
+            'output': output,
+            'host': host,
+            'preprocess': preprocess,
+            'search': search,
+            'log': log
+        }
     }
 
     run_snakemake(
@@ -277,8 +281,10 @@ def install(output, log, **kwargs):
     """Install the Hecatomb databases"""
 
     merge_config = {
-        'Output': output,
-        'log': log
+        'args': {
+            'output': output,
+            'log': log
+        }
     }
     run_snakemake(
         snakefile_path=snake_base(os.path.join('..', 'snakemake', 'workflow', 'DownloadDB.smk')),
@@ -296,9 +302,11 @@ def combine(comb, output, log, **kwargs):
     """Combine multiple Hecatomb runs"""
 
     merge_config = {
-        'Output': output,
-        'outDirs': list(comb),
-        'log': log
+        'args': {
+            'output': output,
+            'combineRuns': list(comb),
+            'log': log
+        }
     }
     run_snakemake(
         snakefile_path=snake_base(os.path.join('..', 'snakemake', 'workflow', 'combineOutputs.smk')),
@@ -316,10 +324,12 @@ def add_host(host, host_fa, output, log, **kwargs):
     """Add a new host genome to use with Hecatomb"""
 
     merge_config = {
-        'Output': output,
-        'HostFa': host_fa,
-        'HostName': host,
-        'log': log
+        'args': {
+            'output': output,
+            'hostFa': host_fa,
+            'hostName': host,
+            'log': log
+        }
     }
     run_snakemake(
         snakefile_path=snake_base(os.path.join('..', 'snakemake', 'workflow', 'AddHost.smk')),
@@ -341,8 +351,8 @@ def list_hosts(configfile, **kwargs):
         DBDIR = snake_base(os.path.join('..', 'databases'))
     else:
         DBDIR = config['Databases']
-    HOSTPATH = os.path.join(DBDIR, "host", "*")
-    hostFastas = list([os.path.basename(x) for x in glob.glob(HOSTPATH)])
+    hostPath = os.path.join(DBDIR, "host", "*")
+    hostFastas = list([os.path.basename(x) for x in glob.glob(hostPath)])
     try:
         hostFastas.remove('virus_shred.fasta.gz')
     except ValueError:

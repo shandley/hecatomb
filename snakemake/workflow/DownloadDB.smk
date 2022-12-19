@@ -10,42 +10,34 @@ Rob Edwards, Feb 2020
 Updated: Michael Roach, Q2 2021
 """
 
+import attrmap as ap
+
 
 # load db file config
 configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 configfile: os.path.join(workflow.basedir, '../', 'config', 'dbFiles.yaml')
+config = ap.AttrMap(config)
 
 
 # directories
 include: "rules/00_directories.smk"
 
 
-# Mirrors
-mirror1 = config['mirror1']
-mirror2 = config['mirror2']
-
-
-# targets
-allDbFiles = []
-for f in config['dbFiles']:
-    allDbFiles.append(os.path.join(DBDIR, f))
-
-
 rule all:
     input:
-        allDbFiles
+        expand(os.path.join(dir.dbs.base, '{file}'), file=config.dbs.files)
 
 
 rule download_db_file:
     """Generic rule to download a DB file."""
     output:
-        os.path.join(DBDIR, '{file}')
+        os.path.join(dir.dbs.base, '{file}')
     run:
         import urllib.request
         import urllib.parse
         import shutil
-        dlUrl1 = urllib.parse.urljoin(mirror1, wildcards.file)
-        dlUrl2 = urllib.parse.urljoin(mirror2, wildcards.file)
+        dlUrl1 = urllib.parse.urljoin(config.dbs.mirror1, wildcards.file)
+        dlUrl2 = urllib.parse.urljoin(config.dbs.mirror2, wildcards.file)
         try:
             with urllib.request.urlopen(dlUrl1) as r, open(output[0],'wb') as o:
                 shutil.copyfileobj(r,o)

@@ -7,22 +7,22 @@ Per-sample assemblies for longreads
 rule canu_sample_assembly:
     """Per-sample assembly with canu; also works for unmapped rescue reads"""
     input:
-        os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz")
+        os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz")
     output:
-        ctg = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.fasta"),
-        ctgq = os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.uniq.fasta"),
-        un = os.path.join(ASSEMBLY,"{sample}","{sample}.unassembled.fasta"),
-        unq = os.path.join(ASSEMBLY,"{sample}","{sample}.unassembled.uniq.fasta"),
-        tar = os.path.join(ASSEMBLY,'{sample}.tar.zst')
+        ctg = os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.fasta"),
+        ctgq = os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.uniq.fasta"),
+        un = os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.fasta"),
+        unq = os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.uniq.fasta"),
+        tar = os.path.join(dir.out.assembly,'{sample}.tar.zst')
     params:
-        settings = config['canuSettings'],
+        settings = config.assembly.canu,
         canu_dir = lambda w, output: os.path.split(output.ctg)[0]
     resources:
-        mem_mb = MhitMem
+        mem_mb = config.resources.med.mem
     threads:
-        MhitCPU
+        config.resources.med.cpu
     log:
-        os.path.join(STDERR, "canu_sample_assembly.{sample}.log")
+        os.path.join(dir.out.stderr, "canu_sample_assembly.{sample}.log")
     conda:
         "../envs/canu.yaml"
     shell:
@@ -39,45 +39,48 @@ rule canu_sample_assembly:
         rm {log}
         """
 
+
 rule combine_canu_unassembled:
     """Combine the unassembled reads from all canu assemblies"""
     input:
-        expand(os.path.join(ASSEMBLY,"{sample}","{sample}.unassembled.uniq.fasta"), sample=SAMPLES)
+        expand(os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.uniq.fasta"), sample=samples.names)
     output:
-        temp(os.path.join(ASSEMBLY,"unmappedRescue_R1.all.fasta.gz"))
+        temp(os.path.join(dir.out.assembly,"unmappedRescue_R1.all.fasta.gz"))
     shell:
         """cat {input} > {output}"""
+
 
 rule combine_canu_contigs:
     """Combine contigs from all samples plus unmapped rescue assembly"""
     input:
-        expand(os.path.join(ASSEMBLY,"{sample}","{sample}.contigs.uniq.fasta"), sample=list(SAMPLES) + ['unmappedRescue'])
+        expand(os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.uniq.fasta"), sample=samples.names + ['unmappedRescue'])
     output:
-        temp(os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","all_sample_contigs.fasta"))
+        temp(os.path.join(dir.out.assembly,"all_sample_contigs.fasta"))
     shell:
         """cat {input} > {output}"""
+
 
 rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
-        r1 = os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz"),
-        ref = os.path.join(RESULTS, "assembly.fasta")
+        r1 = os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz"),
+        ref = os.path.join(dir.out.results, "assembly.fasta")
     output:
-        sam = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.aln.sam.gz")),
-        unmap = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.unmapped.fastq")),
-        covstats = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats")),
-        rpkm = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm")),
-        statsfile = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.statsfile")),
-        scafstats = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.scafstats"))
+        sam = temp(os.path.join(dir.out.mapping, "{sample}.aln.sam.gz")),
+        unmap = temp(os.path.join(dir.out.mapping, "{sample}.unmapped.fastq")),
+        covstats = temp(os.path.join(dir.out.mapping, "{sample}.cov_stats")),
+        rpkm = temp(os.path.join(dir.out.mapping, "{sample}.rpkm")),
+        statsfile = temp(os.path.join(dir.out.mapping, "{sample}.statsfile")),
+        scafstats = temp(os.path.join(dir.out.mapping, "{sample}.scafstats"))
     benchmark:
-        os.path.join(BENCH, "coverage_calculations.{sample}.txt")
+        os.path.join(dir.out.bench, "coverage_calculations.{sample}.txt")
     log:
-        os.path.join(STDERR, "coverage_calculations.{sample}.log")
+        os.path.join(dir.out.stderr, "coverage_calculations.{sample}.log")
     resources:
-        mem_mb = BBToolsMem,
-        javaAlloc = int(0.9 * BBToolsMem)
+        mem_mb = config.resources.med.mem,
+        javaAlloc = int(0.9 * config.resources.med.mem)
     threads:
-        BBToolsCPU
+        config.resources.med.cpu
     conda:
         "../envs/bbmap.yaml"
     shell:

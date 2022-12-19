@@ -1,21 +1,21 @@
 rule population_assembly:
     """Assembly step 05: Create 'contig dictionary' of all unique contigs present in the study (aka: population assembly)"""
     input:
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "all_sample_contigs.fasta")
+        os.path.join(dir.out.assembly, "all_sample_contigs.fasta")
     output:
-        assembly = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")),
-        stats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "contig_dictionary.stats")
+        assembly = temp(os.path.join(dir.out.assembly, "FLYE", "assembly.fasta")),
+        stats = os.path.join(dir.out.assembly, "FLYE", "contig_dictionary.stats")
     params:
         flye_out = lambda w, output: os.path.split(output.assembly)[0]
     benchmark:
-        os.path.join(BENCH, "population_assembly.txt")
+        os.path.join(dir.out.bench, "population_assembly.txt")
     log:
-        log1 = os.path.join(STDERR, "population_assembly.flye.log"),
-        log2 = os.path.join(STDERR, "population_assembly.stats.log")
+        log1 = os.path.join(dir.out.stderr, "population_assembly.flye.log"),
+        log2 = os.path.join(dir.out.stderr, "population_assembly.stats.log")
     resources:
-        mem_mb = MhitMem
+        mem_mb = config.resources.med.mem
     threads:
-        MhitCPU
+        config.resources.med.cpu
     conda:
         "../envs/metaflye.yaml"
     shell:
@@ -28,41 +28,44 @@ rule population_assembly:
         rm {log.log2}
         """
 
+
 rule link_assembly:
     """Assembly step 06: Link the final assembly to the results directory; not really a step."""
     input:
-        os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "FLYE", "assembly.fasta")
+        os.path.join(dir.out.assembly, "FLYE", "assembly.fasta")
     output:
-        os.path.join(RESULTS, "assembly.fasta")
+        os.path.join(dir.out.results, "assembly.fasta")
     run:
         os.rename(os.path.abspath(input[0]), os.path.abspath(output[0]))
+
 
 rule create_contig_count_table:
     """Assembly step 08: Transcript Per Million (TPM) calculator
 
     Useful resource: https://www.rna-seqblog.com/rpkm-fpkm-and-tpm-clearly-explained/"""
     input:
-        rpkm = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.rpkm"),
-        covstats = os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}.cov_stats")
+        rpkm = os.path.join(dir.out.mapping, "{sample}.rpkm"),
+        covstats = os.path.join(dir.out.mapping, "{sample}.cov_stats")
     output:
-        count_tbl = temp(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv"))
+        count_tbl = temp(os.path.join(dir.out.mapping, "{sample}_contig_counts.tsv"))
     benchmark:
-        os.path.join(BENCH, "create_contig_count_table.{sample}.txt")
+        os.path.join(dir.out.bench, "create_contig_count_table.{sample}.txt")
     log:
-        os.path.join(STDERR, "create_contig_count_table.{sample}.log")
+        os.path.join(dir.out.stderr, "create_contig_count_table.{sample}.log")
     script:
         os.path.join('..', 'scripts', 'contigCountTable.py')
+
 
 rule concatentate_contig_count_tables:
     """Assembly step 09: Concatenate contig count tables"""
     input:
-        expand(os.path.join(ASSEMBLY, "CONTIG_DICTIONARY", "MAPPING", "{sample}_contig_counts.tsv"), sample=SAMPLES)
+        expand(os.path.join(dir.out.mapping, "{sample}_contig_counts.tsv"), sample=samples.names)
     output:
-        os.path.join(RESULTS, "contig_count_table.tsv")
+        os.path.join(dir.out.results, "contig_count_table.tsv")
     benchmark:
-        os.path.join(BENCH, "concatentate_contig_count_tables.txt")
+        os.path.join(dir.out.bench, "concatentate_contig_count_tables.txt")
     log:
-        os.path.join(STDERR, "concatentate_contig_count_tables.log")
+        os.path.join(dir.out.stderr, "concatentate_contig_count_tables.log")
     shell:
         """
         {{ 

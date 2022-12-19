@@ -9,6 +9,7 @@ def exitLogCleanup(*args):
         os.unlink(logFile)
     return None
 
+
 def stream_tsv(tsvFile):
     """Read a file line-by-line and split by whitespace"""
     with open(tsvFile, 'r') as filehandle:
@@ -16,6 +17,7 @@ def stream_tsv(tsvFile):
             line = line.strip()
             l = line.split('\t')
             yield l
+
 
 def file_len(fname):
     """Return the number of lines in a file"""
@@ -29,6 +31,7 @@ def file_len(fname):
     f.close()
     return i + 1
 
+
 def fasta_clust_counts(fname):
     """Return the sum of seq count values in a fasta file of clustered seqs"""
     count = 0
@@ -38,29 +41,32 @@ def fasta_clust_counts(fname):
                 count += int(line.split(':')[1])     # fasta id = >sample:count:seqID
     return count
 
-def collect_start_counts(sampleReads, outFile):
+
+def collect_start_counts(samples, outFile):
     """Collect the read counts of the raw input files"""
     with open(outFile, 'w') as outfh:
-        for sample in SAMPLES:
-            R1c = file_len(sampleReads[sample]['R1']) / 4
+        for sample in samples.names:
+            R1c = file_len(samples.reads[sample]['R1']) / 4
             outfh.write(f'{sample}\tInitial_Count\tR1\t{R1c}\n')
             try:
-                R2c = file_len(sampleReads[sample]['R2']) / 4
+                R2c = file_len(samples.reads[sample]['R2']) / 4
                 outfh.write(f'{sample}\tInitial_Count\tR2\t{R2c}\n')
             except KeyError:
                 pass
     return None
 
+
 def collect_counts(inPrefix, inSuffix, stepName, outFile):
     """Collect fastq counts for all samples and print to file"""
     with open(outFile,'w') as outfh:
-        for sample in SAMPLES:
+        for sample in samples.names:
             R1c = file_len(os.path.join(inPrefix, f'{sample}_R1{inSuffix}')) / 4
             outfh.write(f'{sample}\t{stepName}\tR1\t{R1c}\n')
             if os.path.isfile(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')):
                 R2c = file_len(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')) / 4
                 outfh.write(f'{sample}\t{stepName}\tR2\t{R2c}\n')
     return None
+
 
 def sum_counts(fname, R1=False):
     """Collect the sum of all reads for all samples from a summary count file (e.g. from collect_counts)"""
@@ -84,7 +90,7 @@ def copy_log():
         pass
 
 
-### RECIPES
+### GENERIC RECIPES
 rule fasta_index:
     """Index a .fasta file for rapid access with samtools faidx."""
     input:
@@ -96,9 +102,10 @@ rule fasta_index:
     conda:
         os.path.join('..','envs','samtools.yaml')
     resources:
-        mem_mb=MiscMem
+        mem_mb = config.resources.ram.mem
     shell:
         "samtools faidx {input} > {output} 2> {log} && rm {log}"
+
 
 rule bam_index:
     """Index a .bam file for rapid access with samtools."""
@@ -111,33 +118,35 @@ rule bam_index:
     conda:
         os.path.join('..','envs','samtools.yaml')
     threads:
-        MiscCPU
+        config.resources.ram.cpu
     resources:
-        mem_mb=MiscMem
+        mem_mb = config.resources.ram.mem
     shell:
         "samtools index -@ {threads} {input} {output} 2> {log} && rm {log}"
+
 
 rule calculate_gc:
     """Calculate GC content for sequences"""
     input:
-        os.path.join(RESULTS, "{file}.fasta")
+        os.path.join(dir.out.results, "{file}.fasta")
     output:
-        temp(os.path.join(RESULTS, "{file}.properties.gc"))
+        temp(os.path.join(dir.out.results, "{file}.properties.gc"))
     benchmark:
-        os.path.join(BENCH, "calculate_gc.{file}.txt")
+        os.path.join(dir.out.bench, "calculate_gc.{file}.txt")
     log:
-        os.path.join(STDERR, "calculate_gc.{file}.log")
+        os.path.join(dir.out.stderr, "calculate_gc.{file}.log")
     conda:
         os.path.join("..", "envs", "bbmap.yaml")
     threads:
-        MiscCPU
+        config.resources.ram.cpu
     resources:
-        mem_mb = MiscMem
+        mem_mb = config.resources.ram.mem
     shell:
         """
         countgc.sh in={input} format=2 ow=t > {output} 2> {log}
         rm {log}
         """
+
 
 rule calculate_tet_freq:
     """Calculate tetramer frequency
@@ -145,19 +154,19 @@ rule calculate_tet_freq:
     The tail commands trims the first line which is junk that should be printed to stdout.
     """
     input:
-        os.path.join(RESULTS, "{file}.fasta")
+        os.path.join(dir.out.results, "{file}.fasta")
     output:
-        temp(os.path.join(RESULTS, "{file}.properties.tetramer"))
+        temp(os.path.join(dir.out.results, "{file}.properties.tetramer"))
     benchmark:
-        os.path.join(BENCH, "calculate_tet_freq.{file}.txt")
+        os.path.join(dir.out.bench, "calculate_tet_freq.{file}.txt")
     log:
-        os.path.join(STDERR, "calculate_tet_freq.{file}.log")
+        os.path.join(dir.out.stderr, "calculate_tet_freq.{file}.log")
     conda:
         os.path.join("..", "envs", "bbmap.yaml")
     threads:
-        MiscCPU
+        config.resources.ram.cpu
     resources:
-        mem_mb = MiscMem
+        mem_mb = config.resources.ram.mem
     shell:
         """
         tetramerfreq.sh in={input} w=0 ow=t \
@@ -166,23 +175,25 @@ rule calculate_tet_freq:
         rm {log}
         """
 
+
 rule seq_properties_table:
     """Combine GC and tet freq tables"""
     input:
-        gc=os.path.join(RESULTS, "{file}.properties.gc"),
-        tet=os.path.join(RESULTS, "{file}.properties.tetramer")
+        gc=os.path.join(dir.out.results, "{file}.properties.gc"),
+        tet=os.path.join(dir.out.results, "{file}.properties.tetramer")
     output:
-        os.path.join(RESULTS, "{file}.properties.tsv")
+        os.path.join(dir.out.results, "{file}.properties.tsv")
     benchmark:
-        os.path.join(BENCH, "seq_properties_table.{file}.txt")
+        os.path.join(dir.out.bench, "seq_properties_table.{file}.txt")
     threads:
-        MiscCPU
+        config.resources.ram.cpu
     resources:
-        mem_mb = MiscMem
+        mem_mb = config.resources.ram.mem
     log:
-        os.path.join(STDERR, '{file}.seq_properties_table.log')
+        os.path.join(dir.out.stderr, '{file}.seq_properties_table.log')
     script:
         os.path.join('..', 'scripts', 'seqPropertyTable.py')
+
 
 rule zip_fastq:
     """zip a fastq file"""
@@ -192,6 +203,7 @@ rule zip_fastq:
         '{filepath}.fastq.gz'
     shell:
         """gzip -1 {input}"""
+
 
 rule zip_fasta:
     """zip a fastq file"""

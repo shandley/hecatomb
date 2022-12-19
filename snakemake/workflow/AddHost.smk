@@ -12,71 +12,69 @@ Michael Roach, Q2 2021
 configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
 configfile: os.path.join(workflow.basedir, '../', 'config', 'dbFiles.yaml')
 configfile: os.path.join(workflow.basedir, '../', 'config', 'immutable.yaml')
+config = ap.AttrMap(config)
 
 
 # directories
 include: "rules/00_directories.smk"
 
 
-# parse config
-virShred = os.path.join(HOSTPATH, 'virus_shred.fasta.gz')
-hostFasta = config['HostFa']
-hostName = config['HostName']
-entropy = config['ENTROPY']
-BBToolsMem = config['MediumJobMem']
-BBToolsCPU = config['MediumJobCpu']
-
-# output files
-hostOutFasta = os.path.join(HOSTPATH, hostName, 'masked_ref.fa.gz')
+# host files
+dir.dbs.host.fasta = os.path.join(dir.dbs.host.base, config.args.hostName, "masked_ref.fa.gz")
+dir.dbs.host.virShred = os.path.join(dir.dbs.host.base, 'virus_shred.fasta.gz')
 
 
 rule all:
     input:
-        hostOutFasta
+        dir.dbs.host.fasta
 
 
 rule map_shred_seq:
     """Add host step 01: Map the virus shred seqs to the input host"""
     input:
-        ref = hostFasta,
-        shred = virShred
+        ref = config.args.hostFa,
+        shred = dir.dbs.host.virShred
     output:
-        temp(f'{hostFasta}.sam.gz')
+        temp(os.path.join(dir.out.temp, f'{config.args.hostName}.sam.gz'))
     conda:
         os.path.join("envs", "bbmap.yaml")
     resources:
-        mem_mb = BBToolsMem,
-        cpus = BBToolsCPU
+        mem_mb = config.resources.sml.mem,
+    threads:
+        config.resources.sml.cpu
     log:
-        os.path.join(STDERR, 'h01.bbmap.log')
+        os.path.join(dir.out.stderr, 'map_shred_seq.log')
     shell:
         """
         bbmap.sh ref={input.ref} in={input.shred} \
             outm={output} path=tmp/ \
             minid=0.90 maxindel=2 ow=t \
-            threads={resources.cpus} -Xmx{resources.mem_mb}m
+            threads={threads} -Xmx{resources.mem_mb}m
         """
 
 
 rule mask_host:
     """Add host step 02: Mask the host"""
     input:
-        ref = hostFasta,
-        sam = f'{hostFasta}.sam.gz'
+        ref = config.args.hostFa,
+        sam = os.path.join(dir.out.temp, f'{config.args.hostName}.sam.gz')
     output:
-        fa = temp(os.path.join(WORKDIR, 'tmpHost.fa')),
-        gz = hostOutFasta
+        fa = temp(os.path.join(dir.out.temp, f'{config.args.hostName}.processed.fasta')),
+        gz = dir.dbs.host.fasta
     conda:
         os.path.join("envs", "bbmap.yaml")
     resources:
-        mem_mb = BBToolsMem,
-        cpus = BBToolsCPU
+        mem_mb = config.resources.sml.mem,
+    threads:
+        config.resources.sml.cpu
+    params:
+        entropy = config.qc.entropy
     log:
-        os.path.join(STDERR, 'bbmask.log')
+        os.path.join(dir.out.stderr, 'mask_host.log')
     shell:
         """
         bbmask.sh in={input.ref} out={output.fa} \
             entropy={entropy} sam={input.sam} ow=t \
-            threads={resources.cpus} -Xmx{resources.mem_mb}m
+            threads={threads} -Xmx{resources.mem_mb}m
         gzip -c {output.fa} > {output.gz}
         """

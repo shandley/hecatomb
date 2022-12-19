@@ -1,7 +1,7 @@
 
 # Add longread-specific targets
 PreprocessingFiles += [
-        expand(os.path.join(ASSEMBLY,"{sample}_R1.all.fasta.gz"), sample=SAMPLES)
+        expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz"), sample=samples.names)
     ]
 
 
@@ -9,17 +9,17 @@ PreprocessingFiles += [
 rule create_host_index:
     """Create the minimap2 index for mapping to the host; this will save time."""
     input:
-        HOSTFA,
+        dir.dbs.host.fasta,
     output:
-        HOSTINDEX
+        dir.dbs.host.index
     benchmark:
-        os.path.join(BENCH,"create_host_index.txt")
+        os.path.join(dir.out.bench,"create_host_index.txt")
     log:
-        os.path.join(STDERR,'create_host_index.log')
+        os.path.join(dir.out.stderr,'create_host_index.log')
     resources:
-        mem_mb=BBToolsMem
+        mem_mb=config.resources.med.mem
     threads:
-        BBToolsCPU
+        config.resources.med.cpu
     conda:
         "../envs/minimap2.yaml"
     shell:
@@ -28,6 +28,7 @@ rule create_host_index:
         rm {log}
         """
 
+
 rule host_removal_mapping:
     """Preprocessing step 07a: Host removal: mapping to host. 
 
@@ -35,21 +36,21 @@ rule host_removal_mapping:
     If your reference is not available you need to add it using 'Hecatomb addHost'
     """
     input:
-        r1 = lambda wildcards: sampleReads[wildcards.sample]['R1'],
-        host = HOSTINDEX,
+        r1 = lambda wildcards: samples.reads[wildcards.sample]['R1'],
+        host = dir.dbs.host.index,
         # summ = optionalSummary[0]
     output:
-        r1=temp(os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")),
+        r1=temp(os.path.join(dir.out.temp,"p01","{sample}_R1.all.fasta")),
     benchmark:
-        os.path.join(BENCH,"host_removal_mapping.{sample}.txt")
+        os.path.join(dir.out.bench,"host_removal_mapping.{sample}.txt")
     log:
-        mm=os.path.join(STDERR,"host_removal_mapping.{sample}.minimap.log"),
-        sv=os.path.join(STDERR,"host_removal_mapping.{sample}.samtoolsView.log"),
-        fq=os.path.join(STDERR,"host_removal_mapping.{sample}.samtoolsFastq.log")
+        mm=os.path.join(dir.out.stderr,"host_removal_mapping.{sample}.minimap.log"),
+        sv=os.path.join(dir.out.stderr,"host_removal_mapping.{sample}.samtoolsView.log"),
+        fq=os.path.join(dir.out.stderr,"host_removal_mapping.{sample}.samtoolsFastq.log")
     resources:
-        mem_mb=BBToolsMem
+        mem_mb=config.resources.med.mem
     threads:
-        BBToolsCPU
+        config.resources.med.cpu
     conda:
         "../envs/minimap2.yaml"
     shell:
@@ -60,31 +61,32 @@ rule host_removal_mapping:
         rm {log.mm} {log.sv} {log.fq}
         """
 
+
 rule cluster_similar_sequences:  ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT AT THIS POINT
     """Preprocessing step 09: Cluster similar sequences.
 
      Sequences clustered at CLUSTERID in config.yaml.
     """
     input:
-        fa=os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta"),
+        fa=os.path.join(dir.out.temp,"p01","{sample}_R1.all.fasta"),
         # summ=optionalSummary[1]
     output:
-        temp(os.path.join(TMPDIR,"p05","{sample}_R1_rep_seq.fasta")),
-        temp(os.path.join(TMPDIR,"p05","{sample}_R1_cluster.tsv")),
-        temp(os.path.join(TMPDIR,"p05","{sample}_R1_all_seqs.fasta"))
+        temp(os.path.join(dir.out.temp,"p05","{sample}_R1_rep_seq.fasta")),
+        temp(os.path.join(dir.out.temp,"p05","{sample}_R1_cluster.tsv")),
+        temp(os.path.join(dir.out.temp,"p05","{sample}_R1_all_seqs.fasta"))
     params:
-        respath=os.path.join(TMPDIR,"p05"),
-        tmppath=os.path.join(TMPDIR,"p05","{sample}_TMP"),
+        respath=os.path.join(dir.out.temp,"p05"),
+        tmppath=os.path.join(dir.out.temp,"p05","{sample}_TMP"),
         prefix='{sample}_R1',
-        config=config['linclustParams']
+        config=config.mmseqs.linclustParams
     benchmark:
-        os.path.join(BENCH,"cluster_similar_sequences.{sample}.txt")
+        os.path.join(dir.out.bench,"cluster_similar_sequences.{sample}.txt")
     log:
-        os.path.join(STDERR,"cluster_similar_sequences.{sample}.log")
+        os.path.join(dir.out.stderr,"cluster_similar_sequences.{sample}.log")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb=config.resources.big.mem
     threads:
-        MMSeqsCPU
+        config.resources.big.cpu
     conda:
         "../envs/mmseqs2.yaml"
     shell:
@@ -95,6 +97,7 @@ rule cluster_similar_sequences:  ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT
         rm {log}
         """
 
+
 rule create_individual_seqtables:
     """Preprocessing step 10: Create individual seqtables. 
 
@@ -102,21 +105,21 @@ rule create_individual_seqtables:
     sequence per sample.
     """
     input:
-        seqs=os.path.join(TMPDIR,"p05","{sample}_R1_rep_seq.fasta"),
-        counts=os.path.join(TMPDIR,"p05","{sample}_R1_cluster.tsv"),
+        seqs=os.path.join(dir.out.temp,"p05","{sample}_R1_rep_seq.fasta"),
+        counts=os.path.join(dir.out.temp,"p05","{sample}_R1_cluster.tsv"),
         # summ=optionalSummary[2]
     output:
-        seqs=temp(os.path.join(TMPDIR,"p06","{sample}_R1.seqs")),
-        counts=temp(os.path.join(TMPDIR,"p06","{sample}_R1.counts")),
-        seqtable=temp(os.path.join(TMPDIR,"p06","{sample}_R1.seqtable"))
+        seqs=temp(os.path.join(dir.out.temp,"p06","{sample}_R1.seqs")),
+        counts=temp(os.path.join(dir.out.temp,"p06","{sample}_R1.counts")),
+        seqtable=temp(os.path.join(dir.out.temp,"p06","{sample}_R1.seqtable"))
     benchmark:
-        os.path.join(BENCH,"individual_seqtables.{sample}.txt")
+        os.path.join(dir.out.bench,"individual_seqtables.{sample}.txt")
     log:
-        os.path.join(STDERR,"individual_seqtables.{sample}.txt")
+        os.path.join(dir.out.stderr,"individual_seqtables.{sample}.txt")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb=config.resources.big.mem
     threads:
-        MMSeqsCPU
+        config.resources.big.cpu
     conda:
         "../envs/seqkit.yaml"
     shell:
@@ -144,29 +147,30 @@ rule merge_seq_table:
     the pipline.
     """
     input:
-        seqtables=expand(os.path.join(TMPDIR,"p06","{sample}_R1.seqtable"),sample=SAMPLES)
+        seqtables=expand(os.path.join(dir.out.temp,"p06","{sample}_R1.seqtable"),sample=samples.names)
     output:
-        fa=os.path.join(RESULTS,"seqtable.fasta"),
-        tsv=os.path.join(RESULTS,"sampleSeqCounts.tsv")
+        fa=os.path.join(dir.out.results,"seqtable.fasta"),
+        tsv=os.path.join(dir.out.results,"sampleSeqCounts.tsv")
     params:
-        samples=list(SAMPLES),
+        samples=samples.names,
         tmpdir=lambda w, input: os.path.split(input[0])[0]
     conda:
         os.path.join('..','envs','pysam.yaml')
     benchmark:
-        os.path.join(BENCH,"merge_seq_table.txt")
+        os.path.join(dir.out.bench,"merge_seq_table.txt")
     log:
-        os.path.join(STDERR,'merge_seq_table.log')
+        os.path.join(dir.out.stderr,'merge_seq_table.log')
     script:
         os.path.join('../','scripts','mergeSeqTable.py')
+
 
 rule archive_for_assembly:
     """Copy the files that will be required in the assembly steps; fastq.gz files will be generated from these"""
     input:
-        os.path.join(TMPDIR,"p01","{sample}_R1.all.fasta")
+        os.path.join(dir.out.temp,"p01","{sample}_R1.all.fasta")
     output:
-        temp(os.path.join(ASSEMBLY,"{sample}_R1.all.fasta"))
+        temp(os.path.join(dir.out.assembly,"{sample}_R1.all.fasta"))
     params:
-        ASSEMBLY
+        dir.out.assembly
     shell:
         """cp {input} {params}"""

@@ -2,50 +2,55 @@
 All target output files for Hecatomb are declared here
 """
 
+import attrmap as ap
+
+targets = ap.AttrMap()
+
+
 # Preprocessing files (more preprocessing-specific targets specified in 01_preprocessing*.smk files)
-PreprocessingFiles = [
-    os.path.join(RESULTS, "seqtable.fasta"),
-    os.path.join(RESULTS, "sampleSeqCounts.tsv"),
-    os.path.join(RESULTS, "seqtable.properties.tsv"),
+targets.preprocessing = [
+    os.path.join(dir.out.results, "seqtable.fasta"),
+    os.path.join(dir.out.results, "sampleSeqCounts.tsv"),
+    os.path.join(dir.out.results, "seqtable.properties.tsv"),
 ]
 
 
 # Assembly files
-AssemblyFiles = [
-    os.path.join(RESULTS,"assembly.fasta"),
-    os.path.join(RESULTS,"contig_count_table.tsv"),
-    os.path.join(RESULTS,"assembly.properties.tsv"),
+targets.assembly = [
+    os.path.join(dir.out.results,"assembly.fasta"),
+    os.path.join(dir.out.results,"contig_count_table.tsv"),
+    os.path.join(dir.out.results,"assembly.properties.tsv"),
     ]
 
 
 # Contig annotations
-ContigAnnotFiles = [
-    os.path.join(RESULTS,"contigAnnotations.tsv"),
+targets.contigAnnotations = [
+    os.path.join(dir.out.results,"contigAnnotations.tsv"),
 ]
 
 
 # Mapping files
-MappingFiles = [
-    os.path.join(MAPPING,"assembly.seqtable.bam"),
-    os.path.join(MAPPING,"assembly.seqtable.bam.bai"),
-    os.path.join(RESULTS,"contigSeqTable.tsv"),
-    os.path.join(RESULTS,"contigKrona.html")
+targets.mapping = [
+    os.path.join(dir.out.mapping,"assembly.seqtable.bam"),
+    os.path.join(dir.out.mapping,"assembly.seqtable.bam.bai"),
+    os.path.join(dir.out.results,"contigSeqTable.tsv"),
+    os.path.join(dir.out.results,"contigKrona.html")
 ]
 
 
 # Secondary AA search files
-ReadAnnotationFiles = [
-    os.path.join(SECONDARY_AA_OUT, "AA_bigtable.tsv"),
-    os.path.join(SECONDARY_NT_OUT, "NT_bigtable.tsv"),
-    os.path.join(RESULTS, "bigtable.tsv"),
+targets.readAnnotations = [
+    os.path.join(dir.out.secondaryAA, "AA_bigtable.tsv"),
+    os.path.join(dir.out.secondaryNT, "NT_bigtable.tsv"),
+    os.path.join(dir.out.results, "bigtable.tsv"),
 ]
 
 
 # Summary files
-SummaryFiles = [
-    os.path.join(RESULTS, 'hecatomb.samples.tsv'),
-    os.path.join(RESULTS, "taxonLevelCounts.tsv"),
-    os.path.join(RESULTS, "krona.html")
+targets.summary = [
+    os.path.join(dir.out.results, 'hecatomb.samples.tsv'),
+    os.path.join(dir.out.results, "taxonLevelCounts.tsv"),
+    os.path.join(dir.out.results, "krona.html")
 ]
 
 

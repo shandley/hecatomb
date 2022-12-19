@@ -5,55 +5,53 @@ Ensures consistent variable names and file locations for the pipeline, the datab
 and the addHost script.
 """
 
+import attrmap as ap
 
-### DATABASE BASE DIRECTORY
+
+dir = ap.AttrMap()
+
+
+### DATABASE LOCATION
 try:
-    assert(config['Databases']) is not None
-    DBDIR = config['Databases']
+    assert(ap.utils.to_dict(config.args)['databases']) is not None
+    dir.dbs.base = config.args.databases
 except (KeyError,AssertionError):
     try:
         assert(os.environ["HECATOMB_DB"]) is not None
-        DBDIR = os.environ["HECATOMB_DB"]
+        dir.dbs.base = os.environ["HECATOMB_DB"]
     except (KeyError, AssertionError):
-        DBDIR = os.path.join(workflow.basedir,'..','..','databases')
+        dir.dbs.base = os.path.join(workflow.basedir,'..','..','databases')
 
 
-### OUTPUT DIRECTORY
-if config['Output'] is None:
-    OUTPUT = 'hecatomb_out'
-else:
-    OUTPUT = config['Output']
+### OUTPUT LOCATION
+try:
+    assert(ap.utils.to_dict(config.args)['output']) is not None
+    dir.out.base = config.args.output
+except (KeyError, AssertionError):
+    dir.out.base = 'hecatomb.out'
 
 
-### DATABASE SUBDIRs
-CONPATH = os.path.join(DBDIR, "contaminants")
-TAX = os.path.join(DBDIR, "tax", "taxonomy")
-TABLES = os.path.join(DBDIR, "tables")
-HOSTPATH = os.path.join(DBDIR, "host")
-
-
-### MMSEQS DBs
-UNIVIRDB = os.path.join(DBDIR, "aa", "virus_primary_aa")
-UNIREF50VIR = os.path.join(DBDIR, "aa", "virus_secondary_aa")
-NCBIVIRDB = os.path.join(DBDIR, "nt", "virus_primary_nt")
-POLYMICRODB = os.path.join(DBDIR, "nt", "virus_secondary_nt")
+### DATABASE DIRs
+dir.dbs.contaminants  = os.path.join(dir.dbs.base, "contaminants")
+dir.dbs.taxonomy      = os.path.join(dir.dbs.base, "tax", "taxonomy")
+dir.dbs.tables        = os.path.join(dir.dbs.base, "tables")
+dir.dbs.host.base     = os.path.join(dir.dbs.base, "host")
+dir.dbs.primaryAA     = os.path.join(dir.dbs.base, "aa", "virus_primary_aa")
+dir.dbs.secondaryAA   = os.path.join(dir.dbs.base, "aa", "virus_secondary_aa")
+dir.dbs.primaryNT     = os.path.join(dir.dbs.base, "nt", "virus_primary_nt")
+dir.dbs.secondaryNT   = os.path.join(dir.dbs.base, "nt", "virus_secondary_nt")
 
 
 ### OUTPUT DIRs
-RESULTS = os.path.join(OUTPUT, 'results')
-WORKDIR = os.path.join(OUTPUT, 'processing')
-TMPDIR = os.path.join(WORKDIR, 'temp')
-STDERR = os.path.join(OUTPUT, 'stderr')
-BENCH = os.path.join(OUTPUT, 'benchmarks')
-# SUMDIR = os.path.join('hecatomb_report')
-ASSEMBLY = os.path.join(WORKDIR, 'assembly')
-MAPPING = os.path.join(WORKDIR, 'mapping')
-STATS = os.path.join(WORKDIR, 'stats')
-
-
-# MMSEQS OUTPUT DIRs
-PRIMARY_AA_OUT = os.path.join(WORKDIR, "mmseqs_aa_primary")
-SECONDARY_AA_OUT = os.path.join(WORKDIR, "mmseqs_aa_secondary")
-PRIMARY_NT_OUT = os.path.join(WORKDIR, "mmseqs_nt_primary")
-SECONDARY_NT_OUT = os.path.join(WORKDIR, "mmseqs_nt_secondary")
-
+dir.out.results         = os.path.join(dir.out.base, 'results')
+dir.out.processing      = os.path.join(dir.out.base, 'processing')
+dir.out.temp            = os.path.join(dir.out.processing, 'temp')
+dir.out.stderr          = os.path.join(dir.out.base, 'stderr')
+dir.out.bench           = os.path.join(dir.out.base, 'benchmarks')
+dir.out.assembly        = os.path.join(dir.out.processing, 'assembly')
+dir.out.mapping         = os.path.join(dir.out.processing, 'mapping')
+dir.out.stats           = os.path.join(dir.out.processing, 'stats')
+dir.out.primaryAA       = os.path.join(dir.out.processing, "mmseqs_aa_primary")
+dir.out.secondaryAA     = os.path.join(dir.out.processing, "mmseqs_aa_secondary")
+dir.out.primaryNT       = os.path.join(dir.out.processing, "mmseqs_nt_primary")
+dir.out.secondaryNT     = os.path.join(dir.out.processing, "mmseqs_nt_secondary")

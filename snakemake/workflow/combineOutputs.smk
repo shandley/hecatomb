@@ -1,7 +1,16 @@
 
+
+import attrmap as ap
+
+
+### CONFIG
+configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
+configfile: os.path.join(workflow.basedir, '../', 'config', 'dbFiles.yaml')
+configfile: os.path.join(workflow.basedir, '../', 'config', 'immutable.yaml')
+config = ap.AttrMap(config)
+
 # folders to combine
-allOutputDir = config['outDirs']
-if len(allOutputDir) < 2:
+if len(config.args.combineRuns) < 2:
     sys.stderr.write('\nError: Please specify two or more Hecatomb directories to combine\n\n')
     sys.exit(1)
 
@@ -9,10 +18,10 @@ def is_non_zero_file(fpath):
     return os.path.isfile(fpath) and os.path.getsize(fpath) > 0
 
 # check for sample duplications and assembly files
-allDirSmplLen = {}     # RESULTS:sample:len
+allDirSmplLen = {}     # dir.out.results:sample:len
 allSamples = []
 assemblyFiles = True
-for f in allOutputDir:
+for f in config.args.combineRuns:
     for assemblyFile in [os.path.join(f, 'results', 'assembly.fasta'), os.path.join(f, 'results', 'contigSeqTable.tsv')]:
         if not is_non_zero_file(assemblyFile):
             sys.stderr.write(f'No/missing assembly files for {f}, skipping assembly files.\n')
@@ -31,20 +40,6 @@ for f in allOutputDir:
                 sys.stderr.write(f'Ignoring duplicated sample {l[0]} in {f}\n')
 
 
-MMSeqsMem = config['BigJobMem']
-MMSeqsCPU = config['BigJobCpu']
-MMSeqsMemSplit = str(int(0.75 * int(MMSeqsMem))) + 'M'
-MMSeqsTimeMin = config['BigJobTimeMin']
-MhitMem = config['MediumJobMem']
-MhitCPU = config['MediumJobCpu']
-BBToolsMem = config['SmallJobMem']
-BBToolsCPU = config['SmallJobCpu']
-MiscMem = config['MoreRamMem']
-MiscCPU = config['MoreRamCpu']
-FastpMem = config['MediumJobMem']
-FastpCPU = config['MediumJobCpu']
-
-
 # hijack 03_mapping.smk for remaking the contigSeqTable
 include: "rules/00_directories.smk"
 include: "rules/00_functions.smk"
@@ -53,12 +48,12 @@ include: "rules/03_mapping.smk"
 
 # TARGETS
 targets = [
-    os.path.join(RESULTS, 'bigtable.tsv'),
-    os.path.join(RESULTS, 'seqtable.fasta'),
-    os.path.join(RESULTS, 'seqtable.properties.tsv'),
-    os.path.join(RESULTS, 'assembly.fasta'),
-    os.path.join(RESULTS, 'sampleSeqCounts.tsv'),
-    os.path.join(RESULTS, 'contigSeqTable.tsv'),
+    os.path.join(dir.out.results, 'bigtable.tsv'),
+    os.path.join(dir.out.results, 'seqtable.fasta'),
+    os.path.join(dir.out.results, 'seqtable.properties.tsv'),
+    os.path.join(dir.out.results, 'assembly.fasta'),
+    os.path.join(dir.out.results, 'sampleSeqCounts.tsv'),
+    os.path.join(dir.out.results, 'contigSeqTable.tsv'),
 ]
 
 
@@ -79,48 +74,53 @@ def combineResultDirOutput(outFile, inFileName, sampleCol=1, header=True, dirs=l
                     except KeyError:
                         pass
 
+
 # make targets
 rule all:
     input:
         targets
 
+
 # rules
 rule combineSampleSeqCounts:
     """Combine all sampleSeqCounts.tsv files"""
     input:
-        expand(os.path.join('{dir}','results','sampleSeqCounts.tsv'), dir=allOutputDir)
+        expand(os.path.join('{dir}','results','sampleSeqCounts.tsv'), dir=config.args.combineRuns)
     output:
-        os.path.join(RESULTS, 'sampleSeqCounts.tsv')
+        os.path.join(dir.out.results, 'sampleSeqCounts.tsv')
     run:
         with open(output[0],'w') as o:
             for oDir in allDirSmplLen.keys():
                 for smpl in allDirSmplLen[oDir].keys():
                     o.write(f'{smpl}\t{allDirSmplLen[oDir][smpl]}\n')
 
+
 rule combineBigtables:
     """Combine all bigtable.tsv files"""
     input:
-        expand(os.path.join('{dir}','results','bigtable.tsv'),dir=allOutputDir)
+        expand(os.path.join('{dir}','results','bigtable.tsv'),dir=config.args.combineRuns)
     output:
-        os.path.join(RESULTS, 'bigtable.tsv')
+        os.path.join(dir.out.results, 'bigtable.tsv')
     run:
         combineResultDirOutput(output[0],'bigtable.tsv')
+
 
 rule combineSeqtableProperties:
     """Combine all seqtable.properties.tsv files"""
     input:
-        expand(os.path.join('{dir}','results','seqtable.properties.tsv'),dir=allOutputDir)
+        expand(os.path.join('{dir}','results','seqtable.properties.tsv'),dir=config.args.combineRuns)
     output:
-        os.path.join(RESULTS, 'seqtable.properties.tsv')
+        os.path.join(dir.out.results, 'seqtable.properties.tsv')
     run:
         combineResultDirOutput(output[0],'seqtable.properties.tsv',sampleCol=0)
+
 
 rule combineSeqTables:
     """Combine all seqtable.fasta files"""
     input:
-        expand(os.path.join('{dir}','results','seqtable.fasta'),dir=allOutputDir)
+        expand(os.path.join('{dir}','results','seqtable.fasta'),dir=config.args.combineRuns)
     output:
-        os.path.join(RESULTS, 'seqtable.fasta')
+        os.path.join(dir.out.results, 'seqtable.fasta')
     run:
         with open(output[0],'w') as o:
             for oDir in allDirSmplLen.keys():
@@ -139,20 +139,21 @@ rule combineSeqTables:
                             if p:
                                 o.write(line)
 
+
 rule combineAssemblies:
     "Combine assemblies by running flye with subassemblies"
     input:
-        expand(os.path.join('{dir}','results','assembly.fasta'),dir=allOutputDir)
+        expand(os.path.join('{dir}','results','assembly.fasta'),dir=config.args.combineRuns)
     output:
-        assembly = os.path.join(RESULTS, 'assembly.fasta'),
-        contigs = temp(os.path.join(RESULTS, 'allContigs.fa')),
-        flye = temp(directory(os.path.join(RESULTS, 'Flye')))
+        assembly = os.path.join(dir.out.results, 'assembly.fasta'),
+        contigs = temp(os.path.join(dir.out.results, 'allContigs.fa')),
+        flye = temp(directory(os.path.join(dir.out.results, 'Flye')))
     params:
-        os.path.join(RESULTS, 'Flye', 'assembly.fasta')
+        os.path.join(dir.out.results, 'Flye', 'assembly.fasta')
     threads:
-        config['MediumJobCpu']
+        config.resources.med.cpu
     resources:
-        mem_mb = config['MediumJobMem']
+        mem_mb = config.resources.med.mem
     conda:
         os.path.join('envs', 'metaflye.yaml')
     shell:

@@ -1,8 +1,8 @@
 
 # Check for Database files
 dbFail = False
-for f in config['dbFiles']:
-    dbFile = os.path.join(DBDIR, f)
+for f in config.dbs.files:
+    dbFile = os.path.join(dir.dbs.base, f)
     if not os.path.isfile(dbFile):
         dbFail = True
         sys.stderr.write(f"    ERROR: missing database file {dbFile}\n")
@@ -15,10 +15,10 @@ if dbFail:
 
 # Cleanup old logfiles etc.
 onstart:
-    if os.path.isdir(STDERR):
-        oldLogs = filter(re.compile(r'^(?!old_).*.log').match, os.listdir(STDERR))
+    if os.path.isdir(dir.out.stderr):
+        oldLogs = filter(re.compile(r'^(?!old_).*.log').match, os.listdir(dir.out.stderr))
         for logfile in oldLogs:
-            os.rename(os.path.join(STDERR, logfile), os.path.join(STDERR, f'old_{logfile}'))
+            os.rename(os.path.join(dir.out.stderr, logfile), os.path.join(dir.out.stderr, f'old_{logfile}'))
 
 # Success message
 onsuccess:
@@ -29,14 +29,14 @@ onsuccess:
 onerror:
     copy_log()
     sys.stderr.write('\n    FATAL: Hecatomb encountered an error.')
-    logfiles = list(filter(re.compile(r'^(?!old_).*.log').match, os.listdir(STDERR)))
+    logfiles = list(filter(re.compile(r'^(?!old_).*.log').match, os.listdir(dir.out.stderr)))
     if len(logfiles) > 0:
         sys.stderr.write('\n           Dumping all error logs to "hecatomb.errorLogs.txt"')
         with open('hecatomb.crashreport.log', 'w') as crashDump:
             for file in logfiles:
-                if os.path.getsize(os.path.join(STDERR, file)) > 0:
+                if os.path.getsize(os.path.join(dir.out.stderr, file)) > 0:
                     rulename = re.sub(r'.log$', '', file)
-                    crashDump.write(''.join(('\n','-'*10,f'\nSTDERR for rule {rulename}:\n','-'*10,'\n')))
-                    with open(os.path.join(STDERR, file), 'r') as logfh:
+                    crashDump.write(''.join(('\n','-'*10,f'\nstderr for rule {rulename}:\n','-'*10,'\n')))
+                    with open(os.path.join(dir.out.stderr, file), 'r') as logfh:
                         for line in logfh:
                             crashDump.write(line)

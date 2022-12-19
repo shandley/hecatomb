@@ -4,25 +4,25 @@ rule mmseqs_contig_annotation:
     Database: NCBI virus assembly with taxID added
     """
     input:
-        contigs=os.path.join(RESULTS,"assembly.fasta"),
-        db=os.path.join(POLYMICRODB, "sequenceDB")
+        contigs=os.path.join(dir.out.results,"assembly.fasta"),
+        db=os.path.join(dir.dbs.secondaryNT, "sequenceDB")
     output:
-        queryDB=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","queryDB"),
-        result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result.index")
+        queryDB=os.path.join(dir.out.assembly,"FLYE","queryDB"),
+        result=os.path.join(dir.out.assembly,"FLYE","results","result.index")
     params:
-        respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
-        tmppath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","mmseqs_nt_tmp"),
-        sensnt = MMSeqsSensNT,
-        memsplit = MMSeqsMemSplit,
-        filtnt = config['filtNTsecondary']
+        respath=os.path.join(dir.out.assembly,"FLYE","results","result"),
+        tmppath=os.path.join(dir.out.assembly,"FLYE","mmseqs_nt_tmp"),
+        sensnt = config.mmseqs.sensNT,
+        memsplit = str(int(0.75 * int(config.resources.big.mem))) + 'M',
+        filtnt = config.mmseqs.filtNTsecondary
     benchmark:
-        os.path.join(BENCH, "mmseqs_contig_annotation.txt")
+        os.path.join(dir.out.bench, "mmseqs_contig_annotation.txt")
     log:
-        os.path.join(STDERR, "mmseqs_contig_annotation.log")
+        os.path.join(dir.out.stderr, "mmseqs_contig_annotation.log")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb=config.resources.big.mem
     threads:
-        MMSeqsCPU
+        config.resources.big.cpu
     conda:
         os.path.join("../", "envs", "mmseqs2.yaml")
     shell:
@@ -39,16 +39,16 @@ rule mmseqs_contig_annotation:
 rule mmseqs_contig_annotation_summary:
     """Contig annotation step 02: Summarize mmseqs contig annotation results"""
     input:
-        queryDB=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","queryDB"),
-        db=os.path.join(POLYMICRODB, "sequenceDB"),
-        taxdb=TAX
+        queryDB=os.path.join(dir.out.assembly,"FLYE","queryDB"),
+        db=os.path.join(dir.dbs.secondaryNT, "sequenceDB"),
+        taxdb=dir.dbs.taxonomy
     output:
-        result=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit.index"),
-        align=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit.m8"),
-        tsv = os.path.join(RESULTS, "contigAnnotations.tsv")
+        result=os.path.join(dir.out.assembly,"FLYE","results","tophit.index"),
+        align=os.path.join(dir.out.assembly,"FLYE","results","tophit.m8"),
+        tsv = os.path.join(dir.out.results, "contigAnnotations.tsv")
     params:
-        inputpath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","result"),
-        respath=os.path.join(ASSEMBLY,"CONTIG_DICTIONARY","FLYE","results","tophit"),
+        inputpath=os.path.join(dir.out.assembly,"FLYE","results","result"),
+        respath=os.path.join(dir.out.assembly,"FLYE","results","tophit"),
         header='\\\t'.join(['contigID',
                            'evalue',
                            'pident',
@@ -74,13 +74,13 @@ rule mmseqs_contig_annotation_summary:
                            'genus',
                            'species\\\\n'])
     benchmark:
-        os.path.join(BENCH, "mmseqs_contig_annotation_summary.txt")
+        os.path.join(dir.out.bench, "mmseqs_contig_annotation_summary.txt")
     log:
-        os.path.join(STDERR, "mmseqs_contig_annotation_summary.log")
+        os.path.join(dir.out.stderr, "mmseqs_contig_annotation_summary.log")
     resources:
-        mem_mb=MMSeqsMem
+        mem_mb=config.resources.big.mem
     threads:
-        MMSeqsCPU
+        config.resources.big.cpu
     conda:
         os.path.join("../", "envs", "mmseqs2.yaml")
     shell:
