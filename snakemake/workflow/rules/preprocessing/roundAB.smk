@@ -1,6 +1,6 @@
 
 # Add preprocessing-specific targets
-PreprocessingFiles += [
+targets.preprocessing += [
         expand(os.path.join(dir.out.assembly,"{sample}_R1.unmapped.fastq.gz"), sample=samples.names),
         expand(os.path.join(dir.out.assembly,"{sample}_R1.singletons.fastq.gz"), sample=samples.names),
         expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fastq.gz"), sample=samples.names),
@@ -24,7 +24,7 @@ rule remove_5prime_primer:
     output:
         r1=temp(os.path.join(dir.out.temp,"p01","{sample}_R1.s1.out.fastq")),
         r2=temp(os.path.join(dir.out.temp,"p01","{sample}_R2.s1.out.fastq")),
-        stats=os.path.join(dir.out.results,"p01","{sample}.s1.stats.tsv")
+        stats=os.path.join(dir.out.stats,"p01","{sample}.s1.stats.tsv")
     benchmark:
         os.path.join(dir.out.bench,"remove_5prime_primer.{sample}.txt")
     log:
@@ -63,7 +63,7 @@ rule remove_3prime_contaminant:
     output:
         r1=temp(os.path.join(dir.out.temp,"p02","{sample}_R1.s2.out.fastq")),
         r2=temp(os.path.join(dir.out.temp,"p02","{sample}_R2.s2.out.fastq")),
-        stats=os.path.join(dir.out.results,"p02","{sample}.s2.stats.tsv")
+        stats=os.path.join(dir.out.stats,"p02","{sample}.s2.stats.tsv")
     benchmark:
         os.path.join(dir.out.bench,"remove_3prime_contaminant.{sample}.txt")
     log:
@@ -137,7 +137,7 @@ rule remove_adapter_free_primer:
     output:
         r1=temp(os.path.join(dir.out.temp,"p04","{sample}_R1.s4.out.fastq")),
         r2=temp(os.path.join(dir.out.temp,"p04","{sample}_R2.s4.out.fastq")),
-        stats=os.path.join(dir.out.results,"p04","{sample}.s4.stats.tsv")
+        stats=os.path.join(dir.out.stats,"p04","{sample}.s4.stats.tsv")
     benchmark:
         os.path.join(dir.out.bench,"remove_adapter_free_primer.{sample}.txt")
     log:

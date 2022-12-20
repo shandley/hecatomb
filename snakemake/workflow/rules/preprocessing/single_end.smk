@@ -1,6 +1,6 @@
 
 # Add preprocessing-specific targets
-PreprocessingFiles += [
+targets.preprocessing += [
         expand(os.path.join(dir.out.assembly,"{sample}_R1.unmapped.fastq.gz"), sample=samples.names),
         expand(os.path.join(dir.out.assembly,"{sample}_R1.singletons.fastq.gz"), sample=samples.names),
         expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fastq.gz"), sample=samples.names),
