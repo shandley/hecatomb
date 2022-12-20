@@ -30,7 +30,7 @@ rule fastp_preprocessing:
     threads:
         config.resources.sml.cpu
     conda:
-        "../envs/fastp.yaml"
+        os.path.join(dir.env, "fastp.yaml")
     params:
         compress = config.qc.compression,
         qscore = config.qc.qscore,
@@ -67,7 +67,7 @@ rule create_host_index:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/minimap2.yaml"
+        os.path.join(dir.env, "minimap2.yaml")
     shell:
         """
         minimap2 -t {threads} -d {output} <(cat {input}) 2> {log}
@@ -99,7 +99,7 @@ rule host_removal_mapping:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/minimap2.yaml"
+        os.path.join(dir.env, "minimap2.yaml")
     shell:
         """
         minimap2 -ax sr -t {threads} --secondary=no {input.host} {input.r1} 2> {log.mm} \
@@ -127,7 +127,7 @@ rule nonhost_read_repair:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join(dir.env, "bbmap.yaml")
     shell:
         """
         {{ reformat.sh in={input.s} out={output.sr1} \
@@ -185,7 +185,7 @@ rule cluster_similar_sequences:
     threads:
         config.resources.big.cpu
     conda:
-        "../envs/mmseqs2.yaml"
+        os.path.join(dir.env, "mmseqs2.yaml")
     shell:
         """ 
         mmseqs easy-linclust {input.fq} {params.respath}/{params.prefix} {params.tmppath} \
@@ -218,7 +218,7 @@ rule create_individual_seqtables:
     threads:
         config.resources.big.cpu
     conda:
-        "../envs/seqkit.yaml"
+        os.path.join(dir.env, "seqkit.yaml")
     shell:
         """
         {{ seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna \
@@ -252,13 +252,13 @@ rule merge_seq_table:
         samples = samples.names,
         tmpdir = os.path.join(dir.out.temp, 'p06')
     #conda:
-    #    os.path.join('..', 'envs', 'pysam.yaml')
+    #    os.path.join(dir.env, 'pysam.yaml')
     benchmark:
         os.path.join(dir.out.bench, "merge_seq_table.txt")
     log:
         os.path.join(dir.out.stderr, 'merge_seq_table.log')
     script:
-        os.path.join('../', 'scripts', 'mergeSeqTable.py')
+        os.path.join(dir.scripts,   'mergeSeqTable.py')
 
 
 rule archive_for_assembly:

@@ -9,9 +9,9 @@ Michael Roach, Q2 2021
 
 
 # load default config
-configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
-configfile: os.path.join(workflow.basedir, '../', 'config', 'dbFiles.yaml')
-configfile: os.path.join(workflow.basedir, '../', 'config', 'immutable.yaml')
+configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
+configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
+configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
 config = ap.AttrMap(config)
 
 
@@ -20,8 +20,10 @@ include: "rules/preflight/directories.smk"
 
 
 # host files
-dir.dbs.host.fasta = os.path.join(dir.dbs.host.base, config.args.hostName, "masked_ref.fa.gz")
-dir.dbs.host.virShred = os.path.join(dir.dbs.host.base, 'virus_shred.fasta.gz')
+dir.dbs.host.fasta = os.path.join(
+    dir.dbs.host.base, config.args.hostName, "masked_ref.fa.gz"
+)
+dir.dbs.host.virShred = os.path.join(dir.dbs.host.base, "virus_shred.fasta.gz")
 
 
 rule all:
@@ -37,7 +39,7 @@ rule map_shred_seq:
     output:
         temp(os.path.join(dir.out.temp, f'{config.args.hostName}.sam.gz'))
     conda:
-        os.path.join("envs", "bbmap.yaml")
+        os.path.join(dir.env, "bbmap.yaml")
     resources:
         mem_mb = config.resources.sml.mem,
     threads:
@@ -49,7 +51,7 @@ rule map_shred_seq:
         bbmap.sh ref={input.ref} in={input.shred} \
             outm={output} path=tmp/ \
             minid=0.90 maxindel=2 ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m
+            threads={threads} -Xmx{resources.mem_mb}m &> {log}
         """
 
 
@@ -62,7 +64,7 @@ rule mask_host:
         fa = temp(os.path.join(dir.out.temp, f'{config.args.hostName}.processed.fasta')),
         gz = dir.dbs.host.fasta
     conda:
-        os.path.join("envs", "bbmap.yaml")
+        os.path.join(dir.env, "bbmap.yaml")
     resources:
         mem_mb = config.resources.sml.mem,
     threads:
@@ -75,6 +77,6 @@ rule mask_host:
         """
         bbmask.sh in={input.ref} out={output.fa} \
             entropy={entropy} sam={input.sam} ow=t \
-            threads={threads} -Xmx{resources.mem_mb}m
+            threads={threads} -Xmx{resources.mem_mb}m &> {log}
         gzip -c {output.fa} > {output.gz}
         """

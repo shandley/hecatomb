@@ -24,7 +24,7 @@ rule mmseqs_contig_annotation:
     threads:
         config.resources.big.cpu
     conda:
-        os.path.join("../", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     shell:
         """
         {{
@@ -40,39 +40,18 @@ rule mmseqs_contig_annotation_summary:
     """Contig annotation step 02: Summarize mmseqs contig annotation results"""
     input:
         queryDB=os.path.join(dir.out.assembly,"FLYE","queryDB"),
-        db=os.path.join(dir.dbs.secondaryNT, "sequenceDB"),
+        db=os.path.join(dir.dbs.secondaryNT,"sequenceDB"),
         taxdb=dir.dbs.taxonomy
     output:
         result=os.path.join(dir.out.assembly,"FLYE","results","tophit.index"),
         align=os.path.join(dir.out.assembly,"FLYE","results","tophit.m8"),
-        tsv = os.path.join(dir.out.results, "contigAnnotations.tsv")
+        tsv = os.path.join(dir.out.results,"contigAnnotations.tsv")
     params:
         inputpath=os.path.join(dir.out.assembly,"FLYE","results","result"),
         respath=os.path.join(dir.out.assembly,"FLYE","results","tophit"),
-        header='\\\t'.join(['contigID',
-                           'evalue',
-                           'pident',
-                           'fident',
-                           'nident',
-                           'mismatch',
-                           'qcov',
-                           'tcov',
-                           'qstart',
-                           'qend',
-                           'qlen',
-                           'tstart',
-                           'tend',
-                           'tlen',
-                           'alnlen',
-                           'bits',
-                           'target',
-                           'kingdom',
-                           'phylum',
-                           'class',
-                           'order',
-                           'family',
-                           'genus',
-                           'species\\\\n'])
+        header=config.immutable.contigAnnotHeader,
+        taxonFormat=lambda wildcards: config.immutable.taxonkitReformat,
+        convertAliSummary=config.immutable.convertAliSummary
     benchmark:
         os.path.join(dir.out.bench, "mmseqs_contig_annotation_summary.txt")
     log:
@@ -82,7 +61,7 @@ rule mmseqs_contig_annotation_summary:
     threads:
         config.resources.big.cpu
     conda:
-        os.path.join("../", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     shell:
         """
         {{ 
@@ -90,17 +69,16 @@ rule mmseqs_contig_annotation_summary:
         mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1;
         
         # Convert to alignments
-        mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
-            --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,target";
+        mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} {params.convertAliSummary};
         
         # Header for output table
-        printf {params.header} > {output.tsv};
+        printf "{params.header}\n" > {output.tsv};
         
         # Assign taxonomy
         sed 's/tid|//' {output.align} | \
             sed 's/|\S*//' | \
             taxonkit lineage --data-dir {input.taxdb} -i 2 | \
-            taxonkit reformat --data-dir {input.taxdb} -i 19 -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F --fill-miss-rank | \
+            taxonkit reformat --data-dir {input.taxdb} -i 19 {params.taxonFormat} | \
             cut --complement -f2,19 >> {output.tsv};
         }} 2> {log}
         rm {log}

@@ -17,7 +17,7 @@ rule population_assembly:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/metaflye.yaml"
+        os.path.join(dir.env, "metaflye.yaml")
     shell:
         """
         flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} -g 1g &>> {log.log1}
@@ -53,7 +53,7 @@ rule create_contig_count_table:
     log:
         os.path.join(dir.out.stderr, "create_contig_count_table.{sample}.log")
     script:
-        os.path.join('..', 'scripts', 'contigCountTable.py')
+        os.path.join(dir.scripts,  'contigCountTable.py')
 
 
 rule concatentate_contig_count_tables:

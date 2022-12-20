@@ -37,7 +37,7 @@ rule PRIMARY_AA_taxonomy_assignment:
     threads:
         config.resources.big.cpu
     conda:
-        os.path.join("..", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     shell:
         """
         {{ # Run mmseqs taxonomy module
@@ -69,7 +69,7 @@ rule PRIMARY_AA_parsing:
     log:
         os.path.join(dir.out.stderr, 'PRIMARY_AA_parsing.log')
     script:
-        os.path.join('..', 'scripts', 'aaPrimaryParse.py')
+        os.path.join(dir.scripts,  'aaPrimaryParse.py')
 
 
 rule SECONDARY_AA_taxonomy_assignment:
@@ -101,7 +101,7 @@ rule SECONDARY_AA_taxonomy_assignment:
     threads:
         config.resources.big.cpu
     conda:
-        os.path.join("..", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     shell:
         """
         {{ # Run mmseqs taxonomy module
@@ -125,7 +125,7 @@ rule SECONDARY_AA_tophit_lineage:
     output:
         tophit_lineage_refomated = os.path.join(dir.out.secondaryAA, "tophit.lineage.reformated"),
     conda:
-        os.path.join("..", "envs", "seqkit.yaml")
+        os.path.join(dir.env, "seqkit.yaml")
     resources:
         mem_mb=config.resources.ram.mem
     threads:
@@ -156,7 +156,7 @@ rule SECONDARY_AA_refactor_finalize:
     output:
         lca_reformated = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_lca.reformated"),
     conda:
-        os.path.join("..", "envs", "seqkit.yaml")
+        os.path.join(dir.env, "seqkit.yaml")
     resources:
         mem_mb = config.resources.ram.mem
     threads:
@@ -198,9 +198,10 @@ rule SECONDARY_AA_generate_output_table:
     log:
         os.path.join(dir.out.stderr, "SECONDARY_AA_generate_output_table.log")
     params:
-        taxIdIgnore = config.mmseqs.taxIdIgnore.split()
+        taxIdIgnore = config.mmseqs.taxIdIgnore.split(),
+        bigtableHeader = config.immutable.bigtableHeader
     script:
-        os.path.join('..', 'scripts', 'aaBigtable.py')
+        os.path.join(dir.scripts,  'aaBigtable.py')
 
 
 rule SECONDARY_AA_parsing:
@@ -219,7 +220,7 @@ rule SECONDARY_AA_parsing:
     log:
         os.path.join(dir.out.stderr, 'SECONDARY_AA_parsing.log')
     script:
-        os.path.join('..', 'scripts', 'aaSecondaryParse.py')
+        os.path.join(dir.scripts,  'aaSecondaryParse.py')
 
         
 rule PRIMARY_NT_taxonomic_assignment:
@@ -247,7 +248,7 @@ rule PRIMARY_NT_taxonomic_assignment:
     threads:
         config.resources.big.cpu
     conda:
-        os.path.join("..", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     shell:
         """
         {{ # Create query database
@@ -278,7 +279,7 @@ rule PRIMARY_NT_reformat:
         respath = os.path.join(dir.out.primaryNT, "results", "firsthit"),
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     conda:
-        os.path.join("..", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     resources:
         mem_mb = config.resources.ram.mem
     threads:
@@ -325,7 +326,7 @@ rule PRIMARY_NT_parsing:
     log:
         os.path.join(dir.out.stderr, 'PRIMARY_NT_parsing.log')
     script:
-        os.path.join('..', 'scripts', 'ntPrimaryParse.py')
+        os.path.join(dir.scripts,  'ntPrimaryParse.py')
 
 
 rule SECONDARY_NT_taxonomic_assignment:
@@ -353,7 +354,7 @@ rule SECONDARY_NT_taxonomic_assignment:
     threads:
         config.resources.big.cpu
     conda:
-        os.path.join("..", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     shell:
         """
         {{ # Create query database
@@ -385,7 +386,7 @@ rule SECONDARY_NT_summary:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat,
         convertAli = config.immutable.mmseqConvertAliFormat
     conda:
-        os.path.join("..", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     resources:
         mem_mb = config.resources.ram.mem
     threads:
@@ -429,7 +430,7 @@ rule SECONDARY_NT_convert:
     threads:
         config.resources.big.cpu
     conda:
-        os.path.join("..", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     benchmark:
         os.path.join(dir.out.bench, "SECONDARY_NT_convert.txt")
     log:
@@ -454,7 +455,7 @@ rule secondary_nt_lca_table:
     log:
         os.path.join(dir.out.stderr, 'secondary_nt_lca_table.log')
     script:
-        os.path.join('..', 'scripts', 'ntSecondaryLca.py')
+        os.path.join(dir.scripts,  'ntSecondaryLca.py')
 
 
 rule secondary_nt_calc_lca:
@@ -472,7 +473,7 @@ rule secondary_nt_calc_lca:
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat,
     conda:
-        os.path.join("..", "envs", "mmseqs2.yaml")
+        os.path.join(dir.env, "mmseqs2.yaml")
     benchmark:
         os.path.join(dir.out.bench, "secondary_nt_calc_lca.txt")
     log:
@@ -511,13 +512,14 @@ rule SECONDARY_NT_generate_output_table:
     threads:
         config.resources.ram.cpu
     params:
-        taxIdIgnore = config.mmseqs.taxIdIgnore.split()
+        taxIdIgnore = config.mmseqs.taxIdIgnore.split(),
+        bigtableHeader = config.immutable.bigtableHeader
     benchmark:
         os.path.join(dir.out.bench, "SECONDARY_NT_generate_output_table.txt")
     log:
         os.path.join(dir.out.stderr, 'SECONDARY_NT_generate_output_table.log')
     script:
-        os.path.join('..', 'scripts', 'ntBigtable.py')
+        os.path.join(dir.scripts,  'ntBigtable.py')
 
 
 rule combine_AA_NT:

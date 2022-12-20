@@ -8,12 +8,12 @@ rule map_seq_table:
         assembly = os.path.join(dir.out.results, "assembly.fasta"),
         seqtable = os.path.join(dir.out.results, "seqtable.fasta")
     output:
-        temp(os.path.join(dir.out.mapping, "assembly.seqtable.bam"))
+        os.path.join(dir.out.mapping, "assembly.seqtable.bam")
     log:
         mm2 = os.path.join(dir.out.stderr, "map_seq_table.mm2.log"),
         stool = os.path.join(dir.out.stderr, "map_seq_table.stools.log")
     conda:
-        os.path.join('../', 'envs', 'minimap2.yaml')
+        os.path.join(dir.env, 'minimap2.yaml')
     benchmark:
         os.path.join(dir.out.bench, 'map_seq_table.txt')
     threads:
@@ -43,6 +43,8 @@ rule contig_read_taxonomy:
         counts = os.path.join(dir.out.results, "sampleSeqCounts.tsv"),
     output:
         os.path.join(dir.out.results, "contigSeqTable.tsv")
+    params:
+        contigTaxonHeader = config.immutable.contigTaxonHeader
     threads:
         config.resources.ram.cpu
     resources:
@@ -52,6 +54,6 @@ rule contig_read_taxonomy:
     log:
         os.path.join(dir.out.stderr, 'contig_read_taxonomy.log')
     conda:
-        os.path.join('..', 'envs', 'pysam.yaml')
+        os.path.join(dir.env, 'pysam.yaml')
     script:
-        os.path.join('..', 'scripts', 'contigReadTaxon.py')
+        os.path.join(dir.scripts,  'contigReadTaxon.py')

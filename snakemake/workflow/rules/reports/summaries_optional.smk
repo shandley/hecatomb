@@ -247,8 +247,8 @@ rule step13_counts:
 #             caption = "../report/sankey.rst",
 #             category = "Summary")
 #     conda:
-#         os.path.join('..', 'envs', 'plotly.yaml')
+#         os.path.join(dir.env, 'plotly.yaml')
 #     log:
 #         os.path.join(dir.out.stderr, 'sankey_diagram.log')
 #     script:
-#         os.path.join('..', 'scripts', 'sankey.py')
+#         os.path.join(dir.scripts,  'sankey.py')

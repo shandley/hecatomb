@@ -45,8 +45,8 @@ logging.debug('Parsing alignments and writing NT bigtable output')
 outVir = open(snakemake.output.vir, 'w')
 outNonVir = open(snakemake.output.nonvir, 'w')
 
-outVir.write('\t'.join((snakemake.config['bigtableHeader'])) + '\n')
-outNonVir.write('\t'.join((snakemake.config['bigtableHeader'])) + '\n')
+outVir.write('\t'.join((snakemake.params.bigtableHeader)) + '\n')
+outNonVir.write('\t'.join((snakemake.params.bigtableHeader)) + '\n')
 
 with open(snakemake.input.aln, 'r') as alnfh:
     for line in alnfh:

@@ -24,7 +24,7 @@ rule canu_sample_assembly:
     log:
         os.path.join(dir.out.stderr, "canu_sample_assembly.{sample}.log")
     conda:
-        "../envs/canu.yaml"
+        os.path.join(dir.env, "canu.yaml")
     shell:
         """
         canu {params.settings} {input} \
@@ -82,7 +82,7 @@ rule coverage_calculations:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join(dir.env, "bbmap.yaml")
     shell:
         """
         bbmap.sh ref={input.ref} in={input.r1} \

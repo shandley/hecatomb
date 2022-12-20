@@ -27,7 +27,7 @@ rule tax_level_counts:
     threads:
         config.resources.ram.cpu
     script:
-        os.path.join('..', 'scripts', 'taxLevelCounts.py')
+        os.path.join(dir.scripts,  'taxLevelCounts.py')
 
 
 rule dumpSamplesTsv:
@@ -48,7 +48,7 @@ rule krona_text_format:
     log:
         os.path.join(dir.out.stderr, 'krona_text_format.log')
     script:
-        os.path.join('..','scripts','kronaText.py')
+        os.path.join(dir.scripts,  'kronaText.py')
 
 
 rule krona_plot:
@@ -58,7 +58,7 @@ rule krona_plot:
     output:
         os.path.join(dir.out.results, "krona.html")
     conda:
-        os.path.join('../', 'envs', 'krona.yaml')
+        os.path.join(dir.env, 'krona.yaml')
     benchmark:
         os.path.join(dir.out.bench, "krona_plot.txt")
     log:
@@ -80,7 +80,7 @@ rule contig_krona_text_format:
     log:
         os.path.join(dir.out.stderr, 'contig_krona_text_format.log')
     script:
-        os.path.join('..','scripts','contigKronaText.py')
+        os.path.join(dir.scripts,  'contigKronaText.py')
 
 
 rule contig_krona_plot:
@@ -89,7 +89,7 @@ rule contig_krona_plot:
     output:
         os.path.join(dir.out.results, "contigKrona.html")
     conda:
-        os.path.join('../', 'envs', 'krona.yaml')
+        os.path.join(dir.env, 'krona.yaml')
     log:
         os.path.join(dir.out.stderr, 'contig_krona_plot.log')
     resources:

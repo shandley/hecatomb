@@ -1,32 +1,39 @@
-
-
 import attrmap as ap
 
 
 ### CONFIG
-configfile: os.path.join(workflow.basedir, '../', 'config', 'config.yaml')
-configfile: os.path.join(workflow.basedir, '../', 'config', 'dbFiles.yaml')
-configfile: os.path.join(workflow.basedir, '../', 'config', 'immutable.yaml')
+configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
+configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
+configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
 config = ap.AttrMap(config)
 
 # folders to combine
 if len(config.args.combineRuns) < 2:
-    sys.stderr.write('\nError: Please specify two or more Hecatomb directories to combine\n\n')
+    sys.stderr.write(
+        "\nError: Please specify two or more Hecatomb directories to combine\n\n"
+    )
     sys.exit(1)
+
 
 def is_non_zero_file(fpath):
     return os.path.isfile(fpath) and os.path.getsize(fpath) > 0
 
+
 # check for sample duplications and assembly files
-allDirSmplLen = {}     # dir.out.results:sample:len
+allDirSmplLen = {}  # dir.out.results:sample:len
 allSamples = []
 assemblyFiles = True
 for f in config.args.combineRuns:
-    for assemblyFile in [os.path.join(f, 'results', 'assembly.fasta'), os.path.join(f, 'results', 'contigSeqTable.tsv')]:
+    for assemblyFile in [
+        os.path.join(f, "results", "assembly.fasta"),
+        os.path.join(f, "results", "contigSeqTable.tsv"),
+    ]:
         if not is_non_zero_file(assemblyFile):
-            sys.stderr.write(f'No/missing assembly files for {f}, skipping assembly files.\n')
-            assemblyFiles=False
-    with open(os.path.join(f,'results','sampleSeqCounts.tsv'),'r') as t:
+            sys.stderr.write(
+                f"No/missing assembly files for {f}, skipping assembly files.\n"
+            )
+            assemblyFiles = False
+    with open(os.path.join(f, "results", "sampleSeqCounts.tsv"), "r") as t:
         for line in t:
             l = line.strip().split()
             if not l[0] in allSamples:
@@ -37,7 +44,7 @@ for f in config.args.combineRuns:
                     allDirSmplLen[f] = {}
                     allDirSmplLen[f][l[0]] = l[1]
             else:
-                sys.stderr.write(f'Ignoring duplicated sample {l[0]} in {f}\n')
+                sys.stderr.write(f"Ignoring duplicated sample {l[0]} in {f}\n")
 
 
 # hijack contig_mapping.smk for remaking the contigSeqTable
@@ -48,28 +55,30 @@ include: "rules/preflight/contig_mapping.smk"
 
 # TARGETS
 targets = [
-    os.path.join(dir.out.results, 'bigtable.tsv'),
-    os.path.join(dir.out.results, 'seqtable.fasta'),
-    os.path.join(dir.out.results, 'seqtable.properties.tsv'),
-    os.path.join(dir.out.results, 'assembly.fasta'),
-    os.path.join(dir.out.results, 'sampleSeqCounts.tsv'),
-    os.path.join(dir.out.results, 'contigSeqTable.tsv'),
+    os.path.join(dir.out.results, "bigtable.tsv"),
+    os.path.join(dir.out.results, "seqtable.fasta"),
+    os.path.join(dir.out.results, "seqtable.properties.tsv"),
+    os.path.join(dir.out.results, "assembly.fasta"),
+    os.path.join(dir.out.results, "sampleSeqCounts.tsv"),
+    os.path.join(dir.out.results, "contigSeqTable.tsv"),
 ]
 
 
-def combineResultDirOutput(outFile, inFileName, sampleCol=1, header=True, dirs=list(allDirSmplLen.keys())):
-    with open(outFile,'w') as o:
+def combineResultDirOutput(
+    outFile, inFileName, sampleCol=1, header=True, dirs=list(allDirSmplLen.keys())
+):
+    with open(outFile, "w") as o:
         if header:
-            with open(os.path.join(dirs[0],'results',inFileName),'r') as f:
-                o.write(f.readline())   # print header
+            with open(os.path.join(dirs[0], "results", inFileName), "r") as f:
+                o.write(f.readline())  # print header
         for d in dirs:
-            with open(os.path.join(d,'results',inFileName),'r') as f:
+            with open(os.path.join(d, "results", inFileName), "r") as f:
                 if header:
                     f.readline()  # skip header
                 for line in f:
-                    l = line.strip().split('\t')
+                    l = line.strip().split("\t")
                     try:
-                        allDirSmplLen[d][l[sampleCol]]    # check if need to skip sample
+                        allDirSmplLen[d][l[sampleCol]]  # check if need to skip sample
                         o.write(line)
                     except KeyError:
                         pass

@@ -21,7 +21,7 @@ rule assembly_kmer_normalization:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join(dir.env, "bbmap.yaml")
     shell:
         """
         bbnorm.sh in={input.r1} \
@@ -58,7 +58,7 @@ rule individual_sample_assembly:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/megahit.yaml"
+        os.path.join(dir.env, "megahit.yaml")
     shell:
         """
         if [ -d {params.mh_dir} ]; then
@@ -81,7 +81,7 @@ rule mapSampleAssemblyPairedReads:
     output:
         temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.se.bam'))
     conda:
-        os.path.join('..', 'envs', 'minimap2.yaml')
+        os.path.join(dir.env, 'minimap2.yaml')
     threads:
         config.resources.med.cpu
     resources:
@@ -108,7 +108,7 @@ rule mapSampleAssemblyUnpairedReads:
     output:
         temp(os.path.join(dir.out.assembly,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
     conda:
-        os.path.join('..', 'envs', 'minimap2.yaml')
+        os.path.join(dir.env, 'minimap2.yaml')
     threads:
         config.resources.med.cpu
     resources:
@@ -135,7 +135,7 @@ rule pullPairedUnmappedReads:
     output:
         r1 = temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.assemblyUnmapped_R1.fastq')),
     conda:
-        os.path.join('..','envs','samtools.yaml')
+        os.path.join(dir.env,   'samtools.yaml')
     threads:
         config.resources.med.cpu
     resources:
@@ -158,7 +158,7 @@ rule pullPairedUnmappedReadsMateMapped:
     output:
         temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.assemblyUnmapped.se.s.fastq'))
     conda:
-        os.path.join('..','envs','samtools.yaml')
+        os.path.join(dir.env,   'samtools.yaml')
     threads:
         config.resources.med.cpu
     resources:
@@ -213,7 +213,7 @@ rule rescue_read_kmer_normalization:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join(dir.env, "bbmap.yaml")
     shell:
         """
         bbnorm.sh in={input.r1} \
@@ -249,7 +249,7 @@ rule unmapped_read_rescue_assembly:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/megahit.yaml"
+        os.path.join(dir.env, "megahit.yaml")
     shell:
         """
         if [ -d {params.mh_dir} ]; then
@@ -305,7 +305,7 @@ rule coverage_calculations:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join(dir.env, "bbmap.yaml")
     shell:
         """
         bbmap.sh ref={input.ref} in={input.r1} \

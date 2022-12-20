@@ -13,7 +13,7 @@ dir = ap.AttrMap()
 
 ### DATABASE LOCATION
 try:
-    assert(ap.utils.to_dict(config.args)['databases']) is not None
+    assert(config.args.databases) is not None
     dir.dbs.base = config.args.databases
 except (KeyError,AssertionError):
     try:
@@ -29,6 +29,11 @@ try:
     dir.out.base = config.args.output
 except (KeyError, AssertionError):
     dir.out.base = 'hecatomb.out'
+
+
+### WORKFLOW DIRs
+dir.env     = os.path.join(workflow.basedir, "envs")
+dir.scripts = os.path.join(workflow.basedir, "scripts")
 
 
 ### DATABASE DIRs

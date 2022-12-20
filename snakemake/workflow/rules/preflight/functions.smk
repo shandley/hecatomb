@@ -12,20 +12,21 @@ def exitLogCleanup(*args):
 
 def stream_tsv(tsvFile):
     """Read a file line-by-line and split by whitespace"""
-    with open(tsvFile, 'r') as filehandle:
+    with open(tsvFile, "r") as filehandle:
         for line in filehandle:
             line = line.strip()
-            l = line.split('\t')
+            l = line.split("\t")
             yield l
 
 
 def file_len(fname):
     """Return the number of lines in a file"""
-    if fname.endswith('.gz'):
+    if fname.endswith(".gz"):
         import gzip
-        f = gzip.open(fname, 'rb')
+
+        f = gzip.open(fname, "rb")
     else:
-        f = open(fname, 'r')
+        f = open(fname, "r")
     for i, l in enumerate(f):
         pass
     f.close()
@@ -35,22 +36,22 @@ def file_len(fname):
 def fasta_clust_counts(fname):
     """Return the sum of seq count values in a fasta file of clustered seqs"""
     count = 0
-    with open(fname, 'r') as filehandle:
+    with open(fname, "r") as filehandle:
         for line in filehandle:
-            if line.startswith('>'):
-                count += int(line.split(':')[1])     # fasta id = >sample:count:seqID
+            if line.startswith(">"):
+                count += int(line.split(":")[1])  # fasta id = >sample:count:seqID
     return count
 
 
 def collect_start_counts(samples, outFile):
     """Collect the read counts of the raw input files"""
-    with open(outFile, 'w') as outfh:
+    with open(outFile, "w") as outfh:
         for sample in samples.names:
-            R1c = file_len(samples.reads[sample]['R1']) / 4
-            outfh.write(f'{sample}\tInitial_Count\tR1\t{R1c}\n')
+            R1c = file_len(samples.reads[sample]["R1"]) / 4
+            outfh.write(f"{sample}\tInitial_Count\tR1\t{R1c}\n")
             try:
-                R2c = file_len(samples.reads[sample]['R2']) / 4
-                outfh.write(f'{sample}\tInitial_Count\tR2\t{R2c}\n')
+                R2c = file_len(samples.reads[sample]["R2"]) / 4
+                outfh.write(f"{sample}\tInitial_Count\tR2\t{R2c}\n")
             except KeyError:
                 pass
     return None
@@ -58,20 +59,20 @@ def collect_start_counts(samples, outFile):
 
 def collect_counts(inPrefix, inSuffix, stepName, outFile):
     """Collect fastq counts for all samples and print to file"""
-    with open(outFile,'w') as outfh:
+    with open(outFile, "w") as outfh:
         for sample in samples.names:
-            R1c = file_len(os.path.join(inPrefix, f'{sample}_R1{inSuffix}')) / 4
-            outfh.write(f'{sample}\t{stepName}\tR1\t{R1c}\n')
-            if os.path.isfile(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')):
-                R2c = file_len(os.path.join(inPrefix, f'{sample}_R2{inSuffix}')) / 4
-                outfh.write(f'{sample}\t{stepName}\tR2\t{R2c}\n')
+            R1c = file_len(os.path.join(inPrefix, f"{sample}_R1{inSuffix}")) / 4
+            outfh.write(f"{sample}\t{stepName}\tR1\t{R1c}\n")
+            if os.path.isfile(os.path.join(inPrefix, f"{sample}_R2{inSuffix}")):
+                R2c = file_len(os.path.join(inPrefix, f"{sample}_R2{inSuffix}")) / 4
+                outfh.write(f"{sample}\t{stepName}\tR2\t{R2c}\n")
     return None
 
 
 def sum_counts(fname, R1=False):
     """Collect the sum of all reads for all samples from a summary count file (e.g. from collect_counts)"""
     count = 0
-    with open(fname, 'r') as infh:
+    with open(fname, "r") as infh:
         for line in infh:
             l = line.split()
             if R1:
@@ -84,13 +85,13 @@ def sum_counts(fname, R1=False):
 
 def copy_log():
     try:
-        if config['log']:
-            shell("cat {log} >> " + config['log'])
-    except KeyError:
+        assert (ap.utils.to_dict(config.args)["log"]) is not None
+        shell("cat {log} >> " + config.args.log)
+    except (KeyError, AssertionError):
         pass
 
 
-### GENERIC RECIPES
+## GENERIC RECIPES
 rule fasta_index:
     """Index a .fasta file for rapid access with samtools faidx."""
     input:
@@ -100,7 +101,7 @@ rule fasta_index:
     log:
         "{file}.samtools.stderr"
     conda:
-        os.path.join('..','envs','samtools.yaml')
+        os.path.join(dir.env,   'samtools.yaml')
     resources:
         mem_mb = config.resources.ram.mem
     shell:
@@ -116,7 +117,7 @@ rule bam_index:
     log:
         "{file}.samtools.stderr"
     conda:
-        os.path.join('..','envs','samtools.yaml')
+        os.path.join(dir.env,   'samtools.yaml')
     threads:
         config.resources.ram.cpu
     resources:
@@ -136,7 +137,7 @@ rule calculate_gc:
     log:
         os.path.join(dir.out.stderr, "calculate_gc.{file}.log")
     conda:
-        os.path.join("..", "envs", "bbmap.yaml")
+        os.path.join(dir.env, "bbmap.yaml")
     threads:
         config.resources.ram.cpu
     resources:
@@ -162,7 +163,7 @@ rule calculate_tet_freq:
     log:
         os.path.join(dir.out.stderr, "calculate_tet_freq.{file}.log")
     conda:
-        os.path.join("..", "envs", "bbmap.yaml")
+        os.path.join(dir.env, "bbmap.yaml")
     threads:
         config.resources.ram.cpu
     resources:
@@ -192,7 +193,7 @@ rule seq_properties_table:
     log:
         os.path.join(dir.out.stderr, '{file}.seq_properties_table.log')
     script:
-        os.path.join('..', 'scripts', 'seqPropertyTable.py')
+        os.path.join(dir.scripts,  'seqPropertyTable.py')
 
 
 rule zip_fastq:

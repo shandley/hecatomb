@@ -20,11 +20,11 @@ rule assembly_kmer_normalization:
         os.path.join(dir.out.stderr, "kmer_norm_{sample}.log")
     resources:
         mem_mb = config.resources.med.mem,
-        javaAlloc = int(0.95 * config.resources.med.mem)
+        javaAlloc = int(0.9 * config.resources.med.mem)
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join(dir.env, "bbmap.yaml")
     shell:
         """
         bbnorm.sh in={input.r1} in2={input.r2} \
@@ -63,7 +63,7 @@ rule individual_sample_assembly:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/megahit.yaml"
+        os.path.join(dir.env, "megahit.yaml")
     shell:
         """
         if [ -d {params.mh_dir} ]; then
@@ -87,7 +87,7 @@ rule mapSampleAssemblyPairedReads:
     output:
         temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.pe.bam'))
     conda:
-        os.path.join('..', 'envs', 'minimap2.yaml')
+        os.path.join(dir.env, 'minimap2.yaml')
     threads:
         config.resources.med.cpu
     resources:
@@ -115,7 +115,7 @@ rule mapSampleAssemblyUnpairedReads:
     output:
         temp(os.path.join(dir.out.assembly,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
     conda:
-        os.path.join('..', 'envs', 'minimap2.yaml')
+        os.path.join(dir.env, 'minimap2.yaml')
     threads:
         config.resources.med.cpu
     resources:
@@ -143,7 +143,7 @@ rule pullPairedUnmappedReads:
         r1 = temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.assemblyUnmapped_R1.fastq')),
         r2 = temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.assemblyUnmapped_R2.fastq')),
     conda:
-        os.path.join('..','envs','samtools.yaml')
+        os.path.join(dir.env,   'samtools.yaml')
     threads:
         config.resources.med.cpu
     resources:
@@ -167,7 +167,7 @@ rule pullPairedUnmappedReadsMateMapped:
     output:
         temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.assemblyUnmapped.pe.s.fastq'))
     conda:
-        os.path.join('..','envs','samtools.yaml')
+        os.path.join(dir.env,   'samtools.yaml')
     threads:
         config.resources.med.cpu
     resources:
@@ -237,7 +237,7 @@ rule rescue_read_kmer_normalization:
     threads:
         config.resources.big.cpu
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join(dir.env, "bbmap.yaml")
     shell:
         """
         bbnorm.sh in={input.r1} in2={input.r2} \
@@ -274,7 +274,7 @@ rule unmapped_read_rescue_assembly:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/megahit.yaml"
+        os.path.join(dir.env, "megahit.yaml")
     shell:
         """
         if [ -d {params.mh_dir} ]; then
@@ -331,7 +331,7 @@ rule coverage_calculations:
     threads:
         config.resources.med.cpu
     conda:
-        "../envs/bbmap.yaml"
+        os.path.join(dir.env, "bbmap.yaml")
     shell:
         """
         bbmap.sh ref={input.ref} in={input.r1} in2={input.r2} \
