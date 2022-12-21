@@ -3,6 +3,9 @@
 Function for parsing the 'Reads' config and identifying samples and read files
 """
 
+import attrmap as ap
+
+
 def samplesFromDirectory(dir):
     """Parse samples from a directory"""
     outDict = {}
@@ -68,6 +71,6 @@ def parseSamples(readFileDir):
 def writeSamplesTsv(dict, outfh):
     """Write the samples to a TSV file"""
     with open(outfh, 'w') as out:
-        for sample in dict.keys():
+        for sample in ap.utils.get_keys(dict):
             out.write(f'{sample}\t{dict[sample]["R1"]}\n')
     return None

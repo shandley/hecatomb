@@ -1,6 +1,6 @@
 
 # Add longread-specific targets
-PreprocessingFiles += [
+targets.preprocessing += [
         expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz"), sample=samples.names)
     ]
 
