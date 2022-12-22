@@ -207,10 +207,12 @@ rule zip_fastq:
 
 
 rule zip_fasta:
-    """zip a fastq file"""
+    """zip a fasta file"""
     input:
-        '{filepath}.fasta'
+        "{filepath}.fasta"
     output:
-        '{filepath}.fasta.gz'
+        "{filepath}.fasta.gz"
+    params:
+        compression=config.qc.compression
     shell:
-        """gzip -1 {input}"""
+        """gzip -{params.compression} {input}"""
