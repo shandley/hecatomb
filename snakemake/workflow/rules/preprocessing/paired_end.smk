@@ -11,51 +11,98 @@ targets.preprocessing += [
 
 
 # rules
-rule fastp_preprocessing:
+# rule fastp_preprocessing:
+#     """Preprocessing step 01: fastp_preprocessing.
+#
+#     Use fastP to remove adaptors, vector contaminants, low quality sequences, poly-A tails and reads shorts than minimum length, plus deduplicate.
+#     """
+#     input:
+#         r1 = lambda wildcards: samples.reads[wildcards.sample]['R1'],
+#         r2 = lambda wildcards: samples.reads[wildcards.sample]['R2'],
+#         contaminants = os.path.join(dir.dbs.contaminants, "vector_contaminants.fa"),
+#         # summ = optionalSummary[0]
+#     output:
+#         r1 = temp(os.path.join(dir.out.temp, "p01", "{sample}_R1.s1.out.fastq")),
+#         r2 = temp(os.path.join(dir.out.temp, "p01", "{sample}_R2.s1.out.fastq")),
+#         stats = os.path.join(dir.out.stats, "p01", "{sample}.s1.stats.json"),
+#         html = os.path.join(dir.out.stats, "p01", "{sample}.s1.stats.html")
+#     benchmark:
+#         os.path.join(dir.out.bench, "fastp_preprocessing.{sample}.txt")
+#     log:
+#         os.path.join(dir.out.stderr, "fastp_preprocessing.{sample}.log")
+#     resources:
+#         mem_mb = config.resources.sml.mem
+#     threads:
+#         config.resources.sml.cpu
+#     conda:
+#         os.path.join(dir.env, "fastp.yaml")
+#     params:
+#         compression = config.qc.compression,
+#         qscore = config.qc.qscore,
+#         readlen = config.qc.readMinLen,
+#         cuttail = config.qc.cutTailWindow,
+#         dedupacc = config.qc.dedupAccuracy
+#     shell:
+#         """
+#         fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
+#             -z {params.compression} \
+#             -j {output.stats} -h {output.html} \
+#             --qualified_quality_phred {params.qscore} \
+#             --length_required {params.readlen} \
+#             --detect_adapter_for_pe \
+#             --cut_tail --cut_tail_window_size {params.cuttail} --cut_tail_mean_quality {params.qscore} \
+#             --dedup --dup_calc_accuracy {params.dedupacc} \
+#             --trim_poly_x \
+#             --thread {threads} 2> {log}
+#         rm {log}
+#         """
+
+
+rule prinseq_trim:
     """Preprocessing step 01: fastp_preprocessing.
-    
+
     Use fastP to remove adaptors, vector contaminants, low quality sequences, poly-A tails and reads shorts than minimum length, plus deduplicate.
     """
     input:
-        r1 = lambda wildcards: samples.reads[wildcards.sample]['R1'],
-        r2 = lambda wildcards: samples.reads[wildcards.sample]['R2'],
-        contaminants = os.path.join(dir.dbs.contaminants, "vector_contaminants.fa"),
-        # summ = optionalSummary[0]
+        r1=lambda wildcards: samples.reads[wildcards.sample]['R1'],
+        r2=lambda wildcards: samples.reads[wildcards.sample]['R2'],
+        #contaminants=os.path.join(dir.dbs.contaminants,"vector_contaminants.fa"),
+    # summ = optionalSummary[0]
     output:
-        r1 = temp(os.path.join(dir.out.temp, "p01", "{sample}_R1.s1.out.fastq")),
-        r2 = temp(os.path.join(dir.out.temp, "p01", "{sample}_R2.s1.out.fastq")),
-        stats = os.path.join(dir.out.stats, "p01", "{sample}.s1.stats.json"),
-        html = os.path.join(dir.out.stats, "p01", "{sample}.s1.stats.html")
+        r1=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out_R1.fastq")),
+        r2=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out_R2.fastq")),
+        s1=temp(os.path.join(dir.out.temp,"p01","{sample}_single_out_R1.fastq")),
+        s2=temp(os.path.join(dir.out.temp,"p01","{sample}_single_out_R2.fastq")),
+        b1=temp(os.path.join(dir.out.temp,"p01","{sample}_bad_out_R1.fastq")),
+        b2=temp(os.path.join(dir.out.temp,"p01","{sample}_bad_out_R2.fastq"))
     benchmark:
-        os.path.join(dir.out.bench, "fastp_preprocessing.{sample}.txt")
+        os.path.join(dir.out.bench,"prinseq_trim.{sample}.txt")
     log:
-        os.path.join(dir.out.stderr, "fastp_preprocessing.{sample}.log")
+        os.path.join(dir.out.stderr,"prinseq_trim.{sample}.log")
     resources:
-        mem_mb = config.resources.sml.mem
+        mem_mb=config.resources.sml.mem
     threads:
         config.resources.sml.cpu
     conda:
-        os.path.join(dir.env, "fastp.yaml")
+        os.path.join(dir.env,"prinseqpp.yaml")
     params:
-        compression = config.qc.compression,
-        qscore = config.qc.qscore,
-        readlen = config.qc.readMinLen,
-        cuttail = config.qc.cutTailWindow,
-        dedupacc = config.qc.dedupAccuracy
+        params=config.qc.prinseq,
+        prefix=os.path.join(dir.out.temp,"p01","{sample}")
+        # compression=config.qc.compression,
+        # qscore=config.qc.qscore,
+        # readlen=config.qc.readMinLen,
+        # cuttail=config.qc.cutTailWindow,
+        # dedupacc=config.qc.dedupAccuracy
     shell:
         """
-        fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
-            -z {params.compression} \
-            -j {output.stats} -h {output.html} \
-            --qualified_quality_phred {params.qscore} \
-            --length_required {params.readlen} \
-            --detect_adapter_for_pe \
-            --cut_tail --cut_tail_window_size {params.cuttail} --cut_tail_mean_quality {params.qscore} \
-            --dedup --dup_calc_accuracy {params.dedupacc} \
-            --trim_poly_x \
-            --thread {threads} 2> {log}
+        prinseq++ {params.params} \
+          -threads {threads} \
+          -out_name {params.prefix} \
+          -fastq {input.r1} \
+          -fastq2 {input.r2} &> {log}
         rm {log}
         """
+
 
 rule create_host_index:
     """Step 02. Create the minimap2 index for mapping to the host; this will save time."""
@@ -86,8 +133,8 @@ rule host_removal_mapping:
     If your reference is not available you need to add it using 'Hecatomb addHost'
     """
     input:
-        r1 = os.path.join(dir.out.temp, "p01", "{sample}_R1.s1.out.fastq"),
-        r2 = os.path.join(dir.out.temp, "p01", "{sample}_R2.s1.out.fastq"),
+        r1 = os.path.join(dir.out.temp, "p01", "{sample}_good_out_R1.fastq"),
+        r2 = os.path.join(dir.out.temp, "p01", "{sample}_good_out_R2.fastq"),
         host = dir.dbs.host.index
     output:
         r1 = temp(os.path.join(dir.out.temp, "p02", "{sample}_R1.unmapped.fastq")),

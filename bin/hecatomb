@@ -192,7 +192,7 @@ For information on Snakemake profiles see:
 https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles
 \b
 RUN EXAMPLES:
-Required:           hecatomb run --input [file]
+Required:           hecatomb run --reads [file/dir]
 Specify threads:    hecatomb run ... --threads [threads]
 Disable conda:      hecatomb run ... --no-use-conda 
 Change defaults:    hecatomb run ... --snake-default="-k --nolock"
