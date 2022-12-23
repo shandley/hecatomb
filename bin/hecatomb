@@ -95,7 +95,8 @@ class OrderedCommands(click.Group):
 
 
 def run_snakemake(configfile=None, snakefile_path=None, merge_config=None, threads=1, use_conda=False,
-                  conda_frontend=None, conda_prefix=None, snake_default=None, log=None, snake_args=[]):
+                  #conda_frontend=None, conda_prefix=None, snake_default=None, log=None, snake_args=[]):
+                  conda_prefix=None, snake_default=None, log=None, snake_args=[]):
     """Run a Snakefile"""
     snake_command = ['snakemake', '-s', snakefile_path]
 
@@ -127,8 +128,8 @@ def run_snakemake(configfile=None, snakefile_path=None, merge_config=None, threa
     # add conda args if using conda
     if use_conda:
         snake_command += ['--use-conda']
-        if conda_frontend:
-            snake_command += ['--conda-frontend', conda_frontend]
+        # if conda_frontend:
+        #     snake_command += ['--conda-frontend', conda_frontend]
         if conda_prefix:
             snake_command += ['--conda-prefix', conda_prefix]
 
@@ -161,13 +162,14 @@ def common_options(func):
         click.option('--threads', help='Number of threads to use', default=32, show_default=True),
         click.option('--use-conda/--no-use-conda', default=True, help='Use conda for Snakemake rules',
                      show_default=True),
-        click.option('--conda-frontend',
-                     type=click.Choice(['mamba', 'conda'], case_sensitive=True),
-                     default='mamba', help='Specify Conda frontend', show_default=True),
+        # click.option('--conda-frontend',
+        #              type=click.Choice(['mamba', 'conda'], case_sensitive=True),
+        #              default='mamba', help='Specify Conda frontend', show_default=True),
         click.option('--conda-prefix', default=snake_base(os.path.join('..', 'snakemake', 'conda')),
                      help='Custom conda env directory', type=click.Path(), show_default=False),
         click.option('--snake-default', multiple=True,
-                     default=['--rerun-incomplete', '--printshellcmds', '--nolock', '--show-failed-logs'],
+                     #default=['--rerun-incomplete', '--printshellcmds', '--nolock', '--show-failed-logs'],
+                     default=['--rerun-incomplete', '--printshellcmds', '--nolock'],
                      help="Customise Snakemake runtime args", show_default=True),
         click.option('--log', default='hecatomb.log', callback=default_to_ouput, hidden=True,
                      type=click.Path(writable=True, readable=True)),
