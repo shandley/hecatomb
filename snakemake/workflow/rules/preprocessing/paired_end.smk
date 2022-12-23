@@ -86,7 +86,7 @@ rule prinseq_trim:
     conda:
         os.path.join(dir.env,"prinseqpp.yaml")
     params:
-        params=config.qc.prinseq,
+        params=config.prinseq,
         prefix=os.path.join(dir.out.temp,"p01","{sample}")
         # compression=config.qc.compression,
         # qscore=config.qc.qscore,
