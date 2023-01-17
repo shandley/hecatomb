@@ -8,47 +8,37 @@ targets.preprocessing += [
 
 
 # rules
-rule fastp_preprocessing:
+rule prinseq_trim:
     """Preprocessing step 01: fastp_preprocessing.
-    
+
     Use fastP to remove adaptors, vector contaminants, low quality sequences, poly-A tails and reads shorts than minimum length, plus deduplicate.
     """
     input:
-        r1 = lambda wildcards: samples.reads[wildcards.sample]['R1'],
-        contaminants = os.path.join(dir.dbs.contaminants, "vector_contaminants.fa"),
-        # summ = optionalSummary[0]
+        r1=lambda wildcards: samples.reads[wildcards.sample]['R1'],
     output:
-        r1 = temp(os.path.join(dir.out.temp, "p01", "{sample}_R1.s1.out.fastq")),
-        stats = os.path.join(dir.out.stats, "p01", "{sample}.s1.stats.json"),
-        html = os.path.join(dir.out.stats, "p01", "{sample}.s1.stats.html")
+        r1=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out_R1.fastq")),
+        s1=temp(os.path.join(dir.out.temp,"p01","{sample}_single_out_R1.fastq")),
+        b1=temp(os.path.join(dir.out.temp,"p01","{sample}_bad_out_R1.fastq")),
     benchmark:
-        os.path.join(dir.out.bench, "fastp_preprocessing.{sample}.txt")
+        os.path.join(dir.out.bench,"prinseq_trim.{sample}.txt")
     log:
-        os.path.join(dir.out.stderr, "fastp_preprocessing.{sample}.log")
+        os.path.join(dir.out.stderr,"prinseq_trim.{sample}.log")
     resources:
-        mem_mb = config.resources.sml.mem
+        mem_mb=config.resources.sml.mem
     threads:
         config.resources.sml.cpu
     conda:
-        os.path.join(dir.env, "fastp.yaml")
+        os.path.join(dir.env,"prinseqpp.yaml")
     params:
-        compress = config.qc.compression,
-        qscore = config.qc.qscore,
-        minlen = config.qc.readMinLen,
-        cutwind = config.qc.cutTailWindow,
-        dedupacc = config.qc.dedupAccuracy
+        params=config.qc.prinseq,
+        prefix=os.path.join(dir.out.temp,"p01","{sample}")
     shell:
         """
-        fastp -i {input.r1} -o {output.r1} \
-            -z {params.compress} \
-            -j {output.stats} -h {output.html} \
-            --qualified_quality_phred {params.qscore} \
-            --length_required {params.minlen} \
-            --cut_tail --cut_tail_window_size {params.cutwind} --cut_tail_mean_quality {params.qscore} \
-            --dedup --dup_calc_accuracy {params.dedupacc} \
-            --trim_poly_x \
-            --thread {threads} 2> {log}
-            rm {log}
+        prinseq++ {params.params} \
+          -threads {threads} \
+          -out_name {params.prefix} \
+          -fastq {input.r1} &> {log}
+        rm {log}
         """
 
 
@@ -141,124 +131,22 @@ rule nonhost_read_repair:
 rule nonhost_read_combine:
     """Preprocessing step 04: Combine paired and singleton reads. """
     input:
-        r1 = os.path.join(dir.out.temp, "p02", "{PATTERN}_R1.unmapped.fastq"),
-        sr1 = os.path.join(dir.out.temp, "p03", "{PATTERN}_R1.u.singletons.fastq"),
-        or1 = os.path.join(dir.out.temp, "p03", "{PATTERN}_R1.o.singletons.fastq")
+        r1 = os.path.join(dir.out.temp, "p02", "{sample}_R1.unmapped.fastq"),
+        sr1 = os.path.join(dir.out.temp, "p03", "{sample}_R1.u.singletons.fastq"),
+        or1 = os.path.join(dir.out.temp, "p03", "{sample}_R1.o.singletons.fastq")
     output:
-        t1 = temp(os.path.join(dir.out.temp, "p04", "{PATTERN}_R1.singletons.fastq")),
-        r1 = temp(os.path.join(dir.out.temp, "p04", "{PATTERN}_R1.all.fastq"))
+        t1 = temp(os.path.join(dir.out.temp, "p04", "{sample}_R1.singletons.fastq")),
+        r1 = temp(os.path.join(dir.out.temp, "p04", "{sample}_R1.all.fastq"))
     benchmark:
-        os.path.join(dir.out.bench, "nonhost_read_combine.{PATTERN}.txt")
+        os.path.join(dir.out.bench, "nonhost_read_combine.{sample}.txt")
     log:
-        os.path.join(dir.out.stderr, "nonhost_read_combine.{PATTERN}.log")
+        os.path.join(dir.out.stderr, "nonhost_read_combine.{sample}.log")
     shell:
         """
         {{ cat {input.sr1} {input.or1} > {output.t1};
         cat {input.r1} {output.t1} > {output.r1}; }} 2> {log}
         rm {log}
         """
-
-
-rule cluster_similar_sequences:
-    """Preprocessing step 05: Cluster similar sequences.
-     
-     Sequences clustered at CLUSTERID in config.yaml.
-    """
-    input:
-        fq = os.path.join(dir.out.temp, "p04", "{sample}_R1.all.fastq"),
-        # summ = optionalSummary[1]
-    output:
-        temp(os.path.join(dir.out.temp, "p05", "{sample}_R1_rep_seq.fasta")),
-        temp(os.path.join(dir.out.temp, "p05", "{sample}_R1_cluster.tsv")),
-        temp(os.path.join(dir.out.temp, "p05", "{sample}_R1_all_seqs.fasta"))
-    params:
-        respath = os.path.join(dir.out.temp, "p05"),
-        tmppath = os.path.join(dir.out.temp, "p05", "{sample}_TMP"),
-        prefix = '{sample}_R1',
-        config = config.mmseqs.linclustParams
-    benchmark:
-        os.path.join(dir.out.bench, "cluster_similar_sequences.{sample}.txt")
-    log:
-        os.path.join(dir.out.stderr, "cluster_similar_sequences.{sample}.log")
-    resources:
-        mem_mb = config.resources.big.mem
-    threads:
-        config.resources.big.cpu
-    conda:
-        os.path.join(dir.env, "mmseqs2.yaml")
-    shell:
-        """ 
-        mmseqs easy-linclust {input.fq} {params.respath}/{params.prefix} {params.tmppath} \
-            {params.config} \
-            --threads {threads} &> {log}
-        rm {log}
-        """
-
-
-rule create_individual_seqtables:
-    """Preprocessing step 06: Create individual seqtables. 
-    
-    A seqtable is a count table with each sequence as a row, each column as a sample and each cell the counts of each 
-    sequence per sample.
-    """
-    input:
-        seqs = os.path.join(dir.out.temp, "p05", "{sample}_R1_rep_seq.fasta"),
-        counts = os.path.join(dir.out.temp, "p05", "{sample}_R1_cluster.tsv"),
-        # summ = optionalSummary[2]
-    output:
-        seqs = temp(os.path.join(dir.out.temp, "p06", "{sample}_R1.seqs")),
-        counts = temp(os.path.join(dir.out.temp, "p06", "{sample}_R1.counts")),
-        seqtable = temp(os.path.join(dir.out.temp, "p06", "{sample}_R1.seqtable"))
-    benchmark:
-        os.path.join(dir.out.bench, "individual_seqtables.{sample}.txt")
-    log:
-        os.path.join(dir.out.stderr, "individual_seqtables.{sample}.txt")
-    resources:
-        mem_mb = config.resources.big.mem
-    threads:
-        config.resources.big.cpu
-    conda:
-        os.path.join(dir.env, "seqkit.yaml")
-    shell:
-        """
-        {{ seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna \
-            | seqkit fx2tab -w 5000 -t dna \
-            | sed 's/\\t\\+$//' \
-            | cut -f2,3 \
-            | sed '1i sequence' > {output.seqs};
-        cut -f1 {input.counts} \
-            | sort \
-            | uniq -c \
-            | awk -F ' ' '{{print$2"\\t"$1}}' \
-            | cut -f2 \
-            | sed "1i {wildcards.sample}" > {output.counts};
-        paste {output.seqs} {output.counts} > {output.seqtable}; }} 2> {log}
-        rm {log}
-        """
-
-
-rule merge_seq_table:
-    """Preprocessing step 07: Merge seq tables
-    
-    Reads the sequences and counts from each samples' seqtable text file and converts to fasta format for the rest of 
-    the pipline.
-    """
-    input:
-        seqtable = expand(os.path.join(dir.out.temp, "p06", "{sample}_R1.seqtable"), sample=samples.names)
-    output:
-        fa = os.path.join(dir.out.results, "seqtable.fasta"),
-        tsv = os.path.join(dir.out.results, "sampleSeqCounts.tsv")
-    params:
-        samples = samples.names,
-        tmpdir = os.path.join(dir.out.temp, 'p06')
-    #conda:
-    #    os.path.join(dir.env, 'pysam.yaml')
-    benchmark:
-        os.path.join(dir.out.bench, "merge_seq_table.txt")
-    log:
-        os.path.join(dir.out.stderr, 'merge_seq_table.log')
-    script:
-        os.path.join(dir.scripts,   'mergeSeqTable.py')
 
 
 rule archive_for_assembly:

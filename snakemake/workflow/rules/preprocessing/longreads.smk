@@ -40,7 +40,7 @@ rule host_removal_mapping:
         host = dir.dbs.host.index,
         # summ = optionalSummary[0]
     output:
-        r1=temp(os.path.join(dir.out.temp,"p01","{sample}_R1.all.fasta")),
+        r1=temp(os.path.join(dir.out.temp, "p04", "{sample}_R1.all.fastq"))
     benchmark:
         os.path.join(dir.out.bench,"host_removal_mapping.{sample}.txt")
     log:
@@ -62,112 +62,10 @@ rule host_removal_mapping:
         """
 
 
-rule cluster_similar_sequences:  ### TODO: CHECK IF WE STILL HAVE ANY READS LEFT AT THIS POINT
-    """Preprocessing step 09: Cluster similar sequences.
-
-     Sequences clustered at CLUSTERID in config.yaml.
-    """
-    input:
-        fa=os.path.join(dir.out.temp,"p01","{sample}_R1.all.fasta"),
-        # summ=optionalSummary[1]
-    output:
-        temp(os.path.join(dir.out.temp,"p05","{sample}_R1_rep_seq.fasta")),
-        temp(os.path.join(dir.out.temp,"p05","{sample}_R1_cluster.tsv")),
-        temp(os.path.join(dir.out.temp,"p05","{sample}_R1_all_seqs.fasta"))
-    params:
-        respath=os.path.join(dir.out.temp,"p05"),
-        tmppath=os.path.join(dir.out.temp,"p05","{sample}_TMP"),
-        prefix='{sample}_R1',
-        config=config.mmseqs.linclustParams
-    benchmark:
-        os.path.join(dir.out.bench,"cluster_similar_sequences.{sample}.txt")
-    log:
-        os.path.join(dir.out.stderr,"cluster_similar_sequences.{sample}.log")
-    resources:
-        mem_mb=config.resources.big.mem
-    threads:
-        config.resources.big.cpu
-    conda:
-        os.path.join(dir.env, "mmseqs2.yaml")
-    shell:
-        """ 
-        mmseqs easy-linclust {input.fa} {params.respath}/{params.prefix} {params.tmppath} \
-            {params.config} \
-            --threads {threads} &> {log}
-        rm {log}
-        """
-
-
-rule create_individual_seqtables:
-    """Preprocessing step 10: Create individual seqtables. 
-
-    A seqtable is a count table with each sequence as a row, each column as a sample and each cell the counts of each 
-    sequence per sample.
-    """
-    input:
-        seqs=os.path.join(dir.out.temp,"p05","{sample}_R1_rep_seq.fasta"),
-        counts=os.path.join(dir.out.temp,"p05","{sample}_R1_cluster.tsv"),
-        # summ=optionalSummary[2]
-    output:
-        seqs=temp(os.path.join(dir.out.temp,"p06","{sample}_R1.seqs")),
-        counts=temp(os.path.join(dir.out.temp,"p06","{sample}_R1.counts")),
-        seqtable=temp(os.path.join(dir.out.temp,"p06","{sample}_R1.seqtable"))
-    benchmark:
-        os.path.join(dir.out.bench,"individual_seqtables.{sample}.txt")
-    log:
-        os.path.join(dir.out.stderr,"individual_seqtables.{sample}.txt")
-    resources:
-        mem_mb=config.resources.big.mem
-    threads:
-        config.resources.big.cpu
-    conda:
-        os.path.join(dir.env, "seqkit.yaml")
-    shell:
-        """
-        {{ seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna \
-            | seqkit fx2tab -w 5000 -t dna \
-            | sed 's/\\t\\+$//' \
-            | cut -f2,3 \
-            | sed '1i sequence' > {output.seqs};
-        cut -f1 {input.counts} \
-            | sort \
-            | uniq -c \
-            | awk -F ' ' '{{print$2"\\t"$1}}' \
-            | cut -f2 \
-            | sed "1i {wildcards.sample}" > {output.counts};
-        paste {output.seqs} {output.counts} > {output.seqtable}; }} 2> {log}
-        rm {log}
-        """
-
-
-rule merge_seq_table:
-    """Preprocessing step 11: Merge seq tables
-
-    Reads the sequences and counts from each samples' seqtable text file and converts to fasta format for the rest of 
-    the pipline.
-    """
-    input:
-        seqtables=expand(os.path.join(dir.out.temp,"p06","{sample}_R1.seqtable"),sample=samples.names)
-    output:
-        fa=os.path.join(dir.out.results,"seqtable.fasta"),
-        tsv=os.path.join(dir.out.results,"sampleSeqCounts.tsv")
-    params:
-        samples=samples.names,
-        tmpdir=lambda w, input: os.path.split(input[0])[0]
-    conda:
-        os.path.join(dir.env,   'pysam.yaml')
-    benchmark:
-        os.path.join(dir.out.bench,"merge_seq_table.txt")
-    log:
-        os.path.join(dir.out.stderr,'merge_seq_table.log')
-    script:
-        os.path.join(dir.scripts,   'mergeSeqTable.py')
-
-
 rule archive_for_assembly:
     """Copy the files that will be required in the assembly steps; fastq.gz files will be generated from these"""
     input:
-        os.path.join(dir.out.temp,"p01","{sample}_R1.all.fasta")
+        os.path.join(dir.out.temp, "p04", "{sample}_R1.all.fastq")
     output:
         temp(os.path.join(dir.out.assembly,"{sample}_R1.all.fasta"))
     params:

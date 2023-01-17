@@ -21,7 +21,7 @@ configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
 config = ap.AttrMap(config)
 
 
-### LAUNCHER-CONTROLLED CONFIG--"Reads" MUST BE PASSED TO SNAKEMAKE
+### LAUNCHER-CONTROLLED CONFIG SETTINGS
 if config.args.search == "fast":
     config.mmseqs.sensAA = config.mmseqs.perfAAfast
     config.mmseqs.sensNT = config.mmseqs.perfNTfast
@@ -51,14 +51,7 @@ include: "rules/preflight/targets.smk"
 
 
 ### PARSE SAMPLES
-if config.args.preprocess == "paired":
-    include: "rules/preflight/samples.smk"
-elif config.args.preprocess == "single":
-    include: "rules/preflight/samples_se.smk"
-elif config.args.preprocess == "longread":
-    include: "rules/preflight/samples_se.smk"
-else:  # config.args.preprocess == 'roundAB'
-    include: "rules/preflight/samples.smk"
+include: config.modules[config.args.preprocess]["preflight"]
 
 
 samples = ap.AttrMap()
@@ -69,21 +62,12 @@ samples.names = list(ap.utils.get_keys(samples.reads))
 
 
 ### PREPROCESSING
-if config.args.preprocess == "paired":
-    include: "rules/preprocessing/paired_end.smk"
-    include: "rules/assembly/paired_end.smk"
-elif config.args.preprocess == "single":
-    include: "rules/preprocessing/single_end.smk"
-    include: "rules/assembly/single_end.smk"
-elif config.args.preprocess == "longread":
-    include: "rules/preprocessing/longreads.smk"
-    include: "rules/assembly/longreads.smk"
-else:  # config.args.preprocess == 'roundAB'
-    include: "rules/preprocessing/roundAB.smk"
-    include: "rules/assembly/paired_end.smk"
+include: config.modules[config.args.preprocess]["preprocessing"]
+include: config.modules[config.args.preprocess]["assembly"]
 
 
 ### REMAINING PIPELINE RULES
+include: "rules/preprocessing/cluster_seqs.smk"
 include: "rules/annotation/read_annotation.smk"
 include: "rules/assembly/combine_sample_assemblies.smk"
 include: "rules/annotation/contig_mapping.smk"
