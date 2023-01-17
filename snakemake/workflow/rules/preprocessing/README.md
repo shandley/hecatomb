@@ -25,7 +25,7 @@ Rules to cluster processed R1 reads--for use with all preprocessing modules.
 
 ### CLI
 
-Add the new module as an option to `--preprocess` in `bin/hecatomb`.
+Add the new module option to `--preprocess` in `bin/hecatomb`.
 
 ### Config
 
@@ -72,6 +72,21 @@ or
 # single end / longreads
     input:
         os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz")
+```
+
+__Targets__ 
+
+Add the outputs used for assembly to targets in your preprocessing rule file. e.g.:
+
+```python
+targets.preprocessing += [
+        expand(os.path.join(dir.out.assembly,"{sample}_R1.unmapped.fastq.gz"), sample=samples.names),
+        expand(os.path.join(dir.out.assembly,"{sample}_R1.singletons.fastq.gz"), sample=samples.names),
+        expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fastq.gz"), sample=samples.names),
+        expand(os.path.join(dir.out.assembly,"{sample}_R2.singletons.fastq.gz"),sample=samples.names),
+        expand(os.path.join(dir.out.assembly,"{sample}_R2.unmapped.fastq.gz"),sample=samples.names),
+        expand(os.path.join(dir.out.assembly,"{sample}_R2.all.fastq.gz"),sample=samples.names),
+    ]
 ```
 
 ### Pull request

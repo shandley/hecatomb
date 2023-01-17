@@ -19,8 +19,6 @@ rule prinseq_trim:
     input:
         r1=lambda wildcards: samples.reads[wildcards.sample]['R1'],
         r2=lambda wildcards: samples.reads[wildcards.sample]['R2'],
-        #contaminants=os.path.join(dir.dbs.contaminants,"vector_contaminants.fa"),
-    # summ = optionalSummary[0]
     output:
         r1=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out_R1.fastq")),
         r2=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out_R2.fastq")),
@@ -142,21 +140,21 @@ rule nonhost_read_repair:
 rule nonhost_read_combine:
     """Preprocessing step 04: Combine paired and singleton reads. """
     input:
-        r1 = os.path.join(dir.out.temp, "p02", "{PATTERN}_R1.unmapped.fastq"),
-        r2 = os.path.join(dir.out.temp, "p02", "{PATTERN}_R2.unmapped.fastq"),
-        sr1 = os.path.join(dir.out.temp, "p03", "{PATTERN}_R1.u.singletons.fastq"),
-        sr2 = os.path.join(dir.out.temp, "p03", "{PATTERN}_R2.u.singletons.fastq"),
-        or1 = os.path.join(dir.out.temp, "p03", "{PATTERN}_R1.o.singletons.fastq"),
-        or2 = os.path.join(dir.out.temp, "p03", "{PATTERN}_R2.o.singletons.fastq")
+        r1 = os.path.join(dir.out.temp, "p02", "{sample}_R1.unmapped.fastq"),
+        r2 = os.path.join(dir.out.temp, "p02", "{sample}_R2.unmapped.fastq"),
+        sr1 = os.path.join(dir.out.temp, "p03", "{sample}_R1.u.singletons.fastq"),
+        sr2 = os.path.join(dir.out.temp, "p03", "{sample}_R2.u.singletons.fastq"),
+        or1 = os.path.join(dir.out.temp, "p03", "{sample}_R1.o.singletons.fastq"),
+        or2 = os.path.join(dir.out.temp, "p03", "{sample}_R2.o.singletons.fastq")
     output:
-        t1 = temp(os.path.join(dir.out.temp, "p04", "{PATTERN}_R1.singletons.fastq")),
-        t2 = temp(os.path.join(dir.out.temp, "p04", "{PATTERN}_R2.singletons.fastq")),
-        r1 = temp(os.path.join(dir.out.temp, "p04", "{PATTERN}_R1.all.fastq")),
-        r2 = temp(os.path.join(dir.out.temp, "p04", "{PATTERN}_R2.all.fastq"))
+        t1 = temp(os.path.join(dir.out.temp, "p04", "{sample}_R1.singletons.fastq")),
+        t2 = temp(os.path.join(dir.out.temp, "p04", "{sample}_R2.singletons.fastq")),
+        r1 = temp(os.path.join(dir.out.temp, "p04", "{sample}_R1.all.fastq")),
+        r2 = temp(os.path.join(dir.out.temp, "p04", "{sample}_R2.all.fastq"))
     benchmark:
-        os.path.join(dir.out.bench, "nonhost_read_combine.{PATTERN}.txt")
+        os.path.join(dir.out.bench, "nonhost_read_combine.{sample}.txt")
     log:
-        os.path.join(dir.out.stderr, "nonhost_read_combine.{PATTERN}.log")
+        os.path.join(dir.out.stderr, "nonhost_read_combine.{sample}.log")
     shell:
         """
         {{ cat {input.sr1} {input.or1} > {output.t1};
