@@ -40,7 +40,7 @@ rule individual_sample_assembly:
     Megahit: https://github.com/voutcn/megahit
     """
     input:
-        r1_norm = os.path.join(dir.out.assembly, "{sample}_R1.norm.fastq"),
+        r1_norm = os.path.join(dir.out.assembly, "{sample}_R1.unmapped.fastq.gz"),
         r1s = os.path.join(dir.out.assembly, "{sample}_R1.singletons.fastq.gz"),
     output:
         contigs = os.path.join(dir.out.assembly, "{sample}", "{sample}.contigs.fa"),
@@ -232,7 +232,7 @@ rule unmapped_read_rescue_assembly:
     Megahit: https://github.com/voutcn/megahit
     """
     input:
-        r1_norm = os.path.join(dir.out.assembly, 'unmapRescueNorm_R1.fastq'),
+        r1_norm = os.path.join(dir.out.assembly, 'unmapRescue_R1.fastq'),
         s = os.path.join(dir.out.assembly, 'unmapRescue.s.fastq')
     output:
         contigs = os.path.join(dir.out.assembly, 'rescue', "rescue.contigs.fa"),

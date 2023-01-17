@@ -71,4 +71,4 @@ rule archive_for_assembly:
     params:
         dir.out.assembly
     shell:
-        """cp {input} {params}"""
+        """cp {input} {output}"""

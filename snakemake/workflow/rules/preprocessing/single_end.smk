@@ -16,8 +16,8 @@ rule prinseq_trim:
     input:
         r1=lambda wildcards: samples.reads[wildcards.sample]['R1'],
     output:
-        r1=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out_R1.fastq")),
-        b1=temp(os.path.join(dir.out.temp,"p01","{sample}_bad_out_R1.fastq")),
+        r1=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out.fastq")),
+        b1=temp(os.path.join(dir.out.temp,"p01","{sample}_bad_out.fastq")),
     benchmark:
         os.path.join(dir.out.bench,"prinseq_trim.{sample}.txt")
     log:
@@ -71,7 +71,7 @@ rule host_removal_mapping:
     If your reference is not available you need to add it using 'Hecatomb addHost'
     """
     input:
-        r1 = os.path.join(dir.out.temp, "p01", "{sample}_good_out_R1.fastq"),
+        r1 = os.path.join(dir.out.temp, "p01", "{sample}_good_out.fastq"),
         host = dir.dbs.host.index
     output:
         r1 = temp(os.path.join(dir.out.temp, "p02", "{sample}_R1.unmapped.fastq")),

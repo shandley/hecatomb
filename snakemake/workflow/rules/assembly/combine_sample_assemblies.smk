@@ -1,7 +1,7 @@
 rule population_assembly:
     """Assembly step 05: Create 'contig dictionary' of all unique contigs present in the study (aka: population assembly)"""
     input:
-        os.path.join(dir.out.assembly, "all_sample_contigs.fasta")
+        os.path.join(dir.out.assembly, "all_sample_contigs.fasta.gz")
     output:
         assembly = temp(os.path.join(dir.out.assembly, "FLYE", "assembly.fasta")),
         stats = os.path.join(dir.out.assembly, "FLYE", "contig_dictionary.stats")
