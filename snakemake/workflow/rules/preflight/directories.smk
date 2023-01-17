@@ -20,15 +20,15 @@ except (KeyError,AssertionError):
         assert(os.environ["HECATOMB_DB"]) is not None
         dir.dbs.base = os.environ["HECATOMB_DB"]
     except (KeyError, AssertionError):
-        dir.dbs.base = os.path.join(workflow.basedir,'..','..','databases')
+        dir.dbs.base = os.path.join(workflow.basedir,"..","..","databases")
 
 
 ### OUTPUT LOCATION
 try:
-    assert(ap.utils.to_dict(config.args)['output']) is not None
+    assert(ap.utils.to_dict(config.args)["output"]) is not None
     dir.out.base = config.args.output
 except (KeyError, AssertionError):
-    dir.out.base = 'hecatomb.out'
+    dir.out.base = "hecatomb.out"
 
 
 ### WORKFLOW DIRs
@@ -48,14 +48,14 @@ dir.dbs.secondaryNT   = os.path.join(dir.dbs.base, "nt", "virus_secondary_nt")
 
 
 ### OUTPUT DIRs
-dir.out.results         = os.path.join(dir.out.base, 'results')
-dir.out.processing      = os.path.join(dir.out.base, 'processing')
-dir.out.temp            = os.path.join(dir.out.processing, 'temp')
-dir.out.stderr          = os.path.join(dir.out.base, 'stderr')
-dir.out.bench           = os.path.join(dir.out.base, 'benchmarks')
-dir.out.assembly        = os.path.join(dir.out.processing, 'assembly')
-dir.out.mapping         = os.path.join(dir.out.processing, 'mapping')
-dir.out.stats           = os.path.join(dir.out.processing, 'stats')
+dir.out.results         = os.path.join(dir.out.base, "results")
+dir.out.processing      = os.path.join(dir.out.base, "processing")
+dir.out.temp            = os.path.join(dir.out.processing, "temp")
+dir.out.stderr          = os.path.join(dir.out.base, "stderr")
+dir.out.bench           = os.path.join(dir.out.base, "benchmarks")
+dir.out.assembly        = os.path.join(dir.out.processing, "assembly")
+dir.out.mapping         = os.path.join(dir.out.processing, "mapping")
+dir.out.stats           = os.path.join(dir.out.processing, "stats")
 dir.out.primaryAA       = os.path.join(dir.out.processing, "mmseqs_aa_primary")
 dir.out.secondaryAA     = os.path.join(dir.out.processing, "mmseqs_aa_secondary")
 dir.out.primaryNT       = os.path.join(dir.out.processing, "mmseqs_nt_primary")

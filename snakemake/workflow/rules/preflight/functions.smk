@@ -101,7 +101,7 @@ rule fasta_index:
     log:
         "{file}.samtools.stderr"
     conda:
-        os.path.join(dir.env,   'samtools.yaml')
+        os.path.join(dir.env,   "samtools.yaml")
     resources:
         mem_mb = config.resources.ram.mem
     shell:
@@ -117,7 +117,7 @@ rule bam_index:
     log:
         "{file}.samtools.stderr"
     conda:
-        os.path.join(dir.env,   'samtools.yaml')
+        os.path.join(dir.env,   "samtools.yaml")
     threads:
         config.resources.ram.cpu
     resources:
@@ -191,26 +191,30 @@ rule seq_properties_table:
     resources:
         mem_mb = config.resources.ram.mem
     log:
-        os.path.join(dir.out.stderr, '{file}.seq_properties_table.log')
+        os.path.join(dir.out.stderr, "{file}.seq_properties_table.log")
     script:
-        os.path.join(dir.scripts,  'seqPropertyTable.py')
+        os.path.join(dir.scripts,  "seqPropertyTable.py")
 
 
 rule zip_fastq:
     """zip a fastq file"""
     input:
-        '{filepath}.fastq'
+        "{filepath}.fastq"
     output:
-        '{filepath}.fastq.gz'
+        "{filepath}.fastq.gz"
+    params:
+        compression = config.qc.compression
     shell:
-        """gzip -1 {input}"""
+        """gzip -{params.compression} {input}"""
 
 
 rule zip_fasta:
     """zip a fastq file"""
     input:
-        '{filepath}.fasta'
+        "{filepath}.fasta"
     output:
-        '{filepath}.fasta.gz'
+        "{filepath}.fasta.gz"
+    params:
+        compression = config.qc.compression
     shell:
-        """gzip -1 {input}"""
+        """gzip -{params.compression} {input}"""

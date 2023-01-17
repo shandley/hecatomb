@@ -80,6 +80,6 @@ rule mmseqs_contig_annotation_summary:
             taxonkit lineage --data-dir {input.taxdb} -i 2 | \
             taxonkit reformat --data-dir {input.taxdb} -i 19 {params.taxonFormat} | \
             cut --complement -f2,19 >> {output.tsv};
-        }} 2> {log}
+        }} &> {log}
         rm {log}
         """
