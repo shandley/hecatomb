@@ -24,17 +24,17 @@ qc:
     compression: 1      # Compression level for gzip output (1 ~ 9). 1 is fastest, 9 is smallest. Default is 1, based on assumption of large scratch space
     entropy: 0.5        # Read minimum entropy
     entropyWindow: 25   # entropy window for low qual read filter
-    prinseq:
-        -min_len 90
-        -min_qual_mean 20
-        -ns_max_n 1
-        -derep 1
-        -out_format 0
-        -ns_max_n 5
-        -trim_qual_type min
-        -trim_qual_left 20
-        -trim_qual_right 20
-        -trim_qual_window 25
+
+prinseq:
+    -min_len 90
+    -min_qual_mean 20
+    -ns_max_n 1
+    -derep 1
+    -out_format 0
+    -trim_qual_type min
+    -trim_qual_left 20
+    -trim_qual_right 20
+    -trim_qual_window 25
 
 mmseqs:
     linclustParams:
