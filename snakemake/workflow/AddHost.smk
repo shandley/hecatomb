@@ -7,6 +7,8 @@ The genomes need to have their viral-like sequences masked before they can be us
 Michael Roach, Q2 2021
 """
 
+import attrmap as ap
+
 
 # load default config
 configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
