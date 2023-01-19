@@ -78,7 +78,7 @@ rule mask_host:
     shell:
         """
         bbmask.sh in={input.ref} out={output.fa} \
-            entropy={entropy} sam={input.sam} ow=t \
+            entropy={params.entropy} sam={input.sam} ow=t \
             threads={threads} -Xmx{resources.mem_mb}m &> {log}
         gzip -c {output.fa} > {output.gz}
         """
