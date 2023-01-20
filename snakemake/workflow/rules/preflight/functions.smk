@@ -170,9 +170,10 @@ rule calculate_tet_freq:
         mem_mb = config.resources.ram.mem
     shell:
         """
+        {{
         tetramerfreq.sh in={input} w=0 ow=t -Xmx{resources.mem_mb}m \
-            | tail -n+2 \
-            > {output} 2> {log}
+            | tail -n+2;
+        }} > {output} 2>> {log}
         rm {log}
         """
 
