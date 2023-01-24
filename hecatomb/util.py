@@ -99,7 +99,7 @@ def write_config(_config, file, log=None):
 def copy_config(
     local_config,
     merge_config=None,
-    system_config=snake_base(os.path.join("config", "config.yaml")),
+    system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
     log=None,
 ):
     if not os.path.isfile(local_config):
@@ -195,7 +195,7 @@ def run_list_hosts(configfile):
     with open(configfile, 'r') as f:
         config = yaml.safe_load(f)
     if config['Databases'] is None:
-        DBDIR = snake_base(os.path.join('', 'databases'))
+        DBDIR = snake_base(os.path.join('snakemake', 'databases'))
     else:
         DBDIR = config['Databases']
     hostPath = os.path.join(DBDIR, "host", "*")

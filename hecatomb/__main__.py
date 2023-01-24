@@ -59,7 +59,7 @@ def common_options(func):
         ),
         click.option(
             "--conda-prefix",
-            default=snake_base(os.path.join("workflow", "conda")),
+            default=snake_base(os.path.join("snakemake", "conda")),
             help="Custom conda env directory",
             type=click.Path(),
             show_default=False,
@@ -94,7 +94,7 @@ def common_options(func):
 )
 @click.version_option(get_version(), "-v", "--version", is_flag=True)
 def cli():
-    """Viral metagenomics framework for short and longread sequencing
+    """Viral metagenomics framework for short and longread sequencing.
     \b
     For more options, run:
     hecatomb command --help"""
@@ -114,7 +114,7 @@ Specify threads:    hecatomb run ... --threads [threads]
 Disable conda:      hecatomb run ... --no-use-conda 
 Change defaults:    hecatomb run ... --snake-default="-k --nolock"
 Add Snakemake args: hecatomb run ... --dry-run --keep-going --touch
-Specify stages:     hecatomb run ... all print_targets
+Specify stages:     hecatomb run ... all print_stages
 Available stages:
     all                 Run everything (default)
     preprocessing       Preprocessing steps only
@@ -154,7 +154,7 @@ def run(reads, preprocess, search, host, output, log, **kwargs):
 
     run_snakemake(
         # Full path to Snakefile
-        snakefile_path=snake_base(os.path.join('', '../snakemake', 'workflow', 'Hecatomb.smk')),
+        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'Hecatomb.smk')),
         merge_config=merge_config,
         log=log,
         **kwargs
@@ -176,7 +176,7 @@ def run(reads, preprocess, search, host, output, log, **kwargs):
 def test(preprocess, search, host, output, log, **kwargs):
     """Run the Hecatomb test dataset"""
 
-    reads = snake_base(os.path.join('', '../test_data'))
+    reads = snake_base('test_data')
 
     merge_config = {
         'args': {
@@ -190,7 +190,7 @@ def test(preprocess, search, host, output, log, **kwargs):
     }
 
     run_snakemake(
-        snakefile_path=snake_base(os.path.join('', '../snakemake', 'workflow', 'Hecatomb.smk')),
+        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'Hecatomb.smk')),
         merge_config=merge_config,
         log=log,
         **kwargs
@@ -216,7 +216,7 @@ def install(output, log, **kwargs):
         }
     }
     run_snakemake(
-        snakefile_path=snake_base(os.path.join('', '../snakemake', 'workflow', 'DownloadDB.smk')),
+        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'DownloadDB.smk')),
         merge_config=merge_config,
         log=log,
         **kwargs
@@ -238,7 +238,7 @@ def combine(comb, output, log, **kwargs):
         }
     }
     run_snakemake(
-        snakefile_path=snake_base(os.path.join('', '../snakemake', 'workflow', 'combineOutputs.smk')),
+        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'combineOutputs.smk')),
         merge_config=merge_config,
         log=log,
         **kwargs
@@ -261,7 +261,7 @@ def add_host(host, host_fa, output, log, **kwargs):
         }
     }
     run_snakemake(
-        snakefile_path=snake_base(os.path.join('', '../snakemake', 'workflow', 'AddHost.smk')),
+        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'AddHost.smk')),
         merge_config=merge_config,
         log=log,
         **kwargs
