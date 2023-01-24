@@ -1,5 +1,9 @@
 # For more information see: https://github.com/shandley/hecatomb and https://hecatomb.readthedocs.io/en/latest/
 
+# Custom database location. Blank = use install location or specify with environment variable HECATOMB_DB
+args:
+    databases:
+
 resources:
     big:
         mem: 64000     # Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
@@ -94,17 +98,3 @@ assembly:
         --min-count 2
     flye:
         -g 1g
-
-# COMMAND LINE ARGS WILL OVERWRITE CONFIG SETTING SPECIFIED HERE
-args:
-    reads:          # specify on command line or here
-    output:         # blank = use command line default
-    log:            # blank = use command line default
-    databases:      # blank = use command line default
-    search:         # blank = use command line default
-    host:           # blank = use command line default
-    preprocess:     # blank = use command line default
-    combineRuns:    # specify on command line (use with hecatomb combine)
-    hostFa:         # specify on command line (use with addHost)
-    hostName:       # specify on command line (use with addHost)
-

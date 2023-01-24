@@ -28,6 +28,18 @@ modules:
         assembly:
             "rules/assembly/paired_end.smk"
 
+# Leave blank, these are overwritten by command line defaults
+args:
+    reads:
+    output:
+    log:
+    search:
+    host:
+    preprocess:
+    combineRuns:
+    hostFa:
+    hostName:
+
 immutable:
     reqAA:
         -a
