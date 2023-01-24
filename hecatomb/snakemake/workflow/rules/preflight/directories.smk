@@ -20,7 +20,7 @@ except (KeyError,AssertionError):
         assert(os.environ["HECATOMB_DB"]) is not None
         dir.dbs.base = os.environ["HECATOMB_DB"]
     except (KeyError, AssertionError):
-        dir.dbs.base = os.path.join(workflow.basedir,"..","..","databases")
+        dir.dbs.base = os.path.join(workflow.basedir,"..","databases")
 
 
 ### OUTPUT LOCATION
