@@ -1,8 +1,5 @@
 """
-Entrypoint for {{cookiecutter.project_name}}
-
-Check out the wiki for a detailed look at customising this file:
-https://github.com/beardymcjohnface/Snaketool/wiki/Customising-your-Snaketool
+Command line interface for installing and running Hecatomb
 """
 
 import os
@@ -41,15 +38,15 @@ def common_options(func):
             "--output",
             help="Output directory",
             type=click.Path(dir_okay=True, writable=True, readable=True),
-            default="{{cookiecutter.project_slug}}.out",
+            default="hecatomb.out",
             show_default=True,
         ),
         click.option(
             "--configfile",
-            default="config.yaml",
+            default="hecatomb.config.yaml",
             show_default=False,
             callback=default_to_output,
-            help="Custom config file [default: (outputDir)/config.yaml]",
+            help="Custom config file [default: (outputDir)/hecatomb.config.yaml]",
         ),
         click.option(
             "--threads", help="Number of threads to use", default=1, show_default=True
@@ -81,7 +78,7 @@ def common_options(func):
         ),
         click.option(
             "--log",
-            default="{{cookiecutter.project_slug}}.log",
+            default="hecatomb.log",
             callback=default_to_output,
             hidden=True,
         ),
@@ -97,10 +94,10 @@ def common_options(func):
 )
 @click.version_option(get_version(), "-v", "--version", is_flag=True)
 def cli():
-    """{{cookiecutter.project_description}}
+    """Viral metagenomics framework for short and longread sequencing
     \b
     For more options, run:
-    {{cookiecutter.project_slug}} command --help"""
+    hecatomb command --help"""
     pass
 
 

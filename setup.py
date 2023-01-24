@@ -7,7 +7,7 @@ def get_version():
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
                 "hecatomb",
-                "hecatomb.VERSION",
+                "hecatomb/hecatomb.VERSION",
             )
     ) as f:
         return f.readline().strip()
