@@ -17,18 +17,6 @@ from .util import (
 )
 
 
-def print_splash():
-    click.echo("""
-\b
-██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗
-██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗
-███████║█████╗  ██║     ███████║   ██║   ██║   ██║██╔████╔██║██████╔╝
-██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗
-██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝
-╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝
-""", err=True)
-
-
 def common_options(func):
     """Common command line args
     Define common command line args here, and include them with the @common_options decorator below.
@@ -101,10 +89,24 @@ def cli():
     pass
 
 
-help_msg_extra = """
+def print_splash():
+    click.echo("""
+    \b
+    ██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗
+    ██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗
+    ███████║█████╗  ██║     ███████║   ██║   ██║   ██║██╔████╔██║██████╔╝
+    ██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗
+    ██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝
+    ╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝
+    """)
+
+
+def help_msg_epilog():
+    return ("""
 \b
 CLUSTER EXECUTION:
 hecatomb run ... --profile [profile]
+\b
 For information on Snakemake profiles see:
 https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles
 \b
@@ -115,18 +117,19 @@ Disable conda:      hecatomb run ... --no-use-conda
 Change defaults:    hecatomb run ... --snake-default="-k --nolock"
 Add Snakemake args: hecatomb run ... --dry-run --keep-going --touch
 Specify stages:     hecatomb run ... all print_stages
-Available stages:
+\b
+AVAILABLE STAGES:
     all                 Run everything (default)
     preprocessing       Preprocessing steps only
     assembly            Assembly steps (+ preprocessing)
     annotations         Read annotations (+ preprocessing)
     ctg_annotations     Contig annotations (+ preprocessing,assembly)
     print_stages        List available stages
-"""
+""")
 
 
 @click.command(
-    epilog=help_msg_extra,
+    epilog=help_msg_epilog(),
     context_settings=dict(
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
@@ -162,7 +165,7 @@ def run(reads, preprocess, search, host, output, log, **kwargs):
 
 
 @click.command(
-    epilog=help_msg_extra,
+    epilog=help_msg_epilog(),
     context_settings=dict(
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
@@ -204,7 +207,8 @@ def config(configfile, **kwargs):
     copy_config(configfile)
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
+@click.command(epilog=help_msg_epilog(),
+               context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
 @common_options
 def install(output, log, **kwargs):
     """Install the Hecatomb databases"""
@@ -223,7 +227,8 @@ def install(output, log, **kwargs):
     )
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
+@click.command(epilog=help_msg_epilog(),
+               context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
 @click.option('--comb', multiple=True, required=True, show_default=False,
               help='Two or more Hecatomb output directories to combine. e.g. --comb dir1/ --comb dir2/ ...')
 @common_options
@@ -245,7 +250,8 @@ def combine(comb, output, log, **kwargs):
     )
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
+@click.command(epilog=help_msg_epilog(),
+               context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
 @click.option('--host', help='Name for your host genome', show_default=False, required=True)
 @click.option('--host-fa', help='Host genome fasta file', show_default=False, required=True)
 @common_options
@@ -273,7 +279,7 @@ def add_host(host, host_fa, output, log, **kwargs):
 def list_hosts(configfile, **kwargs):
     """List the available host genomes"""
 
-    run_list_hosts()
+    run_list_hosts(configfile)
 
 
 @click.command()

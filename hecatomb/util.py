@@ -30,11 +30,11 @@ def get_version():
     return version
 
 
-def echo_click(msg, log=None):
-    click.echo(msg, nl=False, err=True)
+def echo_click(_msg, log=None):
+    click.echo(_msg, nl=False, err=True)
     if log:
-        with open(log, "a") as l:
-            l.write(msg)
+        with open(log, "a") as lfh:
+            lfh.write(_msg)
 
 
 def print_citation():
@@ -137,7 +137,7 @@ def run_snakemake(
     use_conda=False,
     conda_prefix=None,
     snake_default=None,
-    snake_args=[],
+    snake_args=None,
     log=None,
 ):
     """Run a Snakefile"""
@@ -162,7 +162,7 @@ def run_snakemake(
         )
 
     # add threads
-    if not "--profile" in snake_args:
+    if "--profile" not in snake_args:
         snake_command += ["--jobs", threads]
 
     # add conda args if using conda
@@ -194,14 +194,16 @@ def run_list_hosts(configfile):
     copy_config(configfile)
     with open(configfile, 'r') as f:
         config = yaml.safe_load(f)
-    if config['Databases'] is None:
-        DBDIR = snake_base(os.path.join('snakemake', 'databases'))
-    else:
-        DBDIR = config['Databases']
-    hostPath = os.path.join(DBDIR, "host", "*")
-    hostFastas = list([os.path.basename(x) for x in glob.glob(hostPath)])
+    dbdir = snake_base(os.path.join('snakemake', 'databases'))
     try:
-        hostFastas.remove('virus_shred.fasta.gz')
+        if config['Databases'] is not None:
+            dbdir = config['Databases']
+    except KeyError:
+        pass
+    host_path = os.path.join(dbdir, "host", "*")
+    host_fastas = list([os.path.basename(x) for x in glob.glob(host_path)])
+    try:
+        host_fastas.remove('virus_shred.fasta.gz')
     except ValueError:
         pass
-    msg_box('Available host genomes', '\n'.join(hostFastas))
+    msg_box('Available host genomes', '\n'.join(host_fastas))
