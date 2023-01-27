@@ -73,6 +73,7 @@ include: "rules/assembly/combine_sample_assemblies.smk"
 include: "rules/annotation/contig_mapping.smk"
 include: "rules/annotation/contig_annotation.smk"
 include: "rules/reports/summaries.smk"
+include: "rules/reports/summaries_optional.smk"
 
 
 # Mark target rules

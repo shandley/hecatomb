@@ -51,7 +51,9 @@ targets.readAnnotations = [
 targets.summary = [
     os.path.join(dir.out.results, 'hecatomb.samples.tsv'),
     os.path.join(dir.out.results, "taxonLevelCounts.tsv"),
-    os.path.join(dir.out.results, "krona.html")
+    os.path.join(dir.out.results, "krona.html"),
+    os.path.join(dir.out.results, "summary.tsv"),
+    os.path.join(dir.out.results,"seqtable.unclassified.fasta")
 ]
 
 

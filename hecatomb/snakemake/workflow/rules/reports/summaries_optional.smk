@@ -1,229 +1,184 @@
+
+import yaml
+import attrmap as ap
+import collections
+
+
 rule rawReadCounts:
     output:
-        report(os.path.join(dir.out.temp,"Step00_counts.tsv"),
-            caption = "../report/step00.rst",
+        report(os.path.join(dir.out.temp,"raw_read_counts.yaml"),
+            caption = os.path.join("..", "report", "raw_read_counts.rst"),
             category = "Preprocessing")
+    params:
+        samples = samples
     run:
-        collect_start_counts(samples, output[0])
+        out_counts = ap.AttrMap()
+        for sample in params.samples.names:
+            out_counts[sample].raw_reads_R1 = file_len(params.samples.reads[sample]["R1"])
+            try:
+                out_counts[sample].raw_reads_R2 = file_len(params.samples.reads[sample]["R2"])
+            except KeyError:
+                pass
+        with open(output[0],"w") as stream:
+            yaml.dump(out_counts,stream)
 
-rule hostRemovedCounts:
+
+rule trimmedHostRemovedCounts:
     input:
         expand(os.path.join(dir.out.temp, "p04", "{sample}_R1.all.fastq"),sample=samples.names)
     output:
-        report(os.path.join(dir.out.temp, "Step01_counts.tsv"),
-            caption = "../report/step01.rst",
+        report(os.path.join(dir.out.temp, "host_removed_counts.yaml"),
+            caption = os.path.join("..", "report", "host_removed_counts.rst"),
             category = "Preprocessing")
+    params:
+        samples = samples
     run:
-        collect_counts(os.path.join(dir.out.temp, "p04"), ".all.fastq", "Host_removed", output[0])
+        out_counts = ap.AttrMap()
+        for sample in params.samples.names:
+            out_counts[sample].host_removed_R1 = file_len(os.path.join(dir.out.temp, "p04", "{sample}_R1.all.fastq"))
+            try:
+                out_counts[sample].host_removed_R2 = file_len(os.path.join(dir.out.temp,"p04","{sample}_R1.all.fastq"))
+            except KeyError:
+                pass
+        with open(output[0],"w") as stream:
+            yaml.dump(out_counts,stream)
 
-rule hostRemovedCountsLongreads:
-    input:
-        expand(os.path.join(dir.out.temp, "p01", "{sample}_R1.all.fasta"), sample=samples.names)
-    output:
-        report(os.path.join(dir.out.temp, "Step01_counts.tsv"),
-            caption = "../report/step01.rst",
-            category = "Preprocessing")
-    run:
-        outfh = open(output[0],'w')
-        for sample in samples.names:
-            R1c = file_len(os.path.join(dir.out.temp, "p01", f"{sample}_R1.all.fasta")) / 2
-            outfh.write(f'{sample}\tHost_removed\tR1\t{R1c}\n')
-        outfh.close()
 
-rule clusteredCounts:
+rule proteinAnnotations:
     input:
-        expand(os.path.join(dir.out.temp, "p05", "{sample}_R1_rep_seq.fasta"), sample=samples.names)
+        vir = os.path.join(dir.out.secondaryAA,"AA_bigtable.tsv"),
+        nonvir = os.path.join(dir.out.secondaryAA,"AA_bigtable.nonviral.tsv"),
     output:
-        report(os.path.join(dir.out.temp, "Step02_counts.tsv"),
-            caption = "../report/step02.rst",
-            category = "Preprocessing")
-    run:
-        outfh = open(output[0],'w')
-        for sample in samples.names:
-            R1c = file_len(os.path.join(dir.out.temp, "p05", f"{sample}_R1_rep_seq.fasta")) / 2
-            outfh.write(f'{sample}\tR1_Clustered\tR1\t{R1c}\n')
-        outfh.close()
-
-# rule step01_counts:
-#     input:
-#         expand(os.path.join(dir.out.temp, "p01", "{sample}_{rn}.s1.out.fastq"), sample=samples.names, rn=['R1', 'R2'])
-#     output:
-#         report(os.path.join(SUMDIR, "Step01_counts.tsv"),
-#             caption = "../report/step01.rst",
-#             category = "Preprocessing")
-#     run:
-#         collect_counts(os.path.join(dir.out.temp, "p01"), ".s1.out.fastq", "Step_01", output[0])
-#
-# rule step02_counts:
-#     input:
-#         expand(os.path.join(dir.out.temp, "p02", "{sample}_{rn}.s2.out.fastq"), sample=samples.names, rn=['R1', 'R2'])
-#     output:
-#         report(os.path.join(SUMDIR, "Step02_counts.tsv"),
-#             caption = "../report/step02.rst",
-#             category = "Preprocessing")
-#     run:
-#         collect_counts(os.path.join(dir.out.temp, "p02"), ".s2.out.fastq", "Step_02", output[0])
-#
-# rule step03_counts:
-#     input:
-#         expand(os.path.join(dir.out.temp, "p03", "{sample}_{rn}.s3.out.fastq"), sample=samples.names, rn=['R1', 'R2'])
-#     output:
-#         report(os.path.join(SUMDIR, "Step03_counts.tsv"),
-#             caption = "../report/step03.rst",
-#             category = "Preprocessing")
-#     run:
-#         collect_counts(os.path.join(dir.out.temp, "p03"), ".s3.out.fastq", "Step_03", output[0])
-#
-# rule step04_counts:
-#     input:
-#         expand(os.path.join(dir.out.temp, "p04", "{sample}_{rn}.s4.out.fastq"), sample=samples.names, rn=['R1', 'R2'])
-#     output:
-#         report(os.path.join(SUMDIR, "Step04_counts.tsv"),
-#             caption = "../report/step04.rst",
-#             category = "Preprocessing")
-#     run:
-#         collect_counts(os.path.join(dir.out.temp, "p04"), ".s4.out.fastq", "Step_04", output[0])
-#
-# rule step05_counts:
-#     input:
-#         expand(os.path.join(dir.out.temp, "p05", "{sample}_{rn}.s5.out.fastq"), sample=samples.names, rn=['R1', 'R2'])
-#     output:
-#         report(os.path.join(SUMDIR, "Step05_counts.tsv"),
-#             caption = "../report/step05.rst",
-#             category = "Preprocessing")
-#     run:
-#         collect_counts(os.path.join(dir.out.temp, "p05"), ".s5.out.fastq", "Step_05", output[0])
-#
-# rule step06_counts:
-#     input:
-#         expand(os.path.join(dir.out.temp, "p06", "{sample}_{rn}.s6.out.fastq"), sample=samples.names, rn=['R1', 'R2'])
-#     output:
-#         report(os.path.join(SUMDIR, "Step06_counts.tsv"),
-#             caption = "../report/step06.rst",
-#             category = "Preprocessing")
-#     run:
-#         collect_counts(os.path.join(dir.out.temp, "p06"), ".s6.out.fastq", "Step_06", output[0])
-#
-# rule step07_counts:
-#     input:
-#         expand(os.path.join(dir.out.temp, "p07", "{sample}_{rn}.all.fastq"), sample=samples.names, rn=['R1', 'R2'])
-#     output:
-#         report(os.path.join(SUMDIR, "Step07_counts.tsv"),
-#             caption = "../report/step07.rst",
-#             category = "Preprocessing")
-#     run:
-#         collect_counts(os.path.join(dir.out.temp, "p07"), ".all.fastq", "Step_07", output[0])
-#
-# rule step08_counts:
-#     input:
-#         expand(os.path.join(dir.out.temp, "p08", "{sample}_R1.deduped.out.fastq"), sample=samples.names)
-#     output:
-#         report(os.path.join(SUMDIR, "Step08_counts.tsv"),
-#             caption = "../report/step08.rst",
-#             category = "Preprocessing")
-#     run:
-#         outfh = open(output[0],'w')
-#         for sample in samples.names:
-#             R1c = file_len(os.path.join(dir.out.temp, "p08", f"{sample}_R1.deduped.out.fastq")) / 4
-#             outfh.write(f'{sample}\tStep_08\tR1\t{R1c}\n')
-#         outfh.close()
-#
-# rule step09_counts:
-#     input:
-#         expand(os.path.join(dir.out.temp, "p09", "{sample}_R1_rep_seq.fasta"), sample=samples.names)
-#     output:
-#         report(os.path.join(SUMDIR, "Step09_counts.tsv"),
-#             caption = "../report/step09.rst",
-#             category = "Preprocessing")
-#     run:
-#         outfh = open(output[0],'w')
-#         for sample in samples.names:
-#             R1c = file_len(os.path.join(dir.out.temp, "p09", f"{sample}_R1_rep_seq.fasta")) / 2
-#             outfh.write(f'{sample}\tStep_09\tR1\t{R1c}\n')
-#         outfh.close()
-#
-#
-### Collect rep seq counts following each search stage
-rule step10_counts:
-    input:
-        classSeq = os.path.join(dir.out.primaryAA,"MMSEQS_AA_PRIMARY_classified.fasta"),
-        unclassSeq = os.path.join(dir.out.primaryAA,"MMSEQS_AA_PRIMARY_unclassified.fasta")
-    output:
-        report(os.path.join(dir.out.temp, "Step10_counts.tsv"),
-            caption = "../report/step10.rst",
+        report(os.path.join(dir.out.temp, "protein_annotations.yaml"),
+            caption = os.path.join("..", "report", "protein_annotations.rst"),
             category = "Read annotation")
+    params:
+        samples=samples
     run:
-        classCount = fasta_clust_counts(input.classSeq)
-        unclassCount = fasta_clust_counts(input.unclassSeq)
-        outfh = open(output[0],'w')
-        outfh.write(f"Primary AA viral:\t{classCount}\n")
-        outfh.write(f"Primary AA non-viral:\t{unclassCount}\n")
-        outfh.close()
+        out_counts = ap.AttrMap()
+        for sample in params.samples.names:
+            out_counts[sample].aa_viral_R1 = 0
+            out_counts[sample].aa_nonviral_R1 = 0
+        for l in stream_tsv(input.vir):
+            out_counts[l[1]].aa_viral_R1 += l[2]
+        for l in stream_tsv(input.nonvir):
+            out_counts[l[1]].aa_nonviral_R1 += l[2]
+        with open(output[0],"w") as stream:
+            yaml.dump(out_counts,stream)
 
-rule step11_counts:
-    input:
-        tsv = os.path.join(dir.out.secondaryAA,"AA_bigtable.tsv")
-    output:
-        report(os.path.join(dir.out.temp, "Step11_counts.tsv"),
-            caption = "../report/step11.rst",
-            category = "Read annotation")
-    run:
-        virCnts = 0
-        nonVirCnts = 0
-        infh = open(input.tsv,'r')
-        infh.readline() # skip header
-        for line in infh:
-            l = line.split('\t')
-            if l[23] == "Viruses":
-                virCnts += int(l[2])
-            else:
-                nonVirCnts += int(l[2])
-        infh.close()
-        outfh = open(output[0],'w')
-        outfh.write(f"Secondary AA viral:\t{virCnts}\n")
-        outfh.write(f"Secondary AA non-viral:\t{nonVirCnts}\n")
-        outfh.close()
 
-rule step12_counts:
+rule nucleotideAnnotations:
     input:
-        classSeq = os.path.join(dir.out.primaryNT,"classified_seqs.fasta"),
-        unclassSeq = os.path.join(dir.out.primaryNT,"unclassified_seqs.fasta")
+        vir = os.path.join(dir.out.secondaryNT, "NT_bigtable.tsv"),
+        nonvir = os.path.join(dir.out.secondaryNT, "NT_bigtable.nonviral.tsv"),
     output:
-        report(os.path.join(dir.out.temp,"Step12_counts.tsv"),
-            caption = "../report/step12.rst",
+        report(os.path.join(dir.out.temp, "nucleotide_annotations.yaml"),
+            caption = os.path.join("..", "report", "nucleotide_annotations.rst"),
             category = "Read annotation")
+    params:
+        samples = samples
     run:
-        classCount = fasta_clust_counts(input.classSeq)
-        unclassCount = fasta_clust_counts(input.unclassSeq)
-        outfh = open(output[0],'w')
-        outfh.write(f"Primary NT viral:\t{classCount}\n")
-        outfh.write(f"Primary NT non-viral:\t{unclassCount}\n")
-        outfh.close()
+        out_counts = ap.AttrMap()
+        for sample in params.samples.names:
+            out_counts[sample].nt_viral_R1 = 0
+            out_counts[sample].nt_nonviral_R1 = 0
+        for l in stream_tsv(input.vir):
+            out_counts[l[1]].nt_viral_R1 += l[2]
+        for l in stream_tsv(input.nonvir):
+            out_counts[l[1]].nt_nonviral_R1 += l[2]
+        with open(output[0],"w") as stream:
+            yaml.dump(out_counts,stream)
 
-rule step13_counts:
+
+rule mappedCounts:
     input:
-        os.path.join(dir.out.secondaryNT,"NT_bigtable.tsv")
+        os.path.join(dir.out.results,"contig_count_table.tsv")
     output:
-        report(os.path.join(dir.out.temp,"Step13_counts.tsv"),
-            caption = "../report/step13.rst",
-            category = "Read annotation")
+        report(os.path.join(dir.out.temp,"mapped_counts.yaml"),
+            caption = os.path.join("..", "report", "mapped_counts.rst"),
+            category = "Assembly")
+    params:
+        samples = samples
     run:
-        virCnts = 0
-        nonVirCnts = 0
-        unKnwn = 0
-        infh = open(input[0],'r')
-        infh.readline()     # skip header
-        for line in infh:
-            l = line.split('\t')
-            if l[23] == "Viruses":
-                virCnts += int(l[2])
-            else:
-                nonVirCnts += int(l[2])
-        infh.close()
-        outfh = open(output[0], 'w')
-        outfh.write(f"Secondary NT viral:\t{virCnts}\n")
-        outfh.write(f"Secondary NT non-viral:\t{nonVirCnts}\n")
-        outfh.close()
+        out_counts = ap.AttrMap()
+        for sample in params.samples.names:
+            out_counts[sample].mapped = 0
+        for l in stream_tsv(input[0]):
+            out_counts[l[1]].mapped += l[2]
+        with open(output[0],"w") as stream:
+            yaml.dump(out_counts,stream)
+
+
+rule unclassifiedSeqs:
+    input:
+        aaVir = os.path.join(dir.out.secondaryAA,"AA_bigtable.tsv"),
+        aaNonvir = os.path.join(dir.out.secondaryAA,"AA_bigtable.nonviral.tsv"),
+        ntVir = os.path.join(dir.out.secondaryNT,"NT_bigtable.tsv"),
+        ntNonvir = os.path.join(dir.out.secondaryNT,"NT_bigtable.nonviral.tsv"),
+        fa = os.path.join(dir.out.results,"seqtable.fasta")
+    output:
+        report(os.path.join(dir.out.results,"seqtable.unclassified.fasta"),
+               caption = os.path.join("..", "report", "unclassified_seqtable.rst"),
+            category="Read annotation")
+    run:
+        classSeq = {}
+        for file in [input.aaVir, input.aaNonvir, input.ntVir, input.ntNonvir]:
+            for line in stream_tsv(file):
+                classSeq[line[0]] = 1
+        with open(output[0], "w") as out_fh:
+            with open(input.fa, "r") as in_fh:
+                for line in in_fh:
+                    if line.startswith(">"):
+                        id = line.strip().replace(">","")
+                        seq = in_fh.readline().strip()
+                        try:
+                            classSeq[id]
+                        except KeyError:
+                            out_fh.write(f">{id}\n{seq}\n")
+                    else:
+                        sys.stderr.write(f"malformed {input.fa} file? expecting {line} to be fasta header, complain to Mike")
+                        exit(1)
+
+
+rule summaryTable:
+    input:
+        os.path.join(dir.out.temp, "raw_read_counts.yaml"),
+        os.path.join(dir.out.temp, "host_removed_counts.yaml"),
+        os.path.join(dir.out.temp, "protein_annotations.yaml"),
+        os.path.join(dir.out.temp, "nucleotide_annotations.yaml"),
+        os.path.join(dir.out.temp, "mapped_counts.yaml"),
+    output:
+        report(os.path.join(dir.out.results, "summary.tsv"),
+               caption = os.path.join("..", "report", "summary_table.rst"),
+            category="Read annotation")
+    run:
+        def recursive_merge(dict, merge_dict):
+            def _update(d, u):
+                for (key, value) in u.items():
+                    if isinstance(value, collections.abc.Mapping):
+                        d[key] = _update(d.get(key,{}),value)
+                    else:
+                        d[key] = value
+                return d
+            _update(dict, merge_dict)
+        summary = {}
+        for file in input:
+            with open(file, "r") as stream:
+                dict = yaml.safe_load(stream)
+                recursive_merge(summary, dict)
+        rows = list(summary.keys())
+        cols = set()
+        for row in rows:
+            for col in rows[row].keys():
+                cols.add(col)
+        cols = list(cols)
+        with open(output[0], "w") as out_fh:
+            out_fh.write("\t".join(["sampleID"] + cols))
+            for row in rows:
+                out_fh.write(row)
+                for col in cols:
+                    out_fh.write("\t" + summary[row][col])
+                out_fh.write("\n")
 
 
 # rule sankey_diagram:

@@ -1,4 +1,12 @@
 
+def copy_log():
+    try:
+        assert (ap.utils.to_dict(config.args)["log"]) is not None
+        shell("cat {log} >> " + config.args.log)
+    except (KeyError, AssertionError):
+        pass
+
+
 # Check for Database files
 dbFail = False
 for f in config.dbs.files:

@@ -2,14 +2,10 @@
 Generic rules and functions for Hecatomb
 """
 
+import re
+
+
 ### PYTHON FUNCTIONS
-def exitLogCleanup(*args):
-    """Cleanup the logging file(s) prior to exiting"""
-    for logFile in args:
-        os.unlink(logFile)
-    return None
-
-
 def stream_tsv(tsvFile):
     """Read a file line-by-line and split by whitespace"""
     with open(tsvFile, "r") as filehandle:
@@ -23,72 +19,21 @@ def file_len(fname):
     """Return the number of lines in a file"""
     if fname.endswith(".gz"):
         import gzip
-
         f = gzip.open(fname, "rb")
     else:
         f = open(fname, "r")
-    for i, l in enumerate(f):
-        pass
-    f.close()
-    return i + 1
-
-
-def fasta_clust_counts(fname):
-    """Return the sum of seq count values in a fasta file of clustered seqs"""
-    count = 0
-    with open(fname, "r") as filehandle:
-        for line in filehandle:
-            if line.startswith(">"):
-                count += int(line.split(":")[1])  # fasta id = >sample:count:seqID
-    return count
-
-
-def collect_start_counts(samples, outFile):
-    """Collect the read counts of the raw input files"""
-    with open(outFile, "w") as outfh:
-        for sample in samples.names:
-            R1c = file_len(samples.reads[sample]["R1"]) / 4
-            outfh.write(f"{sample}\tInitial_Count\tR1\t{R1c}\n")
-            try:
-                R2c = file_len(samples.reads[sample]["R2"]) / 4
-                outfh.write(f"{sample}\tInitial_Count\tR2\t{R2c}\n")
-            except KeyError:
-                pass
-    return None
-
-
-def collect_counts(inPrefix, inSuffix, stepName, outFile):
-    """Collect fastq counts for all samples and print to file"""
-    with open(outFile, "w") as outfh:
-        for sample in samples.names:
-            R1c = file_len(os.path.join(inPrefix, f"{sample}_R1{inSuffix}")) / 4
-            outfh.write(f"{sample}\t{stepName}\tR1\t{R1c}\n")
-            if os.path.isfile(os.path.join(inPrefix, f"{sample}_R2{inSuffix}")):
-                R2c = file_len(os.path.join(inPrefix, f"{sample}_R2{inSuffix}")) / 4
-                outfh.write(f"{sample}\t{stepName}\tR2\t{R2c}\n")
-    return None
-
-
-def sum_counts(fname, R1=False):
-    """Collect the sum of all reads for all samples from a summary count file (e.g. from collect_counts)"""
-    count = 0
-    with open(fname, "r") as infh:
-        for line in infh:
-            l = line.split()
-            if R1:
-                if l[2] == "R1":
-                    count += float(l[3])
-            else:
-                count += float(l[3])
-    return count
-
-
-def copy_log():
-    try:
-        assert (ap.utils.to_dict(config.args)["log"]) is not None
-        shell("cat {log} >> " + config.args.log)
-    except (KeyError, AssertionError):
-        pass
+    if re.search("fastq(\.gz)?$"):
+        for i, l in enumerate(f):
+            pass
+        f.close()
+        return int((i + 1) / 4)
+    else:
+        n=0
+        for line in f:
+            if line.startswith('>'):
+                n+=1
+        f.close()
+        return n
 
 
 ## GENERIC RECIPES
