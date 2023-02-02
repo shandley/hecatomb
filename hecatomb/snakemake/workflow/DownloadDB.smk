@@ -33,13 +33,13 @@ rule download_db_file:
     output:
         os.path.join(dir.dbs.base, "{path}","{file}")
     wildcard_constraints:
-        path="^(?!tax)"
+        path="aa|nt|host|contaminants|tables"
     run:
         import urllib.request
         import urllib.parse
         import shutil
-        dlUrl1 = urllib.parse.urljoin(config.dbs.mirror1, wildcards.file)
-        dlUrl2 = urllib.parse.urljoin(config.dbs.mirror2, wildcards.file)
+        dlUrl1 = urllib.parse.urljoin(config.dbs.mirror1, os.path.join(wildcards.path, wildcards.file))
+        dlUrl2 = urllib.parse.urljoin(config.dbs.mirror2, os.path.join(wildcards.path, wildcards.file))
         try:
             with urllib.request.urlopen(dlUrl1) as r, open(output[0],'wb') as o:
                 shutil.copyfileobj(r,o)
