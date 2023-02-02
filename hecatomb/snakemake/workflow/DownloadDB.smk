@@ -25,7 +25,8 @@ include: "rules/preflight/directories.smk"
 
 rule all:
     input:
-        expand(os.path.join(dir.dbs.base, '{file}'), file=config.dbs.files)
+        expand(os.path.join(dir.dbs.base, "{file}"), file=config.dbs.files),
+        expand(os.path.join(dir.dbs.base, "{file}"), file=config.dbtax.files),
 
 
 rule download_db_file:
