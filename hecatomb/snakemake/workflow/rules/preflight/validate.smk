@@ -2,7 +2,7 @@
 def copy_log():
     try:
         assert (ap.utils.to_dict(config.args)["log"]) is not None
-        shell("cat {log} >> " + config.args.log)
+        shell(f"cat {log} >> " + config.args.log)
     except (KeyError, AssertionError):
         pass
 
@@ -36,10 +36,10 @@ onsuccess:
 # Fail message and dump failed log outputs to a crash report file
 onerror:
     copy_log()
-    sys.stderr.write('\n    FATAL: Hecatomb encountered an error.')
+    sys.stderr.write('\n\n    FATAL: Hecatomb encountered an error.\n\n')
     logfiles = list(filter(re.compile(r'^(?!old_).*.log').match, os.listdir(dir.out.stderr)))
     if len(logfiles) > 0:
-        sys.stderr.write('\n           Dumping all error logs to "hecatomb.errorLogs.txt"')
+        sys.stderr.write('    Dumping all error logs to "hecatomb.crashreport.log"\n')
         with open('hecatomb.crashreport.log', 'w') as crashDump:
             for file in logfiles:
                 if os.path.getsize(os.path.join(dir.out.stderr, file)) > 0:
