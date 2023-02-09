@@ -1,1 +1,0 @@
-Read counts for all samples following Step 04: removal of adapter-free primer (5' and 3').

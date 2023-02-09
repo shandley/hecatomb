@@ -1,0 +1,4 @@
+include hecatomb/hecatomb.LICENSE
+include hecatomb/hecatomb.CITATION
+include hecatomb/hecatomb.VERSION
+recursive-include hecatomb *
