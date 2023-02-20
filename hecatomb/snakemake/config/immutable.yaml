@@ -4,6 +4,9 @@ modules:
             "rules/preflight/samples_pe.smk"
         preprocessing:
             "rules/preprocessing/paired_end.smk"
+        targets:
+            ["_R1.unmapped.fastq.gz", "_R1.singletons.fastq.gz", "_R1.all.fastq.gz",
+             "_R2.singletons.fastq.gz", "_R2.unmapped.fastq.gz", "_R2.all.fastq.gz"]
         assembly:
             "rules/assembly/paired_end.smk"
     single:
@@ -11,6 +14,8 @@ modules:
             "rules/preflight/samples_se.smk"
         preprocessing:
             "rules/preprocessing/single_end.smk"
+        targets:
+            ["_R1.unmapped.fastq.gz", "_R1.singletons.fastq.gz", "_R1.all.fastq.gz"]
         assembly:
             "rules/assembly/single_end.smk"
     longread:
@@ -18,6 +23,8 @@ modules:
             "rules/preflight/samples_se.smk"
         preprocessing:
             "rules/preprocessing/longreads.smk"
+        targets:
+            ["_R1.all.fasta.gz",]
         assembly:
             "rules/assembly/longreads.smk"
     roundAB:
@@ -25,6 +32,9 @@ modules:
             "rules/preflight/samples_pe.smk"
         preprocessing:
             "rules/preprocessing/roundAB.smk"
+        targets:
+            ["_R1.unmapped.fastq.gz", "_R1.singletons.fastq.gz", "_R1.all.fastq.gz",
+             "_R2.singletons.fastq.gz", "_R2.unmapped.fastq.gz", "_R2.all.fastq.gz"]
         assembly:
             "rules/assembly/paired_end.smk"
 

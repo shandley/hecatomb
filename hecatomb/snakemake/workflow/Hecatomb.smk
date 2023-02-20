@@ -31,7 +31,7 @@ else:
 
 
 ### DIRECTORIES
-include: "rules/preflight/directories.smk"
+include: os.path.join("rules", "preflight", "directories.smk")
 
 
 ### HOST ORGANISM
@@ -41,16 +41,9 @@ dir.dbs.host.fasta = os.path.join(
 dir.dbs.host.index = dir.dbs.host.fasta + ".idx"
 
 
-### PREFLIGHT CHECKS
-include: "rules/preflight/validate.smk"
-include: "rules/preflight/functions.smk"
-
-
-### TARGETS
-include: "rules/preflight/targets.smk"
-
-
-### PARSE SAMPLES
+### PREFLIGHT CHECKS, PARSE SAMPLES
+include: os.path.join("rules", "preflight", "validate.smk")
+include: os.path.join("rules", "preflight", "functions.smk")
 include: config.modules[config.args.preprocess]["preflight"]
 
 
@@ -61,19 +54,23 @@ samples.names = list(ap.utils.get_keys(samples.reads))
 #     sample="[a-zA-Z0-9._-]+"
 
 
+### TARGETS (must be included AFTER parsing samples)
+include: os.path.join("rules", "preflight", "targets.smk")
+
+
 ### PREPROCESSING
 include: config.modules[config.args.preprocess]["preprocessing"]
 include: config.modules[config.args.preprocess]["assembly"]
 
 
 ### REMAINING PIPELINE RULES
-include: "rules/preprocessing/cluster_seqs.smk"
-include: "rules/annotation/read_annotation.smk"
-include: "rules/assembly/combine_sample_assemblies.smk"
-include: "rules/annotation/contig_mapping.smk"
-include: "rules/annotation/contig_annotation.smk"
-include: "rules/reports/summaries.smk"
-include: "rules/reports/summaries_optional.smk"
+include: os.path.join("rules","preprocessing","cluster_seqs.smk")
+include: os.path.join("rules","annotation","read_annotation.smk")
+include: os.path.join("rules","assembly","combine_sample_assemblies.smk")
+include: os.path.join("rules","annotation","contig_mapping.smk")
+include: os.path.join("rules","annotation","contig_annotation.smk")
+include: os.path.join("rules","reports","summaries.smk")
+include: os.path.join("rules","reports","summaries_optional.smk")
 
 
 # Mark target rules

@@ -1,11 +1,3 @@
-# if makeReport:
-#     include: 'summaries_optional.smk'
-# else:
-#     rule touchSummCounts:
-#         """dummy rule to 'skip' summary counting"""
-#         output:
-#             touch(optionalSummary)
-
 
 rule tax_level_counts:
     """Generate a long table of hit counts at different taxon levels

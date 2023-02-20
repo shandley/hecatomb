@@ -22,7 +22,7 @@ Uses FlyE with --subassemblies.
 ### CLI
 
 Assembly method is currently inferred from preprocessing.
-Add a new preprocessing option in `bin/hecatomb`.
+Add a new preprocessing option in `hecatomb/__main__.py`.
 
 ### Config
 

@@ -1,10 +1,3 @@
-
-# Add longread-specific targets
-targets.preprocessing += [
-        expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz"), sample=samples.names)
-    ]
-
-
 # rules
 rule create_host_index:
     """Create the minimap2 index for mapping to the host; this will save time."""

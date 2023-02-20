@@ -1,15 +1,4 @@
 
-# Add preprocessing-specific targets
-targets.preprocessing += [
-        expand(os.path.join(dir.out.assembly,"{sample}_R1.unmapped.fastq.gz"), sample=samples.names),
-        expand(os.path.join(dir.out.assembly,"{sample}_R1.singletons.fastq.gz"), sample=samples.names),
-        expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fastq.gz"), sample=samples.names),
-        expand(os.path.join(dir.out.assembly,"{sample}_R2.singletons.fastq.gz"),sample=samples.names),
-        expand(os.path.join(dir.out.assembly,"{sample}_R2.unmapped.fastq.gz"),sample=samples.names),
-        expand(os.path.join(dir.out.assembly,"{sample}_R2.all.fastq.gz"),sample=samples.names),
-    ]
-
-
 # rules
 rule remove_5prime_primer:
     """Preprocessing step 01: Remove 5' primer.

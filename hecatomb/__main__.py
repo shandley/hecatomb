@@ -5,7 +5,7 @@ Command line interface for installing and running Hecatomb
 import os
 import click
 
-from .util import (
+from .cli_util import (
     snake_base,
     get_version,
     default_to_output,

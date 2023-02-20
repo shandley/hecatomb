@@ -6,12 +6,17 @@ import attrmap as ap
 
 targets = ap.AttrMap()
 
-
 # Preprocessing files (more preprocessing-specific targets specified in 01_preprocessing*.smk files)
 targets.preprocessing = [
     os.path.join(dir.out.results, "seqtable.fasta"),
     os.path.join(dir.out.results, "sampleSeqCounts.tsv"),
     os.path.join(dir.out.results, "seqtable.properties.tsv"),
+    os.path.join(dir.out.results, 'hecatomb.samples.tsv'),
+    expand(
+        os.path.join(dir.out.assembly,"{sample}{file}"),
+        sample=samples.names,
+        file=config.modules[config.args.preprocess]["targets"]
+    )
 ]
 
 
@@ -44,34 +49,15 @@ targets.readAnnotations = [
     os.path.join(dir.out.secondaryAA, "AA_bigtable.tsv"),
     os.path.join(dir.out.secondaryNT, "NT_bigtable.tsv"),
     os.path.join(dir.out.results, "bigtable.tsv"),
+    os.path.join(dir.out.results, "taxonLevelCounts.tsv"),
+    os.path.join(dir.out.results, "krona.html"),
+    os.path.join(dir.out.results, "seqtable.unclassified.fasta")
 ]
 
 
 # Summary files
 targets.summary = [
-    os.path.join(dir.out.results, 'hecatomb.samples.tsv'),
-    os.path.join(dir.out.results, "taxonLevelCounts.tsv"),
-    os.path.join(dir.out.results, "krona.html"),
     os.path.join(dir.out.results, "summary.tsv"),
-    os.path.join(dir.out.results,"seqtable.unclassified.fasta")
 ]
 
-
-# optionalSummary = [
-#     os.path.join(SUMDIR,"Step00_counts.tsv"),
-#     os.path.join(SUMDIR,"Step01_counts.tsv"),
-#     os.path.join(SUMDIR,"Step02_counts.tsv"),
-#     # os.path.join(SUMDIR,"Step03_counts.tsv"),
-#     # os.path.join(SUMDIR,"Step04_counts.tsv"),
-#     # os.path.join(SUMDIR,"Step05_counts.tsv"),
-#     # os.path.join(SUMDIR,"Step06_counts.tsv"),
-#     # os.path.join(SUMDIR,"Step07_counts.tsv"),
-#     # os.path.join(SUMDIR,"Step08_counts.tsv"),
-#     # os.path.join(SUMDIR,"Step09_counts.tsv"),
-#     os.path.join(SUMDIR,"Step10_counts.tsv"),
-#     os.path.join(SUMDIR,"Step11_counts.tsv"),
-#     os.path.join(SUMDIR,"Step12_counts.tsv"),
-#     os.path.join(SUMDIR,"Step13_counts.tsv"),
-#     # os.path.join(SUMDIR,"Sankey.svg"),
-# ]
 
