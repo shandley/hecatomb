@@ -2,7 +2,7 @@
 def copy_log():
     try:
         assert (ap.utils.to_dict(config.args)["log"]) is not None
-        shell(f"cat {log} >> " + config.args.log)
+        shell("cat {log} >> " + config.args.log)
     except (KeyError, AssertionError):
         pass
 
@@ -30,12 +30,12 @@ onstart:
 
 # Success message
 onsuccess:
-    copy_log()
+    # copy_log()
     sys.stderr.write('\n\n    Hecatomb finished successfully!\n\n')
 
 # Fail message and dump failed log outputs to a crash report file
 onerror:
-    copy_log()
+    # copy_log()
     sys.stderr.write('\n\n    FATAL: Hecatomb encountered an error.\n\n')
     logfiles = list(filter(re.compile(r'^(?!old_).*.log').match, os.listdir(dir.out.stderr)))
     if len(logfiles) > 0:

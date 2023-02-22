@@ -37,7 +37,7 @@ def common_options(func):
             help="Custom config file [default: (outputDir)/hecatomb.config.yaml]",
         ),
         click.option(
-            "--threads", help="Number of threads to use", default=1, show_default=True
+            "--threads", help="Number of threads to use", default=32, show_default=True
         ),
         click.option(
             "--use-conda/--no-use-conda",

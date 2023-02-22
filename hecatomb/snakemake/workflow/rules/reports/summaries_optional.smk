@@ -35,9 +35,9 @@ rule trimmedHostRemovedCounts:
     run:
         out_counts = ap.AttrMap()
         for sample in params.samples.names:
-            out_counts[sample].host_removed_R1 = file_len(os.path.join(dir.out.temp, "p04", "{sample}_R1.all.fastq"))
+            out_counts[sample].host_removed_R1 = file_len(os.path.join(dir.out.temp, "p04", f"{sample}_R1.all.fastq"))
             try:
-                out_counts[sample].host_removed_R2 = file_len(os.path.join(dir.out.temp,"p04","{sample}_R1.all.fastq"))
+                out_counts[sample].host_removed_R2 = file_len(os.path.join(dir.out.temp,"p04", f"{sample}_R1.all.fastq"))
             except KeyError:
                 pass
         with open(output[0],"w") as stream:
