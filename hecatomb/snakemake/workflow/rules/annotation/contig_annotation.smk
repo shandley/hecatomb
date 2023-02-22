@@ -25,6 +25,8 @@ rule mmseqs_contig_annotation:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
+    group:
+        "contigannot"
     shell:
         """
         {{
@@ -62,6 +64,8 @@ rule mmseqs_contig_annotation_summary:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
+    group:
+        "contigannot"
     shell:
         """
         {{ 

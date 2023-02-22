@@ -13,7 +13,7 @@ rule canu_sample_assembly:
         ctgq = os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.uniq.fasta"),
         un = os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.fasta"),
         unq = os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.uniq.fasta"),
-        tar = os.path.join(dir.out.assembly,'{sample}.tar.zst')
+        tar = os.path.join(dir.out.assembly,"{sample}.tar.zst")
     params:
         settings = config.assembly.canu,
         canu_dir = lambda w, output: os.path.split(output.ctg)[0]
@@ -35,7 +35,7 @@ rule canu_sample_assembly:
             &>> {log}
         sed 's/>tig/>{wildcards.sample}./' {output.ctg} > {output.ctgq}
         sed 's/>tig/>{wildcards.sample}./' {output.un} > {output.unq}
-        tar cf - {params.canu_dir} | zstd -T8 -9 > {output.tar} 2> {log}
+        tar cf - {params.canu_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
         rm {log}
         """
 
@@ -46,6 +46,8 @@ rule combine_canu_unassembled:
         expand(os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.uniq.fasta"), sample=samples.names)
     output:
         temp(os.path.join(dir.out.assembly,"unmappedRescue_R1.all.fasta.gz"))
+    group:
+        "assembly"
     shell:
         """cat {input} > {output}"""
 
@@ -53,9 +55,11 @@ rule combine_canu_unassembled:
 rule combine_canu_contigs:
     """Combine contigs from all samples plus unmapped rescue assembly"""
     input:
-        expand(os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.uniq.fasta"), sample=samples.names + ['unmappedRescue'])
+        expand(os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.uniq.fasta"), sample=samples.names + ["unmappedRescue"])
     output:
         temp(os.path.join(dir.out.assembly,"all_sample_contigs.fasta"))
+    group:
+        "assembly"
     shell:
         """cat {input} > {output}"""
 
@@ -83,6 +87,8 @@ rule coverage_calculations:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "bbmap.yaml")
+    group:
+        "assembly"
     shell:
         """
         bbmap.sh ref={input.ref} in={input.r1} \

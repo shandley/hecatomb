@@ -19,6 +19,8 @@ rule population_assembly:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "metaflye.yaml")
+    group:
+        "popassembly"
     shell:
         """
         flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} {params.flye_params} &>> {log.log1}
@@ -36,6 +38,8 @@ rule link_assembly:
         os.path.join(dir.out.assembly, "FLYE", "assembly.fasta")
     output:
         os.path.join(dir.out.results, "assembly.fasta")
+    group:
+        "popassembly"
     run:
         os.rename(os.path.abspath(input[0]), os.path.abspath(output[0]))
 
@@ -53,6 +57,8 @@ rule create_contig_count_table:
         os.path.join(dir.out.bench, "create_contig_count_table.{sample}.txt")
     log:
         os.path.join(dir.out.stderr, "create_contig_count_table.{sample}.log")
+    group:
+        "popassembly"
     script:
         os.path.join(dir.scripts,  'contigCountTable.py')
 
@@ -67,6 +73,8 @@ rule concatentate_contig_count_tables:
         os.path.join(dir.out.bench, "concatentate_contig_count_tables.txt")
     log:
         os.path.join(dir.out.stderr, "concatentate_contig_count_tables.log")
+    group:
+        "popassembly"
     shell:
         """
         {{ 

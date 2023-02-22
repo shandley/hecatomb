@@ -20,6 +20,8 @@ rule map_seq_table:
         config.resources.med.cpu
     resources:
         mem_mb = config.resources.med.mem
+    group:
+        "contigmap"
     shell:
         """
         minimap2 -ax sr --secondary=no -t {threads} {input.assembly} {input.seqtable} 2> {log.mm2} \
@@ -55,5 +57,7 @@ rule contig_read_taxonomy:
         os.path.join(dir.out.stderr, 'contig_read_taxonomy.log')
     conda:
         os.path.join(dir.env, 'pysam.yaml')
+    group:
+        "contigmap"
     script:
         os.path.join(dir.scripts,  'contigReadTaxon.py')

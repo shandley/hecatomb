@@ -22,7 +22,7 @@ def file_len(fname):
         f = gzip.open(fname, "rb")
     else:
         f = open(fname, "r")
-    if re.search("fastq(\.gz)?$"):
+    if re.search("fastq(\.gz)?$", fname):
         for i, l in enumerate(f):
             pass
         f.close()
@@ -142,16 +142,16 @@ rule seq_properties_table:
         os.path.join(dir.scripts,  "seqPropertyTable.py")
 
 
-rule zip_fastq:
-    """zip a fastq file"""
-    input:
-        "{filepath}.fastq"
-    output:
-        "{filepath}.fastq.gz"
-    params:
-        compression = config.qc.compression
-    shell:
-        """gzip -{params.compression} {input}"""
+# rule zip_fastq:
+#     """zip a fastq file"""
+#     input:
+#         "{filepath}.fastq"
+#     output:
+#         "{filepath}.fastq.gz"
+#     params:
+#         compression = config.qc.compression
+#     shell:
+#         """gzip -{params.compression} {input}"""
 
 
 rule zip_fasta:

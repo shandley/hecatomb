@@ -46,6 +46,8 @@ rule host_removal_mapping:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "minimap2.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         minimap2 -ax map-ont -t {threads} --secondary=no {input.host} {input.r1} 2> {log.mm} \
@@ -60,8 +62,16 @@ rule archive_for_assembly:
     input:
         os.path.join(dir.out.temp, "p04", "{sample}_R1.all.fastq")
     output:
-        temp(os.path.join(dir.out.assembly,"{sample}_R1.all.fasta"))
+        os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz")
     params:
-        dir.out.assembly
+        compression = "-" + str(config.qc.compression)
+    threads:
+        config.resources.med.cpu
+    conda:
+        os.path.join(dir.env,"pigz.yaml")
+    group:
+        "preprocessing"
     shell:
-        """cp {input} {output}"""
+        """
+        pigz -p {threads} -c {params.compression} {input} > {output}
+        """

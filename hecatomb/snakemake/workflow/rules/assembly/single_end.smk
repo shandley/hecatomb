@@ -4,35 +4,6 @@ Per-sample assemblies for short paired reads
     in combine_sample_assemblies.smk
 """
 
-rule assembly_kmer_normalization:
-    """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
-    input:
-        r1 = os.path.join(dir.out.assembly, "{sample}_R1.unmapped.fastq.gz"),
-        r1s = os.path.join(dir.out.assembly, "{sample}_R1.singletons.fastq.gz")
-    output:
-        r1_norm = temp(os.path.join(dir.out.assembly, "{sample}_R1.norm.fastq"))
-    benchmark:
-        os.path.join(dir.out.bench, "kmer_normalization_{sample}.txt")
-    log:
-        os.path.join(dir.out.stderr, "kmer_norm_{sample}.log")
-    resources:
-        mem_mb = config.resources.med.mem,
-        javaAlloc = int(0.9 * config.resources.med.mem)
-    threads:
-        config.resources.med.cpu
-    conda:
-        os.path.join(dir.env, "bbmap.yaml")
-    shell:
-        """
-        bbnorm.sh in={input.r1} \
-            extra={input.r1s} \
-            out={output.r1_norm} \
-            target=100 \
-            ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
-        """
-
 
 rule individual_sample_assembly:
     """Assembly step 02: Individual sample assemblies
@@ -45,7 +16,7 @@ rule individual_sample_assembly:
     output:
         contigs = os.path.join(dir.out.assembly, "{sample}", "{sample}.contigs.fa"),
         renamed = os.path.join(dir.out.assembly, "{sample}", "{sample}.rename.contigs.fa"),
-        tar = os.path.join(dir.out.assembly,'{sample}.tar.zst')
+        tar = os.path.join(dir.out.assembly,"{sample}.tar.zst")
     params:
         mh_dir=lambda w, output: os.path.split(output.contigs)[0],
         minlen=config.qc.contigMinLen
@@ -59,6 +30,8 @@ rule individual_sample_assembly:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "megahit.yaml")
+    group:
+        "assembly"
     shell:
         """
         if [ -d {params.mh_dir} ]; then
@@ -68,7 +41,7 @@ rule individual_sample_assembly:
             -o {params.mh_dir} --out-prefix {wildcards.sample} --min-contig-len {params.minlen} \
             --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
         sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}
-        tar cf - {params.mh_dir} | zstd -T8 -9 > {output.tar} 2> {log}
+        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
         rm {log}
         """
 
@@ -79,17 +52,19 @@ rule mapSampleAssemblyPairedReads:
         r1 = os.path.join(dir.out.assembly,"{sample}_R1.unmapped.fastq.gz"),
         contigs = os.path.join(dir.out.assembly, "{sample}", "{sample}.contigs.fa"),
     output:
-        temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.se.bam'))
+        temp(os.path.join(dir.out.assembly, "{sample}", "{sample}.se.bam"))
     conda:
-        os.path.join(dir.env, 'minimap2.yaml')
+        os.path.join(dir.env, "minimap2.yaml")
     threads:
         config.resources.med.cpu
     resources:
         mem_mb = config.resources.med.mem
     log:
-        os.path.join(dir.out.stderr, 'sampleAssemblyMapSe.{sample}.log')
+        os.path.join(dir.out.stderr, "sampleAssemblyMapSe.{sample}.log")
     benchmark:
-        os.path.join(dir.out.bench, 'sampleAssemblyMapSe.{sample}.txt')
+        os.path.join(dir.out.bench, "sampleAssemblyMapSe.{sample}.txt")
+    group:
+        "assembly"
     shell:
         """
         {{
@@ -106,17 +81,19 @@ rule mapSampleAssemblyUnpairedReads:
         r1s = os.path.join(dir.out.assembly,"{sample}_R1.singletons.fastq.gz"),
         contigs = os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.fa")
     output:
-        temp(os.path.join(dir.out.assembly,'{sample}','{sample}.assemblyUnmapped.s.fastq'))
+        temp(os.path.join(dir.out.assembly,"{sample}","{sample}.assemblyUnmapped.s.fastq"))
     conda:
-        os.path.join(dir.env, 'minimap2.yaml')
+        os.path.join(dir.env, "minimap2.yaml")
     threads:
         config.resources.med.cpu
     resources:
         mem_mb = config.resources.med.mem
     log:
-        os.path.join(dir.out.stderr, 'sampleAssemblyMapS.{sample}.log')
+        os.path.join(dir.out.stderr, "sampleAssemblyMapS.{sample}.log")
     benchmark:
-        os.path.join(dir.out.bench, 'sampleAssemblyMapS.{sample}.txt')
+        os.path.join(dir.out.bench, "sampleAssemblyMapS.{sample}.txt")
+    group:
+        "assembly"
     shell:
         """
         {{
@@ -131,19 +108,21 @@ rule mapSampleAssemblyUnpairedReads:
 rule pullPairedUnmappedReads:
     """Grab the paired unmapped reads (neither pair mapped)"""
     input:
-        os.path.join(dir.out.assembly,'{sample}','{sample}.se.bam')
+        os.path.join(dir.out.assembly,"{sample}","{sample}.se.bam")
     output:
-        r1 = temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.assemblyUnmapped_R1.fastq')),
+        r1 = temp(os.path.join(dir.out.assembly, "{sample}", "{sample}.assemblyUnmapped_R1.fastq")),
     conda:
-        os.path.join(dir.env,   'samtools.yaml')
+        os.path.join(dir.env,   "samtools.yaml")
     threads:
         config.resources.med.cpu
     resources:
         mem_mb = config.resources.med.mem
     log:
-        os.path.join(dir.out.stderr, 'pullPairedUnmappedReads.{sample}.log')
+        os.path.join(dir.out.stderr, "pullPairedUnmappedReads.{sample}.log")
     benchmark:
-        os.path.join(dir.out.bench, 'pullPairedUnmappedReads.{sample}.txt')
+        os.path.join(dir.out.bench, "pullPairedUnmappedReads.{sample}.txt")
+    group:
+        "assembly"
     shell:
         """
         samtools fastq -f 77 {input} > {output.r1} 2> {log}
@@ -154,19 +133,21 @@ rule pullPairedUnmappedReads:
 rule pullPairedUnmappedReadsMateMapped:
     """Grab the paired unmapped reads (mate is mapped)"""
     input:
-        os.path.join(dir.out.assembly,'{sample}','{sample}.se.bam')
+        os.path.join(dir.out.assembly,"{sample}","{sample}.se.bam")
     output:
-        temp(os.path.join(dir.out.assembly, '{sample}', '{sample}.assemblyUnmapped.se.s.fastq'))
+        temp(os.path.join(dir.out.assembly, "{sample}", "{sample}.assemblyUnmapped.se.s.fastq"))
     conda:
-        os.path.join(dir.env,   'samtools.yaml')
+        os.path.join(dir.env,   "samtools.yaml")
     threads:
         config.resources.med.cpu
     resources:
         mem_mb = config.resources.med.mem
     log:
-        os.path.join(dir.out.stderr, 'pullPairedUnmappedReads.{sample}.log')
+        os.path.join(dir.out.stderr, "pullPairedUnmappedReads.{sample}.log")
     benchmark:
-        os.path.join(dir.out.bench, 'pullPairedUnmappedReads.{sample}.txt')
+        os.path.join(dir.out.bench, "pullPairedUnmappedReads.{sample}.txt")
+    group:
+        "assembly"
     shell:
         """
         samtools fastq -f5 -F8 {input[0]} > {output[0]} 2> {log}
@@ -177,9 +158,11 @@ rule pullPairedUnmappedReadsMateMapped:
 rule poolR1Unmapped:
     """Concatenate the unmapped, paired R1 reads for all samples"""
     input:
-        expand(os.path.join(dir.out.assembly, '{sample}', '{sample}.assemblyUnmapped_R1.fastq'), sample=samples.names)
+        expand(os.path.join(dir.out.assembly, "{sample}", "{sample}.assemblyUnmapped_R1.fastq"), sample=samples.names)
     output:
-        temp(os.path.join(dir.out.assembly, 'unmapRescue_R1.fastq'))
+        temp(os.path.join(dir.out.assembly, "unmapRescue_R1.fastq"))
+    group:
+        "assemblyRescue"
     shell:
         """cat {input} > {output}"""
 
@@ -187,42 +170,14 @@ rule poolR1Unmapped:
 rule poolUnpairedUnmapped:
     """Concatenate the unmapped, unpaired reads for all samples"""
     input:
-        fq = expand(os.path.join(dir.out.assembly,'{sample}','{sample}.assemblyUnmapped.{sSe}.fastq'), sample=samples.names, sSe = ['s','se.s']),
+        fq = expand(os.path.join(dir.out.assembly,"{sample}","{sample}.assemblyUnmapped.{sSe}.fastq"), sample=samples.names, sSe = ["s","se.s"]),
     output:
-        temp(os.path.join(dir.out.assembly, 'unmapRescue.s.fastq'))
+        temp(os.path.join(dir.out.assembly, "unmapRescue.s.fastq"))
+    group:
+        "assemblyRescue"
     shell:
         """
         cat {input.fq} > {output}
-        """
-
-
-rule rescue_read_kmer_normalization:
-    """Assembly step 01: Kmer normalization. Data reduction for assembly improvement"""
-    input:
-        r1 = os.path.join(dir.out.assembly, 'unmapRescue_R1.fastq'),
-        s = os.path.join(dir.out.assembly, 'unmapRescue.s.fastq')
-    output:
-        r1_norm = temp(os.path.join(dir.out.assembly, 'unmapRescueNorm_R1.fastq'))
-    benchmark:
-        os.path.join(dir.out.bench, "rescue_read_kmer_normalization.txt")
-    log:
-        os.path.join(dir.out.stderr, "rescue_read_kmer_normalization.log")
-    resources:
-        mem_mb = config.resources.med.mem,
-        javaAlloc = int(0.9 * config.resources.med.mem)
-    threads:
-        config.resources.med.cpu
-    conda:
-        os.path.join(dir.env, "bbmap.yaml")
-    shell:
-        """
-        bbnorm.sh in={input.r1} \
-            extra={input.s} \
-            out={output.r1_norm} \
-            target=100 \
-            ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
         """
 
 
@@ -232,11 +187,12 @@ rule unmapped_read_rescue_assembly:
     Megahit: https://github.com/voutcn/megahit
     """
     input:
-        r1_norm = os.path.join(dir.out.assembly, 'unmapRescue_R1.fastq'),
-        s = os.path.join(dir.out.assembly, 'unmapRescue.s.fastq')
+        r1_norm = os.path.join(dir.out.assembly, "unmapRescue_R1.fastq"),
+        s = os.path.join(dir.out.assembly, "unmapRescue.s.fastq")
     output:
-        contigs = os.path.join(dir.out.assembly, 'rescue', "rescue.contigs.fa"),
-        renamed = os.path.join(dir.out.assembly, 'rescue', 'rescue.rename.contigs.fa')
+        contigs = os.path.join(dir.out.assembly, "rescue", "rescue.contigs.fa"),
+        renamed = os.path.join(dir.out.assembly, "rescue", "rescue.rename.contigs.fa"),
+        tar = os.path.join(dir.out.assembly,"rescue.tar.zst")
     params:
         mh_dir=lambda w, output: os.path.split(output.contigs)[0],
         minlen=config.qc.contigMinLen
@@ -250,6 +206,8 @@ rule unmapped_read_rescue_assembly:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "megahit.yaml")
+    group:
+        "assemblyRescue"
     shell:
         """
         if [ -d {params.mh_dir} ]; then
@@ -259,6 +217,7 @@ rule unmapped_read_rescue_assembly:
             -o {params.mh_dir} --out-prefix rescue --min-contig-len {params.minlen} \
             --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
         sed 's/>/>rescue/' {output.contigs} > {output.renamed}
+        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
         rm {log}
         """
 
@@ -267,15 +226,17 @@ rule concatenate_contigs:
     """Assembly step 03: Concatenate individual assembly outputs (contigs) into a single file"""
     input:
         expand(os.path.join(dir.out.assembly, "{sample}", "{sample}.rename.contigs.fa"), sample=samples.names),
-        os.path.join(dir.out.assembly,'rescue',"rescue.rename.contigs.fa")
+        os.path.join(dir.out.assembly,"rescue","rescue.rename.contigs.fa")
     output:
         temp(os.path.join(dir.out.assembly, "all_sample_contigs.fasta"))
     params:
-        expand(os.path.join(dir.out.assembly,'{sample}'), sample=samples.names),
+        expand(os.path.join(dir.out.assembly,"{sample}"), sample=samples.names),
     benchmark:
         os.path.join(dir.out.bench, "concatenate_assemblies.txt")
     log:
         os.path.join(dir.out.stderr, "concatenate_assemblies.log")
+    group:
+        "assemblyRescue"
     shell:
         """
         cat {input} > {output} 2> {log} && rm {log}

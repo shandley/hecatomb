@@ -38,6 +38,8 @@ rule PRIMARY_AA_taxonomy_assignment:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
+    group:
+        "primaryaa"
     shell:
         """
         {{ # Run mmseqs taxonomy module
@@ -68,6 +70,8 @@ rule PRIMARY_AA_parsing:
         os.path.join(dir.out.bench, 'PRIMARY_AA_parsing.txt')
     log:
         os.path.join(dir.out.stderr, 'PRIMARY_AA_parsing.log')
+    group:
+        "primaryaa"
     script:
         os.path.join(dir.scripts,  'aaPrimaryParse.py')
 
@@ -102,6 +106,8 @@ rule SECONDARY_AA_taxonomy_assignment:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
+    group:
+        "secondaryaa"
     shell:
         """
         {{ # Run mmseqs taxonomy module
@@ -136,6 +142,8 @@ rule SECONDARY_AA_tophit_lineage:
         os.path.join(dir.out.bench, "SECONDARY_AA_tophit_lineage.txt")
     log:
         os.path.join(dir.out.stderr, "SECONDARY_AA_tophit_lineage.log")
+    group:
+        "secondaryaa"
     shell:
         """
         {{ # Make a table: SeqID <tab> taxID
@@ -167,6 +175,8 @@ rule SECONDARY_AA_refactor_finalize:
         os.path.join(dir.out.bench, "SECONDARY_AA_refactor_finalize.txt")
     log:
         os.path.join(dir.out.stderr, "SECONDARY_AA_refactor_finalize.log")
+    group:
+        "secondaryaa"
     shell:
         """
         {{ cut -f1,2 {input.lca} \
@@ -197,6 +207,8 @@ rule SECONDARY_AA_generate_output_table:
         os.path.join(dir.out.bench, "SECONDARY_AA_generate_output_table.txt")
     log:
         os.path.join(dir.out.stderr, "SECONDARY_AA_generate_output_table.log")
+    group:
+        "secondaryaa"
     params:
         taxIdIgnore = config.mmseqs.taxIdIgnore.split(),
         bigtableHeader = config.immutable.bigtableHeader
@@ -219,6 +231,8 @@ rule SECONDARY_AA_parsing:
         os.path.join(dir.out.bench, "SECONDARY_AA_parsing.txt")
     log:
         os.path.join(dir.out.stderr, 'SECONDARY_AA_parsing.log')
+    group:
+        "secondaryaa"
     script:
         os.path.join(dir.scripts,  'aaSecondaryParse.py')
 
@@ -249,6 +263,8 @@ rule PRIMARY_NT_taxonomic_assignment:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
+    group:
+        "primarynt"
     shell:
         """
         {{ # Create query database
@@ -288,6 +304,8 @@ rule PRIMARY_NT_reformat:
         os.path.join(dir.out.bench, "PRIMARY_NT_reformat.txt")
     log:
         os.path.join(dir.out.stderr, 'PRIMARY_NT_reformat.log')
+    group:
+        "primarynt"
     shell:
         """
         {{ # Filter TopHit results
@@ -325,6 +343,8 @@ rule PRIMARY_NT_parsing:
         os.path.join(dir.out.bench, "PRIMARY_NT_parsing.txt")
     log:
         os.path.join(dir.out.stderr, 'PRIMARY_NT_parsing.log')
+    group:
+        "primarynt"
     script:
         os.path.join(dir.scripts,  'ntPrimaryParse.py')
 
@@ -355,6 +375,8 @@ rule SECONDARY_NT_taxonomic_assignment:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
+    group:
+        "secondarynt"
     shell:
         """
         {{ # Create query database
@@ -395,6 +417,8 @@ rule SECONDARY_NT_summary:
         os.path.join(dir.out.bench, "SECONDARY_NT_summary.txt")
     log:
         os.path.join(dir.out.stderr, 'SECONDARY_NT_summary.log')
+    group:
+        "secondarynt"
     shell:
         """
         {{ # Filter TopHit results
@@ -435,6 +459,8 @@ rule SECONDARY_NT_convert:
         os.path.join(dir.out.bench, "SECONDARY_NT_convert.txt")
     log:
         os.path.join(dir.out.stderr, 'SECONDARY_NT_convert.log')
+    group:
+        "secondarynt"
     shell:
         """
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
@@ -454,6 +480,8 @@ rule secondary_nt_lca_table:
         os.path.join(dir.out.bench, "secondary_nt_lca_table.txt")
     log:
         os.path.join(dir.out.stderr, 'secondary_nt_lca_table.log')
+    group:
+        "secondarynt"
     script:
         os.path.join(dir.scripts,  'ntSecondaryLca.py')
 
@@ -478,6 +506,8 @@ rule secondary_nt_calc_lca:
         os.path.join(dir.out.bench, "secondary_nt_calc_lca.txt")
     log:
         os.path.join(dir.out.stderr, 'secondary_nt_calc_lca.log')
+    group:
+        "secondarynt"
     shell:
         """
         {{
@@ -518,6 +548,8 @@ rule SECONDARY_NT_generate_output_table:
         os.path.join(dir.out.bench, "SECONDARY_NT_generate_output_table.txt")
     log:
         os.path.join(dir.out.stderr, 'SECONDARY_NT_generate_output_table.log')
+    group:
+        "secondarynt"
     script:
         os.path.join(dir.scripts,  'ntBigtable.py')
 
@@ -533,6 +565,8 @@ rule combine_AA_NT:
         os.path.join(dir.out.bench, "combine_AA_NT.txt")
     log:
         os.path.join(dir.out.stderr, 'combine_AA_NT.log')
+    group:
+        "secondarynt"
     shell:
         """
         {{ cat {input.aa} > {output};

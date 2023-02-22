@@ -25,6 +25,8 @@ rule remove_5prime_primer:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "bbmap.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -64,6 +66,8 @@ rule remove_3prime_contaminant:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "bbmap.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -101,6 +105,8 @@ rule remove_primer_free_adapter:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "bbmap.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -138,6 +144,8 @@ rule remove_adapter_free_primer:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "bbmap.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -171,6 +179,8 @@ rule remove_vector_contamination:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "bbmap.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -211,6 +221,8 @@ rule remove_low_quality:
         readMinLen = config.qc.readMinLen
     conda:
         os.path.join(dir.env, "bbmap.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         bbduk.sh in={input.r1} in2={input.r2} \
@@ -277,6 +289,8 @@ rule host_removal_mapping:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "minimap2.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         minimap2 -ax sr -t {threads} --secondary=no {input.host} {input.r1} {input.r2} 2> {log.mm} \
@@ -307,6 +321,8 @@ rule nonhost_read_repair:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "bbmap.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         {{ reformat.sh in={input.s} out={output.sr1} out2={output.sr2} \
@@ -335,6 +351,8 @@ rule nonhost_read_combine:
         os.path.join(dir.out.bench, "nonhost_read_combine.{PATTERN}.txt")
     log:
         os.path.join(dir.out.stderr, "nonhost_read_combine.{PATTERN}.log")
+    group:
+        "preprocessing"
     shell:
         """
         {{ cat {input.sr1} {input.or1} > {output.t1};
@@ -355,13 +373,24 @@ rule archive_for_assembly:
         os.path.join(dir.out.temp,"p04","{sample}_R1.all.fastq"),
         os.path.join(dir.out.temp,"p04","{sample}_R2.all.fastq"),
     output:
-        temp(os.path.join(dir.out.assembly,"{sample}_R1.unmapped.fastq")),
-        temp(os.path.join(dir.out.assembly,"{sample}_R2.unmapped.fastq")),
-        temp(os.path.join(dir.out.assembly,"{sample}_R1.singletons.fastq")),
-        temp(os.path.join(dir.out.assembly,"{sample}_R2.singletons.fastq")),
-        temp(os.path.join(dir.out.assembly,"{sample}_R1.all.fastq")),
-        temp(os.path.join(dir.out.assembly,"{sample}_R2.all.fastq")),
+        os.path.join(dir.out.assembly,"{sample}_R1.unmapped.fastq.gz"),
+        os.path.join(dir.out.assembly,"{sample}_R2.unmapped.fastq.gz"),
+        os.path.join(dir.out.assembly,"{sample}_R1.singletons.fastq.gz"),
+        os.path.join(dir.out.assembly,"{sample}_R2.singletons.fastq.gz"),
+        os.path.join(dir.out.assembly,"{sample}_R1.all.fastq.gz"),
+        os.path.join(dir.out.assembly,"{sample}_R2.all.fastq.gz"),
     params:
-        dir.out.assembly
+        dir = dir.out.assembly,
+        compression = "-" + str(config.qc.compression),
+        prefix = os.path.join(dir.out.assembly, "{sample}*.fastq")
+    threads:
+        config.resources.med.cpu
+    conda:
+        os.path.join(dir.env,"pigz.yaml")
+    group:
+        "preprocessing"
     shell:
-        """cp {input} {params}"""
+        """
+        cp {input} {params.dir}
+        pigz -p {threads} {params.compression} {params.prefix}
+        """
