@@ -43,9 +43,9 @@ rule map_shred_seq:
     conda:
         os.path.join(dir.env, "bbmap.yaml")
     resources:
-        mem_mb = config.resources.sml.mem,
+        mem_mb = config.resources.med.mem,
     threads:
-        config.resources.sml.cpu
+        config.resources.med.cpu
     log:
         os.path.join(dir.out.stderr, 'map_shred_seq.log')
     shell:
@@ -68,9 +68,9 @@ rule mask_host:
     conda:
         os.path.join(dir.env, "bbmap.yaml")
     resources:
-        mem_mb = config.resources.sml.mem,
+        mem_mb = config.resources.med.mem,
     threads:
-        config.resources.sml.cpu
+        config.resources.med.cpu
     params:
         entropy = config.qc.entropy
     log:
