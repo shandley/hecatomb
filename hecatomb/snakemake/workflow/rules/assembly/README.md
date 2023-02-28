@@ -55,7 +55,7 @@ Concatenated contigs from all individual sample assemblies, e.g.:
 
 ```python
     output:
-        temp(os.path.join(dir.out.assembly, "all_sample_contigs.fasta"))
+        os.path.join(dir.out.assembly, "all_sample_contigs.fasta.gz")
 ```
 
 Make sure all contig names are unique.
