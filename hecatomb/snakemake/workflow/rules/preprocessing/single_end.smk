@@ -1,34 +1,37 @@
 
 # rules
-rule prinseq_trim:
-    """Preprocessing step 01: fastp_preprocessing.
+rule fastp_preprocessing:
+    """Readtrimming with fastp
 
-    Use fastP to remove adaptors, vector contaminants, low quality sequences, poly-A tails and reads shorts than minimum length, plus deduplicate.
+    Use fastP to remove adaptors, low quality sequences, poly-A tails and reads shorts than minimum length, plus 
+    deduplicate.
     """
     input:
-        r1=lambda wildcards: samples.reads[wildcards.sample]['R1'],
+        r1=lambda wildcards: samples.reads[wildcards.sample]["R1"],
     output:
-        r1=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out.fastq")),
-        b1=temp(os.path.join(dir.out.temp,"p01","{sample}_bad_out.fastq")),
+        r1=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out_R1.fastq")),
+        stats=os.path.join(dir.out.temp,"p01","{sample}.stats.json"),
+        html=temp(os.path.join(dir.out.temp,"p01","{sample}.stats.html"))
     benchmark:
-        os.path.join(dir.out.bench,"prinseq_trim.{sample}.txt")
+        os.path.join(dir.out.bench,"fastp.{sample}.txt")
     log:
-        os.path.join(dir.out.stderr,"prinseq_trim.{sample}.log")
+        os.path.join(dir.out.stderr,"fastp.{sample}.log")
     resources:
-        mem_mb=config.resources.sml.mem
+        mem_mb=config.resources.med.mem
     threads:
-        config.resources.sml.cpu
+        config.resources.med.cpu
     conda:
-        os.path.join(dir.env,"prinseqpp.yaml")
+        os.path.join(dir.env,"fastp.yaml")
     params:
-        params=config.prinseq,
-        prefix=os.path.join(dir.out.temp,"p01","{sample}")
+        fastp=config.qc.fastp,
+        compression=config.qc.compression
+    group:
+        "preprocessing"
     shell:
         """
-        prinseq++ {params.params} \
-          -threads {threads} \
-          -out_name {params.prefix} \
-          -fastq {input.r1} &> {log}
+        fastp -i {input.r1} -o {output.r1} \
+            -z {params.compression} -j {output.stats} -h {output.html} --thread {threads} \
+            {params.fastp} 2> {log}
         rm {log}
         """
 
@@ -63,7 +66,7 @@ rule host_removal_mapping:
     If your reference is not available you need to add it using 'Hecatomb addHost'
     """
     input:
-        r1 = os.path.join(dir.out.temp, "p01", "{sample}_good_out.fastq"),
+        r1 = os.path.join(dir.out.temp, "p01", "{sample}_good_out_R1.fastq"),
         host = dir.dbs.host.index
     output:
         r1 = temp(os.path.join(dir.out.temp, "p02", "{sample}_R1.unmapped.fastq")),
@@ -81,6 +84,8 @@ rule host_removal_mapping:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "minimap2.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         minimap2 -ax sr -t {threads} --secondary=no {input.host} {input.r1} 2> {log.mm} \
@@ -109,6 +114,8 @@ rule nonhost_read_repair:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "bbmap.yaml")
+    group:
+        "preprocessing"
     shell:
         """
         {{ reformat.sh in={input.s} out={output.sr1} \
@@ -132,6 +139,8 @@ rule nonhost_read_combine:
         os.path.join(dir.out.bench, "nonhost_read_combine.{sample}.txt")
     log:
         os.path.join(dir.out.stderr, "nonhost_read_combine.{sample}.log")
+    group:
+        "preprocessing"
     shell:
         """
         {{ cat {input.sr1} {input.or1} > {output.t1};
@@ -147,10 +156,21 @@ rule archive_for_assembly:
         os.path.join(dir.out.temp,"p04","{sample}_R1.singletons.fastq"),
         os.path.join(dir.out.temp,"p04","{sample}_R1.all.fastq"),
     output:
-        temp(os.path.join(dir.out.assembly,"{sample}_R1.unmapped.fastq")),
-        temp(os.path.join(dir.out.assembly,"{sample}_R1.singletons.fastq")),
-        temp(os.path.join(dir.out.assembly,"{sample}_R1.all.fastq")),
+        os.path.join(dir.out.assembly,"{sample}_R1.unmapped.fastq.gz"),
+        os.path.join(dir.out.assembly,"{sample}_R1.singletons.fastq.gz"),
+        os.path.join(dir.out.assembly,"{sample}_R1.all.fastq.gz"),
     params:
-        dir.out.assembly
+        dir = dir.out.assembly,
+        compression = "-" + str(config.qc.compression),
+        prefix = os.path.join(dir.out.assembly, "{sample}*.fastq")
+    threads:
+        config.resources.med.cpu
+    conda:
+        os.path.join(dir.env, "pigz.yaml")
+    group:
+        "preprocessing"
     shell:
-        """cp {input} {params}"""
+        """
+        cp {input} {params.dir}
+        pigz -p {threads} {params.compression} {params.prefix}
+        """

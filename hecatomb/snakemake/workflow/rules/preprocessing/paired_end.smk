@@ -1,42 +1,37 @@
 
 # rules
-rule prinseq_trim:
-    """Preprocessing step 01: fastp_preprocessing.
-
-    Use fastP to remove adaptors, vector contaminants, low quality sequences, poly-A tails and reads shorts than minimum length, plus deduplicate.
+rule fastp_preprocessing:
+    """Readtrimming with fastp
+    
+    Use fastP to remove adaptors, low quality sequences, poly-A tails and reads shorts than minimum length, plus 
+    deduplicate.
     """
     input:
-        r1=lambda wildcards: samples.reads[wildcards.sample]['R1'],
-        r2=lambda wildcards: samples.reads[wildcards.sample]['R2'],
+        r1=lambda wildcards: samples.reads[wildcards.sample]["R1"],
+        r2=lambda wildcards: samples.reads[wildcards.sample]["R2"],
     output:
         r1=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out_R1.fastq")),
         r2=temp(os.path.join(dir.out.temp,"p01","{sample}_good_out_R2.fastq")),
-        s1=temp(os.path.join(dir.out.temp,"p01","{sample}_single_out_R1.fastq")),
-        s2=temp(os.path.join(dir.out.temp,"p01","{sample}_single_out_R2.fastq")),
-        b1=temp(os.path.join(dir.out.temp,"p01","{sample}_bad_out_R1.fastq")),
-        b2=temp(os.path.join(dir.out.temp,"p01","{sample}_bad_out_R2.fastq"))
+        stats=os.path.join(dir.out.temp,"p01","{sample}.stats.json"),
+        html=temp(os.path.join(dir.out.temp,"p01","{sample}.stats.html"))
     benchmark:
-        os.path.join(dir.out.bench,"prinseq_trim.{sample}.txt")
+        os.path.join(dir.out.bench,"fastp.{sample}.txt")
     log:
-        os.path.join(dir.out.stderr,"prinseq_trim.{sample}.log")
+        os.path.join(dir.out.stderr,"fastp.{sample}.log")
     resources:
         mem_mb=config.resources.med.mem
     threads:
         config.resources.med.cpu
     conda:
-        os.path.join(dir.env,"prinseqpp.yaml")
+        os.path.join(dir.env,"fastp.yaml")
     params:
-        params=config.prinseq,
-        prefix=os.path.join(dir.out.temp,"p01","{sample}")
-    group:
-        "preprocessing"
+        fastp = config.qc.fastp,
+        compression = config.qc.compression
     shell:
         """
-        prinseq++ {params.params} \
-          -threads {threads} \
-          -out_name {params.prefix} \
-          -fastq {input.r1} \
-          -fastq2 {input.r2} &> {log}
+        fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
+            -z {params.compression} -j {output.stats} -h {output.html} --thread {threads} \
+            --detect_adapter_for_pe {params.fastp} 2> {log}
         rm {log}
         """
 
