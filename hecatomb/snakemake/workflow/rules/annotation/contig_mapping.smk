@@ -48,9 +48,9 @@ rule contig_read_taxonomy:
     params:
         contigTaxonHeader = config.immutable.contigTaxonHeader
     threads:
-        config.resources.ram.cpu
+        config.resources.med.cpu
     resources:
-        mem_mb = config.resources.ram.mem
+        mem_mb = config.resources.med.mem
     benchmark:
         os.path.join(dir.out.bench, 'contig_read_taxonomy.txt')
     log:
