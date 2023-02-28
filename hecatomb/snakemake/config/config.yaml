@@ -6,39 +6,27 @@ args:
 
 resources:
     big:
-        mem: 64000     # Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
-        cpu: 24        # Threads for MMSeqs (recommend >= 16)
-        time: 1440     # Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
+        mem: 64000     # Memory for big (mostly mmseqs) jobs in megabytes (e.g 64GB = 64000, recommend >= 64000)
+        cpu: 24        # Threads (recommend >= 16)
+        time: 1440     # Max runtime in minutes (allows to set max time for the scheduler via snakemake profiles)
     med:
-        mem: 32000  # Memory for Megahit/Flye in megabytes (recommend >= 32000)
-        cpu: 16     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
-    sml:
-        mem: 16000   # Memory for BBTools etc. in megabytes (recommend >= 16000)
-        cpu: 8       # CPUs for BBTools etc. (recommend >= 8)
+        mem: 32000      # Memory for most jobs in megabytes (recommend >= 32000)
+        cpu: 16         # CPUs for most jobs in megabytes (recommend >= 16)
     ram:
         mem: 16000    # Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
         cpu: 2        # CPUs for slightly RAM-hungry jobs (recommend >= 2)
 
 qc:
-    qscore: 15          # Read quality trimming score
-    readMinLen: 90      # Minimum read length during QC steps
-    contigMinLen: 1000  # Read minimum length
-    cutTailWindow: 25   # Sliding window size for low qual read filter
-    dedupAccuracy: 4    # Specify the level (1 ~ 6). The higher level means more memory usage and more running time, but lower risk of incorrect deduplication marking
     compression: 1      # Compression level for gzip output (1 ~ 9). 1 is fastest, 9 is smallest. Default is 1, based on assumption of large scratch space
-    entropy: 0.5        # Read minimum entropy
-    entropyWindow: 25   # entropy window for low qual read filter
-
-prinseq:
-    -min_len 90
-    -min_qual_mean 20
-    -ns_max_n 1
-    -derep 1
-    -out_format 0
-    -trim_qual_type min
-    -trim_qual_left 20
-    -trim_qual_right 20
-    -trim_qual_window 25
+    fastp:
+        --qualified_quality_phred 15
+        --length_required 90
+        --cut_tail 
+        --cut_tail_window_size 25
+        --cut_tail_mean_quality 15
+        --dedup
+        --dup_calc_accuracy 4
+        --trim_poly_x
 
 mmseqs:
     linclustParams:
@@ -96,5 +84,6 @@ assembly:
         --k-max 225
         --k-step 26
         --min-count 2
+        --min-contig-len 1000
     flye:
         -g 1g
