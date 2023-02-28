@@ -57,11 +57,17 @@ rule combine_canu_contigs:
     input:
         expand(os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.uniq.fasta"), sample=samples.names + ["unmappedRescue"])
     output:
-        temp(os.path.join(dir.out.assembly,"all_sample_contigs.fasta"))
+        os.path.join(dir.out.assembly,"all_sample_contigs.fasta.gz")
+    threads:
+        config.resources.med.cpu
+    params:
+        compression = '-' + str(config.qc.compression)
+    conda:
+        os.path.join(dir.env, "pigz.yaml")
     group:
         "assembly"
     shell:
-        """cat {input} > {output}"""
+        """cat {input} | pigz -p {threads} {params.compression} -c > {output}"""
 
 
 rule coverage_calculations:
