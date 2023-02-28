@@ -21,7 +21,7 @@ rule individual_sample_assembly:
         tar = os.path.join(dir.out.assembly,"{sample}.tar.zst")
     params:
         mh_dir = lambda w, output: os.path.split(output.contigs)[0],
-        minlen = config.qc.contigMinLen
+        params = config.assembly.megahit
     benchmark:
         os.path.join(dir.out.bench, "megahit_{sample}.txt")
     log:
@@ -40,10 +40,10 @@ rule individual_sample_assembly:
             rm -rf {params.mh_dir}
         fi
         megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
-            -o {params.mh_dir} --out-prefix {wildcards.sample} --min-contig-len {params.minlen} \
-            --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
+            -o {params.mh_dir} --out-prefix {wildcards.sample} -t {threads} \
+            {params.params} &>> {log}
         sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}
-        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
+        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} &> {log}
         rm {log}
         """
 
@@ -73,7 +73,7 @@ rule mapSampleAssemblyPairedReads:
         {{
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1} {input.r2} | \
             samtools sort -n -o {output};
-        }} 2> {log} 
+        }} &> {log} 
         rm {log}
         """
 
@@ -92,8 +92,6 @@ rule mapSampleAssemblyUnpairedReads:
         config.resources.med.cpu
     resources:
         mem_mb = config.resources.med.mem
-    log:
-        os.path.join(dir.out.stderr, "sampleAssemblyMapS.{sample}.log")
     benchmark:
         os.path.join(dir.out.bench, "sampleAssemblyMapS.{sample}.txt")
     group:
@@ -104,8 +102,7 @@ rule mapSampleAssemblyUnpairedReads:
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1s} {input.r2s} | \
             samtools sort -n | \
             samtools fastq -f 4 > {output};
-        }} 2> {log}
-        rm {log}
+        }}
         """
 
 
@@ -122,17 +119,14 @@ rule pullPairedUnmappedReads:
         config.resources.med.cpu
     resources:
         mem_mb = config.resources.med.mem
-    log:
-        os.path.join(dir.out.stderr, "pullPairedUnmappedReads.{sample}.log")
     benchmark:
         os.path.join(dir.out.bench, "pullPairedUnmappedReads.{sample}.txt")
     group:
         "assembly"
     shell:
         """
-        samtools fastq -f 77 {input} > {output.r1} 2> {log}
-        samtools fastq -f 141 {input} > {output.r2} 2>> {log}
-        rm {log}
+        samtools fastq -f 77 {input} > {output.r1}
+        samtools fastq -f 141 {input} > {output.r2}
         """
 
 
@@ -148,16 +142,13 @@ rule pullPairedUnmappedReadsMateMapped:
         config.resources.med.cpu
     resources:
         mem_mb = config.resources.med.mem
-    log:
-        os.path.join(dir.out.stderr, "pullPairedUnmappedReads.{sample}.log")
     benchmark:
         os.path.join(dir.out.bench, "pullPairedUnmappedReads.{sample}.txt")
     group:
         "assembly"
     shell:
         """
-        samtools fastq -f5 -F8 {input} > {output} 2> {log}
-        rm {log}
+        samtools fastq -f5 -F8 {input} > {output}
         """
 
 
@@ -166,11 +157,15 @@ rule poolR1Unmapped:
     input:
         expand(os.path.join(dir.out.assembly, "{sample}", "{sample}.assemblyUnmapped_R1.fastq"), sample=samples.names)
     output:
-        temp(os.path.join(dir.out.assembly, "unmapRescue_R1.fastq"))
+        os.path.join(dir.out.assembly, "rescue_R1.unmapped.fastq.gz")
+    conda:
+        os.path.join(dir.env, "pigz.yaml")
+    threads:
+        config.resources.med.cpu
     group:
         "assemblyRescue"
     shell:
-        """cat {input} > {output}"""
+        """cat {input} | pigz -c -p {threads} - > {output}"""
 
 
 rule poolR2Unmapped:
@@ -178,11 +173,15 @@ rule poolR2Unmapped:
     input:
         expand(os.path.join(dir.out.assembly, "{sample}", "{sample}.assemblyUnmapped_R2.fastq"), sample=samples.names)
     output:
-        temp(os.path.join(dir.out.assembly, "unmapRescue_R2.fastq"))
+        os.path.join(dir.out.assembly, "rescue_R2.unmapped.fastq.gz")
+    conda:
+        os.path.join(dir.env, "pigz.yaml")
+    threads:
+        config.resources.med.cpu
     group:
         "assemblyRescue"
     shell:
-        """cat {input} > {output}"""
+        """cat {input} | pigz -c -p {threads} - > {output}"""
 
 
 rule poolUnpairedUnmapped:
@@ -193,54 +192,19 @@ rule poolUnpairedUnmapped:
             sample=samples.names,
             sPe = ["s","pe.s"]),
     output:
-        temp(os.path.join(dir.out.assembly, "unmapRescue.s.fastq"))
-    group:
-        "assemblyRescue"
-    shell:
-        """
-        cat {input.fq} > {output}
-        """
-
-
-rule unmapped_read_rescue_assembly:
-    """Assemble the unmapped reads from all samples
-
-    Megahit: https://github.com/voutcn/megahit
-    """
-    input:
-        r1_norm = os.path.join(dir.out.assembly, "unmapRescue_R1.fastq"),
-        r2_norm = os.path.join(dir.out.assembly, "unmapRescue_R2.fastq"),
-        s = os.path.join(dir.out.assembly, "unmapRescue.s.fastq")
-    output:
-        contigs = os.path.join(dir.out.assembly, "rescue", "rescue.contigs.fa"),
-        renamed = os.path.join(dir.out.assembly, "rescue", "rescue.rename.contigs.fa"),
-        tar= os.path.join(dir.out.assembly,"rescue.tar.zst")
-    params:
-        mh_dir = lambda w, output: os.path.split(output.contigs)[0],
-        minlen = config.qc.contigMinLen
-    benchmark:
-        os.path.join(dir.out.bench, "unmapped_read_rescue_assembly.txt")
-    log:
-        os.path.join(dir.out.stderr, "unmapped_read_rescue_assembly.log")
-    resources:
-        mem_mb = config.resources.med.mem
+        r1 = os.path.join(dir.out.assembly, "rescue_R1.singletons.fastq.gz"),
+        r2 = os.path.join(dir.out.assembly, "rescue_R2.singletons.fastq.gz"),
+        tmp = temp(os.path.join(dir.out.assembly, "rescue_R2.singletons.fastq"))
+    conda:
+        os.path.join(dir.env, "pigz.yaml")
     threads:
         config.resources.med.cpu
-    conda:
-        os.path.join(dir.env, "megahit.yaml")
     group:
         "assemblyRescue"
     shell:
         """
-        if [ -d {params.mh_dir} ]; then
-            rm -rf {params.mh_dir}
-        fi
-        megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.s} \
-            -o {params.mh_dir} --out-prefix rescue --min-contig-len {params.minlen} \
-            --k-min 45 --k-max 225 --k-step 26 --min-count 2 -t {threads} &>> {log}
-        sed 's/>/>rescue/' {output.contigs} > {output.renamed}
-        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        rm {log}
+        cat {input.fq} | pigz -c -p {threads} - > {output.r1}
+        touch {output.tmp} && gzip -k {output.tmp} 
         """
 
 
@@ -248,21 +212,22 @@ rule concatenate_contigs:
     """Assembly step 03: Concatenate individual assembly outputs (contigs) into a single file"""
     input:
         expand(os.path.join(dir.out.assembly, "{sample}", "{sample}.rename.contigs.fa"), sample=samples.names),
-        os.path.join(dir.out.assembly,"rescue","rescue.rename.contigs.fa")
+        os.path.join(dir.out.assembly, "rescue", "rescue.rename.contigs.fa")
     output:
-        temp(os.path.join(dir.out.assembly, "all_sample_contigs.fasta"))
+        os.path.join(dir.out.assembly, "all_sample_contigs.fasta.gz")
     params:
-        expand(os.path.join(dir.out.assembly,"{sample}"), sample=samples.names),
-    benchmark:
-        os.path.join(dir.out.bench, "concatenate_assemblies.txt")
-    log:
-        os.path.join(dir.out.stderr, "concatenate_assemblies.log")
+        dirs = expand(os.path.join(dir.out.assembly,"{sample}"), sample=samples.names + ["rescue"]),
+        compression= '-' + str(config.qc.compression)
+    threads:
+        config.resources.med.cpu
+    conda:
+        os.path.join(dir.env, "pigz.yaml")
     group:
-        "assemblyRescue"
+        "assembly"
     shell:
         """
-        cat {input} > {output} 2> {log} && rm {log}
-        rm -rf {params}
+        cat {input} | pigz -p {threads} {params.compression} -c > {output}
+        rm -rf {params.dirs}
         """
 
 
@@ -305,6 +270,6 @@ rule coverage_calculations:
             scafstats={output.scafstats} \
             maxindel=100 minid=90 \
             ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
+            threads={threads} -Xmx{resources.javaAlloc}m &> {log}
         rm {log}
         """
