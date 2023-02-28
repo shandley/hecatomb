@@ -62,10 +62,10 @@ rule PRIMARY_AA_parsing:
         seqs = os.path.join(dir.out.results, "seqtable.fasta"),
     output:
         class_seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_classified.fasta"),
-    resources:
-        mem_mb = config.resources.ram.mem
-    threads:
-        config.resources.ram.cpu
+    # resources:
+    #     mem_mb = config.resources.ram.mem
+    # threads:
+    #     config.resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench, 'PRIMARY_AA_parsing.txt')
     log:
@@ -132,10 +132,10 @@ rule SECONDARY_AA_tophit_lineage:
         tophit_lineage_refomated = os.path.join(dir.out.secondaryAA, "tophit.lineage.reformated"),
     conda:
         os.path.join(dir.env, "seqkit.yaml")
-    resources:
-        mem_mb=config.resources.ram.mem
-    threads:
-        config.resources.ram.cpu
+    # resources:
+    #     mem_mb=config.resources.ram.mem
+    # threads:
+    #     config.resources.ram.cpu
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
@@ -165,10 +165,10 @@ rule SECONDARY_AA_refactor_finalize:
         lca_reformated = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_lca.reformated"),
     conda:
         os.path.join(dir.env, "seqkit.yaml")
-    resources:
-        mem_mb = config.resources.ram.mem
-    threads:
-        config.resources.ram.cpu
+    # resources:
+    #     mem_mb=config.resources.ram.mem
+    # threads:
+    #     config.resources.ram.cpu
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
@@ -199,10 +199,10 @@ rule SECONDARY_AA_generate_output_table:
     output:
         vir = os.path.join(dir.out.secondaryAA, "AA_bigtable.tsv"),
         nonvir = os.path.join(dir.out.secondaryAA, "AA_bigtable.nonviral.tsv")
-    resources:
-        mem_mb = config.resources.ram.mem
-    threads:
-        config.resources.ram.cpu
+    # resources:
+    #     mem_mb = config.resources.ram.mem
+    # threads:
+    #     config.resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench, "SECONDARY_AA_generate_output_table.txt")
     log:
@@ -223,10 +223,10 @@ rule SECONDARY_AA_parsing:
         seqs = os.path.join(dir.out.results, "seqtable.fasta")
     output:
         unclass_seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_unclassified.fasta")
-    resources:
-        mem_mb = config.resources.ram.mem
-    threads:
-        config.resources.ram.cpu
+    # resources:
+    #     mem_mb = config.resources.ram.mem
+    # threads:
+    #     config.resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench, "SECONDARY_AA_parsing.txt")
     log:
@@ -296,10 +296,10 @@ rule PRIMARY_NT_reformat:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
-    resources:
-        mem_mb = config.resources.ram.mem
-    threads:
-        config.resources.ram.cpu
+    # resources:
+    #     mem_mb = config.resources.ram.mem
+    # threads:
+    #     config.resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench, "PRIMARY_NT_reformat.txt")
     log:
@@ -335,10 +335,10 @@ rule PRIMARY_NT_parsing:
     output:
         class_seqs = os.path.join(dir.out.primaryNT, "classified_seqs.fasta"),
         unclass_seqs = os.path.join(dir.out.primaryNT, "unclassified_seqs.fasta")
-    resources:
-        mem_mb=config.resources.ram.mem
-    threads:
-        config.resources.ram.cpu
+    # resources:
+    #     mem_mb=config.resources.ram.mem
+    # threads:
+    #     config.resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench, "PRIMARY_NT_parsing.txt")
     log:
@@ -409,10 +409,10 @@ rule SECONDARY_NT_summary:
         convertAli = config.immutable.mmseqConvertAliFormat
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
-    resources:
-        mem_mb = config.resources.ram.mem
-    threads:
-        config.resources.ram.cpu
+    # resources:
+    #     mem_mb = config.resources.ram.mem
+    # threads:
+    #     config.resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench, "SECONDARY_NT_summary.txt")
     log:
@@ -537,10 +537,10 @@ rule SECONDARY_NT_generate_output_table:
     output:
         vir = os.path.join(dir.out.secondaryNT, "NT_bigtable.tsv"),
         nonvir = os.path.join(dir.out.secondaryNT, "NT_bigtable.nonviral.tsv")
-    resources:
-        mem_mb = config.resources.ram.mem
-    threads:
-        config.resources.ram.cpu
+    # resources:
+    #     mem_mb = config.resources.ram.mem
+    # threads:
+    #     config.resources.ram.cpu
     params:
         taxIdIgnore = config.mmseqs.taxIdIgnore.split(),
         bigtableHeader = config.immutable.bigtableHeader
