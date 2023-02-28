@@ -140,27 +140,3 @@ rule seq_properties_table:
         os.path.join(dir.out.stderr, "{file}.seq_properties_table.log")
     script:
         os.path.join(dir.scripts,  "seqPropertyTable.py")
-
-
-# rule zip_fastq:
-#     """zip a fastq file"""
-#     input:
-#         "{filepath}.fastq"
-#     output:
-#         "{filepath}.fastq.gz"
-#     params:
-#         compression = config.qc.compression
-#     shell:
-#         """gzip -{params.compression} {input}"""
-
-
-rule zip_fasta:
-    """zip a fastq file"""
-    input:
-        "{filepath}.fasta"
-    output:
-        "{filepath}.fasta.gz"
-    params:
-        compression = config.qc.compression
-    shell:
-        """gzip -{params.compression} {input}"""
