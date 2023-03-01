@@ -214,11 +214,6 @@ rule remove_low_quality:
         javaAlloc = int(0.9 * config.resources.med.mem)
     threads:
         config.resources.med.cpu
-    params:
-        entropy = config.qc.entropy,
-        entropyWindow = config.qc.entropyWindow,
-        qscore = config.qc.qscore,
-        readMinLen = config.qc.readMinLen
     conda:
         os.path.join(dir.env, "bbmap.yaml")
     group:
@@ -229,11 +224,12 @@ rule remove_low_quality:
             out={output.r1} out2={output.r2} \
             stats={output.stats} \
             ordered=t \
-            qtrim=r maxns=2 \
-            entropy={params.entropy} \
-            entropywindow={params.entropyWindow} \
-            trimq={params.qscore} \
-            minlength={params.readMinLen} \
+            qtrim=r \
+            maxns=2 \
+            entropy=0.5 \
+            entropywindow=25 \
+            trimq=15 \
+            minlength=90 \
             threads={threads} -Xmx{resources.mem_mb}m 2> {log}
         rm {log}
         """
