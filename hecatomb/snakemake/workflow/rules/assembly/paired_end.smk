@@ -223,7 +223,7 @@ rule concatenate_contigs:
     conda:
         os.path.join(dir.env, "pigz.yaml")
     group:
-        "assembly"
+        "assemblyRescue"
     shell:
         """
         cat {input} | pigz -p {threads} {params.compression} -c > {output}
