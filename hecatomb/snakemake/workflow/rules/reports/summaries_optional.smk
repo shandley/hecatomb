@@ -1,6 +1,7 @@
 
 import yaml
 import attrmap as ap
+import attrmap.utils as au
 import collections
 
 
@@ -14,13 +15,13 @@ rule rawReadCounts:
     run:
         out_counts = ap.AttrMap()
         for sample in params.samples.names:
-            out_counts[sample].raw_reads_R1 = file_len(params.samples.reads[sample]["R1"])
+            out_counts[sample].s1_raw_reads_R1 = file_len(params.samples.reads[sample]["R1"])
             try:
-                out_counts[sample].raw_reads_R2 = file_len(params.samples.reads[sample]["R2"])
+                out_counts[sample].s1_raw_reads_R2 = file_len(params.samples.reads[sample]["R2"])
             except KeyError:
                 pass
         with open(output[0],"w") as stream:
-            yaml.dump(out_counts,stream)
+            yaml.dump(au.todict(out_counts),stream)
 
 
 rule trimmedHostRemovedCounts:
@@ -35,13 +36,13 @@ rule trimmedHostRemovedCounts:
     run:
         out_counts = ap.AttrMap()
         for sample in params.samples.names:
-            out_counts[sample].host_removed_R1 = file_len(os.path.join(dir.out.temp, "p04", f"{sample}_R1.all.fastq"))
+            out_counts[sample].s2_host_removed_R1 = file_len(os.path.join(dir.out.temp, "p04", f"{sample}_R1.all.fastq"))
             try:
-                out_counts[sample].host_removed_R2 = file_len(os.path.join(dir.out.temp,"p04", f"{sample}_R1.all.fastq"))
+                out_counts[sample].s2_host_removed_R2 = file_len(os.path.join(dir.out.temp,"p04", f"{sample}_R1.all.fastq"))
             except KeyError:
                 pass
         with open(output[0],"w") as stream:
-            yaml.dump(out_counts,stream)
+            yaml.dump(au.todict(out_counts),stream)
 
 
 rule proteinAnnotations:
@@ -57,14 +58,14 @@ rule proteinAnnotations:
     run:
         out_counts = ap.AttrMap()
         for sample in params.samples.names:
-            out_counts[sample].aa_viral_R1 = 0
-            out_counts[sample].aa_nonviral_R1 = 0
-        for l in stream_tsv(input.vir):
-            out_counts[l[1]].aa_viral_R1 += l[2]
-        for l in stream_tsv(input.nonvir):
-            out_counts[l[1]].aa_nonviral_R1 += l[2]
+            out_counts[sample].s3_aa_viral_R1 = 0
+            out_counts[sample].s3_aa_nonviral_R1 = 0
+        for l in stream_tsv(input.vir, skip_header=True):
+            out_counts[l[1]].s3_aa_viral_R1 += int(l[2])
+        for l in stream_tsv(input.nonvir, skip_header=True):
+            out_counts[l[1]].s3_aa_nonviral_R1 += int(l[2])
         with open(output[0],"w") as stream:
-            yaml.dump(out_counts,stream)
+            yaml.dump(au.todict(out_counts),stream)
 
 
 rule nucleotideAnnotations:
@@ -80,14 +81,14 @@ rule nucleotideAnnotations:
     run:
         out_counts = ap.AttrMap()
         for sample in params.samples.names:
-            out_counts[sample].nt_viral_R1 = 0
-            out_counts[sample].nt_nonviral_R1 = 0
-        for l in stream_tsv(input.vir):
-            out_counts[l[1]].nt_viral_R1 += l[2]
-        for l in stream_tsv(input.nonvir):
-            out_counts[l[1]].nt_nonviral_R1 += l[2]
+            out_counts[sample].s4_nt_viral_R1 = 0
+            out_counts[sample].s4_nt_nonviral_R1 = 0
+        for l in stream_tsv(input.vir, skip_header=True):
+            out_counts[l[1]].s4_nt_viral_R1 += int(l[2])
+        for l in stream_tsv(input.nonvir, skip_header=True):
+            out_counts[l[1]].s4_nt_nonviral_R1 += int(l[2])
         with open(output[0],"w") as stream:
-            yaml.dump(out_counts,stream)
+            yaml.dump(au.todict(out_counts),stream)
 
 
 rule mappedCounts:
@@ -102,11 +103,12 @@ rule mappedCounts:
     run:
         out_counts = ap.AttrMap()
         for sample in params.samples.names:
-            out_counts[sample].mapped = 0
-        for l in stream_tsv(input[0]):
-            out_counts[l[1]].mapped += l[2]
+            out_counts[sample].s5_mapped = 0
+        for l in stream_tsv(input[0], skip_header=True):
+            if l[0] != "Sample":
+                out_counts[l[0]].c5_mapped += int(l[3])
         with open(output[0],"w") as stream:
-            yaml.dump(out_counts,stream)
+            yaml.dump(au.todict(out_counts),stream)
 
 
 rule unclassifiedSeqs:
@@ -123,7 +125,7 @@ rule unclassifiedSeqs:
     run:
         classSeq = {}
         for file in [input.aaVir, input.aaNonvir, input.ntVir, input.ntNonvir]:
-            for line in stream_tsv(file):
+            for line in stream_tsv(file, skip_header=True):
                 classSeq[line[0]] = 1
         with open(output[0], "w") as out_fh:
             with open(input.fa, "r") as in_fh:
@@ -169,15 +171,16 @@ rule summaryTable:
         rows = list(summary.keys())
         cols = set()
         for row in rows:
-            for col in rows[row].keys():
+            for col in summary[row]:
                 cols.add(col)
         cols = list(cols)
+        cols.sort()
         with open(output[0], "w") as out_fh:
-            out_fh.write("\t".join(["sampleID"] + cols))
+            out_fh.write("\t".join(["sampleID"] + cols) + "\n")
             for row in rows:
                 out_fh.write(row)
                 for col in cols:
-                    out_fh.write("\t" + summary[row][col])
+                    out_fh.write("\t" + str(summary[row][col]))
                 out_fh.write("\n")
 
 

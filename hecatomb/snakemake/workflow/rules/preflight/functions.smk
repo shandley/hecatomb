@@ -6,9 +6,11 @@ import re
 
 
 ### PYTHON FUNCTIONS
-def stream_tsv(tsvFile):
+def stream_tsv(tsvFile, skip_header=False):
     """Read a file line-by-line and split by whitespace"""
     with open(tsvFile, "r") as filehandle:
+        if skip_header:
+            filehandle.readline()
         for line in filehandle:
             line = line.strip()
             l = line.split("\t")
