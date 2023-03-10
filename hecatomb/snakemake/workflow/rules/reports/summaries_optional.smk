@@ -18,7 +18,7 @@ rule rawReadCounts:
             out_counts[sample].s1_raw_reads_R1 = file_len(params.samples.reads[sample]["R1"])
             try:
                 out_counts[sample].s1_raw_reads_R2 = file_len(params.samples.reads[sample]["R2"])
-            except KeyError:
+            except AttributeError:
                 pass
         with open(output[0],"w") as stream:
             yaml.dump(au.todict(out_counts),stream)
@@ -38,8 +38,8 @@ rule trimmedHostRemovedCounts:
         for sample in params.samples.names:
             out_counts[sample].s2_host_removed_R1 = file_len(os.path.join(dir.out.temp, "p04", f"{sample}_R1.all.fastq"))
             try:
-                out_counts[sample].s2_host_removed_R2 = file_len(os.path.join(dir.out.temp,"p04", f"{sample}_R1.all.fastq"))
-            except KeyError:
+                out_counts[sample].s2_host_removed_R2 = file_len(os.path.join(dir.out.temp,"p04", f"{sample}_R2.all.fastq"))
+            except FileNotFoundError:
                 pass
         with open(output[0],"w") as stream:
             yaml.dump(au.todict(out_counts),stream)

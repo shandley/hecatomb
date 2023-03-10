@@ -12,6 +12,7 @@ Overhauled: Michael Roach, Q2 2021
 """
 
 import attrmap as ap
+import attrmap.utils as au
 
 
 ### CONFIG
@@ -50,6 +51,8 @@ include: config.modules[config.args.preprocess]["preflight"]
 samples = ap.AttrMap()
 samples.reads = parseSamples(config.args.reads)
 samples.names = list(ap.utils.get_keys(samples.reads))
+samples = au.convert_state(samples, read_only=True)
+
 # wildcard_constraints:
 #     sample="[a-zA-Z0-9._-]+"
 

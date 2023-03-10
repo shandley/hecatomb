@@ -1,11 +1,14 @@
+![](hecatombLogo.png)
+
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)](https://anaconda.org/bioconda/hecatomb)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/platforms.svg)](https://anaconda.org/bioconda/hecatomb)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)](https://anaconda.org/bioconda/hecatomb)
 [![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/downloads.svg)](https://anaconda.org/bioconda/hecatomb)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/hecatomb/README.html)
+[![install with pip](https://badge.fury.io/py/hecatomb.svg)](https://pypi.org/project/hecatomb/)
 
-![](hecatombLogo.png)
+---
 
 A [hecatomb](https://en.wiktionary.org/wiki/hecatomb) is a great sacrifice or an extensive loss. 
 Heactomb the software empowers an analyst to make data driven decisions to *'sacrifice'* false-positive viral reads from 
@@ -106,6 +109,10 @@ to ensure portability and ease of installation of its dependencies.
 All of Hecatomb's dependencies are installed during installation or runtime, so you don't have to worry about a thing!
 
 ## Links
+
+[Hecatomb @ PyPI](https://pypi.org/project/hecatomb/)
+
+[Hecatomb @ bioconda](https://bioconda.github.io/recipes/hecatomb/README.html)
 
 [Hecatomb @ bio.tools](https://bio.tools/hecatomb)
 

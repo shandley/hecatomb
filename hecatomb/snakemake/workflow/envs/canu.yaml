@@ -4,5 +4,5 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - canu=2.2
+  - canu>=2.2
   - zstd
