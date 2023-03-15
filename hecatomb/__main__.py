@@ -120,10 +120,10 @@ Specify stages:     hecatomb run ... all print_stages
 \b
 AVAILABLE STAGES:
     all                 Run everything (default)
-    preprocessing       Preprocessing steps only
-    assemble            Assembly steps (+ preprocessing)
-    annotations         Read annotations (+ preprocessing)
-    ctg_annotations     Contig annotations (+ preprocessing,assembly)
+    preprocess          Preprocessing steps only
+    assemble            Assembly steps (+ preprocess)
+    annotate            Read annotations (+ preprocess)
+    ctg_annotate        Contig annotations (+ preprocess,assemble)
     print_stages        List available stages
 """)
 
@@ -135,7 +135,7 @@ AVAILABLE STAGES:
     ),
 )
 @click.option('--reads', 'reads', help='Input file/directory', type=str, default=None, required=True)
-@click.option('--preprocess', help='Preprocessing method', default='paired', show_default=True,
+@click.option('--library', help='Library type', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
 @click.option('--assembly', help='Assembly method (co-assembly or cross-assembly)', default='cross', show_default=True,
               type=click.Choice(['cross', 'co']))
@@ -143,7 +143,7 @@ AVAILABLE STAGES:
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
 @common_options
-def run(reads, preprocess, assembly, search, host, output, log, **kwargs):
+def run(reads, library, assembly, search, host, output, log, **kwargs):
     """Run hecatomb"""
 
     merge_config = {
@@ -151,7 +151,7 @@ def run(reads, preprocess, assembly, search, host, output, log, **kwargs):
             'reads': reads,
             'output': output,
             'host': host,
-            'preprocess': preprocess,
+            'library': library,
             'assembly': assembly,
             'search': search,
             'log': log
@@ -173,7 +173,7 @@ def run(reads, preprocess, assembly, search, host, output, log, **kwargs):
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option('--preprocess', help='Preprocessing method', default='paired', show_default=True,
+@click.option('--library', help='Library type', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
 @click.option('--assembly', help='Assembly method (co-assembly or cross-assembly)', default='cross', show_default=True,
               type=click.Choice(['cross', 'co']))
@@ -181,7 +181,7 @@ def run(reads, preprocess, assembly, search, host, output, log, **kwargs):
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
 @common_options
-def test(preprocess, assembly, search, host, output, log, **kwargs):
+def test(library, assembly, search, host, output, log, **kwargs):
     """Run the Hecatomb test dataset"""
 
     reads = snake_base('test_data')
@@ -191,7 +191,7 @@ def test(preprocess, assembly, search, host, output, log, **kwargs):
             'reads': reads,
             'output': output,
             'host': host,
-            'preprocess': preprocess,
+            'library': library,
             'assembly': assembly,
             'search': search,
             'log': log

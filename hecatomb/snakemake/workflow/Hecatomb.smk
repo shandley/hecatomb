@@ -45,7 +45,7 @@ dir.dbs.host.index = dir.dbs.host.fasta + ".idx"
 ### PREFLIGHT CHECKS, PARSE SAMPLES
 include: os.path.join("rules", "preflight", "validate.smk")
 include: os.path.join("rules", "preflight", "functions.smk")
-include: config.modules[config.args.preprocess]["preflight"]
+include: config.modules[config.args.library]["preflight"]
 
 
 samples = ap.AttrMap()
@@ -62,8 +62,8 @@ include: os.path.join("rules", "preflight", "targets.smk")
 
 
 ### PREPROCESSING
-include: config.modules[config.args.preprocess]["preprocessing"]
-include: config.modules[config.args.preprocess]["assembly"]
+include: config.modules[config.args.library]["preprocessing"]
+include: config.modules[config.args.library]["assembly"]
 
 
 ### REMAINING PIPELINE RULES
@@ -86,7 +86,7 @@ def targetRule(fn):
     return fn
 
 
-localrules: all, preprocessing, assembly, annotations, ctg_annotations, print_stages
+localrules: all, preprocess, assemble, annotate, ctg_annotate, print_stages
 
 
 @targetRule
@@ -101,7 +101,7 @@ rule all:
 
 
 @targetRule
-rule preprocessing:
+rule preprocess:
     input:
         targets.preprocessing
 
@@ -113,13 +113,13 @@ rule assemble:
 
 
 @targetRule
-rule annotations:
+rule annotate:
     input:
         targets.readAnnotations
 
 
 @targetRule
-rule ctg_annotations:
+rule ctg_annotate:
     input:
         targets.contigAnnotations,
         targets.mapping

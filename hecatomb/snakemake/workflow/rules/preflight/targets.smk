@@ -15,7 +15,7 @@ targets.preprocessing = [
     expand(
         os.path.join(dir.out.assembly,"{sample}{file}"),
         sample=samples.names,
-        file=config.modules[config.args.preprocess]["targets"]
+        file=config.modules[config.args.library]["targets"]
     )
 ]
 
