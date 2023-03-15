@@ -7,48 +7,52 @@ Per-sample assemblies for short paired reads
 
 rule co_assembly:
     """Alternative to cross assembly; assemble everything together in one hit.
-    
+
     Megahit: https://github.com/voutcn/megahit
     """
     input:
         expand(
-            os.path.join(dir.out.assembly, "{sample}_R1.{unmapsingle}.fastq.gz"),
+            os.path.join(dir.out.assembly,"{sample}_R1.{unmapsingle}.fastq.gz"),
             sample=samples.names,
-            unmapsingle=["unmapped","singletons"]
+            unmapsingle=["unmapped", "singletons"]
         )
     output:
-        assembly = os.path.join(dir.out.results, "co_assembly.fasta"),
-        graph = os.path.join(dir.out.results, "co_assembly_graph.gfa"),
-        tar = os.path.join(dir.out.assembly,"coAssembly.tar.zst")
+        assembly=os.path.join(dir.out.results,"co_assembly.fasta"),
+        graph=os.path.join(dir.out.results,"co_assembly_graph.gfa"),
+        tmp=temp(os.path.join(dir.out.assembly,"coAssembly","co_assembly_graph.fastg")),
+        tar=os.path.join(dir.out.assembly,"coAssembly.tar.zst")
     params:
-        r = ','.join(expand(
-            os.path.join(dir.out.assembly, "{sample}_R1.{unmapsingle}.fastq.gz"),
-            sample=samples.names,
-            unmapsingle=["unmapped","singletons"])
-        ),
-        mh_dir = os.path.join(dir.out.assembly, "coAssembly"),
-        params = config.assembly.comegahit,
-        assembly = os.path.join(dir.out.assembly, "coAssembly", "assembly.fasta"),
-        graph = os.path.join(dir.out.assembly, "coAssembly", "assembly_graph.gfa"),
+        r=','.join(expand(
+                os.path.join(dir.out.assembly,"{sample}_R1.{unmapsingle}.fastq.gz"),
+                sample=samples.names,
+                unmapsingle=["unmapped","singletons"]
+            )),
+        mh_dir=os.path.join(dir.out.assembly,"coAssembly"),
+        mh_int=os.path.join(dir.out.assembly,"coAssembly","intermediate_contigs"),
+        params=config.assembly.megahit,
+        assembly=os.path.join(dir.out.assembly,"coAssembly","assembly.fasta"),
+        graph=os.path.join(dir.out.assembly,"coAssembly","assembly_graph.gfa"),
     benchmark:
-        os.path.join(dir.out.bench, "megahit_coassembly.txt")
+        os.path.join(dir.out.bench,"megahit_coassembly.txt")
     log:
-        os.path.join(dir.out.stderr, "megahit_coassembly.log")
+        os.path.join(dir.out.stderr,"megahit_coassembly.log")
     resources:
-        mem_mb = config.resources.big.mem
+        mem_mb=config.resources.big.mem
     threads:
         config.resources.big.cpu
     conda:
-        os.path.join(dir.env, "megahit.yaml")
+        os.path.join(dir.env,"megahit.yaml")
     shell:
         """
         if [ -d {params.mh_dir} ]; then
             rm -rf {params.mh_dir}
         fi
-        megahit -r {params.r} \
-            -o {params.mh_dir} -t {threads} {params.params} &> {log}
+        megahit -r {params.r} -o {params.mh_dir} -t {threads} {params.params} &> {log}
+        kctg=$(ls -t {params.mh_int}/*.contigs.fa | grep -v final | head -1)
+        kmax=$([[ $kctg =~ ([0-9]+) ]] && echo "${{BASH_REMATCH[1]}}")
+        megahit_toolkit contig2fastg $kmax {params.mh_int}/$kctg > {output.tmp}
+        Bandage reduce {output.tmp} {output.graph}
         cp {params.assembly} {output.assembly}
-        cp {params.graph} {output.graph}
         tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} &> {log}
         rm {log}
         """

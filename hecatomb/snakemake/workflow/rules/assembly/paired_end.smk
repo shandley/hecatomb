@@ -20,13 +20,19 @@ rule co_assembly:
     output:
         assembly = os.path.join(dir.out.results, "co_assembly.fasta"),
         graph = os.path.join(dir.out.results, "co_assembly_graph.gfa"),
+        tmp = temp(os.path.join(dir.out.assembly, "coAssembly", "co_assembly_graph.fastg")),
         tar = os.path.join(dir.out.assembly,"coAssembly.tar.zst")
     params:
         r1p = ','.join(expand(os.path.join(dir.out.assembly, "{sample}_R1.unmapped.fastq.gz"), sample=samples.names)),
         r2p = ','.join(expand(os.path.join(dir.out.assembly, "{sample}_R2.unmapped.fastq.gz"), sample=samples.names)),
-        rs = ','.join(expand(os.path.join(dir.out.assembly, "{sample}_{r12}.singletons.fastq.gz"), sample=samples.names, r12=["R1","R2"])),
+        rs = ','.join(expand(
+            os.path.join(dir.out.assembly, "{sample}_{r12}.singletons.fastq.gz"),
+            sample=samples.names,
+            r12=["R1","R2"])
+        ),
         mh_dir = os.path.join(dir.out.assembly, "coAssembly"),
-        params = config.assembly.comegahit,
+        mh_int = os.path.join(dir.out.assembly, "coAssembly", "intermediate_contigs"),
+        params = config.assembly.megahit,
         assembly = os.path.join(dir.out.assembly, "coAssembly", "assembly.fasta"),
         graph = os.path.join(dir.out.assembly, "coAssembly", "assembly_graph.gfa"),
     benchmark:
@@ -46,8 +52,11 @@ rule co_assembly:
         fi
         megahit -1 {params.r1p} -2 {params.r2p} -r {params.rs} \
             -o {params.mh_dir} -t {threads} {params.params} &> {log}
+        kctg=$(ls -t {params.mh_int}/*.contigs.fa | grep -v final | head -1)
+        kmax=$([[ $kctg =~ ([0-9]+) ]] && echo "${{BASH_REMATCH[1]}}")
+        megahit_toolkit contig2fastg $kmax {params.mh_int}/$kctg > {output.tmp}
+        Bandage reduce {output.tmp} {output.graph}
         cp {params.assembly} {output.assembly}
-        cp {params.graph} {output.graph}
         tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} &> {log}
         rm {log}
         """
