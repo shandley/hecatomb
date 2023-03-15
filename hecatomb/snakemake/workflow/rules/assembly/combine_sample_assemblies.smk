@@ -3,11 +3,14 @@ rule population_assembly:
     input:
         os.path.join(dir.out.assembly, "all_sample_contigs.fasta.gz")
     output:
-        assembly = temp(os.path.join(dir.out.assembly, "FLYE", "assembly.fasta")),
+        assembly = os.path.join(dir.out.results, "cross_assembly.fasta"),
+        graph = os.path.join(dir.out.results, "cross_assembly_graph.gfa"),
         stats = os.path.join(dir.out.assembly, "FLYE", "contig_dictionary.stats")
     params:
         flye_out = lambda w, output: os.path.split(output.assembly)[0],
-        flye_params = config.assembly.flye
+        flye_params = config.assembly.flye,
+        assembly = os.path.join(dir.out.assembly, "FLYE", "assembly.fasta"),
+        graph = os.path.join(dir.out.assembly, "FLYE", "assembly_graph.gfa")
     benchmark:
         os.path.join(dir.out.bench, "population_assembly.txt")
     log:
@@ -19,8 +22,6 @@ rule population_assembly:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "metaflye.yaml")
-    group:
-        "popassembly"
     shell:
         """
         flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} {params.flye_params} &>> {log.log1}
@@ -28,20 +29,10 @@ rule population_assembly:
         statswrapper.sh in={output.assembly} out={output.stats} \
             format=2 \
             ow=t 2> {log.log2}
+        mv {params.assembly} {output.assembly}
+        mv {params.graph} {output.graph}
         rm {log.log2}
         """
-
-
-rule link_assembly:
-    """Assembly step 06: Link the final assembly to the results directory; not really a step."""
-    input:
-        os.path.join(dir.out.assembly, "FLYE", "assembly.fasta")
-    output:
-        os.path.join(dir.out.results, "assembly.fasta")
-    group:
-        "popassembly"
-    run:
-        os.rename(os.path.abspath(input[0]), os.path.abspath(output[0]))
 
 
 rule create_contig_count_table:

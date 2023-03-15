@@ -4,6 +4,39 @@ Per-sample assemblies for longreads
     in combine_sample_assemblies.smk
 """
 
+rule lr_co_assembly:
+    """Alternative to cross assembly; assemble everything together in one hit."""
+    input:
+        expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz"), sample=samples.names)
+    output:
+        assembly = os.path.join(dir.out.results, "co_assembly.fasta"),
+        graph = os.path.join(dir.out.results, "co_assembly_graph.gfa"),
+        tar = os.path.join(dir.out.assembly,"coAssembly.tar.zst")
+    params:
+        params = config.assembly.metaflye,
+        dir = os.path.join(dir.out.assembly, "coAssembly"),
+        assembly = os.path.join(dir.out.assembly, "coAssembly", "assembly.fasta"),
+        graph = os.path.join(dir.out.assembly, "coAssembly", "assembly_graph.gfa"),
+    resources:
+        mem_mb = config.resources.big.mem
+    threads:
+        config.resources.big.cpu
+    log:
+        os.path.join(dir.out.stderr, "canu_co_assembly.log")
+    benchmark:
+        os.path.join(dir.out.bench, "canu_co_assembly.txt")
+    conda:
+        os.path.join(dir.env, "metaflye.yaml")
+    shell:
+        """
+        flye -o {params.dir} -t {threads} {params.params} {input} 2> {log}
+        mv {params.assembly} {output.assembly}
+        mv {params.graph} {output.graph}
+        tar cf - {params.dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
+        rm {log}
+        """
+
+
 rule canu_sample_assembly:
     """Per-sample assembly with canu; also works for unmapped rescue reads"""
     input:
@@ -74,7 +107,7 @@ rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
         r1 = os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz"),
-        ref = os.path.join(dir.out.results, "assembly.fasta")
+        ref = os.path.join(dir.out.results, f"{config.args.assembly}_assembly.fasta")
     output:
         sam = temp(os.path.join(dir.out.mapping, "{sample}.aln.sam.gz")),
         unmap = temp(os.path.join(dir.out.mapping, "{sample}.unmapped.fastq")),

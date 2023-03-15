@@ -121,7 +121,7 @@ Specify stages:     hecatomb run ... all print_stages
 AVAILABLE STAGES:
     all                 Run everything (default)
     preprocessing       Preprocessing steps only
-    assembly            Assembly steps (+ preprocessing)
+    assemble            Assembly steps (+ preprocessing)
     annotations         Read annotations (+ preprocessing)
     ctg_annotations     Contig annotations (+ preprocessing,assembly)
     print_stages        List available stages
@@ -137,11 +137,13 @@ AVAILABLE STAGES:
 @click.option('--reads', 'reads', help='Input file/directory', type=str, default=None, required=True)
 @click.option('--preprocess', help='Preprocessing method', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
+@click.option('--assembly', help='Assembly method (co-assembly or cross-assembly)', default='cross', show_default=True,
+              type=click.Choice(['cross', 'co']))
 @click.option('--search', help='MMSeqs search speed settings', default='sensitive',
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
 @common_options
-def run(reads, preprocess, search, host, output, log, **kwargs):
+def run(reads, preprocess, assembly, search, host, output, log, **kwargs):
     """Run hecatomb"""
 
     merge_config = {
@@ -150,6 +152,7 @@ def run(reads, preprocess, search, host, output, log, **kwargs):
             'output': output,
             'host': host,
             'preprocess': preprocess,
+            'assembly': assembly,
             'search': search,
             'log': log
         }
@@ -172,11 +175,13 @@ def run(reads, preprocess, search, host, output, log, **kwargs):
 )
 @click.option('--preprocess', help='Preprocessing method', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
+@click.option('--assembly', help='Assembly method (co-assembly or cross-assembly)', default='cross', show_default=True,
+              type=click.Choice(['cross', 'co']))
 @click.option('--search', help='MMSeqs search speed settings', default='sensitive',
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
 @common_options
-def test(preprocess, search, host, output, log, **kwargs):
+def test(preprocess, assembly, search, host, output, log, **kwargs):
     """Run the Hecatomb test dataset"""
 
     reads = snake_base('test_data')
@@ -187,6 +192,7 @@ def test(preprocess, search, host, output, log, **kwargs):
             'output': output,
             'host': host,
             'preprocess': preprocess,
+            'assembly': assembly,
             'search': search,
             'log': log
         }

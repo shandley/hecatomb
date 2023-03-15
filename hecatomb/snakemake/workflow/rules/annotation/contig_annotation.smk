@@ -4,7 +4,7 @@ rule mmseqs_contig_annotation:
     Database: NCBI virus assembly with taxID added
     """
     input:
-        contigs=os.path.join(dir.out.results,"assembly.fasta"),
+        contigs=os.path.join(dir.out.results,f"{config.args.assembly}_assembly.fasta"),
         db=os.path.join(dir.dbs.secondaryNT, "sequenceDB")
     output:
         queryDB=os.path.join(dir.out.assembly,"FLYE","queryDB"),

@@ -49,6 +49,7 @@ args:
     combineRuns:
     hostFa:
     hostName:
+    assembly:
 
 immutable:
     reqAA:

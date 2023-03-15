@@ -5,6 +5,55 @@ Per-sample assemblies for short paired reads
 """
 
 
+rule co_assembly:
+    """Alternative to cross assembly; assemble everything together in one hit.
+    
+    Megahit: https://github.com/voutcn/megahit
+    """
+    input:
+        expand(
+            os.path.join(dir.out.assembly, "{sample}_R1.{unmapsingle}.fastq.gz"),
+            sample=samples.names,
+            unmapsingle=["unmapped","singletons"]
+        )
+    output:
+        assembly = os.path.join(dir.out.results, "co_assembly.fasta"),
+        graph = os.path.join(dir.out.results, "co_assembly_graph.gfa"),
+        tar = os.path.join(dir.out.assembly,"coAssembly.tar.zst")
+    params:
+        r = ','.join(expand(
+            os.path.join(dir.out.assembly, "{sample}_R1.{unmapsingle}.fastq.gz"),
+            sample=samples.names,
+            unmapsingle=["unmapped","singletons"])
+        ),
+        mh_dir = os.path.join(dir.out.assembly, "coAssembly"),
+        params = config.assembly.comegahit,
+        assembly = os.path.join(dir.out.assembly, "coAssembly", "assembly.fasta"),
+        graph = os.path.join(dir.out.assembly, "coAssembly", "assembly_graph.gfa"),
+    benchmark:
+        os.path.join(dir.out.bench, "megahit_coassembly.txt")
+    log:
+        os.path.join(dir.out.stderr, "megahit_coassembly.log")
+    resources:
+        mem_mb = config.resources.big.mem
+    threads:
+        config.resources.big.cpu
+    conda:
+        os.path.join(dir.env, "megahit.yaml")
+    shell:
+        """
+        if [ -d {params.mh_dir} ]; then
+            rm -rf {params.mh_dir}
+        fi
+        megahit -r {params.r} \
+            -o {params.mh_dir} -t {threads} {params.params} &> {log}
+        cp {params.assembly} {output.assembly}
+        cp {params.graph} {output.graph}
+        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} &> {log}
+        rm {log}
+        """
+
+
 rule individual_sample_assembly:
     """Assembly step 02: Individual sample assemblies
 
@@ -209,7 +258,7 @@ rule coverage_calculations:
     """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
     input:
         r1 = os.path.join(dir.out.assembly, "{sample}_R1.all.fastq.gz"),
-        ref = os.path.join(dir.out.results, "assembly.fasta")
+        ref = os.path.join(dir.out.results, f"{config.args.assembly}_assembly.fasta")
     output:
         sam = temp(os.path.join(dir.out.mapping, "{sample}.aln.sam.gz")),
         unmap = temp(os.path.join(dir.out.mapping, "{sample}.unmapped.fastq")),

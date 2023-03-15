@@ -5,14 +5,63 @@ Per-sample assemblies for short paired reads
 """
 
 
+rule co_assembly:
+    """Alternative to cross assembly; assemble everything together in one hit.
+    
+    Megahit: https://github.com/voutcn/megahit
+    """
+    input:
+        expand(
+            os.path.join(dir.out.assembly, "{sample}_{r12}.{unmapsingle}.fastq.gz"),
+            sample=samples.names,
+            r12=["R1","R2"],
+            unmapsingle=["unmapped","singletons"]
+        )
+    output:
+        assembly = os.path.join(dir.out.results, "co_assembly.fasta"),
+        graph = os.path.join(dir.out.results, "co_assembly_graph.gfa"),
+        tar = os.path.join(dir.out.assembly,"coAssembly.tar.zst")
+    params:
+        r1p = ','.join(expand(os.path.join(dir.out.assembly, "{sample}_R1.unmapped.fastq.gz"), sample=samples.names)),
+        r2p = ','.join(expand(os.path.join(dir.out.assembly, "{sample}_R2.unmapped.fastq.gz"), sample=samples.names)),
+        rs = ','.join(expand(os.path.join(dir.out.assembly, "{sample}_{r12}.singletons.fastq.gz"), sample=samples.names, r12=["R1","R2"])),
+        mh_dir = os.path.join(dir.out.assembly, "coAssembly"),
+        params = config.assembly.comegahit,
+        assembly = os.path.join(dir.out.assembly, "coAssembly", "assembly.fasta"),
+        graph = os.path.join(dir.out.assembly, "coAssembly", "assembly_graph.gfa"),
+    benchmark:
+        os.path.join(dir.out.bench, "megahit_coassembly.txt")
+    log:
+        os.path.join(dir.out.stderr, "megahit_coassembly.log")
+    resources:
+        mem_mb = config.resources.big.mem
+    threads:
+        config.resources.big.cpu
+    conda:
+        os.path.join(dir.env, "megahit.yaml")
+    shell:
+        """
+        if [ -d {params.mh_dir} ]; then
+            rm -rf {params.mh_dir}
+        fi
+        megahit -1 {params.r1p} -2 {params.r2p} -r {params.rs} \
+            -o {params.mh_dir} -t {threads} {params.params} &> {log}
+        cp {params.assembly} {output.assembly}
+        cp {params.graph} {output.graph}
+        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} &> {log}
+        rm {log}
+        """
+
+
+
 rule individual_sample_assembly:
     """Assembly step 02: Individual sample assemblies
 
     Megahit: https://github.com/voutcn/megahit
     """
     input:
-        r1_norm = os.path.join(dir.out.assembly, "{sample}_R1.unmapped.fastq.gz"),
-        r2_norm = os.path.join(dir.out.assembly, "{sample}_R2.unmapped.fastq.gz"),
+        r1 = os.path.join(dir.out.assembly, "{sample}_R1.unmapped.fastq.gz"),
+        r2 = os.path.join(dir.out.assembly, "{sample}_R2.unmapped.fastq.gz"),
         r1s = os.path.join(dir.out.assembly, "{sample}_R1.singletons.fastq.gz"),
         r2s = os.path.join(dir.out.assembly, "{sample}_R2.singletons.fastq.gz")
     output:
@@ -39,7 +88,7 @@ rule individual_sample_assembly:
         if [ -d {params.mh_dir} ]; then
             rm -rf {params.mh_dir}
         fi
-        megahit -1 {input.r1_norm} -2 {input.r2_norm} -r {input.r1s},{input.r2s} \
+        megahit -1 {input.r1} -2 {input.r2} -r {input.r1s},{input.r2s} \
             -o {params.mh_dir} --out-prefix {wildcards.sample} -t {threads} \
             {params.params} &>> {log}
         sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}
@@ -236,7 +285,7 @@ rule coverage_calculations:
     input:
         r1 = os.path.join(dir.out.assembly, "{sample}_R1.all.fastq.gz"),
         r2 = os.path.join(dir.out.assembly, "{sample}_R2.all.fastq.gz"),
-        ref = os.path.join(dir.out.results, "assembly.fasta")
+        ref = os.path.join(dir.out.results, f"{config.args.assembly}_assembly.fasta")
     output:
         sam = temp(os.path.join(dir.out.mapping, "{sample}.aln.sam.gz")),
         unmap = temp(os.path.join(dir.out.mapping, "{sample}.unmapped.fastq")),

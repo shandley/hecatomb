@@ -87,3 +87,8 @@ assembly:
         --min-contig-len 1000
     flye:
         -g 1g
+    metaflye:
+        --meta
+        -g 1g
+        --nano-raw
+        # --pacbio-raw

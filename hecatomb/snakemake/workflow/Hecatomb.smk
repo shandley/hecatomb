@@ -107,7 +107,7 @@ rule preprocessing:
 
 
 @targetRule
-rule assembly:
+rule assemble:
     input:
         targets.assembly
 

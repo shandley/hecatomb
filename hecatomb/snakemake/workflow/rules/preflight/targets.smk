@@ -22,10 +22,10 @@ targets.preprocessing = [
 
 # Assembly files
 targets.assembly = [
-    os.path.join(dir.out.assembly,"all_sample_contigs.fasta.gz"),
-    os.path.join(dir.out.results,"assembly.fasta"),
+    os.path.join(dir.out.results,f"{config.args.assembly}_assembly.fasta"),
+    os.path.join(dir.out.results,f"{config.args.assembly}_assembly_graph.gfa"),
     os.path.join(dir.out.results,"contig_count_table.tsv"),
-    os.path.join(dir.out.results,"assembly.properties.tsv"),
+    os.path.join(dir.out.results,f"{config.args.assembly}_assembly.properties.tsv"),
     ]
 
 
