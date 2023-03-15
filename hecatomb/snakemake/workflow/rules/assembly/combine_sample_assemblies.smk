@@ -7,7 +7,7 @@ rule population_assembly:
         graph = os.path.join(dir.out.results, "cross_assembly_graph.gfa"),
         stats = os.path.join(dir.out.assembly, "FLYE", "contig_dictionary.stats")
     params:
-        flye_out = lambda w, output: os.path.split(output.assembly)[0],
+        flye_out = lambda w, output: os.path.split(output.stats)[0],
         flye_params = config.assembly.flye,
         assembly = os.path.join(dir.out.assembly, "FLYE", "assembly.fasta"),
         graph = os.path.join(dir.out.assembly, "FLYE", "assembly_graph.gfa")

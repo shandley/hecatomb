@@ -76,10 +76,10 @@ Hecatomb can process paired- or single-end short-read sequencing, longread seque
 and paired-end sequencing for round A/B library protocol.
 
 ```bash
-hecatomb run --preprocess paired
-hecatomb run --preprocess single
-hecatomb run --preprocess longread
-hecatomb run --preprocess roundAB
+hecatomb run --library paired
+hecatomb run --library single
+hecatomb run --library longread
+hecatomb run --library roundAB
 ```
 
 When you specify a directory of reads with `--reads` for paried-end sequencing, 
@@ -103,7 +103,8 @@ sample2    /path/to/reads/sample2.1.fastq.gz    /path/to/reads/sample2.2.fastq.g
 
 ## Dependencies
 
-The only dependency you need to get up and running with Hecatomb is [conda](https://docs.conda.io/en/latest/).
+The only dependency you need to get up and running with Hecatomb is [conda](https://docs.conda.io/en/latest/) or 
+the python package manager [pip](https://pypi.org/project/pip/).
 Hecatomb relies on [conda](https://docs.conda.io/en/latest/) (and [mamba](https://github.com/mamba-org/mamba))
 to ensure portability and ease of installation of its dependencies.
 All of Hecatomb's dependencies are installed during installation or runtime, so you don't have to worry about a thing!
