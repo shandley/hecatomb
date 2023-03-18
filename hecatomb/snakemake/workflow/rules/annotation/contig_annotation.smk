@@ -33,7 +33,7 @@ rule mmseqs_contig_annotation:
         mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2;
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
             {params.sensnt} --split-memory-limit {params.memsplit} {params.filtnt} \
-            --search-type 3 ; }} &> {log}
+            --search-type 3 --threads {threads} ; }} &> {log}
         rm {log}
         """
 

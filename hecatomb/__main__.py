@@ -119,12 +119,12 @@ Add Snakemake args: hecatomb run ... --dry-run --keep-going --touch
 Specify stages:     hecatomb run ... all print_stages
 \b
 AVAILABLE STAGES:
-    all                 Run everything (default)
-    preprocess          Preprocessing steps only
-    assemble            Assembly steps (+ preprocess)
-    annotate            Read annotations (+ preprocess)
-    ctg_annotate        Contig annotations (+ preprocess,assemble)
-    print_stages        List available stages
+    all             Run everything (default)
+    preprocess      Preprocessing steps only
+    assemble        Assembly steps (+ preprocess)
+    annotate        Read annotations (+ preprocess)
+    ctg_annotate    Contig annotations (+ preprocess,assemble)
+    print_stages    List available stages
 """)
 
 
@@ -137,8 +137,8 @@ AVAILABLE STAGES:
 @click.option('--reads', 'reads', help='Input file/directory', type=str, default=None, required=True)
 @click.option('--library', help='Library type', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
-@click.option('--assembly', help='Assembly method (co-assembly or cross-assembly)', default='cross', show_default=True,
-              type=click.Choice(['cross', 'co']))
+@click.option('--assembly', help='Assembly method: [cross]-assembly or [co]-assembly', default='cross',
+              show_default=True, type=click.Choice(['cross', 'co']))
 @click.option('--search', help='MMSeqs search speed settings', default='sensitive',
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
@@ -175,8 +175,8 @@ def run(reads, library, assembly, search, host, output, log, **kwargs):
 )
 @click.option('--library', help='Library type', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
-@click.option('--assembly', help='Assembly method (co-assembly or cross-assembly)', default='cross', show_default=True,
-              type=click.Choice(['cross', 'co']))
+@click.option('--assembly', help='Assembly method: [cross]-assembly or [co]-assembly', default='cross',
+              show_default=True, type=click.Choice(['cross', 'co']))
 @click.option('--search', help='MMSeqs search speed settings', default='sensitive',
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)

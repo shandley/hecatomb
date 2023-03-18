@@ -33,7 +33,7 @@ rule co_assembly:
         mh_dir = os.path.join(dir.out.assembly, "coAssembly"),
         mh_int = os.path.join(dir.out.assembly, "coAssembly", "intermediate_contigs"),
         params = config.assembly.megahit,
-        assembly = os.path.join(dir.out.assembly, "coAssembly", "assembly.fasta"),
+        assembly = os.path.join(dir.out.assembly, "coAssembly", "final.contigs.fa"),
         graph = os.path.join(dir.out.assembly, "coAssembly", "assembly_graph.gfa"),
     benchmark:
         os.path.join(dir.out.bench, "megahit_coassembly.txt")
@@ -54,7 +54,7 @@ rule co_assembly:
             -o {params.mh_dir} -t {threads} {params.params} &> {log}
         kctg=$(ls -t {params.mh_int}/*.contigs.fa | grep -v final | head -1)
         kmax=$([[ $kctg =~ ([0-9]+) ]] && echo "${{BASH_REMATCH[1]}}")
-        megahit_toolkit contig2fastg $kmax {params.mh_int}/$kctg > {output.tmp}
+        megahit_toolkit contig2fastg $kmax $kctg > {output.tmp}
         Bandage reduce {output.tmp} {output.graph}
         cp {params.assembly} {output.assembly}
         tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} &> {log}
