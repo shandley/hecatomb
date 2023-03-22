@@ -53,7 +53,7 @@ rule co_assembly:
         megahit_toolkit contig2fastg $kmax {params.mh_int}/$kctg > {output.tmp}
         Bandage reduce {output.tmp} {output.graph}
         cp {params.assembly} {output.assembly}
-        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} &> {log}
+        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
         rm {log}
         """
 

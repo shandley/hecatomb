@@ -57,7 +57,7 @@ rule co_assembly:
         megahit_toolkit contig2fastg $kmax $kctg > {output.tmp}
         Bandage reduce {output.tmp} {output.graph}
         cp {params.assembly} {output.assembly}
-        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} &> {log}
+        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
         rm {log}
         """
 
@@ -101,7 +101,7 @@ rule individual_sample_assembly:
             -o {params.mh_dir} --out-prefix {wildcards.sample} -t {threads} \
             {params.params} &>> {log}
         sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}
-        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} &> {log}
+        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
         rm {log}
         """
 
