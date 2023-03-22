@@ -48,8 +48,6 @@ rule create_contig_count_table:
         os.path.join(dir.out.bench, "create_contig_count_table.{sample}.txt")
     log:
         os.path.join(dir.out.stderr, "create_contig_count_table.{sample}.log")
-    group:
-        "popassembly"
     script:
         os.path.join(dir.scripts,  'contigCountTable.py')
 
@@ -64,8 +62,6 @@ rule concatentate_contig_count_tables:
         os.path.join(dir.out.bench, "concatentate_contig_count_tables.txt")
     log:
         os.path.join(dir.out.stderr, "concatentate_contig_count_tables.log")
-    group:
-        "popassembly"
     shell:
         """
         {{ 
