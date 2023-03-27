@@ -25,7 +25,6 @@ rule tax_level_counts:
 rule dumpSamplesTsv:
     output:
         os.path.join(dir.out.results, 'hecatomb.samples.tsv')
-    localrule: True
     run:
         writeSamplesTsv(samples.reads, output[0])
 

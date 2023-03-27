@@ -86,7 +86,7 @@ def targetRule(fn):
     return fn
 
 
-localrules: all, preprocess, assemble, annotate, ctg_annotate, print_stages
+localrules: all, preprocess, assemble, annotate, ctg_annotate, print_stages, dumpSamplesTsv
 
 
 @targetRule
