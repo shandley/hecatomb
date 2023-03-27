@@ -25,6 +25,7 @@ rule tax_level_counts:
 rule dumpSamplesTsv:
     output:
         os.path.join(dir.out.results, 'hecatomb.samples.tsv')
+    localrule: True
     run:
         writeSamplesTsv(samples.reads, output[0])
 
@@ -37,6 +38,8 @@ rule krona_text_format:
         os.path.join(dir.out.temp, "krona.txt")
     benchmark:
         os.path.join(dir.out.bench, "krona_text_format.txt")
+    group:
+        "krona"
     log:
         os.path.join(dir.out.stderr, 'krona_text_format.log')
     script:
@@ -53,6 +56,8 @@ rule krona_plot:
         os.path.join(dir.env, 'krona.yaml')
     benchmark:
         os.path.join(dir.out.bench, "krona_plot.txt")
+    group:
+        "krona"
     log:
         os.path.join(dir.out.stderr, 'krona_plot.log')
     resources:
@@ -69,6 +74,8 @@ rule contig_krona_text_format:
         os.path.join(dir.out.results, "contigSeqTable.tsv")
     output:
         os.path.join(dir.out.temp, "contigKrona.txt")
+    group:
+        "contig_krona"
     log:
         os.path.join(dir.out.stderr, 'contig_krona_text_format.log')
     script:
@@ -82,6 +89,8 @@ rule contig_krona_plot:
         os.path.join(dir.out.results, "contigKrona.html")
     conda:
         os.path.join(dir.env, 'krona.yaml')
+    group:
+        "contig_krona"
     log:
         os.path.join(dir.out.stderr, 'contig_krona_plot.log')
     resources:
