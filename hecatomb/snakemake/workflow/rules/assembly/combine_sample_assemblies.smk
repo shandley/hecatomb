@@ -27,11 +27,11 @@ rule population_assembly:
         """
         flye --subassemblies {input} -t {threads} --plasmids -o {params.flye_out} {params.flye_params} &>> {log.log1}
         rm {log.log1}
+        mv {params.assembly} {output.assembly}
+        mv {params.graph} {output.graph}
         statswrapper.sh in={output.assembly} out={output.stats} \
             format=2 \
             ow=t 2> {log.log2}
-        mv {params.assembly} {output.assembly}
-        mv {params.graph} {output.graph}
         rm {log.log2}
         """
 
