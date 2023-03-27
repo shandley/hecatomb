@@ -1,3 +1,28 @@
+rule create_host_index:
+    """Create the minimap2 index for mapping to the host"""
+    input:
+        host = dir.dbs.host.fasta,
+        cont = os.path.join(dir.dbs.contaminants, "vector_contaminants.fa")
+    output:
+        dir.dbs.host.index
+    benchmark:
+        os.path.join(dir.out.bench,"create_host_index.txt")
+    log:
+        os.path.join(dir.out.stderr,'create_host_index.log')
+    resources:
+        mem_mb = config.resources.med.mem,
+        time = config.resources.sml.time
+    threads:
+        config.resources.med.cpu
+    conda:
+        os.path.join(dir.env, "minimap2.yaml")
+    shell:
+        """
+        minimap2 -t {threads} -d {output} <(zcat {input.host}; cat {input.cont}) 2> {log}
+        rm {log}
+        """
+
+
 rule cluster_similar_sequences:
     """Preprocessing step 05: Cluster similar sequences.
 

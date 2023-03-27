@@ -241,30 +241,6 @@ rule remove_low_quality:
         """
 
 
-rule create_host_index:
-    """Step 02. Create the minimap2 index for mapping to the host; this will save time."""
-    input:
-        dir.dbs.host.fasta,
-    output:
-        dir.dbs.host.index
-    benchmark:
-        os.path.join(dir.out.bench, "create_host_index.txt")
-    log:
-        os.path.join(dir.out.stderr, 'create_host_index.log')
-    resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
-    threads:
-        config.resources.med.cpu
-    conda:
-        os.path.join(dir.env, "minimap2.yaml")
-    shell:
-        """
-        minimap2 -t {threads} -d {output} <(cat {input}) 2> {log}
-        rm {log}
-        """
-
-
 rule host_removal_mapping:
     """Preprocessing step 02a: Host removal: mapping to host.
     
