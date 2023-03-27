@@ -19,7 +19,8 @@ rule map_seq_table:
     threads:
         config.resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config.resources.med.mem,
+        time = config.resources.med.time
     group:
         "contigmap"
     shell:
@@ -50,7 +51,8 @@ rule contig_read_taxonomy:
     threads:
         config.resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config.resources.med.mem,
+        time = config.resources.med.time
     benchmark:
         os.path.join(dir.out.bench, 'contig_read_taxonomy.txt')
     log:

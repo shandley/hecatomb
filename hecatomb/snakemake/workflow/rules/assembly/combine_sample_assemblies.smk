@@ -17,7 +17,8 @@ rule population_assembly:
         log1 = os.path.join(dir.out.stderr, "population_assembly.flye.log"),
         log2 = os.path.join(dir.out.stderr, "population_assembly.stats.log")
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config.resources.med.mem,
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:

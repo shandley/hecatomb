@@ -62,10 +62,8 @@ rule PRIMARY_AA_parsing:
         seqs = os.path.join(dir.out.results, "seqtable.fasta"),
     output:
         class_seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_classified.fasta"),
-    # resources:
-    #     mem_mb = config.resources.ram.mem
-    # threads:
-    #     config.resources.ram.cpu
+    resources:
+        time = config.resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, 'PRIMARY_AA_parsing.txt')
     log:
@@ -132,10 +130,8 @@ rule SECONDARY_AA_tophit_lineage:
         tophit_lineage_refomated = os.path.join(dir.out.secondaryAA, "tophit.lineage.reformated"),
     conda:
         os.path.join(dir.env, "seqkit.yaml")
-    # resources:
-    #     mem_mb=config.resources.ram.mem
-    # threads:
-    #     config.resources.ram.cpu
+    resources:
+        time = config.resources.sml.time
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
@@ -165,10 +161,8 @@ rule SECONDARY_AA_refactor_finalize:
         lca_reformated = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_lca.reformated"),
     conda:
         os.path.join(dir.env, "seqkit.yaml")
-    # resources:
-    #     mem_mb=config.resources.ram.mem
-    # threads:
-    #     config.resources.ram.cpu
+    resources:
+        time = config.resources.sml.time
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
@@ -199,10 +193,8 @@ rule SECONDARY_AA_generate_output_table:
     output:
         vir = os.path.join(dir.out.secondaryAA, "AA_bigtable.tsv"),
         nonvir = os.path.join(dir.out.secondaryAA, "AA_bigtable.nonviral.tsv")
-    # resources:
-    #     mem_mb = config.resources.ram.mem
-    # threads:
-    #     config.resources.ram.cpu
+    resources:
+        time = config.resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "SECONDARY_AA_generate_output_table.txt")
     log:
@@ -223,10 +215,8 @@ rule SECONDARY_AA_parsing:
         seqs = os.path.join(dir.out.results, "seqtable.fasta")
     output:
         unclass_seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_unclassified.fasta")
-    # resources:
-    #     mem_mb = config.resources.ram.mem
-    # threads:
-    #     config.resources.ram.cpu
+    resources:
+        time = config.resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "SECONDARY_AA_parsing.txt")
     log:
@@ -296,10 +286,8 @@ rule PRIMARY_NT_reformat:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
-    # resources:
-    #     mem_mb = config.resources.ram.mem
-    # threads:
-    #     config.resources.ram.cpu
+    resources:
+        time = config.resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "PRIMARY_NT_reformat.txt")
     log:
@@ -335,10 +323,8 @@ rule PRIMARY_NT_parsing:
     output:
         class_seqs = os.path.join(dir.out.primaryNT, "classified_seqs.fasta"),
         unclass_seqs = os.path.join(dir.out.primaryNT, "unclassified_seqs.fasta")
-    # resources:
-    #     mem_mb=config.resources.ram.mem
-    # threads:
-    #     config.resources.ram.cpu
+    resources:
+        time = config.resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "PRIMARY_NT_parsing.txt")
     log:
@@ -370,7 +356,7 @@ rule SECONDARY_NT_taxonomic_assignment:
         log = os.path.join(dir.out.stderr, "SECONDARY_NT_taxonomic_assignment.log")
     resources:
         mem_mb=config.resources.big.mem,
-        time=config.resources.big.time
+        time = config.resources.big.time
     threads:
         config.resources.big.cpu
     conda:
@@ -409,10 +395,8 @@ rule SECONDARY_NT_summary:
         convertAli = config.immutable.mmseqConvertAliFormat
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
-    # resources:
-    #     mem_mb = config.resources.ram.mem
-    # threads:
-    #     config.resources.ram.cpu
+    resources:
+        time = config.resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "SECONDARY_NT_summary.txt")
     log:
@@ -450,9 +434,7 @@ rule SECONDARY_NT_convert:
     params:
         respath = os.path.join(dir.out.secondaryNT, "results", "result")
     resources:
-        mem_mb = config.resources.big.mem
-    threads:
-        config.resources.big.cpu
+        time = config.resources.sml.time
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
     benchmark:
@@ -480,6 +462,8 @@ rule secondary_nt_lca_table:
         os.path.join(dir.out.bench, "secondary_nt_lca_table.txt")
     log:
         os.path.join(dir.out.stderr, 'secondary_nt_lca_table.log')
+    resources:
+        time = config.resources.sml.time
     group:
         "secondarynt"
     script:
@@ -495,9 +479,7 @@ rule secondary_nt_calc_lca:
         lca_lineage = os.path.join(dir.out.secondaryNT, "results", "lca.lineage"),
         reformated = os.path.join(dir.out.secondaryNT, "results", "secondary_nt_lca.tsv")
     resources:
-        mem_mb = config.resources.big.mem
-    threads:
-        config.resources.big.cpu
+        time = config.resources.sml.time
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat,
     conda:
@@ -537,10 +519,8 @@ rule SECONDARY_NT_generate_output_table:
     output:
         vir = os.path.join(dir.out.secondaryNT, "NT_bigtable.tsv"),
         nonvir = os.path.join(dir.out.secondaryNT, "NT_bigtable.nonviral.tsv")
-    # resources:
-    #     mem_mb = config.resources.ram.mem
-    # threads:
-    #     config.resources.ram.cpu
+    resources:
+        time = config.resources.sml.time
     params:
         taxIdIgnore = config.mmseqs.taxIdIgnore.split(),
         bigtableHeader = config.immutable.bigtableHeader
@@ -565,6 +545,8 @@ rule combine_AA_NT:
         os.path.join(dir.out.bench, "combine_AA_NT.txt")
     log:
         os.path.join(dir.out.stderr, 'combine_AA_NT.log')
+    resources:
+        time = config.resources.sml.time
     group:
         "secondarynt"
     shell:

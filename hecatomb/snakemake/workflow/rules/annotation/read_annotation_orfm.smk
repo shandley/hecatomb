@@ -52,7 +52,7 @@ rule PRIMARY_AA_taxonomy_assignment:
         os.path.join(dir.out.stderr,"PRIMARY_AA_taxonomy_assignment.log")
     resources:
         mem_mb=config.resources.big.mem,
-        time=config.resources.big.time
+        time = config.resources.big.time
     threads:
         config.resources.big.cpu
     conda:
@@ -110,7 +110,7 @@ rule SECONDARY_AA_taxonomy_assignment:
         os.path.join(dir.out.stderr,"SECONDARY_AA_taxonomy_assignment.log")
     resources:
         mem_mb=config.resources.big.mem,
-        time=config.resources.big.time
+        time = config.resources.big.time
     threads:
         config.resources.big.cpu
     conda:
@@ -252,7 +252,7 @@ rule PRIMARY_NT_taxonomic_assignment:
         os.path.join(dir.out.stderr,"PRIMARY_NT_taxonomic_assignment.log")
     resources:
         mem_mb=config.resources.big.mem,
-        time=config.resources.big.time
+        time = config.resources.big.time
     threads:
         config.resources.big.cpu
     conda:
@@ -358,7 +358,7 @@ rule SECONDARY_NT_taxonomic_assignment:
         log=os.path.join(dir.out.stderr,"SECONDARY_NT_taxonomic_assignment.log")
     resources:
         mem_mb=config.resources.big.mem,
-        time=config.resources.big.time
+        time = config.resources.big.time
     threads:
         config.resources.big.cpu
     conda:

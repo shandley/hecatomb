@@ -1,23 +1,26 @@
 # For more information see: https://github.com/shandley/hecatomb and https://hecatomb.readthedocs.io/en/latest/
 
-# Custom database location. Blank = use install location or specify with environment variable HECATOMB_DB
+# Custom database location. Blank = use install location. You can also specify with environment variable HECATOMB_DB
 args:
     databases:
 
 resources:
     big:
-        mem: 64000     # Memory for big (mostly mmseqs) jobs in megabytes (e.g 64GB = 64000, recommend >= 64000)
-        cpu: 24        # Threads (recommend >= 16)
-        time: 1440     # Max runtime in minutes (allows to set max time for the scheduler via snakemake profiles)
+        mem: 64000      # Memory for big (mostly mmseqs) jobs in megabytes (e.g 64GB = 64000, recommend >= 64000)
+        cpu: 24         # Threads (recommend >= 16)
+        time: 1440      # Max runtime in minutes (allows to set max time for the scheduler via snakemake profiles)
     med:
         mem: 32000      # Memory for most jobs in megabytes (recommend >= 32000)
         cpu: 16         # CPUs for most jobs in megabytes (recommend >= 16)
+        time: 60        # Max runtime in minutes for medium jobs (relevant for scheduler)
+    sml:
+        time: 10        # Max runtime in minutes for small jobs (used for grouped jobs; relevant for scheduler)
     ram:
-        mem: 16000    # Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
-        cpu: 2        # CPUs for slightly RAM-hungry jobs (recommend >= 2)
+        mem: 16000      # Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
+        cpu: 2          # CPUs for slightly RAM-hungry jobs (recommend >= 2)
 
 qc:
-    compression: 1      # Compression level for gzip output (1 ~ 9). 1 is fastest, 9 is smallest. Default is 1, based on assumption of large scratch space
+    compression: 1      # Compression level for gzip output (1 ~ 9). 1 is fastest, 9 is smallest
     fastp:
         --qualified_quality_phred 15
         --length_required 90
@@ -63,7 +66,7 @@ mmseqs:
         --sens-steps 3
     perfNTfast:
         -s 4.0
-    taxIdIgnore: 0 1 2 10239 131567 12429 2759
+    taxIdIgnore: 0 1 2 10239 131567 12429 2759      # TaxIDs to defer to topHit rather than LCA
 
 assembly:
     canu:

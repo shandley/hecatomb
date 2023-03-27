@@ -18,7 +18,8 @@ rule lr_co_assembly:
         assembly = os.path.join(dir.out.assembly, "coAssembly", "assembly.fasta"),
         graph = os.path.join(dir.out.assembly, "coAssembly", "assembly_graph.gfa"),
     resources:
-        mem_mb = config.resources.big.mem
+        mem_mb = config.resources.big.mem,
+        time = config.resources.big.time
     threads:
         config.resources.big.cpu
     log:
@@ -51,7 +52,8 @@ rule canu_sample_assembly:
         settings = config.assembly.canu,
         canu_dir = lambda w, output: os.path.split(output.ctg)[0]
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config.resources.med.mem,
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     log:
@@ -79,6 +81,8 @@ rule combine_canu_unassembled:
         expand(os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.uniq.fasta"), sample=samples.names)
     output:
         temp(os.path.join(dir.out.assembly,"unmappedRescue_R1.all.fasta.gz"))
+    resources:
+        time = config.resources.sml.time
     group:
         "assembly"
     shell:
@@ -93,6 +97,8 @@ rule combine_canu_contigs:
         os.path.join(dir.out.assembly,"all_sample_contigs.fasta.gz")
     threads:
         config.resources.med.cpu
+    resources:
+        time = config.resources.sml.time
     params:
         compression = '-' + str(config.qc.compression)
     conda:
@@ -121,7 +127,8 @@ rule coverage_calculations:
         os.path.join(dir.out.stderr, "coverage_calculations.{sample}.log")
     resources:
         mem_mb = config.resources.med.mem,
-        javaAlloc = int(0.9 * config.resources.med.mem)
+        javaAlloc = int(0.9 * config.resources.med.mem),
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:

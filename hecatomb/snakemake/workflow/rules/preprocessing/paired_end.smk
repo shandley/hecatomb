@@ -19,7 +19,8 @@ rule fastp_preprocessing:
     log:
         os.path.join(dir.out.stderr,"fastp.{sample}.log")
     resources:
-        mem_mb=config.resources.med.mem
+        mem_mb=config.resources.med.mem,
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:
@@ -47,7 +48,8 @@ rule create_host_index:
     log:
         os.path.join(dir.out.stderr, 'create_host_index.log')
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config.resources.med.mem,
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:
@@ -80,7 +82,8 @@ rule host_removal_mapping:
         sv = os.path.join(dir.out.stderr, "host_removal_mapping.{sample}.samtoolsView.log"),
         fq = os.path.join(dir.out.stderr, "host_removal_mapping.{sample}.samtoolsFastq.log")
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config.resources.med.mem,
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:
@@ -111,7 +114,8 @@ rule nonhost_read_repair:
         os.path.join(dir.out.stderr, "nonhost_read_repair.{sample}.log")
     resources:
         mem_mb = config.resources.med.mem,
-        javaAlloc = int(0.9 * config.resources.med.mem)
+        javaAlloc = int(0.9 * config.resources.med.mem),
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:
@@ -145,6 +149,8 @@ rule nonhost_read_combine:
         os.path.join(dir.out.bench, "nonhost_read_combine.{sample}.txt")
     log:
         os.path.join(dir.out.stderr, "nonhost_read_combine.{sample}.log")
+    resources:
+        time = config.resources.sml.time
     group:
         "preprocessing"
     shell:
@@ -180,6 +186,8 @@ rule archive_for_assembly:
         config.resources.med.cpu
     conda:
         os.path.join(dir.env, "pigz.yaml")
+    resources:
+        time = config.resources.sml.time
     group:
         "preprocessing"
     shell:

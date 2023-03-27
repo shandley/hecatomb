@@ -37,7 +37,8 @@ rule co_assembly:
     log:
         os.path.join(dir.out.stderr,"megahit_coassembly.log")
     resources:
-        mem_mb=config.resources.big.mem
+        mem_mb = config.resources.big.mem,
+        time = config.resources.big.time
     threads:
         config.resources.big.cpu
     conda:
@@ -78,7 +79,8 @@ rule individual_sample_assembly:
     log:
         os.path.join(dir.out.stderr, "megahit_{sample}.log")
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config.resources.med.mem,
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:
@@ -111,7 +113,8 @@ rule mapSampleAssemblyPairedReads:
     threads:
         config.resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config.resources.med.mem,
+        time = config.resources.med.time
     log:
         os.path.join(dir.out.stderr, "sampleAssemblyMapSe.{sample}.log")
     benchmark:
@@ -140,7 +143,8 @@ rule mapSampleAssemblyUnpairedReads:
     threads:
         config.resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config.resources.med.mem,
+        time = config.resources.med.time
     benchmark:
         os.path.join(dir.out.bench, "sampleAssemblyMapS.{sample}.txt")
     group:
@@ -163,10 +167,8 @@ rule pullPairedUnmappedReads:
         temp(os.path.join(dir.out.assembly, "{sample}", "{sample}.assemblyUnmapped_R1.fastq")),
     conda:
         os.path.join(dir.env,   "samtools.yaml")
-    threads:
-        config.resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem
+        time = config.resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "pullPairedUnmappedReads.{sample}.txt")
     group:
@@ -185,10 +187,8 @@ rule pullPairedUnmappedReadsMateMapped:
         temp(os.path.join(dir.out.assembly, "{sample}", "{sample}.assemblyUnmapped.se.s.fastq"))
     conda:
         os.path.join(dir.env,   "samtools.yaml")
-    threads:
-        config.resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem
+        time = config.resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "pullPairedUnmappedReads.{sample}.txt")
     group:
@@ -207,6 +207,8 @@ rule poolR1Unmapped:
         os.path.join(dir.out.assembly, "rescue_R1.unmapped.fastq.gz")
     threads:
         config.resources.med.cpu
+    resources:
+        time = config.resources.sml.time
     conda:
         os.path.join(dir.env, "pigz.yaml")
     group:
@@ -225,6 +227,8 @@ rule poolUnpairedUnmapped:
         temp(os.path.join(dir.out.assembly, "rescue_R1.singletons.fastq.gz"))
     threads:
         config.resources.med.cpu
+    resources:
+        time = config.resources.sml.time
     conda:
         os.path.join(dir.env, "pigz.yaml")
     group:
@@ -247,6 +251,8 @@ rule concatenate_contigs:
         compression = '-' + str(config.qc.compression)
     threads:
         config.resources.med.cpu
+    resources:
+        time = config.resources.sml.time
     conda:
         os.path.join(dir.env, "pigz.yaml")
     group:
@@ -276,7 +282,8 @@ rule coverage_calculations:
         os.path.join(dir.out.stderr, "coverage_calculations.{sample}.log")
     resources:
         mem_mb = config.resources.med.mem,
-        javaAlloc = int(0.9 * config.resources.med.mem)
+        javaAlloc = int(0.9 * config.resources.med.mem),
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:

@@ -20,7 +20,8 @@ rule mmseqs_contig_annotation:
     log:
         os.path.join(dir.out.stderr, "mmseqs_contig_annotation.log")
     resources:
-        mem_mb=config.resources.big.mem
+        mem_mb = config.resources.big.mem,
+        time = config.resources.big.time
     threads:
         config.resources.big.cpu
     conda:
@@ -59,7 +60,8 @@ rule mmseqs_contig_annotation_summary:
     log:
         os.path.join(dir.out.stderr, "mmseqs_contig_annotation_summary.log")
     resources:
-        mem_mb=config.resources.big.mem
+        mem_mb = config.resources.big.mem,
+        time = config.resources.big.time
     threads:
         config.resources.big.cpu
     conda:

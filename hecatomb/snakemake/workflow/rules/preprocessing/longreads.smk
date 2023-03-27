@@ -10,7 +10,8 @@ rule create_host_index:
     log:
         os.path.join(dir.out.stderr,'create_host_index.log')
     resources:
-        mem_mb=config.resources.med.mem
+        mem_mb=config.resources.med.mem,
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:
@@ -41,7 +42,8 @@ rule host_removal_mapping:
         sv=os.path.join(dir.out.stderr,"host_removal_mapping.{sample}.samtoolsView.log"),
         fq=os.path.join(dir.out.stderr,"host_removal_mapping.{sample}.samtoolsFastq.log")
     resources:
-        mem_mb=config.resources.med.mem
+        mem_mb=config.resources.med.mem,
+        time = config.resources.med.time
     threads:
         config.resources.med.cpu
     conda:
