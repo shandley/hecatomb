@@ -1,0 +1,8 @@
+name: canu
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - canu>=2.2
+  - zstd

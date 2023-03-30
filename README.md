@@ -1,11 +1,14 @@
+![](hecatombLogo.png)
+
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)](https://anaconda.org/bioconda/hecatomb)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/platforms.svg)](https://anaconda.org/bioconda/hecatomb)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)](https://anaconda.org/bioconda/hecatomb)
 [![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/downloads.svg)](https://anaconda.org/bioconda/hecatomb)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/hecatomb/README.html)
+[![install with pip](https://badge.fury.io/py/hecatomb.svg)](https://pypi.org/project/hecatomb/)
 
-![](docs/img/hecatombLogo.png)
+---
 
 A [hecatomb](https://en.wiktionary.org/wiki/hecatomb) is a great sacrifice or an extensive loss. 
 Heactomb the software empowers an analyst to make data driven decisions to *'sacrifice'* false-positive viral reads from 
@@ -73,10 +76,10 @@ Hecatomb can process paired- or single-end short-read sequencing, longread seque
 and paired-end sequencing for round A/B library protocol.
 
 ```bash
-hecatomb run --preprocess paired
-hecatomb run --preprocess single
-hecatomb run --preprocess longread
-hecatomb run --preprocess roundAB
+hecatomb run --library paired
+hecatomb run --library single
+hecatomb run --library longread
+hecatomb run --library roundAB
 ```
 
 When you specify a directory of reads with `--reads` for paried-end sequencing, 
@@ -100,12 +103,17 @@ sample2    /path/to/reads/sample2.1.fastq.gz    /path/to/reads/sample2.2.fastq.g
 
 ## Dependencies
 
-The only dependency you need to get up and running with Hecatomb is [conda](https://docs.conda.io/en/latest/).
+The only dependency you need to get up and running with Hecatomb is [conda](https://docs.conda.io/en/latest/) or 
+the python package manager [pip](https://pypi.org/project/pip/).
 Hecatomb relies on [conda](https://docs.conda.io/en/latest/) (and [mamba](https://github.com/mamba-org/mamba))
 to ensure portability and ease of installation of its dependencies.
 All of Hecatomb's dependencies are installed during installation or runtime, so you don't have to worry about a thing!
 
 ## Links
+
+[Hecatomb @ PyPI](https://pypi.org/project/hecatomb/)
+
+[Hecatomb @ bioconda](https://bioconda.github.io/recipes/hecatomb/README.html)
 
 [Hecatomb @ bio.tools](https://bio.tools/hecatomb)
 

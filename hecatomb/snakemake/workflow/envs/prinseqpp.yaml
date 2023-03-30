@@ -1,0 +1,7 @@
+name: prinseq-plus-plus
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - prinseq-plus-plus=1.2.4

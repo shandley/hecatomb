@@ -1,0 +1,1 @@
+Summary table showing the fate of all reads for each sample.

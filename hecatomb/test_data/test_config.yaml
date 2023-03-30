@@ -1,0 +1,110 @@
+# For more information see: https://github.com/shandley/hecatomb and https://hecatomb.readthedocs.io/en/latest/
+
+resources:
+    big:
+        mem: 2000     # Memory for MMSeqs in megabytes (e.g 64GB = 64000, recommend >= 64000)
+        cpu: 1        # Threads for MMSeqs (recommend >= 16)
+        time: 1440     # Max runtime in minutes for MMSeqs (this is only enforced by the Snakemake profile)
+    med:
+        mem: 2000  # Memory for Megahit/Flye in megabytes (recommend >= 32000)
+        cpu: 1     # CPUs for Megahit/Flye in megabytes (recommend >= 16)
+    sml:
+        mem: 2000   # Memory for BBTools etc. in megabytes (recommend >= 16000)
+        cpu: 1       # CPUs for BBTools etc. (recommend >= 8)
+    ram:
+        mem: 2000    # Memory for slightly RAM-hungry jobs in megabytes (recommend >= 16000)
+        cpu: 1        # CPUs for slightly RAM-hungry jobs (recommend >= 2)
+
+qc:
+    qscore: 15          # Read quality trimming score
+    readMinLen: 90      # Minimum read length during QC steps
+    contigMinLen: 1000  # Read minimum length
+    cutTailWindow: 25   # Sliding window size for low qual read filter
+    dedupAccuracy: 4    # Specify the level (1 ~ 6). The higher level means more memory usage and more running time, but lower risk of incorrect deduplication marking
+    compression: 1      # Compression level for gzip output (1 ~ 9). 1 is fastest, 9 is smallest. Default is 1, based on assumption of large scratch space
+    entropy: 0.5        # Read minimum entropy
+    entropyWindow: 25   # entropy window for low qual read filter
+
+prinseq:
+    -min_len 90
+    -min_qual_mean 20
+    -ns_max_n 1
+    -derep 1
+    -out_format 0
+    -trim_qual_type min
+    -trim_qual_left 20
+    -trim_qual_right 20
+    -trim_qual_window 25
+
+mmseqs:
+    linclustParams:
+        --kmer-per-seq-scale 0.3
+        -c 0.8
+        --cov-mode 1
+        --min-seq-id 0.97
+        --alignment-mode 3
+    filtAAprimary:
+        --min-length 30
+        -e 1e-3
+    filtAAsecondary:
+        --min-length 30
+        -e 1e-5
+    filtNTprimary:
+        --min-length 90
+        -e 1e-10
+    filtNTsecondary:
+        --min-length 90
+        -e 1e-20
+    perfAA:
+        --start-sens 1
+        --sens-steps 3
+        -s 7
+        --lca-mode 2
+        --shuffle 0
+    perfAAfast:
+        -s 4.0
+        --lca-mode 2
+        --shuffle 0
+    perfNT:
+        --start-sens 2
+        -s 7
+        --sens-steps 3
+    perfNTfast:
+        -s 4.0
+    taxIdIgnore: 0 1 2 10239 131567 12429 2759
+
+assembly:
+    canu:
+        correctedErrorRate=0.16
+        maxInputCoverage=10000
+        minInputCoverage=0
+        corOutCoverage=10000
+        corMhapSensitivity=high
+        corMinCoverage=0
+        useGrid=False
+        stopOnLowCoverage=False
+        genomeSize=1M
+        -nanopore
+        # -pacbio
+        # -pacbio-hifi
+    megahit:
+        --k-min 45
+        --k-max 225
+        --k-step 26
+        --min-count 2
+    flye:
+        -g 1m
+
+# COMMAND LINE ARGS WILL OVERWRITE CONFIG SETTING SPECIFIED HERE
+args:
+    reads:          # specify on command line or here
+    output:         # blank = use command line default
+    log:            # blank = use command line default
+    databases:      # blank = use command line default
+    search:         # blank = use command line default
+    host:           # blank = use command line default
+    preprocess:     # blank = use command line default
+    combineRuns:    # specify on command line (use with hecatomb combine)
+    hostFa:         # specify on command line (use with addHost)
+    hostName:       # specify on command line (use with addHost)
+

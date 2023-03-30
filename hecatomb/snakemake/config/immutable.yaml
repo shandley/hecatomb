@@ -1,0 +1,117 @@
+modules:
+    paired:
+        preflight:
+            "rules/preflight/samples_pe.smk"
+        preprocessing:
+            "rules/preprocessing/paired_end.smk"
+        targets:
+            ["_R1.unmapped.fastq.gz", "_R1.singletons.fastq.gz", "_R1.all.fastq.gz",
+             "_R2.singletons.fastq.gz", "_R2.unmapped.fastq.gz", "_R2.all.fastq.gz"]
+        assembly:
+            "rules/assembly/paired_end.smk"
+    single:
+        preflight:
+            "rules/preflight/samples_se.smk"
+        preprocessing:
+            "rules/preprocessing/single_end.smk"
+        targets:
+            ["_R1.unmapped.fastq.gz", "_R1.singletons.fastq.gz", "_R1.all.fastq.gz"]
+        assembly:
+            "rules/assembly/single_end.smk"
+    longread:
+        preflight:
+            "rules/preflight/samples_se.smk"
+        preprocessing:
+            "rules/preprocessing/longreads.smk"
+        targets:
+            ["_R1.all.fasta.gz",]
+        assembly:
+            "rules/assembly/longreads.smk"
+    roundAB:
+        preflight:
+            "rules/preflight/samples_pe.smk"
+        preprocessing:
+            "rules/preprocessing/roundAB.smk"
+        targets:
+            ["_R1.unmapped.fastq.gz", "_R1.singletons.fastq.gz", "_R1.all.fastq.gz",
+             "_R2.singletons.fastq.gz", "_R2.unmapped.fastq.gz", "_R2.all.fastq.gz"]
+        assembly:
+            "rules/assembly/paired_end.smk"
+
+# Leave blank, these are overwritten by command line defaults
+args:
+    reads:
+    output:
+    log:
+    search:
+    host:
+    library:
+    combineRuns:
+    hostFa:
+    hostName:
+    assembly:
+
+immutable:
+    reqAA:
+        -a
+        --tax-output-mode 2
+        --search-type 2
+        --tax-lineage 1
+        --lca-ranks "superkingdom,phylum,class,order,family,genus,species"
+        --format-output "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader,taxid,taxname,taxlineage"
+    convertAliSummary: "--format-output 'query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,target'"
+    taxonkitReformat: "-f '{k}\\t{p}\\t{c}\\t{o}\\t{f}\\t{g}\\t{s}' -F --fill-miss-rank"
+    mmseqsHeaderAA: "query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage"
+    mmseqConvertAliFormat: "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader"
+    contigAnnotHeader: "contigID\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\ttarget\tkingdom\tphylum\tclass\torder\tfamily\tgenus\tspecies"
+    bigtableHeader: [ "seqID",
+                      "sampleID",
+                      "count",
+                      "percent",
+                      "alnType",     # aa or nt
+                      "targetID",
+                      "evalue",
+                      "pident",
+                      "fident",
+                      "nident",
+                      "mismatches",
+                      "qcov",
+                      "tcov",
+                      "qstart",
+                      "qend",
+                      "qlen",
+                      "tstart",
+                      "tend",
+                      "tlen",
+                      "alnlen",
+                      "bits",
+                      "targetName",
+                      "taxMethod",
+                      "kingdom",
+                      "phylum",
+                      "class",
+                      "order",
+                      "family",
+                      "genus",
+                      "species",
+                      "baltimoreType",
+                      "baltimoreGroup" ]
+    contigTaxonHeader: ["contigID",
+                        "seqID",
+                        "start",
+                        "stop",
+                        "len",
+                        "qual",
+                        "count",
+                        "percent",
+                        "alnType",
+                        "taxMethod",
+                        "kingdom",
+                        "phylum",
+                        "class",
+                        "order",
+                        "family",
+                        "genus",
+                        "species",
+                        "baltimoreType",
+                        "baltimoreGroup",]

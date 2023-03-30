@@ -1,0 +1,8 @@
+include MANIFEST.in
+include hecatomb/hecatomb.LICENSE
+include hecatomb/hecatomb.CITATION
+include hecatomb/hecatomb.VERSION
+recursive-include hecatomb/ *
+recursive-exclude hecatomb/snakemake/conda/ *
+recursive-exclude hecatomb/snakemake/databases/ *
+
