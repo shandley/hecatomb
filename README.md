@@ -40,30 +40,49 @@ Hecatomb is powered by [Snakemake](https://snakemake.readthedocs.io/en/stable/#)
 Snakemake profiles for HPC Clusters.
 [More information and example for setting up Snakemake profiles for Hecatomb in the documentation](https://hecatomb.readthedocs.io/en/latest/profiles/).
 
-### Install
+### Install option 1: PIP
 
 ```bash
-# create conda env and install
+# Optional: create a virtual env with conda
+conda create -n hecatomb python=3.10
+
+# activate
+conda activte hecatomb
+
+# Install
+pip install hecatomb
+```
+
+### Install option 2: Conda
+
+```bash
+# Create the conda env and install hecatomb in one step
 conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 
-# activate conda env
+# activate
 conda activate hecatomb
+```
 
-# check the installation
+### Check the installation
+
+```bash
 hecatomb --help
+```
 
-# download the databases - you only have to do this once
-  # locally: using 8 threads (default is 32 threads)
+### Install the databases
+
+```bash
+# locally: using 8 threads (default is 32 threads)
 hecatomb install --threads 8
 
-  # HPC: using a snakemake profile named 'slurm'
+# HPC: using a snakemake profile named 'slurm'
 hecatomb install --profile slurm
 ```
 
 ### Run the test dataset
 
 ```bash
-# locally: uses 32 threads and 64 GB RAM by default
+# locally: using 32 threads and 64 GB RAM by default
 hecatomb test
 
 # HPC: using a profile named 'slurm'
