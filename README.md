@@ -1,12 +1,13 @@
 ![](hecatombLogo.png)
 
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)](https://anaconda.org/bioconda/hecatomb)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/platforms.svg)](https://anaconda.org/bioconda/hecatomb)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)](https://anaconda.org/bioconda/hecatomb)
-[![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/downloads.svg)](https://anaconda.org/bioconda/hecatomb)
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/hecatomb/README.html)
-[![install with pip](https://badge.fury.io/py/hecatomb.svg)](https://pypi.org/project/hecatomb/)
+![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)
+![](https://img.shields.io/github/v/tag/shandley/hecatomb?label=version&style=flat-square)
+![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)
+[![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest&style=flat-square)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
+[![install with bioconda](https://img.shields.io/badge/Install%20with-conda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/hecatomb/README.html)
+![](https://img.shields.io/conda/dn/bioconda/hecatomb?label=Conda%20downloads&style=flat-square)
+[![install with PyPI](https://img.shields.io/badge/Install%20with-PyPI-brightgreen.svg?style=flat-square)](https://pypi.org/project/hecatomb/)
+![PyPI Downloads](https://img.shields.io/pypi/dw/hecatomb?label=PyPI%20Downloads&style=flat-square)
 
 ---
 

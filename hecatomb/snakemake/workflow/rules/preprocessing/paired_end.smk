@@ -28,6 +28,8 @@ rule fastp_preprocessing:
     params:
         fastp = config.qc.fastp,
         compression = config.qc.compression
+    group:
+        "preprocessing"
     shell:
         """
         fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} \
