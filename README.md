@@ -1,12 +1,13 @@
 ![](hecatombLogo.png)
 
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)](https://anaconda.org/bioconda/hecatomb)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/platforms.svg)](https://anaconda.org/bioconda/hecatomb)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)](https://anaconda.org/bioconda/hecatomb)
-[![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/downloads.svg)](https://anaconda.org/bioconda/hecatomb)
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/hecatomb/README.html)
-[![install with pip](https://badge.fury.io/py/hecatomb.svg)](https://pypi.org/project/hecatomb/)
+![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)
+![](https://img.shields.io/github/v/tag/shandley/hecatomb?label=version&style=flat-square)
+![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)
+[![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest&style=flat-square)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
+[![install with bioconda](https://img.shields.io/badge/Install%20with-conda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/hecatomb/README.html)
+![](https://img.shields.io/conda/dn/bioconda/hecatomb?label=Conda%20downloads&style=flat-square)
+[![install with PyPI](https://img.shields.io/badge/Install%20with-PyPI-brightgreen.svg?style=flat-square)](https://pypi.org/project/hecatomb/)
+![PyPI Downloads](https://img.shields.io/pypi/dw/hecatomb?label=PyPI%20Downloads&style=flat-square)
 
 ---
 
@@ -40,30 +41,49 @@ Hecatomb is powered by [Snakemake](https://snakemake.readthedocs.io/en/stable/#)
 Snakemake profiles for HPC Clusters.
 [More information and example for setting up Snakemake profiles for Hecatomb in the documentation](https://hecatomb.readthedocs.io/en/latest/profiles/).
 
-### Install
+### Install option 1: PIP
 
 ```bash
-# create conda env and install
+# Optional: create a virtual env with conda
+conda create -n hecatomb python=3.10
+
+# activate
+conda activte hecatomb
+
+# Install
+pip install hecatomb
+```
+
+### Install option 2: Conda
+
+```bash
+# Create the conda env and install hecatomb in one step
 conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 
-# activate conda env
+# activate
 conda activate hecatomb
+```
 
-# check the installation
+### Check the installation
+
+```bash
 hecatomb --help
+```
 
-# download the databases - you only have to do this once
-  # locally: using 8 threads (default is 32 threads)
+### Install the databases
+
+```bash
+# locally: using 8 threads (default is 32 threads)
 hecatomb install --threads 8
 
-  # HPC: using a snakemake profile named 'slurm'
+# HPC: using a snakemake profile named 'slurm'
 hecatomb install --profile slurm
 ```
 
 ### Run the test dataset
 
 ```bash
-# locally: uses 32 threads and 64 GB RAM by default
+# locally: using 32 threads and 64 GB RAM by default
 hecatomb test
 
 # HPC: using a profile named 'slurm'
