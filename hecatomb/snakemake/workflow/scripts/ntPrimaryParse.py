@@ -16,11 +16,11 @@ atexit.register(exitLogCleanup, snakemake.log[0])
 logging.basicConfig(filename=snakemake.log[0], filemode="w", level=logging.DEBUG)
 
 logging.debug("Reading hit seq ids from primary NT")
-hit = {}
+hit = set()
 with open(snakemake.input.align, "r") as inAln:
     for line in inAln:
         l = line.strip().split("\t")
-        hit[l[0]] = 1
+        hit.add(l[0])
 
 logging.debug("Parsing AA-unclass seqs and writing NT-hit seqs")
 with open(snakemake.output.class_seqs, "w") as outClass:
@@ -30,14 +30,13 @@ with open(snakemake.output.class_seqs, "w") as outClass:
                 if line.startswith(">"):
                     id = line.strip().replace(">", "")
                     seq = inFa.readline().strip()
-                    try:
-                        hit[id]
+                    if id in hit:
                         outClass.write(f">{id}\n{seq}\n")
-                    except KeyError:
+                    else:
                         outUnclass.write(f">{id}\n{seq}\n")
                 else:
-                    logging.ERROR(
-                        f"malformed {input.seqs} file, or something, complain to Mike"
+                    logging.error(
+                        f"malformed {snakemake.input.seqs} file, or something, complain to Mike"
                     )
                     exit(1)
 
