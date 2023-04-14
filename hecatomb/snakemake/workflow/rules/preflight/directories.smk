@@ -41,10 +41,17 @@ dir.dbs.contaminants  = os.path.join(dir.dbs.base, "contaminants")
 dir.dbs.taxonomy      = os.path.join(dir.dbs.base, "tax", "taxonomy")
 dir.dbs.tables        = os.path.join(dir.dbs.base, "tables")
 dir.dbs.host.base     = os.path.join(dir.dbs.base, "host")
-dir.dbs.primaryAA     = os.path.join(dir.dbs.base, "aa", "virus_primary_aa")
 dir.dbs.secondaryAA   = os.path.join(dir.dbs.base, "aa", "virus_secondary_aa")
-dir.dbs.primaryNT     = os.path.join(dir.dbs.base, "nt", "virus_primary_nt")
 dir.dbs.secondaryNT   = os.path.join(dir.dbs.base, "nt", "virus_secondary_nt")
+
+if config.args.custom_aa:
+    dir.dbs.primaryAA = os.path.join(dir.out.tmp, "aa", "virus_primary_aa", "sequenceDB")
+else:
+    dir.dbs.primaryAA = os.path.join(dir.dbs.base, "aa", "virus_primary_aa", "sequenceDB")
+if config.args.custom_nt:
+    dir.dbs.primaryNT = os.path.join(dir.out.temp, "nt", "virus_primary_nt", "sequenceDB")
+else:
+    dir.dbs.primaryNT = os.path.join(dir.dbs.base, "nt", "virus_primary_nt", "sequenceDB")
 
 
 ### OUTPUT DIRs

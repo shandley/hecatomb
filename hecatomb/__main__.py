@@ -139,11 +139,15 @@ AVAILABLE STAGES:
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
 @click.option('--assembly', help='Assembly method: [cross]-assembly or [co]-assembly', default='cross',
               show_default=True, type=click.Choice(['cross', 'co']))
+@click.option("--custom-aa", help="Custom protein fasta for prefiltering",
+            type=click.Path(readable=True), default="", show_default=False, exists=True)
+@click.option("--custom-nt", help="Custom nucleotide fasta for prefiltering",
+            type=click.Path(readable=True), default="", show_default=False, exists=True)
 @click.option('--search', help='MMSeqs search speed settings', default='sensitive',
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
 @common_options
-def run(reads, library, assembly, search, host, output, log, **kwargs):
+def run(reads, library, assembly, custom_aa, custom_nt, search, host, output, log, **kwargs):
     """Run hecatomb"""
 
     merge_config = {
@@ -153,6 +157,8 @@ def run(reads, library, assembly, search, host, output, log, **kwargs):
             'host': host,
             'library': library,
             'assembly': assembly,
+            'custom_aa': custom_aa,
+            'custom_nt': custom_nt,
             'search': search,
             'log': log
         }

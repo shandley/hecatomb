@@ -54,11 +54,9 @@ mmseqs:
         --start-sens 1
         --sens-steps 3
         -s 7
-        --lca-mode 2
         --shuffle 0
     perfAAfast:
         -s 4.0
-        --lca-mode 2
         --shuffle 0
     perfNT:
         --start-sens 2
@@ -83,11 +81,7 @@ assembly:
         # -pacbio
         # -pacbio-hifi
     megahit:
-        --k-min 45
-        --k-max 225
-        --k-step 26
-        --min-count 2
-        --min-contig-len 1000
+        --presets meta-large
     flye:
         -g 1g
     metaflye:

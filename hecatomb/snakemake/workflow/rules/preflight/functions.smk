@@ -39,6 +39,34 @@ def file_len(fname):
 
 
 ## GENERIC RECIPES
+rule create_custom_primary_aa:
+    """Create a custom primary aa database from a FASTA"""
+    input:
+        config.args.custom_aa
+    output:
+        os.path.join(dir.dbs.base, "aa", "virus_primary_aa", "sequenceDB")
+    log:
+        os.path.join(dir.out.stderr, "create_custom_primary_aa.stderr")
+    conda:
+        os.path.join(dir.env, "mmseqs2.yaml")
+    shell:
+        """mmseqs createdb {input} {output} --dbtype 1"""
+
+
+rule create_custom_primary_nt:
+    """Create a custom primary nt database from a FASTA"""
+    input:
+        config.args.custom_nt
+    output:
+        os.path.join(dir.dbs.base, "nt", "virus_primary_nt", "sequenceDB")
+    log:
+        os.path.join(dir.out.stderr, "create_custom_primary_nt.stderr")
+    conda:
+        os.path.join(dir.env, "mmseqs2.yaml")
+    shell:
+        """mmseqs createdb {input} {output} --dbtype 2"""
+
+
 rule fasta_index:
     """Index a .fasta file for rapid access with samtools faidx."""
     input:
