@@ -12,7 +12,7 @@ rule primary_aa_search:
     """Taxon step 01: Assign taxonomy to dir.out.results/seqtable.fasta sequences using mmseqs2 with primary AA database"""
     input:
         seqs = os.path.join(dir.out.results, "seqtable.fasta"),
-        db = os.path.join(dir.dbs.primaryAA, "sequenceDB")
+        db = dir.dbs.primaryAA
     output:
         os.path.join(dir.out.primaryAA, "mmseqs.primary.aa.alignments.tsv")
     params:
@@ -35,7 +35,7 @@ rule primary_aa_search:
         "primaryaa"
     shell:
         """
-        mmseqs easy-search {input.seqs} {input.db} {params.alnRes} {output} \
+        mmseqs easy-search {input.seqs} {input.db} {output} {params.alnRes} \
             {params.filtaa} {params.sensaa} \
             --threads {threads} --split-memory-limit {params.memsplit} &> {log}
         rm {log}
@@ -218,7 +218,7 @@ rule primary_nt_search:
     """Taxon step 08: Primary nucleotide search of unclassified viral-like sequences from aa search"""
     input:
         seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
-        db = os.path.join(dir.dbs.primaryNT, "sequenceDB")
+        db = dir.dbs.primaryNT
     output:
         os.path.join(dir.out.primaryNT, "mmseqs.primary.nt.alignments.tsv"),
     params:
@@ -315,7 +315,7 @@ rule secondary_nt_search:
 rule secondary_nt_lca_table:
     """Taxon step 14: Create table for taxonkit lineage for secondary NT search"""
     input:
-        align = os.path.join(dir.out.secondaryNT, "all.tax")
+        align = os.path.join(dir.out.secondaryNT, "all.taxid")
     output:
         lin = temp(os.path.join(dir.out.secondaryNT, "all.lin")),
         top = temp(os.path.join(dir.out.secondaryNT, "top.lin"))

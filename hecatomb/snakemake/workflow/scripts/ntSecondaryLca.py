@@ -35,13 +35,10 @@ with open(snakemake.output.top, "w") as outTop:
                     if curRead != "":
                         dumpRead(lin, outLin)
                     curRead = l[0]
-                    lin = set()
-                t = l[1].split("|")  # e.g. tid|2293023|NZ_QUCO01000049.1
                 if not l[0] in topDone:
-                    outTop.write(f"{l[0]}\t{t[1]}\n")
+                    outTop.write(f"{l[0]}\t{l[1]}\n")
                     topDone.add(l[0])
-                if not t[1] in lin:
-                    lin.add(t[1])
+                lin.add(l[1])
         dumpRead(lin, outLin)
 
 logging.debug("Done")

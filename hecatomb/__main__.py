@@ -140,9 +140,9 @@ AVAILABLE STAGES:
 @click.option('--assembly', help='Assembly method: [cross]-assembly or [co]-assembly', default='cross',
               show_default=True, type=click.Choice(['cross', 'co']))
 @click.option("--custom-aa", help="Custom protein fasta for prefiltering",
-            type=click.Path(readable=True), default="", show_default=False, exists=True)
+            type=click.Path(readable=True, exists=True), default="", show_default=False)
 @click.option("--custom-nt", help="Custom nucleotide fasta for prefiltering",
-            type=click.Path(readable=True), default="", show_default=False, exists=True)
+            type=click.Path(readable=True, exists=True), default="", show_default=False)
 @click.option('--search', help='MMSeqs search speed settings', default='sensitive',
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
