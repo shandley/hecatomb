@@ -13,18 +13,18 @@ rule tax_level_counts:
     params:
         samples = samples.names
     log:
-        os.path.join(dir.out.stderr, 'tax_level_counts.log')
+        os.path.join(dir.out.stderr, "tax_level_counts.log")
     resources:
         mem_mb=config.resources.ram.mem
     threads:
         config.resources.ram.cpu
     script:
-        os.path.join(dir.scripts,  'taxLevelCounts.py')
+        os.path.join(dir.scripts,  "taxLevelCounts.py")
 
 
 rule dumpSamplesTsv:
     output:
-        os.path.join(dir.out.results, 'hecatomb.samples.tsv')
+        os.path.join(dir.out.results, "hecatomb.samples.tsv")
     run:
         writeSamplesTsv(samples.reads, output[0])
 
@@ -40,9 +40,9 @@ rule krona_text_format:
     group:
         "krona"
     log:
-        os.path.join(dir.out.stderr, 'krona_text_format.log')
+        os.path.join(dir.out.stderr, "krona_text_format.log")
     script:
-        os.path.join(dir.scripts,  'kronaText.py')
+        os.path.join(dir.scripts,  "kronaText.py")
 
 
 rule krona_plot:
@@ -52,13 +52,13 @@ rule krona_plot:
     output:
         os.path.join(dir.out.results, "krona.html")
     conda:
-        os.path.join(dir.env, 'krona.yaml')
+        os.path.join(dir.env, "krona.yaml")
     benchmark:
         os.path.join(dir.out.bench, "krona_plot.txt")
     group:
         "krona"
     log:
-        os.path.join(dir.out.stderr, 'krona_plot.log')
+        os.path.join(dir.out.stderr, "krona_plot.log")
     resources:
         mem_mb=config.resources.ram.mem
     shell:
@@ -76,9 +76,9 @@ rule contig_krona_text_format:
     group:
         "contig_krona"
     log:
-        os.path.join(dir.out.stderr, 'contig_krona_text_format.log')
+        os.path.join(dir.out.stderr, "contig_krona_text_format.log")
     script:
-        os.path.join(dir.scripts,  'contigKronaText.py')
+        os.path.join(dir.scripts,  "contigKronaText.py")
 
 
 rule contig_krona_plot:
@@ -87,11 +87,11 @@ rule contig_krona_plot:
     output:
         os.path.join(dir.out.results, "contigKrona.html")
     conda:
-        os.path.join(dir.env, 'krona.yaml')
+        os.path.join(dir.env, "krona.yaml")
     group:
         "contig_krona"
     log:
-        os.path.join(dir.out.stderr, 'contig_krona_plot.log')
+        os.path.join(dir.out.stderr, "contig_krona_plot.log")
     resources:
         mem_mb = config.resources.ram.mem
     shell:

@@ -1,36 +1,54 @@
 # Preprocessing modules
 
-## paired_end.smk
+__paired_end.smk__
 
 Generic module for preprocessing paired end short reads.
 
-## single_end.smk
+__single_end.smk__
 
 Generic module for preprocessing single end short reads.
 
-## longreads.smk
+__longreads.smk__
 
 Module for processing long reads such as PacBio, Nanopore.
 
-## roundAB.smk
+__roundAB.smk__
 
 Module for processing paired end short reads from Round A/B library
 prep for viral metagenomics.
 
-## cluster_seqs.smk
+__cluster_seqs.smk__
 
 Rules to cluster processed R1 reads--for use with all preprocessing modules.
 
-## Creating your own module
+# Create your own module
 
-### CLI
+Fork this repo and add your own preprocessing module to support a different library type.
+You'll need to update the CLI, the config file, and add the rules.
+
+**hecatomb/__main__.py**
 
 Add the new module option to `--preprocess` in `hecatomb/__main__.py`.
 
-### Config
+**hecatomb/snakemake/config/immutable.yaml**
 
 Update `config/immutable.yaml` and add the appropriate rules for your new module.
 Reuse existing files where possible to make life easier.
+Lastly, add the outputs (from below) used for assembly as targets by updating 
+`config/immutable.yaml`. e.g.:
+
+```python
+modules:
+    your_new_module:
+        targets:
+            ["_R1.unmapped.fastq.gz", "_R1.singletons.fastq.gz", "_R1.all.fastq.gz", 
+             "_R2.singletons.fastq.gz", "_R2.unmapped.fastq.gz", "_R2.all.fastq.gz"]
+        ...
+```
+
+Now, create the new file for your preprocessing module.
+
+**hecatomb/snakemake/workflow/rules/preprocessing/your_new_module.smk**
 
 ### Inputs
 
@@ -46,7 +64,7 @@ R1 (and R2 for paired) reads accessed from `samples.reads["sample"]["R1/R2"]` e.
 __For read annotation__
 
 Reads for clustering via `cluster_seqs.smk`.
-For paired reads, these should both the R1 paired and singleton reads e.g.:
+For paired reads, these should be the concatenated R1 paired and singleton reads e.g.:
 
 ```python
     input:
@@ -72,19 +90,6 @@ or
 # single end / longreads
     input:
         os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz")
-```
-
-__Targets__ 
-
-Add the outputs used for assembly as targets by updating `config/immutable.yaml`. e.g.:
-
-```python
-modules:
-    paired:
-        targets:
-            ["_R1.unmapped.fastq.gz", "_R1.singletons.fastq.gz", "_R1.all.fastq.gz", 
-             "_R2.singletons.fastq.gz", "_R2.unmapped.fastq.gz", "_R2.all.fastq.gz"]
-        ...
 ```
 
 ### Pull request

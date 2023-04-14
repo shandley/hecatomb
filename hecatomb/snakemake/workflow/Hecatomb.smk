@@ -1,15 +1,3 @@
-"""
-The snakefile that runs hecatomb.
-
-USE THE LAUNCHER:
-hecatomb run --reads test_data/ --profile slurm
-
-Manual launch example:
-snakemake -s Hecatomb.smk --profile slurm --config Reads=test_data/ Host=human
-
-Rob Edwards, October 2020
-Overhauled: Michael Roach, Q2 2021
-"""
 
 import attrmap as ap
 import attrmap.utils as au
@@ -53,9 +41,6 @@ samples.reads = parseSamples(config.args.reads)
 samples.names = list(ap.utils.get_keys(samples.reads))
 samples = au.convert_state(samples, read_only=True)
 
-# wildcard_constraints:
-#     sample="[a-zA-Z0-9._-]+"
-
 
 ### TARGETS (must be included AFTER parsing samples)
 include: os.path.join("rules", "preflight", "targets.smk")
@@ -76,7 +61,10 @@ include: os.path.join("rules","reports","summaries.smk")
 include: os.path.join("rules","reports","summaries_optional.smk")
 
 
-# Mark target rules
+### TARGET RULES (alternatives to rule "all")
+localrules: all, preprocess, assemble, annotate, ctg_annotate, print_stages, dumpSamplesTsv
+
+
 target_rules = []
 
 
@@ -84,9 +72,6 @@ def targetRule(fn):
     assert fn.__name__.startswith("__")
     target_rules.append(fn.__name__[2:])
     return fn
-
-
-localrules: all, preprocess, assemble, annotate, ctg_annotate, print_stages, dumpSamplesTsv
 
 
 @targetRule

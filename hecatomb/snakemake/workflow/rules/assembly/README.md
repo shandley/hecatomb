@@ -1,33 +1,40 @@
 # Assembly modules
 
-## paired_end.smk
+__paired_end.smk__
 
 Generic module for individual sample assemblies with Megahit for paired end short reads.
 
-## single_end.smk
+__single_end.smk__
 
 Generic module for individual sample assemblies with Megahit for single end short reads.
 
-## longreads.smk
+__longreads.smk__
 
 Generic module for individual sample assemblies with Canu for longreads.
 
-## combine_sample_assemblies.smk
+__combine_sample_assemblies.smk__
 
 Rules to combine all individual sample assemblies into a cross assembly.
-Uses FlyE with --subassemblies.
+Uses FlyE with `--subassemblies`.
 
-## Create your own sample assembly
+# Create your own assembly module
 
-### CLI
+Fork this repo and add your own assembly module to support a different library type.
+You'll need to update the CLI, the config file, and add the rules.
+Ideally you should add rules for both a co-assembly and a cross-assembly.
 
-Assembly method is currently inferred from preprocessing.
-Add a new preprocessing option in `hecatomb/__main__.py`.
+**hecatomb/__main__.py**
 
-### Config
+Assembly module is currently inferred from `--library`.
+Add a new library option in `hecatomb/__main__.py`.
+
+**hecatomb/snakemake/config/immutable.yaml**
 
 Update `config/immutable.yaml` and add the appropriate rules for your new module.
-Reuse existing files where possible to make life easier.
+Reuse existing files where possible to make life easier. 
+Lasty, create a new file for your assembly module.
+
+**hecatomb/snakemake/workflow/rules/assembly/your_new_module.smk**
 
 ### Inputs
 
@@ -49,9 +56,10 @@ or
         os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz")
 ```
 
-### Outputs
+### Outputs: cross-assembly
 
-Concatenated contigs from all individual sample assemblies, e.g.:
+Currently, each library type has the option to do a __cross-assembly__ or a __co-assembly__.
+For the Cross assembly, the output is the concatenated contigs from all individual sample assemblies, e.g.:
 
 ```python
     output:
@@ -59,9 +67,25 @@ Concatenated contigs from all individual sample assemblies, e.g.:
 ```
 
 Make sure all contig names are unique.
-The `combine_sample_assembly.smk` rules will generate the cross assembly from this file.
-You will need to provide a rule for doing the coverage calculations from `os.path.join(dir.out.assembly, "all_sample_contigs.fasta")`.
+The `combine_sample_assembly.smk` rules will generate the cross assembly and assembly graph from this file.
+
+### Outputs: co-assembly
+
+This will be a one-step assembly for all the samples.
+The outputs will the final assembly fasta and the assembly graph.
+
+```python
+    output:
+        assembly = os.path.join(dir.out.results, "co_assembly.fasta"),
+        graph = os.path.join(dir.out.results, "co_assembly_graph.gfa"),
+```
+
+### Ouputs: coverage calculations
+
+You will need to provide a rule for doing the coverage calculations from the final assembly
+`os.path.join(dir.out.results, f"{config.args.assembly}_assembly.fasta")`.
 Just copy-paste the `rule coverage_calculations` from one of the other files as a template.
+You might not even have to change anything.
 
 ### Pull request
 
