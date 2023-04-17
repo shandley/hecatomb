@@ -67,15 +67,13 @@ with open(snakemake.input.aln, 'r') as alnfh:
             else:
                 out = outNonVir
             seqInf = l[0].split(':')
-            tName = re.sub('.*\||[a-zA-Z]+=.*','',l[18])
             seqOut = '\t'.join((l[0], seqInf[0], seqInf[1], seqInf[2]))
-
             alnOut = 'nt\t' + '\t'.join((l[1:17]))
             try:
                 baltOut = balt[taxOut[5]]
             except KeyError:
                 baltOut = 'NA\tNA'
-            out.write('\t'.join((seqOut, alnOut, tName, taxOutPrint, baltOut)))
+            out.write('\t'.join((seqOut, alnOut, l[18], taxOutPrint, baltOut)))
             out.write('\n')
 
 logging.debug('Done')
