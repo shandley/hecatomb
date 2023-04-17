@@ -31,8 +31,6 @@ rule primary_aa_search:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
-    group:
-        "primaryaa"
     shell:
         """
         mmseqs easy-search {input.seqs} {input.db} {output} {params.alnRes} \
@@ -55,8 +53,6 @@ rule primary_aa_parsing:
         os.path.join(dir.out.bench, "PRIMARY_AA_parsing.txt")
     log:
         os.path.join(dir.out.stderr, "PRIMARY_AA_parsing.log")
-    group:
-        "primaryaa"
     script:
         os.path.join(dir.scripts,  "aaPrimaryParse.py")
 
@@ -91,8 +87,6 @@ rule secondary_aa_taxonomy_assignment:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
-    group:
-        "secondaryaa"
     shell:
         """
         {{ # Run mmseqs taxonomy module
@@ -126,7 +120,7 @@ rule secondary_aa_tophit_lineage:
     log:
         os.path.join(dir.out.stderr, "SECONDARY_AA_tophit_lineage.log")
     group:
-        "secondaryaa"
+        "secondary_aa_parsing"
     shell:
         """
         {{ # Make a table: SeqID <tab> taxID
@@ -157,7 +151,7 @@ rule secondary_aa_refactor_finalize:
     log:
         os.path.join(dir.out.stderr, "SECONDARY_AA_refactor_finalize.log")
     group:
-        "secondaryaa"
+        "secondary_aa_parsing"
     shell:
         """
         {{ cut -f1,2 {input.lca} \
@@ -187,7 +181,7 @@ rule secondary_aa_output_table:
     log:
         os.path.join(dir.out.stderr, "SECONDARY_AA_generate_output_table.log")
     group:
-        "secondaryaa"
+        "secondary_aa_parsing"
     params:
         taxIdIgnore = config.mmseqs.taxIdIgnore.split(),
         bigtableHeader = config.immutable.bigtableHeader
@@ -209,7 +203,7 @@ rule secondary_aa_parsing:
     log:
         os.path.join(dir.out.stderr, "SECONDARY_AA_parsing.log")
     group:
-        "secondaryaa"
+        "secondary_aa_parsing"
     script:
         os.path.join(dir.scripts,  "aaSecondaryParse.py")
 
@@ -237,8 +231,6 @@ rule primary_nt_search:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
-    group:
-        "primarynt"
     shell:
         """
         mmseqs easy-search {input.seqs} {input.db} {output} {params.tmppath} \
@@ -265,8 +257,6 @@ rule primary_nt_parsing:
         os.path.join(dir.out.bench, "PRIMARY_NT_parsing.txt")
     log:
         os.path.join(dir.out.stderr, "PRIMARY_NT_parsing.log")
-    group:
-        "primarynt"
     script:
         os.path.join(dir.scripts,  "ntPrimaryParse.py")
 
@@ -297,7 +287,7 @@ rule secondary_nt_search:
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
     group:
-        "secondarynt"
+        "secondary_nt_parsing"
     shell:
         """{{
         mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmppath} \
@@ -326,7 +316,7 @@ rule secondary_nt_lca_table:
     resources:
         time = config.resources.sml.time
     group:
-        "secondarynt"
+        "secondary_nt_parsing"
     script:
         os.path.join(dir.scripts,  "ntSecondaryLca.py")
 
@@ -351,7 +341,7 @@ rule secondary_nt_calc_lca:
     log:
         os.path.join(dir.out.stderr, "secondary_nt_calc_lca.log")
     group:
-        "secondarynt"
+        "secondary_nt_parsing"
     shell:
         """
         {{
@@ -391,7 +381,7 @@ rule secondary_nt_generate_output_table:
     log:
         os.path.join(dir.out.stderr, "SECONDARY_NT_generate_output_table.log")
     group:
-        "secondarynt"
+        "secondary_nt_parsing"
     script:
         os.path.join(dir.scripts,  "ntBigtable.py")
 
@@ -410,7 +400,7 @@ rule combine_aa_nt:
     resources:
         time = config.resources.sml.time
     group:
-        "secondarynt"
+        "secondary_nt_parsing"
     shell:
         """
         {{ cat {input.aa} > {output};
