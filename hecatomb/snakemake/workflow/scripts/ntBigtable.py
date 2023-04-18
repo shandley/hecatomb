@@ -73,7 +73,7 @@ with open(snakemake.input.aln, 'r') as alnfh:
                 baltOut = balt[taxOut[5]]
             except KeyError:
                 baltOut = 'NA\tNA'
-            out.write('\t'.join((seqOut, alnOut, l[18], taxOutPrint, baltOut)))
+            out.write('\t'.join((seqOut, alnOut, l[1], taxOutPrint, baltOut)))
             out.write('\n')
 
 logging.debug('Done')
