@@ -343,12 +343,12 @@ rule secondary_nt_calc_lca:
             awk -F '\t' '$3 != 0' | \
             taxonkit lineage -i 3 --data-dir {input.taxdb} | \
             taxonkit reformat --data-dir {input.taxdb} -i 4 {params.taxonFormat} | \
-            cut --complement -f 2-4 \
+            cut --complement -f 3,4 \
             > {output.lca_lineage}
         
         taxonkit lineage -i 2 --data-dir {input.taxdb} {input.top} | \
             taxonkit reformat --data-dir {input.taxdb} -i 3 {params.taxonFormat} | \
-            cut --complement -f 2,3 > {output.top_lineage}
+            cut --complement -f 3 > {output.top_lineage}
         }} &> {log}
         rm {log}
         """
