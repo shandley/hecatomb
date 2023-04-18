@@ -21,9 +21,9 @@ rule primary_aa_search:
         sensaa = config.mmseqs.sensAA,
         memsplit = str(int(0.75 * int(config.resources.big.mem))) + "M",
     benchmark:
-        os.path.join(dir.out.bench, "PRIMARY_AA_taxonomy_assignment.txt")
+        os.path.join(dir.out.bench, "primary_aa_taxonomy_assignment.txt")
     log:
-        os.path.join(dir.out.stderr, "PRIMARY_AA_taxonomy_assignment.log")
+        os.path.join(dir.out.stderr, "primary_aa_taxonomy_assignment.log")
     resources:
         mem_mb = config.resources.big.mem,
         time = config.resources.big.time
@@ -50,9 +50,9 @@ rule primary_aa_parsing:
     resources:
         time = config.resources.sml.time
     benchmark:
-        os.path.join(dir.out.bench, "PRIMARY_AA_parsing.txt")
+        os.path.join(dir.out.bench, "primary_aa_parsing.txt")
     log:
-        os.path.join(dir.out.stderr, "PRIMARY_AA_parsing.log")
+        os.path.join(dir.out.stderr, "primary_aaA_parsing.log")
     script:
         os.path.join(dir.scripts,  "aaPrimaryParse.py")
 
@@ -194,9 +194,9 @@ rule secondary_aa_parsing:
     resources:
         time = config.resources.sml.time
     benchmark:
-        os.path.join(dir.out.bench, "SECONDARY_AA_parsing.txt")
+        os.path.join(dir.out.bench, "secondary_aa_parsing.txt")
     log:
-        os.path.join(dir.out.stderr, "SECONDARY_AA_parsing.log")
+        os.path.join(dir.out.stderr, "secondary_aa_parsing.log")
     group:
         "secondary_aa_parsing"
     script:
@@ -216,9 +216,9 @@ rule primary_nt_search:
         ntsens = config.mmseqs.sensNT,
         memsplit = str(int(0.75 * int(config.resources.big.mem))) + "M"
     benchmark:
-        os.path.join(dir.out.bench, "PRIMARY_NT_taxonomic_assignment.txt")
+        os.path.join(dir.out.bench, "primary_nt_taxonomic_assignment.txt")
     log:
-        os.path.join(dir.out.stderr, "PRIMARY_NT_taxonomic_assignment.log")
+        os.path.join(dir.out.stderr, "primary_nt_taxonomic_assignment.log")
     resources:
         mem_mb = config.resources.big.mem,
         time = config.resources.big.time
@@ -249,9 +249,9 @@ rule primary_nt_parsing:
     resources:
         time = config.resources.sml.time
     benchmark:
-        os.path.join(dir.out.bench, "PRIMARY_NT_parsing.txt")
+        os.path.join(dir.out.bench, "primary_nt_parsing.txt")
     log:
-        os.path.join(dir.out.stderr, "PRIMARY_NT_parsing.log")
+        os.path.join(dir.out.stderr, "primary_nt_parsing.log")
     script:
         os.path.join(dir.scripts,  "ntPrimaryParse.py")
 
@@ -265,15 +265,15 @@ rule secondary_nt_search:
         aln = os.path.join(dir.out.secondaryNT, "mmseqs.secondary.nt.alignments.tsv"),
         tax = temp(os.path.join(dir.out.secondaryNT, "all.taxid"))
     params:
-        tmppath = os.path.join(dir.out.secondaryNT, "tmp"),
+        tmp = os.path.join(dir.out.secondaryNT, "tmp"),
         ntfilt = config.mmseqs.filtNTsecondary,
         sensnt = config.mmseqs.sensNT,
         format = config.immutable.secondaryNtFormat,
         memsplit = str(int(0.75 * int(config.resources.big.mem))) + "M"
     benchmark:
-        os.path.join(dir.out.bench, "SECONDARY_NT_taxonomic_assignment.txt")
+        os.path.join(dir.out.bench, "secondary_nt_taxonomic_assignment.txt")
     log:
-        os.path.join(dir.out.stderr, "SECONDARY_NT_taxonomic_assignment.log")
+        os.path.join(dir.out.stderr, "secondary_nt_taxonomic_assignment.log")
     resources:
         mem_mb=config.resources.big.mem,
         time = config.resources.big.time
@@ -284,7 +284,7 @@ rule secondary_nt_search:
     shell:
         """{{
         if [[ -d {params.tmp} ]]; then rm -r {params.tmp}; fi;
-        mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmppath} \
+        mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmp} \
             {params.sensnt} {params.ntfilt} {params.format} \
             --search-type 3 --threads {threads} --split-memory-limit {params.memsplit};
         cut -f1,2 {output.aln} \
@@ -371,9 +371,9 @@ rule secondary_nt_generate_output_table:
         taxIdIgnore = config.mmseqs.taxIdIgnore.split(),
         bigtableHeader = config.immutable.bigtableHeader
     benchmark:
-        os.path.join(dir.out.bench, "SECONDARY_NT_generate_output_table.txt")
+        os.path.join(dir.out.bench, "secondary_nt_generate_output_table.txt")
     log:
-        os.path.join(dir.out.stderr, "SECONDARY_NT_generate_output_table.log")
+        os.path.join(dir.out.stderr, "secondary_nt_generate_output_table.log")
     group:
         "secondary_nt_parsing"
     script:
