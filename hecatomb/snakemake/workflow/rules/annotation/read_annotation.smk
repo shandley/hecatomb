@@ -46,7 +46,7 @@ rule primary_aa_parsing:
         alnsort = os.path.join(dir.out.primaryAA, "mmseqs.primary.aa.alignments.tsv"),
         seqs = os.path.join(dir.out.results, "seqtable.fasta"),
     output:
-        class_seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_classified.fasta"),
+        class_seqs = os.path.join(dir.out.primaryAA, "primary.aa.classified.fasta"),
     resources:
         time = config.resources.sml.time
     benchmark:
@@ -60,26 +60,25 @@ rule primary_aa_parsing:
 rule secondary_aa_taxonomy_assignment:
     """Taxon step 03: Check taxonomic assignments in MMSEQS_AA_PRIMARY_classified.fasta using mmseqs2"""
     input:
-        seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_classified.fasta"),
+        seqs = os.path.join(dir.out.primaryAA, "primary.aa.classified.fasta"),
         db = os.path.join(dir.dbs.secondaryAA, "sequenceDB")
     output:
-        lca = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_lca.tsv"),
-        report = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_report"),
-        tophit_report = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_tophit_report"),
-        aln = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_tophit_aln"),
-        alnsort = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_tophit_aln_sorted")
+        lca = os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary_lca.tsv"),
+        report = os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary_report"),
+        tophit_report = os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary_tophit_report"),
+        aln = os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary_tophit_aln")
     params:
-        alnRes=os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY"),
-        tmppath=os.path.join(dir.out.secondaryAA, "mmseqs_aa_tmp"),
+        alnRes=os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary"),
+        tmppath=os.path.join(dir.out.secondaryAA, "tmp"),
         filtaa = config.mmseqs.filtAAsecondary,
         formataa = config.immutable.reqAA,
         sensaa = config.mmseqs.sensAA,
         memsplit = str(int(0.75 * int(config.resources.big.mem))) + "M",
         aaHeader = config.immutable.mmseqsHeaderAA
     benchmark:
-        os.path.join(dir.out.bench, "SECONDARY_AA_taxonomy_assignment.txt")
+        os.path.join(dir.out.bench, "secondary_aa_taxonomy_assignment.txt")
     log:
-        os.path.join(dir.out.stderr, "SECONDARY_AA_taxonomy_assignment.log")
+        os.path.join(dir.out.stderr, "secondary_aa_taxonomy_assignment.log")
     resources:
         mem_mb = config.resources.big.mem,
         time = config.resources.big.time
@@ -93,10 +92,6 @@ rule secondary_aa_taxonomy_assignment:
         mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
             {params.filtaa} {params.sensaa} {params.formataa} \
             --lca-mode 2 --threads {threads} --split-memory-limit {params.memsplit};
-            
-        # Add headers
-        sort -k1 -n {output.aln} | \
-            sed '1i {params.aaHeader}' > {output.alnsort};
         }} &> {log}
         rm {log}
         """
@@ -106,7 +101,7 @@ rule secondary_aa_tophit_lineage:
     """Taxon step 04: Add/reformat tophit viral lineages with up-to-date* NCBI taxonomy"""
     input:
         db = dir.dbs.taxonomy,
-        tophit = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_tophit_aln")
+        tophit = os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary_tophit_aln")
     output:
         tophit_lineage_refomated = os.path.join(dir.out.secondaryAA, "tophit.lineage.reformated"),
     conda:
@@ -116,9 +111,9 @@ rule secondary_aa_tophit_lineage:
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
-        os.path.join(dir.out.bench, "SECONDARY_AA_tophit_lineage.txt")
+        os.path.join(dir.out.bench, "secondary_aa_tophit_lineage.txt")
     log:
-        os.path.join(dir.out.stderr, "SECONDARY_AA_tophit_lineage.log")
+        os.path.join(dir.out.stderr, "secondary_aa_tophit_lineage.log")
     group:
         "secondary_aa_parsing"
     shell:
@@ -137,9 +132,9 @@ rule secondary_aa_refactor_finalize:
     """Taxon step 05: Remove sequences to be refactored from LCA table and recombine with updated taxonomies."""
     input:
         db = dir.dbs.taxonomy,
-        lca = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_lca.tsv"),
+        lca = os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary_lca.tsv"),
     output:
-        lca_reformated = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_lca.reformated"),
+        lca_reformated = os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary_lca.reformatted"),
     conda:
         os.path.join(dir.env, "seqkit.yaml")
     resources:
@@ -147,9 +142,9 @@ rule secondary_aa_refactor_finalize:
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
-        os.path.join(dir.out.bench, "SECONDARY_AA_refactor_finalize.txt")
+        os.path.join(dir.out.bench, "secondary_aa_refactor_finalize.txt")
     log:
-        os.path.join(dir.out.stderr, "SECONDARY_AA_refactor_finalize.log")
+        os.path.join(dir.out.stderr, "secondary_aa_refactor_finalize.log")
     group:
         "secondary_aa_parsing"
     shell:
@@ -166,8 +161,8 @@ rule secondary_aa_refactor_finalize:
 rule secondary_aa_output_table:
     """Taxon step 06: Join sequence info, tophit align info, and LCA or tophit lineage info into the output format table"""
     input:
-        aln = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_tophit_aln"),
-        lca = os.path.join(dir.out.secondaryAA, "MMSEQS_AA_SECONDARY_lca.reformated"),
+        aln = os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary_tophit_aln"),
+        lca = os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary_lca.reformatted"),
         top = os.path.join(dir.out.secondaryAA, "tophit.lineage.reformated"),
         counts = os.path.join(dir.out.results, "sampleSeqCounts.tsv"),
         balt = os.path.join(dir.dbs.tables, "2020_07_27_Viral_classification_table_ICTV2019.txt")
@@ -177,9 +172,9 @@ rule secondary_aa_output_table:
     resources:
         time = config.resources.sml.time
     benchmark:
-        os.path.join(dir.out.bench, "SECONDARY_AA_generate_output_table.txt")
+        os.path.join(dir.out.bench, "secondary_aa_generate_output_table.txt")
     log:
-        os.path.join(dir.out.stderr, "SECONDARY_AA_generate_output_table.log")
+        os.path.join(dir.out.stderr, "secondary_aa_generate_output_table.log")
     group:
         "secondary_aa_parsing"
     params:
@@ -195,7 +190,7 @@ rule secondary_aa_parsing:
         bigtable = os.path.join(dir.out.secondaryAA,"AA_bigtable.tsv"),
         seqs = os.path.join(dir.out.results, "seqtable.fasta")
     output:
-        unclass_seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_unclassified.fasta")
+        unclass_seqs = os.path.join(dir.out.primaryAA, "primary.aa.unclassified.fasta")
     resources:
         time = config.resources.sml.time
     benchmark:
@@ -211,7 +206,7 @@ rule secondary_aa_parsing:
 rule primary_nt_search:
     """Taxon step 08: Primary nucleotide search of unclassified viral-like sequences from aa search"""
     input:
-        seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
+        seqs = os.path.join(dir.out.primaryAA, "primary.aa.unclassified.fasta"),
         db = dir.dbs.primaryNT
     output:
         os.path.join(dir.out.primaryNT, "mmseqs.primary.nt.alignments.tsv"),
@@ -246,11 +241,11 @@ rule primary_nt_parsing:
     xargs samtools faidx {input.seqs} -n 5000 < {output.unclass_ids} > {output.unclass_seqs};
     """
     input:
-        seqs = os.path.join(dir.out.primaryAA, "MMSEQS_AA_PRIMARY_unclassified.fasta"),
+        seqs = os.path.join(dir.out.primaryAA, "primary.aa.unclassified.fasta"),
         align = os.path.join(dir.out.primaryNT, "mmseqs.primary.nt.alignments.tsv")
     output:
-        class_seqs = os.path.join(dir.out.primaryNT, "classified_seqs.fasta"),
-        unclass_seqs = os.path.join(dir.out.primaryNT, "unclassified_seqs.fasta")
+        class_seqs = os.path.join(dir.out.primaryNT, "primary.nt.classified.fasta"),
+        unclass_seqs = os.path.join(dir.out.primaryNT, "primary.nt.unclassified.fasta")
     resources:
         time = config.resources.sml.time
     benchmark:
@@ -264,13 +259,13 @@ rule primary_nt_parsing:
 rule secondary_nt_search:
     """Taxon step 11: Secondary nucleotide search of viral hits from primary nucleotide search"""
     input:
-        seqs = os.path.join(dir.out.primaryNT, "classified_seqs.fasta"),
+        seqs = os.path.join(dir.out.primaryNT, "primary.nt.classified.fasta"),
         db = os.path.join(dir.dbs.secondaryNT, "sequenceDB")
     output:
         aln = os.path.join(dir.out.secondaryNT, "mmseqs.secondary.nt.alignments.tsv"),
         tax = temp(os.path.join(dir.out.secondaryNT, "all.taxid"))
     params:
-        tmppath = os.path.join(dir.out.secondaryNT, "mmseqs_aa_tmp"),
+        tmppath = os.path.join(dir.out.secondaryNT, "tmp"),
         ntfilt = config.mmseqs.filtNTsecondary,
         sensnt = config.mmseqs.sensNT,
         format = config.immutable.secondaryNtFormat,
@@ -288,6 +283,7 @@ rule secondary_nt_search:
         os.path.join(dir.env, "mmseqs2.yaml")
     shell:
         """{{
+        if [[ -d {params.tmp} ]]; then rm -r {params.tmp}; fi;
         mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmppath} \
             {params.sensnt} {params.ntfilt} {params.format} \
             --search-type 3 --threads {threads} --split-memory-limit {params.memsplit};
