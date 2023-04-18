@@ -286,8 +286,6 @@ rule secondary_nt_search:
         config.resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
-    group:
-        "secondary_nt_parsing"
     shell:
         """{{
         mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmppath} \
