@@ -54,7 +54,7 @@ rule co_assembly:
         megahit -1 {params.r1p} -2 {params.r2p} -r {params.rs} \
             -o {params.mh_dir} -t {threads} {params.params} &> {log}
         kctg=$(ls -t {params.mh_int}/*.contigs.fa | grep -v final | head -1)
-        kmax=$([[ $kctg =~ ([0-9]+) ]] && echo "${{BASH_REMATCH[1]}}")
+        kmax=$(head -1 $kctg | sed 's/>k\|_.*//g')
         megahit_toolkit contig2fastg $kmax $kctg > {output.tmp}
         Bandage reduce {output.tmp} {output.graph}
         cp {params.assembly} {output.assembly}
