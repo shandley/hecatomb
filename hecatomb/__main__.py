@@ -137,8 +137,8 @@ AVAILABLE STAGES:
 @click.option('--reads', 'reads', help='Input file/directory', type=str, default=None, required=True)
 @click.option('--library', help='Library type', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
-@click.option('--assembly', help='Assembly method: [cross]-assembly or [co]-assembly', default='cross',
-              show_default=True, type=click.Choice(['cross', 'co']))
+@click.option('--assembly', help='Assembly method: [merged]-assembly or [cross]-assembly', default='merged',
+              show_default=True, type=click.Choice(['cross', 'merged']))
 @click.option("--custom-aa", help="Custom protein fasta for prefiltering",
             type=click.Path(readable=True, exists=True), default="", show_default=False)
 @click.option("--custom-nt", help="Custom nucleotide fasta for prefiltering",

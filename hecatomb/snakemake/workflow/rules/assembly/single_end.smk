@@ -5,8 +5,8 @@ Per-sample assemblies for short paired reads
 """
 
 
-rule co_assembly:
-    """Alternative to cross assembly; assemble everything together in one hit.
+rule cross_assembly:
+    """Alternative to merged assembly; assemble everything together in one hit.
 
     Megahit: https://github.com/voutcn/megahit
     """
@@ -17,25 +17,25 @@ rule co_assembly:
             unmapsingle=["unmapped", "singletons"]
         )
     output:
-        assembly=os.path.join(dir.out.results,"co_assembly.fasta"),
-        graph=os.path.join(dir.out.results,"co_assembly_graph.gfa"),
-        tmp=temp(os.path.join(dir.out.assembly,"coAssembly","co_assembly_graph.fastg")),
-        tar=os.path.join(dir.out.assembly,"coAssembly.tar.zst")
+        assembly=os.path.join(dir.out.results,"cross_assembly.fasta"),
+        graph=os.path.join(dir.out.results,"cross_assembly_graph.gfa"),
+        tmp=temp(os.path.join(dir.out.assembly,"crossAssembly","cross_assembly_graph.fastg")),
+        tar=os.path.join(dir.out.assembly,"crossAssembly.tar.zst")
     params:
         r=','.join(expand(
                 os.path.join(dir.out.assembly,"{sample}_R1.{unmapsingle}.fastq.gz"),
                 sample=samples.names,
                 unmapsingle=["unmapped","singletons"]
             )),
-        mh_dir=os.path.join(dir.out.assembly,"coAssembly"),
-        mh_int=os.path.join(dir.out.assembly,"coAssembly","intermediate_contigs"),
+        mh_dir=os.path.join(dir.out.assembly,"crossAssembly"),
+        mh_int=os.path.join(dir.out.assembly,"crossAssembly","intermediate_contigs"),
         params=config.assembly.megahit,
-        assembly=os.path.join(dir.out.assembly,"coAssembly","assembly.fasta"),
-        graph=os.path.join(dir.out.assembly,"coAssembly","assembly_graph.gfa"),
+        assembly=os.path.join(dir.out.assembly,"crossAssembly","assembly.fasta"),
+        graph=os.path.join(dir.out.assembly,"crossAssembly","assembly_graph.gfa"),
     benchmark:
-        os.path.join(dir.out.bench,"megahit_coassembly.txt")
+        os.path.join(dir.out.bench,"megahit_crossassembly.txt")
     log:
-        os.path.join(dir.out.stderr,"megahit_coassembly.log")
+        os.path.join(dir.out.stderr,"megahit_crossassembly.log")
     resources:
         mem_mb = config.resources.big.mem,
         time = config.resources.big.time

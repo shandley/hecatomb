@@ -21,7 +21,7 @@ Uses FlyE with `--subassemblies`.
 
 Fork this repo and add your own assembly module to support a different library type.
 You'll need to update the CLI, the config file, and add the rules.
-Ideally you should add rules for both a co-assembly and a cross-assembly.
+Ideally you should add rules for both a cross-assembly and a merged-assembly.
 
 **hecatomb/__main__.py**
 
@@ -58,8 +58,8 @@ or
 
 ### Outputs: cross-assembly
 
-Currently, each library type has the option to do a __cross-assembly__ or a __co-assembly__.
-For the Cross assembly, the output is the concatenated contigs from all individual sample assemblies, e.g.:
+Currently, each library type has the option to do a __cross-assembly__ or a __merged-assembly__.
+For the merged assembly, the output is the concatenated contigs from all individual sample assemblies, e.g.:
 
 ```python
     output:
@@ -67,17 +67,17 @@ For the Cross assembly, the output is the concatenated contigs from all individu
 ```
 
 Make sure all contig names are unique.
-The `combine_sample_assembly.smk` rules will generate the cross assembly and assembly graph from this file.
+The `combine_sample_assembly.smk` rules will generate the merged assembly and assembly graph from this file.
 
-### Outputs: co-assembly
+### Outputs: cross-assembly
 
 This will be a one-step assembly for all the samples.
 The outputs will the final assembly fasta and the assembly graph.
 
 ```python
     output:
-        assembly = os.path.join(dir.out.results, "co_assembly.fasta"),
-        graph = os.path.join(dir.out.results, "co_assembly_graph.gfa"),
+        assembly = os.path.join(dir.out.results, "cross_assembly.fasta"),
+        graph = os.path.join(dir.out.results, "cross_assembly_graph.gfa"),
 ```
 
 ### Ouputs: coverage calculations

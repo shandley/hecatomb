@@ -4,28 +4,28 @@ Per-sample assemblies for longreads
     in combine_sample_assemblies.smk
 """
 
-rule lr_co_assembly:
-    """Alternative to cross assembly; assemble everything together in one hit."""
+rule lr_cross_assembly:
+    """Alternative to merged assembly; assemble everything together in one hit."""
     input:
         expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz"), sample=samples.names)
     output:
-        assembly = os.path.join(dir.out.results, "co_assembly.fasta"),
-        graph = os.path.join(dir.out.results, "co_assembly_graph.gfa"),
-        tar = os.path.join(dir.out.assembly,"coAssembly.tar.zst")
+        assembly = os.path.join(dir.out.results, "cross_assembly.fasta"),
+        graph = os.path.join(dir.out.results, "cross_assembly_graph.gfa"),
+        tar = os.path.join(dir.out.assembly,"crossAssembly.tar.zst")
     params:
         params = config.assembly.metaflye,
-        dir = os.path.join(dir.out.assembly, "coAssembly"),
-        assembly = os.path.join(dir.out.assembly, "coAssembly", "assembly.fasta"),
-        graph = os.path.join(dir.out.assembly, "coAssembly", "assembly_graph.gfa"),
+        dir = os.path.join(dir.out.assembly, "crossAssembly"),
+        assembly = os.path.join(dir.out.assembly, "crossAssembly", "assembly.fasta"),
+        graph = os.path.join(dir.out.assembly, "crossAssembly", "assembly_graph.gfa"),
     resources:
         mem_mb = config.resources.big.mem,
         time = config.resources.big.time
     threads:
         config.resources.big.cpu
     log:
-        os.path.join(dir.out.stderr, "canu_co_assembly.log")
+        os.path.join(dir.out.stderr, "canu_cross_assembly.log")
     benchmark:
-        os.path.join(dir.out.bench, "canu_co_assembly.txt")
+        os.path.join(dir.out.bench, "canu_cross_assembly.txt")
     conda:
         os.path.join(dir.env, "metaflye.yaml")
     shell:
