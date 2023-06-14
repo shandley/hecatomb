@@ -1,13 +1,12 @@
 ![](hecatombLogo.png)
 
-![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)
-![](https://img.shields.io/github/v/tag/shandley/hecatomb?label=version&style=flat-square)
+[![](https://img.shields.io/static/v1?label=CLI&message=Snaketool&color=blueviolet)](https://github.com/beardymcjohnface/Snaketool)
 ![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)
+![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)
 [![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest&style=flat-square)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
 [![install with bioconda](https://img.shields.io/badge/Install%20with-conda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/hecatomb/README.html)
 ![](https://img.shields.io/conda/dn/bioconda/hecatomb?label=Conda%20downloads&style=flat-square)
 [![install with PyPI](https://img.shields.io/badge/Install%20with-PyPI-brightgreen.svg?style=flat-square)](https://pypi.org/project/hecatomb/)
-![PyPI Downloads](https://img.shields.io/pypi/dw/hecatomb?label=PyPI%20Downloads&style=flat-square)
 
 ---
 
