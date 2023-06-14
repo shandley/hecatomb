@@ -181,8 +181,8 @@ def run(reads, library, assembly, custom_aa, custom_nt, search, host, output, lo
 )
 @click.option('--library', help='Library type', default='paired', show_default=True,
               type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
-@click.option('--assembly', help='Assembly method: [cross]-assembly or [co]-assembly', default='cross',
-              show_default=True, type=click.Choice(['cross', 'co']))
+@click.option('--assembly', help='Assembly method: [cross]-assembly or [merged]-assembly', default='merged',
+              show_default=True, type=click.Choice(['cross', 'merged']))
 @click.option('--search', help='MMSeqs search speed settings', default='sensitive',
               type=click.Choice(['fast', 'sensitive']), show_default=True)
 @click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
