@@ -22,11 +22,11 @@ rule tax_level_counts:
         os.path.join(dir.scripts,  "taxLevelCounts.py")
 
 
-rule dumpSamplesTsv:
-    output:
-        os.path.join(dir.out.results, "hecatomb.samples.tsv")
-    run:
-        writeSamplesTsv(samples.reads, output[0])
+# rule dumpSamplesTsv:
+#     output:
+#         os.path.join(dir.out.results, "hecatomb.samples.tsv")
+#     run:
+#         writeSamplesTsv(samples.reads, output[0])
 
 
 rule krona_text_format:

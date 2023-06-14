@@ -1,7 +1,7 @@
 modules:
     paired:
-        preflight:
-            "rules/preflight/samples_pe.smk"
+#        preflight:
+#            "rules/preflight/samples_pe.smk"
         preprocessing:
             "rules/preprocessing/paired_end.smk"
         targets:
@@ -10,8 +10,8 @@ modules:
         assembly:
             "rules/assembly/paired_end.smk"
     single:
-        preflight:
-            "rules/preflight/samples_se.smk"
+#        preflight:
+#            "rules/preflight/samples_se.smk"
         preprocessing:
             "rules/preprocessing/single_end.smk"
         targets:
@@ -19,8 +19,8 @@ modules:
         assembly:
             "rules/assembly/single_end.smk"
     longread:
-        preflight:
-            "rules/preflight/samples_se.smk"
+#        preflight:
+#            "rules/preflight/samples_se.smk"
         preprocessing:
             "rules/preprocessing/longreads.smk"
         targets:
@@ -28,8 +28,8 @@ modules:
         assembly:
             "rules/assembly/longreads.smk"
     roundAB:
-        preflight:
-            "rules/preflight/samples_pe.smk"
+#        preflight:
+#            "rules/preflight/samples_pe.smk"
         preprocessing:
             "rules/preprocessing/roundAB.smk"
         targets:

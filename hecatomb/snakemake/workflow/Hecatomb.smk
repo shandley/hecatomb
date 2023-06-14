@@ -1,6 +1,8 @@
-
+import os
 import attrmap as ap
 import attrmap.utils as au
+
+from metasnek import fastq_finder
 
 
 ### CONFIG
@@ -37,9 +39,10 @@ include: config.modules[config.args.library]["preflight"]
 
 
 samples = ap.AttrMap()
-samples.reads = parseSamples(config.args.reads)
+samples.reads = fastq_finder.parse_samples_to_dictionary(config.args.reads)
 samples.names = list(ap.utils.get_keys(samples.reads))
 samples = au.convert_state(samples, read_only=True)
+fastq_finder.write_samples_tsv(samples.reads, os.path.join(dir.out.results, "hecatomb.samples.tsv"))
 
 
 ### TARGETS (must be included AFTER parsing samples)

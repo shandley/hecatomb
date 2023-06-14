@@ -11,7 +11,7 @@ targets.preprocessing = [
     os.path.join(dir.out.results, "seqtable.fasta"),
     os.path.join(dir.out.results, "sampleSeqCounts.tsv"),
     os.path.join(dir.out.results, "seqtable.properties.tsv"),
-    os.path.join(dir.out.results, 'hecatomb.samples.tsv'),
+    # os.path.join(dir.out.results, 'hecatomb.samples.tsv'),
     expand(
         os.path.join(dir.out.assembly,"{sample}{file}"),
         sample=samples.names,
