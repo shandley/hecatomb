@@ -56,7 +56,7 @@ or
         os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz")
 ```
 
-### Outputs: cross-assembly
+### Outputs: merged-assembly
 
 Currently, each library type has the option to do a __cross-assembly__ or a __merged-assembly__.
 For the merged assembly, the output is the concatenated contigs from all individual sample assemblies, e.g.:
