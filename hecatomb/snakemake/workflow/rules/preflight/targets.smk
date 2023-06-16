@@ -23,8 +23,8 @@ targets.preprocessing = [
 targets.assembly = [
     os.path.join(dir.out.results, f"{config.args.assembly}_assembly.fasta"),
     os.path.join(dir.out.results, f"{config.args.assembly}_assembly_graph.gfa"),
-    os.path.join(dir.out.result, "sample_coverage.tsv"),
-    os.path.join(dir.out.result, "all_coverage.tsv"),
+    os.path.join(dir.out.results, "sample_coverage.tsv"),
+    os.path.join(dir.out.results, "all_coverage.tsv"),
     ]
 
 
