@@ -93,7 +93,7 @@ rule nucleotideAnnotations:
 
 rule mappedCounts:
     input:
-        os.path.join(dir.out.results,"contig_count_table.tsv")
+        os.path.join(dir.out.results, "sample_coverage.tsv")
     output:
         report(os.path.join(dir.out.temp,"mapped_counts.yaml"),
             caption = os.path.join("..", "report", "mapped_counts.rst"),
@@ -106,7 +106,7 @@ rule mappedCounts:
             out_counts[sample].s5_mapped = 0
         for l in stream_tsv(input[0], skip_header=True):
             if l[0] != "Sample":
-                out_counts[l[0]].s5_mapped += int(l[3])
+                out_counts[l[0]].s5_mapped += int(l[2])
         with open(output[0],"w") as stream:
             yaml.dump(au.todict(out_counts),stream)
 
