@@ -22,11 +22,15 @@ rule tax_level_counts:
         os.path.join(dir.scripts,  "taxLevelCounts.py")
 
 
-# rule dumpSamplesTsv:
-#     output:
-#         os.path.join(dir.out.results, "hecatomb.samples.tsv")
-#     run:
-#         writeSamplesTsv(samples.reads, output[0])
+rule dumpSamplesTsv:
+    output:
+        os.path.join(dir.out.results,"hecatomb.samples.tsv")
+    params:
+        samples.reads
+    run:
+        from metasnek import fastq_finder
+        fastq_finder.write_samples_tsv(params[0], output[0])
+
 
 
 rule krona_text_format:

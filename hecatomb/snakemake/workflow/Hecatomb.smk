@@ -35,14 +35,13 @@ dir.dbs.host.index = dir.dbs.host.fasta + ".idx"
 ### PREFLIGHT CHECKS, PARSE SAMPLES
 include: os.path.join("rules", "preflight", "validate.smk")
 include: os.path.join("rules", "preflight", "functions.smk")
-include: config.modules[config.args.library]["preflight"]
+# include: config.modules[config.args.library]["preflight"]
 
 
 samples = ap.AttrMap()
 samples.reads = fastq_finder.parse_samples_to_dictionary(config.args.reads)
 samples.names = list(ap.utils.get_keys(samples.reads))
 samples = au.convert_state(samples, read_only=True)
-fastq_finder.write_samples_tsv(samples.reads, os.path.join(dir.out.results, "hecatomb.samples.tsv"))
 
 
 ### TARGETS (must be included AFTER parsing samples)
