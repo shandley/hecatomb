@@ -60,8 +60,8 @@ rule koverage_calculations:
         ref = os.path.join(dir.out.results, f"{config.args.assembly}_assembly.fasta"),
         req = targets.preprocessing
     output:
-        os.path.join(dir.result, "sample_coverage.tsv"),
-        os.path.join(dir.result, "all_coverage.tsv")
+        os.path.join(dir.out.results, "sample_coverage.tsv"),
+        os.path.join(dir.out.results, "all_coverage.tsv")
     params:
         out_dir = dir.out.base,
         minimap_mode = lambda w: "map-ont" if config.args.library == "longread" else "sr"
