@@ -31,6 +31,8 @@ rule mmseqs_contig_annotation:
     shell:
         """
         {{
+        if [[ -d {output.queryDB} ]]; then rm -r {output.queryDB}; fi;
+        if [[ -d {params.tmppath} ]]; then rm -r {params.tmppath}; fi;
         mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2;
         mmseqs search {output.queryDB} {input.db} {params.respath} {params.tmppath} \
             {params.sensnt} --split-memory-limit {params.memsplit} {params.filtnt} \
