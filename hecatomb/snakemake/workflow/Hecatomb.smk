@@ -1,6 +1,5 @@
 import os
 import attrmap as ap
-import attrmap.utils as au
 
 from metasnek import fastq_finder
 
@@ -26,45 +25,43 @@ include: os.path.join("rules", "preflight", "directories.smk")
 
 
 ### HOST ORGANISM
-dir.dbs.host.fasta = os.path.join(
-    dir.dbs.host.base, config.args.host, "masked_ref.fa.gz"
-)
-dir.dbs.host.index = dir.dbs.host.fasta + ".idx"
+if os.path.isfile(config.args.host):
+    dir.dbs.host.fasta = config.args.host
+else:
+    dir.dbs.host.fasta = os.path.join(
+        dir.dbs.host.base, config.args.host, "masked_ref.fa.gz"
+    )
 
 
 ### PREFLIGHT CHECKS, PARSE SAMPLES
 include: os.path.join("rules", "preflight", "validate.smk")
 include: os.path.join("rules", "preflight", "functions.smk")
-# include: config.modules[config.args.library]["preflight"]
 
 
 samples = ap.AttrMap()
 samples.reads = fastq_finder.parse_samples_to_dictionary(config.args.reads)
-samples.names = list(ap.utils.get_keys(samples.reads))
-samples = au.convert_state(samples, read_only=True)
+samples.names = sorted(list(ap.utils.get_keys(samples.reads)))
 
 
 ### TARGETS (must be included AFTER parsing samples)
 include: os.path.join("rules", "preflight", "targets.smk")
+include: os.path.join("rules", "preprocessing", "preprocessing.smk")
 
 
-### PREPROCESSING
-include: config.modules[config.args.library]["preprocessing"]
-include: config.modules[config.args.library]["assembly"]
+### ASSEMBLY
+if config.args.trim == "nanopore":
+    include: os.path.join("rules", "assembly", "longreads.smk")
+else:
+    include: os.path.join("rules", "assembly", "shortreads.smk")
 
 
-### REMAINING PIPELINE RULES
-include: os.path.join("rules","preprocessing","cluster_seqs.smk")
+### REMAINING RULES
 include: os.path.join("rules","annotation","read_annotation.smk")
-include: os.path.join("rules","assembly","combine_sample_assemblies.smk")
+include: os.path.join("rules","assembly","coverage.smk")
 include: os.path.join("rules","annotation","contig_mapping.smk")
 include: os.path.join("rules","annotation","contig_annotation.smk")
 include: os.path.join("rules","reports","summaries.smk")
 include: os.path.join("rules","reports","summaries_optional.smk")
-
-
-### TARGET RULES (alternatives to rule "all")
-localrules: all, preprocess, assemble, annotate, ctg_annotate, print_stages, dumpSamplesTsv
 
 
 target_rules = []
@@ -84,7 +81,7 @@ rule all:
         targets.readAnnotations,
         targets.contigAnnotations,
         targets.mapping,
-        targets.summary
+        # targets.summary
 
 
 @targetRule
@@ -114,6 +111,8 @@ rule ctg_annotate:
 
 @targetRule
 rule print_stages:
+    localrule:
+        True
     run:
         print("\nIndividual Hecatomb stages to run: \n", file=sys.stderr)
         print("* " + "\n* ".join(target_rules) + "\n\n", file=sys.stderr)

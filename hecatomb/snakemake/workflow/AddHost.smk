@@ -18,7 +18,7 @@ config = ap.AttrMap(config)
 
 
 # directories
-include: "rules/preflight/directories.smk"
+include: os.path.join("rules", "preflight", "directories.smk")
 
 
 # host files

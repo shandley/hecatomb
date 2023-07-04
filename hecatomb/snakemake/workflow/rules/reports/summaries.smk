@@ -27,6 +27,8 @@ rule dumpSamplesTsv:
         os.path.join(dir.out.results,"hecatomb.samples.tsv")
     params:
         samples.reads
+    localrule:
+        True
     run:
         from metasnek import fastq_finder
         fastq_finder.write_samples_tsv(params[0], output[0])

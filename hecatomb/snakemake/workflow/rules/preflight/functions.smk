@@ -51,7 +51,7 @@ if config.args.custom_aa:
         conda:
             os.path.join(dir.env, "mmseqs2.yaml")
         shell:
-            """mmseqs createdb {input} {output} --dbtype 1"""
+            """mmseqs createdb {input} {output} --dbtype 1 2> {log} && rm {log}"""
 
 if config.args.custom_nt:
     rule create_custom_primary_nt:
@@ -65,7 +65,7 @@ if config.args.custom_nt:
         conda:
             os.path.join(dir.env, "mmseqs2.yaml")
         shell:
-            """mmseqs createdb {input} {output} --dbtype 2"""
+            """mmseqs createdb {input} {output} --dbtype 2 2> {log} && rm {log}"""
 
 
 rule fasta_index:
@@ -120,8 +120,7 @@ rule calculate_gc:
         mem_mb = config.resources.ram.mem
     shell:
         """
-        countgc.sh in={input} format=2 ow=t > {output} 2> {log}
-        rm {log}
+        countgc.sh in={input} format=2 ow=t > {output} 2> {log} && rm {log}
         """
 
 

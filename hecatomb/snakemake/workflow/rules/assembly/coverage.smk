@@ -38,19 +38,15 @@ rule population_assembly:
 
 rule koverage_samples:
     """Generate samples TSV for Koverage"""
+    input:
+        targets.trimnami
     output:
-        os.path.join(dir.out.temp, "samples_trimmed.tsv")
+        temp(os.path.join(dir.out.temp, "samples_trimmed.tsv"))
     params:
-        names = samples.names,
-        dir = dir.out.assembly,
-        R12 = lambda w: ["_R1", "_R2"] if config.args.library in ["paired", "roundAB"] else ["_R1"]
+        samples.trimmed
     run:
-        with open(output[0], 'w') as out_fh:
-            for sample in params.names:
-                out_fh.write(sample)
-                for R in params.R12:
-                    out_fh.write("\t" + os.path.join(params.dir, sample + R + ".all.fastq.gz"))
-                out_fh.write("\n")
+        from metasnek import fastq_finder
+        fastq_finder.write_samples_tsv(params[0],output[0])
 
 
 rule koverage_calculations:
@@ -64,12 +60,13 @@ rule koverage_calculations:
         os.path.join(dir.out.results, "all_coverage.tsv")
     params:
         out_dir = dir.out.base,
-        minimap_mode = lambda w: "map-ont" if config.args.library == "longread" else "sr"
+        minimap_mode = lambda w: "map-ont" if config.args.trim == "nanopore" else "sr",
+        profile= lambda wildcards: "--profile " + config.args.profile if config.args.profile else "",
     threads:
-        config.resources.med.cpu
+        config.resources.big.cpu
     resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
+        mem_mb = config.resources.big.mem,
+        time = config.resources.big.time
     conda:
         os.path.join(dir.env, "koverage.yaml")
     shell:
@@ -79,5 +76,6 @@ rule koverage_calculations:
             --ref {input.ref} \
             --output {params.out_dir} \
             --threads {threads} \
-            --minimap {params.minimap_mode}
+            --minimap {params.minimap_mode} \
+            {params.profile}
         """

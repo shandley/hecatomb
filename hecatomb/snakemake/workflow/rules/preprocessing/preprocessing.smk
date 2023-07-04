@@ -1,40 +1,41 @@
-rule create_host_index:
-    """Create the minimap2 index for mapping to the host"""
+rule run_trimnami:
+    """Get coverage statistics with Koverage"""
     input:
-        host = dir.dbs.host.fasta,
-        cont = os.path.join(dir.dbs.contaminants, "vector_contaminants.fa")
+        os.path.join(dir.out.results, "hecatomb.samples.tsv")
     output:
-        dir.dbs.host.index
-    benchmark:
-        os.path.join(dir.out.bench,"create_host_index.txt")
-    log:
-        os.path.join(dir.out.stderr,'create_host_index.log')
-    resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.sml.time
+        targets.trimnami
+    params:
+        out_dir = dir.out.base,
+        host = lambda w: "--host " + dir.dbs.host.fasta if not config.args.host.lower() == "none" else "",
+        trim = config.args.trim,
+        minimap_mode = lambda w: "map-ont" if config.args.trim == "nanopore" else "sr",
+        profile= lambda wildcards: "--profile " + config.args.profile if config.args.profile else "",
     threads:
-        config.resources.med.cpu
+        config.resources.big.cpu
+    resources:
+        mem_mb = config.resources.big.mem,
+        time = config.resources.big.time
     conda:
-        os.path.join(dir.env, "minimap2.yaml")
+        os.path.join(dir.env, "trimnami.yaml")
     shell:
         """
-        minimap2 -t {threads} -d {output} <(zcat {input.host}; cat {input.cont}) 2> {log}
-        rm {log}
+        trimnami run {params.trim} \
+            --reads {input} \
+            {params.host} \
+            --output {params.out_dir} \
+            --threads {threads} \
+            --minimap {params.minimap_mode} \
+            {params.profile}
         """
 
 
-rule cluster_similar_sequences:
-    """Preprocessing step 05: Cluster similar sequences.
-
-     Sequences clustered at CLUSTERID in config.yaml.
-    """
+rule cluster_sequences:
     input:
-        fq=os.path.join(dir.out.temp,"p04","{sample}_R1.all.fastq"),
-        # summ = optionalSummary[1]
+        fq= lambda wildcards: samples.trimmed[wildcards.sample]["R1"],
     output:
-        temp(os.path.join(dir.out.temp,"p05","{sample}_R1_rep_seq.fasta")),
-        temp(os.path.join(dir.out.temp,"p05","{sample}_R1_cluster.tsv")),
-        temp(os.path.join(dir.out.temp,"p05","{sample}_R1_all_seqs.fasta"))
+        temp(os.path.join(dir.out.temp,"{sample}_R1_rep_seq.fasta")),
+        temp(os.path.join(dir.out.temp,"{sample}_R1_cluster.tsv")),
+        temp(os.path.join(dir.out.temp,"{sample}_R1_all_seqs.fasta"))
     params:
         respath=lambda wildcards, output: os.path.split(output[0])[0],
         tmppath=lambda wildcards, output: os.path.join(os.path.split(output[0])[0],f"{wildcards.sample}_TMP"),
@@ -66,13 +67,12 @@ rule create_individual_seqtables:
     sequence per sample.
     """
     input:
-        seqs=os.path.join(dir.out.temp,"p05","{sample}_R1_rep_seq.fasta"),
-        counts=os.path.join(dir.out.temp,"p05","{sample}_R1_cluster.tsv"),
-    # summ = optionalSummary[2]
+        seqs=os.path.join(dir.out.temp,"{sample}_R1_rep_seq.fasta"),
+        counts=os.path.join(dir.out.temp,"{sample}_R1_cluster.tsv"),
     output:
-        seqs=temp(os.path.join(dir.out.temp,"p06","{sample}_R1.seqs")),
-        counts=temp(os.path.join(dir.out.temp,"p06","{sample}_R1.counts")),
-        seqtable=temp(os.path.join(dir.out.temp,"p06","{sample}_R1.seqtable"))
+        seqs=temp(os.path.join(dir.out.temp,"{sample}_R1.seqs")),
+        counts=temp(os.path.join(dir.out.temp,"{sample}_R1.counts")),
+        seqtable=temp(os.path.join(dir.out.temp,"{sample}_R1.seqtable"))
     benchmark:
         os.path.join(dir.out.bench,"individual_seqtables.{sample}.txt")
     log:
@@ -101,14 +101,14 @@ rule create_individual_seqtables:
         """
 
 
-rule merge_seq_table:
+rule merge_seq_tables:
     """Preprocessing step 07: Merge seq tables
 
     Reads the sequences and counts from each samples' seqtable text file and converts to fasta format for the rest of 
     the pipline.
     """
     input:
-        seqtables=expand(os.path.join(dir.out.temp,"p06","{sample}_R1.seqtable"),sample=samples.names),
+        seqtables=expand(os.path.join(dir.out.temp,"{sample}_R1.seqtable"),sample=samples.names),
     output:
         fa=os.path.join(dir.out.results,"seqtable.fasta"),
         tsv=os.path.join(dir.out.results,"sampleSeqCounts.tsv")

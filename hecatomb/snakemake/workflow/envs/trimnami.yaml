@@ -1,0 +1,7 @@
+name: trimnami
+channels:
+    - defaults
+dependencies:
+    - pip
+    - pip:
+        - trimnami
