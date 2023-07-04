@@ -45,11 +45,11 @@ dir.dbs.secondaryAA   = os.path.join(dir.dbs.base, "aa", "virus_secondary_aa")
 dir.dbs.secondaryNT   = os.path.join(dir.dbs.base, "nt", "virus_secondary_nt")
 
 if config.args.custom_aa:
-    dir.dbs.primaryAA = os.path.join(dir.out.tmp, "aa", "virus_primary_aa", "sequenceDB")
+    dir.dbs.primaryAA = config.args.custom_aa
 else:
     dir.dbs.primaryAA = os.path.join(dir.dbs.base, "aa", "virus_primary_aa", "sequenceDB")
 if config.args.custom_nt:
-    dir.dbs.primaryNT = os.path.join(dir.out.temp, "nt", "virus_primary_nt", "sequenceDB")
+    dir.dbs.primaryNT = config.args.custom_nt
 else:
     dir.dbs.primaryNT = os.path.join(dir.dbs.base, "nt", "virus_primary_nt", "sequenceDB")
 

@@ -56,7 +56,8 @@ setup(
         "pyyaml>=6.0",
         "Click>=8.1.3",
         "attrmap>=0.0.7",
-        "metasnek>=0.0.1"
+        "metasnek>=0.0.3",
+        "snaketool-utils>=0.0.3",
     ],
     entry_points={
         "console_scripts": [
