@@ -13,36 +13,36 @@ rule cross_assembly:
     input:
         expand(
             os.path.join(dir.out.assembly,"{sample}_R1.{unmapsingle}.fastq.gz"),
-            sample=samples.names,
-            unmapsingle=["unmapped", "singletons"]
+            sample = samples.names,
+            unmapsingle = ["unmapped", "singletons"]
         )
     output:
-        assembly=os.path.join(dir.out.results,"cross_assembly.fasta"),
-        graph=os.path.join(dir.out.results,"cross_assembly_graph.gfa"),
-        tmp=temp(os.path.join(dir.out.assembly,"crossAssembly","cross_assembly_graph.fastg")),
-        tar=os.path.join(dir.out.assembly,"crossAssembly.tar.zst")
+        assembly = os.path.join(dir.out.results,"cross_assembly.fasta"),
+        graph = os.path.join(dir.out.results,"cross_assembly_graph.gfa"),
+        tmp = temp(os.path.join(dir.out.assembly,"crossAssembly","cross_assembly_graph.fastg")),
+        tar = os.path.join(dir.out.assembly,"crossAssembly.tar.zst")
     params:
-        r=','.join(expand(
+        r = ','.join(expand(
                 os.path.join(dir.out.assembly,"{sample}_R1.{unmapsingle}.fastq.gz"),
                 sample=samples.names,
                 unmapsingle=["unmapped","singletons"]
             )),
-        mh_dir=os.path.join(dir.out.assembly,"crossAssembly"),
-        mh_int=os.path.join(dir.out.assembly,"crossAssembly","intermediate_contigs"),
-        params=config.assembly.megahit,
-        assembly=os.path.join(dir.out.assembly,"crossAssembly","assembly.fasta"),
-        graph=os.path.join(dir.out.assembly,"crossAssembly","assembly_graph.gfa"),
+        mh_dir = os.path.join(dir.out.assembly, "crossAssembly"),
+        mh_int = os.path.join(dir.out.assembly, "crossAssembly", "intermediate_contigs"),
+        params = config.assembly.megahit,
+        assembly = os.path.join(dir.out.assembly, "crossAssembly", "final.contigs.fa"),
+        graph = os.path.join(dir.out.assembly, "crossAssembly", "assembly_graph.gfa"),
     benchmark:
-        os.path.join(dir.out.bench,"megahit_crossassembly.txt")
+        os.path.join(dir.out.bench, "megahit_crossassembly.txt")
     log:
-        os.path.join(dir.out.stderr,"megahit_crossassembly.log")
+        os.path.join(dir.out.stderr, "megahit_crossassembly.log")
     resources:
         mem_mb = config.resources.big.mem,
         time = config.resources.big.time
     threads:
         config.resources.big.cpu
     conda:
-        os.path.join(dir.env,"megahit.yaml")
+        os.path.join(dir.env, "megahit.yaml")
     shell:
         """
         if [ -d {params.mh_dir} ]; then
@@ -51,7 +51,7 @@ rule cross_assembly:
         megahit -r {params.r} -o {params.mh_dir} -t {threads} {params.params} &> {log}
         kctg=$(ls -t {params.mh_int}/*.contigs.fa | grep -v final | head -1)
         kmax=$(head -1 $kctg | sed 's/>k\|_.*//g')
-        megahit_toolkit contig2fastg $kmax {params.mh_int}/$kctg > {output.tmp}
+        megahit_toolkit contig2fastg $kmax $kctg > {output.tmp}
         Bandage reduce {output.tmp} {output.graph}
         cp {params.assembly} {output.assembly}
         tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}

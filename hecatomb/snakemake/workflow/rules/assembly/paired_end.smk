@@ -51,8 +51,7 @@ rule cross_assembly:
         if [ -d {params.mh_dir} ]; then
             rm -rf {params.mh_dir}
         fi
-        megahit -1 {params.r1p} -2 {params.r2p} -r {params.rs} \
-            -o {params.mh_dir} -t {threads} {params.params} &> {log}
+        megahit -1 {params.r1p} -2 {params.r2p} -r {params.rs} -o {params.mh_dir} -t {threads} {params.params} &> {log}
         kctg=$(ls -t {params.mh_int}/*.contigs.fa | grep -v final | head -1)
         kmax=$(head -1 $kctg | sed 's/>k\|_.*//g')
         megahit_toolkit contig2fastg $kmax $kctg > {output.tmp}
@@ -61,7 +60,6 @@ rule cross_assembly:
         tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
         rm {log}
         """
-
 
 
 rule individual_sample_assembly:

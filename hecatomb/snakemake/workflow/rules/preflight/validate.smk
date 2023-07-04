@@ -1,10 +1,14 @@
+import glob
+import re
 
+
+# Concatenate Snakemake's own log file with the master log file
 def copy_log():
-    try:
-        assert (ap.utils.to_dict(config.args)["log"]) is not None
-        shell("cat {log} >> " + config.args.log)
-    except (KeyError, AssertionError):
-        pass
+    files = glob.glob(os.path.join(".snakemake", "log", "*.snakemake.log"))
+    if not files:
+        return None
+    current_log = max(files, key=os.path.getmtime)
+    shell("cat " + current_log + " >> " + config.args.log)
 
 
 # Check for Database files
@@ -30,12 +34,12 @@ onstart:
 
 # Success message
 onsuccess:
-    # copy_log()
+    copy_log()
     sys.stderr.write('\n\n    Hecatomb finished successfully!\n\n')
 
 # Fail message and dump failed log outputs to a crash report file
 onerror:
-    # copy_log()
+    copy_log()
     sys.stderr.write('\n\n    FATAL: Hecatomb encountered an error.\n\n')
     logfiles = list(filter(re.compile(r'^(?!old_).*.log').match, os.listdir(dir.out.stderr)))
     if len(logfiles) > 0:
