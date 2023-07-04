@@ -10,11 +10,6 @@ import glob
 from snaketool_utils.cli_utils import OrderedCommands, run_snakemake, copy_config, echo_click, msg_box
 
 
-class OrderedCommands(click.Group):
-    def list_commands(self, ctx: click.Context):
-        return list(self.commands)
-
-
 def snake_base(rel_path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), rel_path)
 
