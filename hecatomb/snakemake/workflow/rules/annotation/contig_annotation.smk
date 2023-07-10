@@ -56,7 +56,7 @@ rule mmseqs_contig_annotation_summary:
         respath=os.path.join(dir.out.assembly,"FLYE","results","tophit"),
         header=config.immutable.contigAnnotHeader,
         taxonFormat=lambda wildcards: config.immutable.taxonkitReformat,
-        convertAliSummary=config.immutable.convertAliSummary
+        secondaryNtFormat=config.immutable.secondaryNtFormat
     benchmark:
         os.path.join(dir.out.bench, "mmseqs_contig_annotation_summary.txt")
     log:
@@ -77,7 +77,7 @@ rule mmseqs_contig_annotation_summary:
         mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1;
         
         # Convert to alignments
-        mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} {params.convertAliSummary};
+        mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} {params.secondaryNtFormat};
         
         # Header for output table
         printf "{params.header}\n" > {output.tsv};

@@ -32,7 +32,7 @@ rule cross_assembly:
         os.path.join(dir.env,"megahit.yaml")
     shell:
         """
-        if [ -d {params.mh_dir} ]
+        if [[ -d {params.mh_dir} ]]
         then
             rm -rf {params.mh_dir}
         fi
@@ -96,7 +96,7 @@ rule megahit_sample_paired:
         "assembly"
     shell:
         """
-        if [ -d {params.mh_dir} ]
+        if [[ -d {params.mh_dir} ]]
         then
             rm -rf {params.mh_dir}
         fi
@@ -144,7 +144,7 @@ rule megahit_sample_unpaired:
         "assembly"
     shell:
         """
-        if [ -d {params.mh_dir} ]
+        if [[ -d {params.mh_dir} ]]
         then
             rm -rf {params.mh_dir}
         fi
