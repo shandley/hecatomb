@@ -7,7 +7,13 @@ import click
 import yaml
 import glob
 
-from snaketool_utils.cli_utils import OrderedCommands, run_snakemake, copy_config, echo_click, msg_box
+from snaketool_utils.cli_utils import (
+    OrderedCommands,
+    run_snakemake,
+    copy_config,
+    echo_click,
+    msg_box,
+)
 
 
 def snake_base(rel_path):
@@ -55,7 +61,9 @@ def common_options(func):
         click.option(
             "--threads", help="Number of threads to use", default=32, show_default=True
         ),
-        click.option("--profile", help="Snakemake profile", default=None, show_default=False),
+        click.option(
+            "--profile", help="Snakemake profile", default=None, show_default=False
+        ),
         click.option(
             "--use-conda/--no-use-conda",
             default=True,
@@ -95,21 +103,55 @@ def common_options(func):
 
 
 def run_test_options(func):
-    """Common command line options for "run" and "test"
-    """
+    """Common command line options for "run" and "test" """
     options = [
-        click.option("--trim", help="Trimming engine for trimnami", default="fastp", show_default=True,
-                     type=click.Choice(["fastp", "prinseq", "roundAB", "nanopore", "notrim"])),
-        click.option("--assembly", help="Assembly method: [cross]-assembly or [merged]-assembly",
-                     default="merged",
-                     show_default=True, type=click.Choice(["cross", "merged"])),
-        click.option("--custom-aa", help="Custom protein fasta for prefiltering",
-                     type=click.Path(readable=True, exists=True), default=None, show_default=False),
-        click.option("--custom-nt", help="Custom nucleotide fasta for prefiltering",
-                     type=click.Path(readable=True, exists=True), default=None, show_default=False),
-        click.option("--search", help="MMSeqs search speed settings", default="sensitive",
-                     type=click.Choice(["fast", "sensitive"]), show_default=True),
-        click.option("--host", help="Host genome name for filtering, or 'none' for no host removal.", default="human", show_default=True),
+        click.option(
+            "--trim",
+            help="Trimming engine for trimnami",
+            default="fastp",
+            show_default=True,
+            type=click.Choice(["fastp", "prinseq", "roundAB", "nanopore", "notrim"]),
+        ),
+        click.option(
+            "--fastqc/--no-fastqc",
+            default=False,
+            help="Generate fastqc reports",
+            show_default=True,
+        ),
+        click.option(
+            "--assembly",
+            help="Assembly method: [cross]-assembly or [merged]-assembly",
+            default="merged",
+            show_default=True,
+            type=click.Choice(["cross", "merged"]),
+        ),
+        click.option(
+            "--custom-aa",
+            help="Custom protein fasta for prefiltering",
+            type=click.Path(readable=True, exists=True),
+            default=None,
+            show_default=False,
+        ),
+        click.option(
+            "--custom-nt",
+            help="Custom nucleotide fasta for prefiltering",
+            type=click.Path(readable=True, exists=True),
+            default=None,
+            show_default=False,
+        ),
+        click.option(
+            "--search",
+            help="MMSeqs search speed settings",
+            default="sensitive",
+            type=click.Choice(["fast", "sensitive"]),
+            show_default=True,
+        ),
+        click.option(
+            "--host",
+            help="Host genome name for filtering, or 'none' for no host removal.",
+            default="human",
+            show_default=True,
+        ),
     ]
     for option in reversed(options):
         func = option(func)
@@ -130,7 +172,7 @@ def cli():
 
 def print_splash():
     click.echo(
-"""
+        """
 \b
 ██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗
 ██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗
@@ -138,11 +180,12 @@ def print_splash():
 ██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗
 ██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝
 ╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝
-""")
+"""
+    )
 
 
 def help_msg_epilog():
-    return ("""
+    return """
 \b
 CLUSTER EXECUTION:
 hecatomb run ... --profile [profile]
@@ -165,7 +208,7 @@ AVAILABLE STAGES:
     annotate        Read annotations (+ preprocess)
     ctg_annotate    Contig annotations (+ preprocess,assemble)
     print_stages    List available stages
-""")
+"""
 
 
 @click.command(
@@ -174,7 +217,14 @@ AVAILABLE STAGES:
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option("--reads", "reads", help="Input file/directory", type=str, default=None, required=True)
+@click.option(
+    "--reads",
+    "reads",
+    help="Input file/directory",
+    type=str,
+    default=None,
+    required=True,
+)
 @run_test_options
 @common_options
 def run(**kwargs):
@@ -186,6 +236,7 @@ def run(**kwargs):
             "output": kwargs["output"],
             "host": kwargs["host"],
             "trim": kwargs["trim"],
+            "fastqc": kwargs["fastqc"],
             "assembly": kwargs["assembly"],
             "custom_aa": kwargs["custom_aa"],
             "custom_nt": kwargs["custom_nt"],
@@ -197,7 +248,9 @@ def run(**kwargs):
 
     run_snakemake(
         # Full path to Snakefile
-        snakefile_path=snake_base(os.path.join("snakemake", "workflow", "Hecatomb.smk")),
+        snakefile_path=snake_base(
+            os.path.join("snakemake", "workflow", "Hecatomb.smk")
+        ),
         system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
         merge_config=merge_config,
         **kwargs
@@ -223,6 +276,7 @@ def test(**kwargs):
             "output": kwargs["output"],
             "host": kwargs["host"],
             "trim": kwargs["trim"],
+            "fastqc": kwargs["fastqc"],
             "assembly": kwargs["assembly"],
             "search": kwargs["search"],
             "profile": kwargs["profile"],
@@ -231,22 +285,32 @@ def test(**kwargs):
     }
 
     run_snakemake(
-        snakefile_path=snake_base(os.path.join("snakemake", "workflow", "Hecatomb.smk")),
+        snakefile_path=snake_base(
+            os.path.join("snakemake", "workflow", "Hecatomb.smk")
+        ),
         system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
         merge_config=merge_config,
         **kwargs
     )
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
+@click.command(
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    )
+)
 @common_options
 def config(**kwargs):
     """Copy the system default config file"""
     copy_config(kwargs["configfile"])
 
 
-@click.command(epilog=help_msg_epilog(),
-               context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
+@click.command(
+    epilog=help_msg_epilog(),
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
 @common_options
 def install(**kwargs):
     """Install the Hecatomb databases"""
@@ -258,17 +322,28 @@ def install(**kwargs):
         }
     }
     run_snakemake(
-        snakefile_path=snake_base(os.path.join("snakemake", "workflow", "DownloadDB.smk")),
+        snakefile_path=snake_base(
+            os.path.join("snakemake", "workflow", "DownloadDB.smk")
+        ),
         system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
         merge_config=merge_config,
         **kwargs
     )
 
 
-@click.command(epilog=help_msg_epilog(),
-               context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
-@click.option("--comb", multiple=True, required=True, show_default=False,
-              help="Two or more Hecatomb output directories to combine. e.g. --comb dir1/ --comb dir2/ ...")
+@click.command(
+    epilog=help_msg_epilog(),
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
+@click.option(
+    "--comb",
+    multiple=True,
+    required=True,
+    show_default=False,
+    help="Two or more Hecatomb output directories to combine. e.g. --comb dir1/ --comb dir2/ ...",
+)
 @common_options
 def combine(**kwargs):
     """Combine multiple Hecatomb runs"""
@@ -277,21 +352,31 @@ def combine(**kwargs):
         "args": {
             "output": kwargs["output"],
             "combineRuns": list(kwargs["comb"]),
-            "log": kwargs["log"]
+            "log": kwargs["log"],
         }
     }
     run_snakemake(
-        snakefile_path=snake_base(os.path.join("snakemake", "workflow", "combineOutputs.smk")),
+        snakefile_path=snake_base(
+            os.path.join("snakemake", "workflow", "combineOutputs.smk")
+        ),
         system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
         merge_config=merge_config,
         **kwargs
     )
 
 
-@click.command(epilog=help_msg_epilog(),
-               context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
-@click.option("--host", help="Name for your host genome", show_default=False, required=True)
-@click.option("--host-fa", help="Host genome fasta file", show_default=False, required=True)
+@click.command(
+    epilog=help_msg_epilog(),
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
+@click.option(
+    "--host", help="Name for your host genome", show_default=False, required=True
+)
+@click.option(
+    "--host-fa", help="Host genome fasta file", show_default=False, required=True
+)
 @common_options
 def add_host(**kwargs):
     """Add a new host genome to use with Hecatomb"""
@@ -301,7 +386,7 @@ def add_host(**kwargs):
             "output": kwargs["output"],
             "hostFa": kwargs["host_fa"],
             "hostName": kwargs["host"],
-            "log": kwargs["log"]
+            "log": kwargs["log"],
         }
     }
     run_snakemake(

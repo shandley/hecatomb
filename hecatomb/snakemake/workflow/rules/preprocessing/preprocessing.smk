@@ -10,6 +10,7 @@ rule run_trimnami:
         trim = config.args.trim,
         minimap_mode = lambda w: "map-ont" if config.args.trim == "nanopore" else "sr",
         profile= lambda wildcards: "--profile " + config.args.profile if config.args.profile else "",
+        fastqc = lambda wildcards: "--fastqc " if config.args.fastqc else "",
     threads:
         config.resources.big.cpu
     resources:
@@ -25,6 +26,7 @@ rule run_trimnami:
             --output {params.out_dir} \
             --threads {threads} \
             --minimap {params.minimap_mode} \
+            {params.fastqc} \
             {params.profile}
         """
 
