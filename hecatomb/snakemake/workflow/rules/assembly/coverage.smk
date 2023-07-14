@@ -18,7 +18,7 @@ rule population_assembly:
         log2 = os.path.join(dir.out.stderr, "population_assembly.stats.log")
     resources:
         mem_mb = resources.med.mem,
-        mem = resources.med.mem + "MB",
+        mem = str(resources.med.mem) + "MB",
         time = resources.med.time
     threads:
         resources.med.cpu
@@ -67,7 +67,7 @@ rule koverage_calculations:
         resources.big.cpu
     resources:
         mem_mb = resources.big.mem,
-        mem = resources.big.mem + "MB",
+        mem = str(resources.big.mem) + "MB",
         time = resources.big.time
     conda:
         os.path.join(dir.env, "koverage.yaml")

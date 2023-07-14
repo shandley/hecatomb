@@ -20,7 +20,7 @@ rule map_seq_table:
         resources.med.cpu
     resources:
         mem_mb = resources.med.mem,
-        mem = resources.med.mem + "MB",
+        mem = str(resources.med.mem) + "MB",
         time = resources.med.time
     group:
         "contigmap"
@@ -53,7 +53,7 @@ rule contig_read_taxonomy:
         resources.med.cpu
     resources:
         mem_mb = resources.med.mem,
-        mem = resources.med.mem + "MB",
+        mem = str(resources.med.mem) + "MB",
         time = resources.med.time
     benchmark:
         os.path.join(dir.out.bench, "contig_read_taxonomy.txt")

@@ -31,7 +31,7 @@ rule run_trimnami:
         resources.big.cpu
     resources:
         mem_mb = resources.big.mem,
-        mem = resources.big.mem + "MB",
+        mem = str(resources.big.mem) + "MB",
         time = resources.big.time
     conda:
         os.path.join(dir.env, "trimnami.yaml")
@@ -67,7 +67,7 @@ rule cluster_sequences:
         os.path.join(dir.out.stderr,"cluster_similar_sequences.{sample}.log")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
     threads:
         resources.big.cpu
     conda:
@@ -100,7 +100,7 @@ rule create_individual_seqtables:
         os.path.join(dir.out.stderr,"individual_seqtables.{sample}.txt")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
     threads:
         resources.big.cpu
     conda:

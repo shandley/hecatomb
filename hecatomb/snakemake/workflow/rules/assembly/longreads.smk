@@ -20,7 +20,7 @@ rule lr_cross_assembly:
         graph = os.path.join(dir.out.assembly, "crossAssembly", "assembly_graph.gfa"),
     resources:
         mem_mb = resources.big.mem,
-        mem = resources.big.mem + "MB",
+        mem = str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu
@@ -48,7 +48,7 @@ rule lr_cross_assembly:
 #         paf = temp(os.path.join(dir.out.assembly, "reads.paf.gz"))
 #     resources:
 #         mem_mb = resources.med.mem,
-#         mem = resources.med.mem + "MB",
+#         mem = str(resources.med.mem) + "MB",
 #         time = resources.med.time
 #     threads:
 #         resources.med.cpu
@@ -82,7 +82,7 @@ rule lr_cross_assembly:
 #         unitigs = os.path.join(dir.out.results, "cross_assembly.fasta"),
 #     resources:
 #         mem_mb = resources.med.mem,
-#         mem = resources.med.mem + "MB",
+#         mem = str(resources.med.mem) + "MB",
 #         time = resources.med.time
 #     threads:
 #         resources.med.cpu
@@ -123,7 +123,7 @@ rule canu_sample_assembly:
         canu_dir = lambda w, output: os.path.split(output.ctg)[0]
     resources:
         mem_mb = resources.med.mem,
-        mem = resources.med.mem + "MB",
+        mem = str(resources.med.mem) + "MB",
         time = resources.med.time
     threads:
         resources.med.cpu

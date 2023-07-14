@@ -26,7 +26,7 @@ rule primary_aa_search:
         os.path.join(dir.out.stderr, "primary_aa_taxonomy_assignment.log")
     resources:
         mem_mb = resources.big.mem,
-        mem = resources.big.mem + "MB",
+        mem = str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu
@@ -82,7 +82,7 @@ rule secondary_aa_taxonomy_assignment:
         os.path.join(dir.out.stderr, "secondary_aa_taxonomy_assignment.log")
     resources:
         mem_mb = resources.big.mem,
-        mem = resources.big.mem + "MB",
+        mem = str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu
@@ -223,7 +223,7 @@ rule primary_nt_search:
         os.path.join(dir.out.stderr, "primary_nt_taxonomic_assignment.log")
     resources:
         mem_mb = resources.big.mem,
-        mem = resources.big.mem + "MB",
+        mem = str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu
@@ -279,7 +279,7 @@ rule secondary_nt_search:
         os.path.join(dir.out.stderr, "secondary_nt_taxonomic_assignment.log")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu

@@ -80,7 +80,7 @@ rule fasta_index:
         os.path.join(dir.env,   "samtools.yaml")
     resources:
         mem_mb = resources.ram.mem,
-        mem = resources.ram.mem + "MB",
+        mem = str(resources.ram.mem) + "MB",
     shell:
         "samtools faidx {input} > {output} 2> {log} && rm {log}"
 
@@ -99,7 +99,7 @@ rule bam_index:
         resources.ram.cpu
     resources:
         mem_mb = resources.ram.mem,
-        mem = resources.ram.mem + "MB",
+        mem = str(resources.ram.mem) + "MB",
     shell:
         "samtools index -@ {threads} {input} {output} 2> {log} && rm {log}"
 
@@ -120,7 +120,7 @@ rule calculate_gc:
         resources.ram.cpu
     resources:
         mem_mb = resources.ram.mem,
-        mem = resources.ram.mem + "MB",
+        mem = str(resources.ram.mem) + "MB",
     shell:
         """
         countgc.sh in={input} format=2 ow=t > {output} 2> {log} && rm {log}
@@ -146,7 +146,7 @@ rule calculate_tet_freq:
         resources.ram.cpu
     resources:
         mem_mb = resources.ram.mem,
-        mem = resources.ram.mem + "MB",
+        mem = str(resources.ram.mem) + "MB",
     shell:
         """
         {{
@@ -170,7 +170,7 @@ rule seq_properties_table:
         resources.ram.cpu
     resources:
         mem_mb = resources.ram.mem,
-        mem = resources.ram.mem + "MB",
+        mem = str(resources.ram.mem) + "MB",
     log:
         os.path.join(dir.out.stderr, "{file}.seq_properties_table.log")
     script:

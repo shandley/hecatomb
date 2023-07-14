@@ -21,7 +21,7 @@ rule mmseqs_contig_annotation:
         os.path.join(dir.out.stderr, "mmseqs_contig_annotation.log")
     resources:
         mem_mb = resources.big.mem,
-        mem = resources.big.mem + "MB",
+        mem = str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu
@@ -64,7 +64,7 @@ rule mmseqs_contig_annotation_summary:
         os.path.join(dir.out.stderr, "mmseqs_contig_annotation_summary.log")
     resources:
         mem_mb = resources.big.mem,
-        mem = resources.big.mem + "MB",
+        mem = str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu

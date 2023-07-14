@@ -25,7 +25,7 @@ rule cross_assembly:
         os.path.join(dir.out.stderr,"cross_assembly.log")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
         time=resources.big.time
     threads:
         resources.big.cpu
@@ -88,7 +88,7 @@ rule megahit_sample_paired:
         os.path.join(dir.out.stderr, "megahit_sample_paired.{sample}.log")
     resources:
         mem_mb = resources.med.mem,
-        mem = resources.med.mem + "MB",
+        mem = str(resources.med.mem) + "MB",
         time = resources.med.time
     threads:
         resources.med.cpu
@@ -137,7 +137,7 @@ rule megahit_sample_unpaired:
         os.path.join(dir.out.stderr,"megahit_sample_unpaired.{sample}.log")
     resources:
         mem_mb=resources.med.mem,
-        mem=resources.med.mem + "MB",
+        mem=str(resources.med.mem) + "MB",
         time=resources.med.time
     threads:
         resources.med.cpu
@@ -182,7 +182,7 @@ rule minimap_sample_paired_contigs:
         resources.med.cpu
     resources:
         mem_mb = resources.med.mem,
-        mem = resources.med.mem + "MB",
+        mem = str(resources.med.mem) + "MB",
         time = resources.med.time
     log:
         os.path.join(dir.out.stderr, "minimap_sample_paired_contigs.{sample}.log")
@@ -213,7 +213,7 @@ rule minimap_sample_paired_singletons_contigs:
         resources.med.cpu
     resources:
         mem_mb = resources.med.mem,
-        mem = resources.med.mem + "MB",
+        mem = str(resources.med.mem) + "MB",
         time = resources.med.time
     benchmark:
         os.path.join(dir.out.bench, "minimap_sample_paired_singletons_contigs.{sample}.txt")
@@ -245,7 +245,7 @@ rule minimap_sample_unpaired_contigs:
         resources.med.cpu
     resources:
         mem_mb = resources.med.mem,
-        mem = resources.med.mem + "MB",
+        mem = str(resources.med.mem) + "MB",
         time = resources.med.time
     log:
         os.path.join(dir.out.stderr, "minimap_sample_unpaired_contigs.{sample}.log")

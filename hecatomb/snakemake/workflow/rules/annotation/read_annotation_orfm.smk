@@ -52,7 +52,7 @@ rule PRIMARY_AA_taxonomy_assignment:
         os.path.join(dir.out.stderr,"PRIMARY_AA_taxonomy_assignment.log")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu
@@ -76,7 +76,7 @@ rule PRIMARY_AA_parsing:
         class_seqs=os.path.join(dir.out.primaryAA,"MMSEQS_AA_PRIMARY_classified.fasta"),
     resources:
         mem_mb=resources.ram.mem,
-        mem=resources.ram.mem + "MB",
+        mem=str(resources.ram.mem) + "MB",
     threads:
         resources.ram.cpu
     benchmark:
@@ -112,7 +112,7 @@ rule SECONDARY_AA_taxonomy_assignment:
         os.path.join(dir.out.stderr,"SECONDARY_AA_taxonomy_assignment.log")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu
@@ -139,7 +139,7 @@ rule SECONDARY_AA_tophit_lineage:
         os.path.join(dir.env,"seqkit.yaml")
     resources:
         mem_mb=resources.ram.mem,
-        mem=resources.ram.mem + "MB"
+        mem=str(resources.ram.mem) + "MB"
     threads:
         resources.ram.cpu
     params:
@@ -171,7 +171,7 @@ rule SECONDARY_AA_refactor_finalize:
         os.path.join(dir.env,"seqkit.yaml")
     resources:
         mem_mb=resources.ram.mem,
-        mem=resources.ram.mem + "MB"
+        mem=str(resources.ram.mem) + "MB"
     threads:
         resources.ram.cpu
     params:
@@ -204,7 +204,7 @@ rule SECONDARY_AA_generate_output_table:
         nonvir=os.path.join(dir.out.secondaryAA,"AA_bigtable.nonviral.tsv")
     resources:
         mem_mb=resources.ram.mem,
-        mem=resources.ram.mem + "MB",
+        mem=str(resources.ram.mem) + "MB",
     threads:
         resources.ram.cpu
     benchmark:
@@ -227,7 +227,7 @@ rule SECONDARY_AA_parsing:
         unclass_seqs=os.path.join(dir.out.primaryAA,"MMSEQS_AA_PRIMARY_unclassified.fasta")
     resources:
         mem_mb=resources.ram.mem,
-        mem=resources.ram.mem + "MB"
+        mem=str(resources.ram.mem) + "MB"
     threads:
         resources.ram.cpu
     benchmark:
@@ -259,7 +259,7 @@ rule PRIMARY_NT_taxonomic_assignment:
         os.path.join(dir.out.stderr,"PRIMARY_NT_taxonomic_assignment.log")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu
@@ -298,7 +298,7 @@ rule PRIMARY_NT_reformat:
         os.path.join(dir.env,"mmseqs2.yaml")
     resources:
         mem_mb=resources.ram.mem,
-        mem=resources.ram.mem + "MB",
+        mem=str(resources.ram.mem) + "MB",
     threads:
         resources.ram.cpu
     benchmark:
@@ -336,7 +336,7 @@ rule PRIMARY_NT_parsing:
         unclass_seqs=os.path.join(dir.out.primaryNT,"unclassified_seqs.fasta")
     resources:
         mem_mb=resources.ram.mem,
-        mem=resources.ram.mem + "MB",
+        mem=str(resources.ram.mem) + "MB",
     threads:
         resources.ram.cpu
     benchmark:
@@ -368,7 +368,7 @@ rule SECONDARY_NT_taxonomic_assignment:
         log=os.path.join(dir.out.stderr,"SECONDARY_NT_taxonomic_assignment.log")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
         time = resources.big.time
     threads:
         resources.big.cpu
@@ -408,7 +408,7 @@ rule SECONDARY_NT_summary:
         os.path.join(dir.env,"mmseqs2.yaml")
     resources:
         mem_mb=resources.ram.mem,
-        mem=resources.ram.mem + "MB",
+        mem=str(resources.ram.mem) + "MB",
     threads:
         resources.ram.cpu
     benchmark:
@@ -447,7 +447,7 @@ rule SECONDARY_NT_convert:
         respath=os.path.join(dir.out.secondaryNT,"results","result")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
     threads:
         resources.big.cpu
     conda:
@@ -489,7 +489,7 @@ rule secondary_nt_calc_lca:
         reformated=os.path.join(dir.out.secondaryNT,"results","secondary_nt_lca.tsv")
     resources:
         mem_mb=resources.big.mem,
-        mem=resources.big.mem + "MB",
+        mem=str(resources.big.mem) + "MB",
     threads:
         resources.big.cpu
     params:
@@ -531,7 +531,7 @@ rule SECONDARY_NT_generate_output_table:
         nonvir=os.path.join(dir.out.secondaryNT,"NT_bigtable.nonviral.tsv")
     resources:
         mem_mb=resources.ram.mem,
-        mem=resources.ram.mem + "MB",
+        mem=str(resources.ram.mem) + "MB",
     threads:
         resources.ram.cpu
     params:
