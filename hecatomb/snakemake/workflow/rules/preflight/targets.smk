@@ -62,7 +62,7 @@ targets.assembly = [
     os.path.join(dir.out.results, f"{config.args.assembly}_assembly.gfa"),
     os.path.join(dir.out.results, "sample_coverage.tsv"),
     os.path.join(dir.out.results, "all_coverage.tsv"),
-    ]
+]
 
 
 ### CONTIG ANNOTATIONS
