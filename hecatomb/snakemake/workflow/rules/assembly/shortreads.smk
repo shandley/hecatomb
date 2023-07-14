@@ -7,8 +7,8 @@ rule cross_assembly:
         targets.trimnami
     output:
         assembly=os.path.join(dir.out.results,"cross_assembly.fasta"),
-        graph=os.path.join(dir.out.results,"cross_assembly_graph.gfa"),
-        tmp=temp(os.path.join(dir.out.assembly,"crossAssembly","cross_assembly_graph.fastg")),
+        graph=os.path.join(dir.out.results,"cross_assembly.gfa"),
+        tmp=temp(os.path.join(dir.out.assembly,"crossAssembly","cross_assembly.fastg")),
         tar=os.path.join(dir.out.assembly,"crossAssembly.tar.zst")
     params:
         r1p=targets.cross.r1,
@@ -18,16 +18,17 @@ rule cross_assembly:
         mh_int=os.path.join(dir.out.assembly,"crossAssembly","intermediate_contigs"),
         params=config.assembly.megahit,
         assembly=os.path.join(dir.out.assembly,"crossAssembly","final.contigs.fa"),
-        graph=os.path.join(dir.out.assembly,"crossAssembly","assembly_graph.gfa"),
+        graph=os.path.join(dir.out.assembly,"crossAssembly","assembly.gfa"),
     benchmark:
         os.path.join(dir.out.bench,"cross_assembly.txt")
     log:
         os.path.join(dir.out.stderr,"cross_assembly.log")
     resources:
-        mem_mb=config.resources.big.mem,
-        time=config.resources.big.time
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
+        time=resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env,"megahit.yaml")
     shell:
@@ -86,10 +87,11 @@ rule megahit_sample_paired:
     log:
         os.path.join(dir.out.stderr, "megahit_sample_paired.{sample}.log")
     resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
+        mem_mb = resources.med.mem,
+        mem = resources.med.mem + "MB",
+        time = resources.med.time
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     conda:
         os.path.join(dir.env, "megahit.yaml")
     group:
@@ -134,10 +136,11 @@ rule megahit_sample_unpaired:
     log:
         os.path.join(dir.out.stderr,"megahit_sample_unpaired.{sample}.log")
     resources:
-        mem_mb=config.resources.med.mem,
-        time=config.resources.med.time
+        mem_mb=resources.med.mem,
+        mem=resources.med.mem + "MB",
+        time=resources.med.time
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     conda:
         os.path.join(dir.env,"megahit.yaml")
     group:
@@ -176,10 +179,11 @@ rule minimap_sample_paired_contigs:
     conda:
         os.path.join(dir.env, "minimap2.yaml")
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
+        mem_mb = resources.med.mem,
+        mem = resources.med.mem + "MB",
+        time = resources.med.time
     log:
         os.path.join(dir.out.stderr, "minimap_sample_paired_contigs.{sample}.log")
     benchmark:
@@ -206,10 +210,11 @@ rule minimap_sample_paired_singletons_contigs:
     conda:
         os.path.join(dir.env, "minimap2.yaml")
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
+        mem_mb = resources.med.mem,
+        mem = resources.med.mem + "MB",
+        time = resources.med.time
     benchmark:
         os.path.join(dir.out.bench, "minimap_sample_paired_singletons_contigs.{sample}.txt")
     log:
@@ -237,10 +242,11 @@ rule minimap_sample_unpaired_contigs:
     conda:
         os.path.join(dir.env, "minimap2.yaml")
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
+        mem_mb = resources.med.mem,
+        mem = resources.med.mem + "MB",
+        time = resources.med.time
     log:
         os.path.join(dir.out.stderr, "minimap_sample_unpaired_contigs.{sample}.log")
     benchmark:
@@ -269,7 +275,7 @@ rule samtools_fastq_paired:
     conda:
         os.path.join(dir.env,   "samtools.yaml")
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "samtools_fastq_paired.{sample}.txt")
     log:
@@ -292,9 +298,9 @@ rule pool_paired_unmapped_R1:
     conda:
         os.path.join(dir.env, "pigz.yaml")
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     group:
         "assemblyRescue"
     shell:
@@ -310,9 +316,9 @@ rule pool_paired_unmapped_R2:
     conda:
         os.path.join(dir.env, "pigz.yaml")
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     group:
         "assemblyRescue"
     shell:
@@ -328,9 +334,9 @@ rule pool_unmapped_singletons:
     conda:
         os.path.join(dir.env, "pigz.yaml")
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     group:
         "assemblyRescue"
     shell:
@@ -348,11 +354,11 @@ rule concatenate_contigs:
         os.path.join(dir.out.assembly, "all_sample_contigs.fasta.gz")
     params:
         dirs = expand(os.path.join(dir.out.assembly,"{sample}"), sample=samples.names + ["rescue"]),
-        compression= '-' + str(config.qc.compression)
+        compression= "-" + str(config.qc.compression)
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     conda:
         os.path.join(dir.env, "pigz.yaml")
     group:

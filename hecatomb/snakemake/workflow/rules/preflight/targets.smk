@@ -53,19 +53,13 @@ samples = au.convert_state(samples, read_only=True)
 
 
 ### PREPROCESSING
-targets.preprocessing = [
-    os.path.join(dir.out.results, "seqtable.fasta"),
-    os.path.join(dir.out.results, "sampleSeqCounts.tsv"),
-    os.path.join(dir.out.results, "seqtable.properties.tsv"),
-]
-
-targets.preprocessing += targets.trimnami
+targets.preprocessing = targets.trimnami
 
 
 ### ASSEMBLY
 targets.assembly = [
     os.path.join(dir.out.results, f"{config.args.assembly}_assembly.fasta"),
-    os.path.join(dir.out.results, f"{config.args.assembly}_assembly_graph.gfa"),
+    os.path.join(dir.out.results, f"{config.args.assembly}_assembly.gfa"),
     os.path.join(dir.out.results, "sample_coverage.tsv"),
     os.path.join(dir.out.results, "all_coverage.tsv"),
     ]
@@ -86,6 +80,9 @@ targets.mapping = [
 
 ### READ ANNOTATIONS
 targets.readAnnotations = [
+    os.path.join(dir.out.results,"seqtable.fasta"),
+    os.path.join(dir.out.results,"sampleSeqCounts.tsv"),
+    os.path.join(dir.out.results,"seqtable.properties.tsv"),
     os.path.join(dir.out.secondaryAA, "AA_bigtable.tsv"),
     os.path.join(dir.out.secondaryNT, "NT_bigtable.tsv"),
     os.path.join(dir.out.results, "bigtable.tsv"),

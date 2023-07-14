@@ -17,18 +17,19 @@ rule primary_aa_search:
         os.path.join(dir.out.primaryAA, "mmseqs.primary.aa.alignments.tsv")
     params:
         alnRes = os.path.join(dir.out.primaryAA, "mmseqs_aa_primary"),
-        filtaa = config.mmseqs.filtAAprimary,
-        sensaa = config.mmseqs.sensAA,
-        memsplit = str(int(0.75 * int(config.resources.big.mem))) + "M",
+        filtaa = config.mmseqs.filtAA,
+        sensaa = config.mmseqs.sens,
+        memsplit = str(int(0.75 * int(resources.big.mem))) + "M",
     benchmark:
         os.path.join(dir.out.bench, "primary_aa_taxonomy_assignment.txt")
     log:
         os.path.join(dir.out.stderr, "primary_aa_taxonomy_assignment.log")
     resources:
-        mem_mb = config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb = resources.big.mem,
+        mem = resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
     shell:
@@ -48,7 +49,7 @@ rule primary_aa_parsing:
     output:
         class_seqs = os.path.join(dir.out.primaryAA, "primary.aa.classified.fasta"),
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "primary_aa_parsing.txt")
     log:
@@ -70,20 +71,21 @@ rule secondary_aa_taxonomy_assignment:
     params:
         alnRes=os.path.join(dir.out.secondaryAA, "mmseqs.aa.secondary"),
         tmppath=os.path.join(dir.out.secondaryAA, "tmp"),
-        filtaa = config.mmseqs.filtAAsecondary,
+        filtaa = config.mmseqs.filtAA,
         formataa = config.immutable.reqAA,
-        sensaa = config.mmseqs.sensAA,
-        memsplit = str(int(0.75 * int(config.resources.big.mem))) + "M",
+        sensaa = config.mmseqs.sens,
+        memsplit = str(int(0.75 * int(resources.big.mem))) + "M",
         aaHeader = config.immutable.mmseqsHeaderAA
     benchmark:
         os.path.join(dir.out.bench, "secondary_aa_taxonomy_assignment.txt")
     log:
         os.path.join(dir.out.stderr, "secondary_aa_taxonomy_assignment.log")
     resources:
-        mem_mb = config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb = resources.big.mem,
+        mem = resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
     shell:
@@ -107,7 +109,7 @@ rule secondary_aa_tophit_lineage:
     conda:
         os.path.join(dir.env, "seqkit.yaml")
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
@@ -138,7 +140,7 @@ rule secondary_aa_refactor_finalize:
     conda:
         os.path.join(dir.env, "seqkit.yaml")
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
@@ -170,7 +172,7 @@ rule secondary_aa_output_table:
         vir = os.path.join(dir.out.secondaryAA, "AA_bigtable.tsv"),
         nonvir = os.path.join(dir.out.secondaryAA, "AA_bigtable.nonviral.tsv")
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "secondary_aa_generate_output_table.txt")
     log:
@@ -192,7 +194,7 @@ rule secondary_aa_parsing:
     output:
         unclass_seqs = os.path.join(dir.out.primaryAA, "primary.aa.unclassified.fasta")
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "secondary_aa_parsing.txt")
     log:
@@ -212,18 +214,19 @@ rule primary_nt_search:
         os.path.join(dir.out.primaryNT, "mmseqs.primary.nt.alignments.tsv"),
     params:
         tmppath = os.path.join(dir.out.primaryNT, "mmseqs_aa_tmp"),
-        filtnt = config.mmseqs.filtNTprimary,
-        ntsens = config.mmseqs.sensNT,
-        memsplit = str(int(0.75 * int(config.resources.big.mem))) + "M"
+        filtnt = config.mmseqs.filtNT,
+        ntsens = config.mmseqs.sens,
+        memsplit = str(int(0.75 * int(resources.big.mem))) + "M"
     benchmark:
         os.path.join(dir.out.bench, "primary_nt_taxonomic_assignment.txt")
     log:
         os.path.join(dir.out.stderr, "primary_nt_taxonomic_assignment.log")
     resources:
-        mem_mb = config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb = resources.big.mem,
+        mem = resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
     shell:
@@ -247,7 +250,7 @@ rule primary_nt_parsing:
         class_seqs = os.path.join(dir.out.primaryNT, "primary.nt.classified.fasta"),
         unclass_seqs = os.path.join(dir.out.primaryNT, "primary.nt.unclassified.fasta")
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     benchmark:
         os.path.join(dir.out.bench, "primary_nt_parsing.txt")
     log:
@@ -266,19 +269,20 @@ rule secondary_nt_search:
         tax = temp(os.path.join(dir.out.secondaryNT, "all.taxid"))
     params:
         tmp = os.path.join(dir.out.secondaryNT, "tmp"),
-        ntfilt = config.mmseqs.filtNTsecondary,
-        sensnt = config.mmseqs.sensNT,
+        ntfilt = config.mmseqs.filtNT,
+        sensnt = config.mmseqs.sens,
         format = config.immutable.secondaryNtFormat,
-        memsplit = str(int(0.75 * int(config.resources.big.mem))) + "M"
+        memsplit = str(int(0.75 * int(resources.big.mem))) + "M"
     benchmark:
         os.path.join(dir.out.bench, "secondary_nt_taxonomic_assignment.txt")
     log:
         os.path.join(dir.out.stderr, "secondary_nt_taxonomic_assignment.log")
     resources:
-        mem_mb=config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
     shell:
@@ -308,7 +312,7 @@ rule secondary_nt_lca_table:
     log:
         os.path.join(dir.out.stderr, "secondary_nt_lca_table.log")
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     group:
         "secondary_nt_parsing"
     script:
@@ -325,7 +329,7 @@ rule secondary_nt_calc_lca:
         lca_lineage = os.path.join(dir.out.secondaryNT, "lca_lineage.tsv"),
         top_lineage = os.path.join(dir.out.secondaryNT, "top_lineage.tsv"),
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     params:
         taxonFormat = lambda wildcards: config.immutable.taxonkitReformat,
     conda:
@@ -366,7 +370,7 @@ rule secondary_nt_generate_output_table:
         vir = os.path.join(dir.out.secondaryNT, "NT_bigtable.tsv"),
         nonvir = os.path.join(dir.out.secondaryNT, "NT_bigtable.nonviral.tsv")
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     params:
         taxIdIgnore = config.mmseqs.taxIdIgnore.split(),
         bigtableHeader = config.immutable.bigtableHeader
@@ -392,7 +396,7 @@ rule combine_aa_nt:
     log:
         os.path.join(dir.out.stderr, "combine_AA_NT.log")
     resources:
-        time = config.resources.sml.time
+        time = resources.sml.time
     group:
         "secondary_nt_parsing"
     shell:

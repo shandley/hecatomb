@@ -1,10 +1,10 @@
 rule population_assembly:
-    """Assembly step 05: Create 'contig dictionary' of all unique contigs present in the study (aka: population assembly)"""
+    """Assembly step 05: Create "contig dictionary" of all unique contigs present in the study (aka: population assembly)"""
     input:
         os.path.join(dir.out.assembly, "all_sample_contigs.fasta.gz")
     output:
         assembly = os.path.join(dir.out.results, "merged_assembly.fasta"),
-        graph = os.path.join(dir.out.results, "merged_assembly_graph.gfa"),
+        graph = os.path.join(dir.out.results, "merged_assembly.gfa"),
         stats = os.path.join(dir.out.assembly, "FLYE", "contig_dictionary.stats")
     params:
         flye_out = lambda w, output: os.path.split(output.stats)[0],
@@ -17,10 +17,11 @@ rule population_assembly:
         log1 = os.path.join(dir.out.stderr, "population_assembly.flye.log"),
         log2 = os.path.join(dir.out.stderr, "population_assembly.stats.log")
     resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
+        mem_mb = resources.med.mem,
+        mem = resources.med.mem + "MB",
+        time = resources.med.time
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     conda:
         os.path.join(dir.env, "metaflye.yaml")
     shell:
@@ -63,10 +64,11 @@ rule koverage_calculations:
         minimap_mode = lambda w: "map-ont" if config.args.trim == "nanopore" else "sr",
         profile= lambda wildcards: "--profile " + config.args.profile if config.args.profile else "",
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     resources:
-        mem_mb = config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb = resources.big.mem,
+        mem = resources.big.mem + "MB",
+        time = resources.big.time
     conda:
         os.path.join(dir.env, "koverage.yaml")
     shell:

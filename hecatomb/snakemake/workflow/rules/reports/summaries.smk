@@ -15,9 +15,10 @@ rule tax_level_counts:
     log:
         os.path.join(dir.out.stderr, "tax_level_counts.log")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB",
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     script:
         os.path.join(dir.scripts,  "taxLevelCounts.py")
 
@@ -66,7 +67,8 @@ rule krona_plot:
     log:
         os.path.join(dir.out.stderr, "krona_plot.log")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB",
     shell:
         """
         ktImportText {input} -o {output} &> {log}
@@ -99,7 +101,8 @@ rule contig_krona_plot:
     log:
         os.path.join(dir.out.stderr, "contig_krona_plot.log")
     resources:
-        mem_mb = config.resources.ram.mem
+        mem_mb = resources.ram.mem,
+        mem = resources.ram.mem + "MB",
     shell:
         """
         ktImportText {input} -o {output} &> {log}

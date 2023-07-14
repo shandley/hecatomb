@@ -32,7 +32,7 @@ def file_len(fname):
     else:
         n=0
         for line in f:
-            if line.startswith('>'):
+            if line.startswith(">"):
                 n+=1
         f.close()
         return n
@@ -79,7 +79,8 @@ rule fasta_index:
     conda:
         os.path.join(dir.env,   "samtools.yaml")
     resources:
-        mem_mb = config.resources.ram.mem
+        mem_mb = resources.ram.mem,
+        mem = resources.ram.mem + "MB",
     shell:
         "samtools faidx {input} > {output} 2> {log} && rm {log}"
 
@@ -95,9 +96,10 @@ rule bam_index:
     conda:
         os.path.join(dir.env,   "samtools.yaml")
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     resources:
-        mem_mb = config.resources.ram.mem
+        mem_mb = resources.ram.mem,
+        mem = resources.ram.mem + "MB",
     shell:
         "samtools index -@ {threads} {input} {output} 2> {log} && rm {log}"
 
@@ -115,9 +117,10 @@ rule calculate_gc:
     conda:
         os.path.join(dir.env, "bbmap.yaml")
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     resources:
-        mem_mb = config.resources.ram.mem
+        mem_mb = resources.ram.mem,
+        mem = resources.ram.mem + "MB",
     shell:
         """
         countgc.sh in={input} format=2 ow=t > {output} 2> {log} && rm {log}
@@ -140,9 +143,10 @@ rule calculate_tet_freq:
     conda:
         os.path.join(dir.env, "bbmap.yaml")
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     resources:
-        mem_mb = config.resources.ram.mem
+        mem_mb = resources.ram.mem,
+        mem = resources.ram.mem + "MB",
     shell:
         """
         {{
@@ -163,9 +167,10 @@ rule seq_properties_table:
     benchmark:
         os.path.join(dir.out.bench, "seq_properties_table.{file}.txt")
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     resources:
-        mem_mb = config.resources.ram.mem
+        mem_mb = resources.ram.mem,
+        mem = resources.ram.mem + "MB",
     log:
         os.path.join(dir.out.stderr, "{file}.seq_properties_table.log")
     script:

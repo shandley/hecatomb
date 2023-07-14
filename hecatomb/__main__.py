@@ -231,18 +231,20 @@ def run(**kwargs):
     """Run hecatomb"""
 
     merge_config = {
-        "args": {
-            "reads": kwargs["reads"],
-            "output": kwargs["output"],
-            "host": kwargs["host"],
-            "trim": kwargs["trim"],
-            "fastqc": kwargs["fastqc"],
-            "assembly": kwargs["assembly"],
-            "custom_aa": kwargs["custom_aa"],
-            "custom_nt": kwargs["custom_nt"],
-            "search": kwargs["search"],
-            "profile": kwargs["profile"],
-            "log": kwargs["log"],
+        "hecatomb":{
+            "args": {
+                "reads": kwargs["reads"],
+                "output": kwargs["output"],
+                "host": kwargs["host"],
+                "trim": kwargs["trim"],
+                "fastqc": kwargs["fastqc"],
+                "assembly": kwargs["assembly"],
+                "custom_aa": kwargs["custom_aa"],
+                "custom_nt": kwargs["custom_nt"],
+                "search": kwargs["search"],
+                "profile": kwargs["profile"],
+                "log": kwargs["log"],
+            }
         }
     }
 
@@ -271,16 +273,18 @@ def test(**kwargs):
     kwargs["reads"] = snake_base("test_data")
 
     merge_config = {
-        "args": {
-            "reads": kwargs["reads"],
-            "output": kwargs["output"],
-            "host": kwargs["host"],
-            "trim": kwargs["trim"],
-            "fastqc": kwargs["fastqc"],
-            "assembly": kwargs["assembly"],
-            "search": kwargs["search"],
-            "profile": kwargs["profile"],
-            "log": kwargs["log"],
+        "hecatomb": {
+            "args": {
+                "reads": kwargs["reads"],
+                "output": kwargs["output"],
+                "host": kwargs["host"],
+                "trim": kwargs["trim"],
+                "fastqc": kwargs["fastqc"],
+                "assembly": kwargs["assembly"],
+                "search": kwargs["search"],
+                "profile": kwargs["profile"],
+                "log": kwargs["log"],
+            }
         }
     }
 
@@ -349,10 +353,12 @@ def combine(**kwargs):
     """Combine multiple Hecatomb runs"""
 
     merge_config = {
-        "args": {
-            "output": kwargs["output"],
-            "combineRuns": list(kwargs["comb"]),
-            "log": kwargs["log"],
+        "hecatomb": {
+            "args": {
+                "output": kwargs["output"],
+                "combineRuns": list(kwargs["comb"]),
+                "log": kwargs["log"],
+            }
         }
     }
     run_snakemake(
@@ -382,11 +388,13 @@ def add_host(**kwargs):
     """Add a new host genome to use with Hecatomb"""
 
     merge_config = {
-        "args": {
-            "output": kwargs["output"],
-            "hostFa": kwargs["host_fa"],
-            "hostName": kwargs["host"],
-            "log": kwargs["log"],
+        "hecatomb": {
+            "args": {
+                "output": kwargs["output"],
+                "hostFa": kwargs["host_fa"],
+                "hostName": kwargs["host"],
+                "log": kwargs["log"],
+            }
         }
     }
     run_snakemake(

@@ -4,4 +4,4 @@ channels:
 dependencies:
     - pip
     - pip:
-        - trimnami
+        - trimnami>=0.0.6

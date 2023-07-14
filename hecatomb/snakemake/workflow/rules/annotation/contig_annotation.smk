@@ -12,18 +12,19 @@ rule mmseqs_contig_annotation:
     params:
         respath=os.path.join(dir.out.assembly,"FLYE","results","result"),
         tmppath=os.path.join(dir.out.assembly,"FLYE","mmseqs_nt_tmp"),
-        sensnt = config.mmseqs.sensNT,
-        memsplit = str(int(0.75 * int(config.resources.big.mem))) + 'M',
-        filtnt = config.mmseqs.filtNTsecondary
+        sensnt = config.mmseqs.sens,
+        memsplit = str(int(0.75 * int(resources.big.mem))) + "M",
+        filtnt = config.mmseqs.filtNT
     benchmark:
         os.path.join(dir.out.bench, "mmseqs_contig_annotation.txt")
     log:
         os.path.join(dir.out.stderr, "mmseqs_contig_annotation.log")
     resources:
-        mem_mb = config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb = resources.big.mem,
+        mem = resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
     group:
@@ -62,10 +63,11 @@ rule mmseqs_contig_annotation_summary:
     log:
         os.path.join(dir.out.stderr, "mmseqs_contig_annotation_summary.log")
     resources:
-        mem_mb = config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb = resources.big.mem,
+        mem = resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env, "mmseqs2.yaml")
     group:

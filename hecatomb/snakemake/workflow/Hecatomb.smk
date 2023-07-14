@@ -8,16 +8,17 @@ from metasnek import fastq_finder
 configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
-config = ap.AttrMap(config)
+resources = ap.AttrMap(config["resources"])
+trimnami = ap.AttrMap(config["trimnami"])
+trimnami.resources = resources
+config = ap.AttrMap(config["hecatomb"])
 
 
 ### LAUNCHER-CONTROLLED CONFIG SETTINGS
 if config.args.search == "fast":
-    config.mmseqs.sensAA = config.mmseqs.perfAAfast
-    config.mmseqs.sensNT = config.mmseqs.perfNTfast
+    config.mmseqs.sens = config.mmseqs.fast
 else:
-    config.mmseqs.sensAA = config.mmseqs.perfAA
-    config.mmseqs.sensNT = config.mmseqs.perfNT
+    config.mmseqs.sens = config.mmseqs.sensitive
 
 
 ### DIRECTORIES

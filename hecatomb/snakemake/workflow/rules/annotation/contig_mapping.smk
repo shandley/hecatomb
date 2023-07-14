@@ -13,14 +13,15 @@ rule map_seq_table:
         mm2 = os.path.join(dir.out.stderr, "map_seq_table.mm2.log"),
         stool = os.path.join(dir.out.stderr, "map_seq_table.stools.log")
     conda:
-        os.path.join(dir.env, 'minimap2.yaml')
+        os.path.join(dir.env, "minimap2.yaml")
     benchmark:
-        os.path.join(dir.out.bench, 'map_seq_table.txt')
+        os.path.join(dir.out.bench, "map_seq_table.txt")
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
+        mem_mb = resources.med.mem,
+        mem = resources.med.mem + "MB",
+        time = resources.med.time
     group:
         "contigmap"
     shell:
@@ -49,17 +50,18 @@ rule contig_read_taxonomy:
     params:
         contigTaxonHeader = config.immutable.contigTaxonHeader
     threads:
-        config.resources.med.cpu
+        resources.med.cpu
     resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
+        mem_mb = resources.med.mem,
+        mem = resources.med.mem + "MB",
+        time = resources.med.time
     benchmark:
-        os.path.join(dir.out.bench, 'contig_read_taxonomy.txt')
+        os.path.join(dir.out.bench, "contig_read_taxonomy.txt")
     log:
-        os.path.join(dir.out.stderr, 'contig_read_taxonomy.log')
+        os.path.join(dir.out.stderr, "contig_read_taxonomy.log")
     conda:
-        os.path.join(dir.env, 'pysam.yaml')
+        os.path.join(dir.env, "pysam.yaml")
     group:
         "contigmap"
     script:
-        os.path.join(dir.scripts,  'contigReadTaxon.py')
+        os.path.join(dir.scripts,  "contigReadTaxon.py")

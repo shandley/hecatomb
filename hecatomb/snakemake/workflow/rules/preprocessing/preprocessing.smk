@@ -1,27 +1,45 @@
+rule trimnami_config:
+    output:
+        temp(os.path.join(dir.out.temp, "trimnami.config.yaml"))
+    params:
+        config = trimnami,
+    localrule:
+        True
+    run:
+        import yaml
+        import attrmap.utils as au
+        config = au.todict(params.config)
+        with open(output[0],"w") as f:
+            yaml.dump(config, f)
+
+
 rule run_trimnami:
     """Get coverage statistics with Koverage"""
     input:
-        os.path.join(dir.out.results, "hecatomb.samples.tsv")
+        tsv = os.path.join(dir.out.results, "hecatomb.samples.tsv"),
+        config = os.path.join(dir.out.temp, "trimnami.config.yaml")
     output:
         targets.trimnami
     params:
         out_dir = dir.out.base,
         host = lambda w: "--host " + dir.dbs.host.fasta if not config.args.host.lower() == "none" else "",
         trim = config.args.trim,
-        minimap_mode = lambda w: "map-ont" if config.args.trim == "nanopore" else "sr",
+        minimap_mode = lambda w: "map-ont " if config.args.trim == "nanopore" else "sr ",
         profile= lambda wildcards: "--profile " + config.args.profile if config.args.profile else "",
         fastqc = lambda wildcards: "--fastqc " if config.args.fastqc else "",
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     resources:
-        mem_mb = config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb = resources.big.mem,
+        mem = resources.big.mem + "MB",
+        time = resources.big.time
     conda:
         os.path.join(dir.env, "trimnami.yaml")
     shell:
         """
         trimnami run {params.trim} \
-            --reads {input} \
+            --reads {input.tsv} \
+            --configfile {input.config} \
             {params.host} \
             --output {params.out_dir} \
             --threads {threads} \
@@ -41,16 +59,17 @@ rule cluster_sequences:
     params:
         respath=lambda wildcards, output: os.path.split(output[0])[0],
         tmppath=lambda wildcards, output: os.path.join(os.path.split(output[0])[0],f"{wildcards.sample}_TMP"),
-        prefix='{sample}_R1',
+        prefix="{sample}_R1",
         config=config.mmseqs.linclustParams
     benchmark:
         os.path.join(dir.out.bench,"cluster_similar_sequences.{sample}.txt")
     log:
         os.path.join(dir.out.stderr,"cluster_similar_sequences.{sample}.log")
     resources:
-        mem_mb=config.resources.big.mem
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env,"mmseqs2.yaml")
     shell:
@@ -80,9 +99,10 @@ rule create_individual_seqtables:
     log:
         os.path.join(dir.out.stderr,"individual_seqtables.{sample}.txt")
     resources:
-        mem_mb=config.resources.big.mem
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env,"seqkit.yaml")
     shell:
@@ -91,13 +111,13 @@ rule create_individual_seqtables:
             | seqkit fx2tab -w 5000 -t dna \
             | sed 's/\\t\\+$//' \
             | cut -f2,3 \
-            | sed '1i sequence' > {output.seqs};
+            | sed "1i sequence" > {output.seqs};
         cut -f1 {input.counts} \
             | sort \
             | uniq -c \
             | awk -F ' ' '{{print$2"\\t"$1}}' \
             | cut -f2 \
-            | sed "1i {wildcards.sample}" > {output.counts};
+            | sed '1i {wildcards.sample}' > {output.counts};
         paste {output.seqs} {output.counts} > {output.seqtable}; }} 2> {log}
         rm {log}
         """
@@ -118,10 +138,10 @@ rule merge_seq_tables:
         samples=samples.names,
         tmpdir=lambda wildcards, input: os.path.split(input[0])[0]
     conda:
-        os.path.join(dir.env,'pysam.yaml')
+        os.path.join(dir.env,"pysam.yaml")
     benchmark:
         os.path.join(dir.out.bench,"merge_seq_table.txt")
     log:
-        os.path.join(dir.out.stderr,'merge_seq_table.log')
+        os.path.join(dir.out.stderr,"merge_seq_table.log")
     script:
-        os.path.join(dir.scripts,'mergeSeqTable.py')
+        os.path.join(dir.scripts,"mergeSeqTable.py")

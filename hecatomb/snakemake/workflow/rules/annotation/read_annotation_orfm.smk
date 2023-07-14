@@ -41,20 +41,21 @@ rule PRIMARY_AA_taxonomy_assignment:
     params:
         alnRes=os.path.join(dir.out.primaryAA,"MMSEQS_AA_PRIMARY"),
         tmppath=os.path.join(dir.out.primaryAA,"mmseqs_aa_tmp"),
-        filtaa=config.mmseqs.filtAAprimary,
+        filtaa=config.mmseqs.filtAA,
         formataa=config.immutable.reqAA,
-        sensaa=config.mmseqs.sensAA,
-        memsplit=str(int(0.75 * int(config.resources.big.mem))) + 'M',
+        sensaa=config.mmseqs.sens,
+        memsplit=str(int(0.75 * int(resources.big.mem))) + "M",
         aaHeader=config.immutable.mmseqsHeaderAA
     benchmark:
         os.path.join(dir.out.bench,"PRIMARY_AA_taxonomy_assignment.txt")
     log:
         os.path.join(dir.out.stderr,"PRIMARY_AA_taxonomy_assignment.log")
     resources:
-        mem_mb=config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env,"mmseqs2.yaml")
     shell:
@@ -74,15 +75,16 @@ rule PRIMARY_AA_parsing:
     output:
         class_seqs=os.path.join(dir.out.primaryAA,"MMSEQS_AA_PRIMARY_classified.fasta"),
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB",
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     benchmark:
-        os.path.join(dir.out.bench,'PRIMARY_AA_parsing.txt')
+        os.path.join(dir.out.bench,"PRIMARY_AA_parsing.txt")
     log:
-        os.path.join(dir.out.stderr,'PRIMARY_AA_parsing.log')
+        os.path.join(dir.out.stderr,"PRIMARY_AA_parsing.log")
     script:
-        os.path.join(dir.scripts,'aaPrimaryParse.py')
+        os.path.join(dir.scripts,"aaPrimaryParse.py")
 
 
 rule SECONDARY_AA_taxonomy_assignment:
@@ -99,20 +101,21 @@ rule SECONDARY_AA_taxonomy_assignment:
     params:
         alnRes=os.path.join(dir.out.secondaryAA,"MMSEQS_AA_SECONDARY"),
         tmppath=os.path.join(dir.out.secondaryAA,"mmseqs_aa_tmp"),
-        filtaa=config.mmseqs.filtAAsecondary,
+        filtaa=config.mmseqs.filtAA,
         formataa=config.immutable.reqAA,
-        sensaa=config.mmseqs.sensAA,
-        memsplit=str(int(0.75 * int(config.resources.big.mem))) + 'M',
+        sensaa=config.mmseqs.sens,
+        memsplit=str(int(0.75 * int(resources.big.mem))) + "M",
         aaHeader=config.immutable.mmseqsHeaderAA
     benchmark:
         os.path.join(dir.out.bench,"SECONDARY_AA_taxonomy_assignment.txt")
     log:
         os.path.join(dir.out.stderr,"SECONDARY_AA_taxonomy_assignment.log")
     resources:
-        mem_mb=config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env,"mmseqs2.yaml")
     shell:
@@ -135,9 +138,10 @@ rule SECONDARY_AA_tophit_lineage:
     conda:
         os.path.join(dir.env,"seqkit.yaml")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB"
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     params:
         taxonFormat=lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
@@ -166,9 +170,10 @@ rule SECONDARY_AA_refactor_finalize:
     conda:
         os.path.join(dir.env,"seqkit.yaml")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB"
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     params:
         taxonFormat=lambda wildcards: config.immutable.taxonkitReformat
     benchmark:
@@ -193,14 +198,15 @@ rule SECONDARY_AA_generate_output_table:
         lca=os.path.join(dir.out.secondaryAA,"MMSEQS_AA_SECONDARY_lca.reformated"),
         top=os.path.join(dir.out.secondaryAA,"tophit.lineage.reformated"),
         counts=os.path.join(dir.out.results,"sampleSeqCounts.tsv"),
-        balt=os.path.join(dir.dbs.tables,'2020_07_27_Viral_classification_table_ICTV2019.txt')
+        balt=os.path.join(dir.dbs.tables,"2020_07_27_Viral_classification_table_ICTV2019.txt")
     output:
         vir=os.path.join(dir.out.secondaryAA,"AA_bigtable.tsv"),
         nonvir=os.path.join(dir.out.secondaryAA,"AA_bigtable.nonviral.tsv")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB",
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench,"SECONDARY_AA_generate_output_table.txt")
     log:
@@ -209,7 +215,7 @@ rule SECONDARY_AA_generate_output_table:
         taxIdIgnore=config.mmseqs.taxIdIgnore.split(),
         bigtableHeader=config.immutable.bigtableHeader
     script:
-        os.path.join(dir.scripts,'aaBigtable.py')
+        os.path.join(dir.scripts,"aaBigtable.py")
 
 
 rule SECONDARY_AA_parsing:
@@ -220,15 +226,16 @@ rule SECONDARY_AA_parsing:
     output:
         unclass_seqs=os.path.join(dir.out.primaryAA,"MMSEQS_AA_PRIMARY_unclassified.fasta")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB"
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench,"SECONDARY_AA_parsing.txt")
     log:
-        os.path.join(dir.out.stderr,'SECONDARY_AA_parsing.log')
+        os.path.join(dir.out.stderr,"SECONDARY_AA_parsing.log")
     script:
-        os.path.join(dir.scripts,'aaSecondaryParse.py')
+        os.path.join(dir.scripts,"aaSecondaryParse.py")
 
 
 rule PRIMARY_NT_taxonomic_assignment:
@@ -243,18 +250,19 @@ rule PRIMARY_NT_taxonomic_assignment:
     params:
         respath=os.path.join(dir.out.primaryNT,"results","result"),
         tmppath=os.path.join(dir.out.primaryNT,"mmseqs_aa_tmp"),
-        filtnt=config.mmseqs.filtNTprimary,
-        ntsens=config.mmseqs.sensNT,
-        memsplit=str(int(0.75 * int(config.resources.big.mem))) + 'M'
+        filtnt=config.mmseqs.filtNT,
+        ntsens=config.mmseqs.sens,
+        memsplit=str(int(0.75 * int(resources.big.mem))) + "M"
     benchmark:
         os.path.join(dir.out.bench,"PRIMARY_NT_taxonomic_assignment.txt")
     log:
         os.path.join(dir.out.stderr,"PRIMARY_NT_taxonomic_assignment.log")
     resources:
-        mem_mb=config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env,"mmseqs2.yaml")
     shell:
@@ -289,13 +297,14 @@ rule PRIMARY_NT_reformat:
     conda:
         os.path.join(dir.env,"mmseqs2.yaml")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB",
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench,"PRIMARY_NT_reformat.txt")
     log:
-        os.path.join(dir.out.stderr,'PRIMARY_NT_reformat.log')
+        os.path.join(dir.out.stderr,"PRIMARY_NT_reformat.log")
     shell:
         """
         {{ # Filter TopHit results
@@ -326,15 +335,16 @@ rule PRIMARY_NT_parsing:
         class_seqs=os.path.join(dir.out.primaryNT,"classified_seqs.fasta"),
         unclass_seqs=os.path.join(dir.out.primaryNT,"unclassified_seqs.fasta")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB",
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench,"PRIMARY_NT_parsing.txt")
     log:
-        os.path.join(dir.out.stderr,'PRIMARY_NT_parsing.log')
+        os.path.join(dir.out.stderr,"PRIMARY_NT_parsing.log")
     script:
-        os.path.join(dir.scripts,'ntPrimaryParse.py')
+        os.path.join(dir.scripts,"ntPrimaryParse.py")
 
 
 rule SECONDARY_NT_taxonomic_assignment:
@@ -349,18 +359,19 @@ rule SECONDARY_NT_taxonomic_assignment:
     params:
         respath=os.path.join(dir.out.secondaryNT,"results","result"),
         tmppath=os.path.join(dir.out.secondaryNT,"mmseqs_aa_tmp"),
-        ntfilt=config.mmseqs.filtNTsecondary,
-        sensnt=config.mmseqs.sensNT,
-        memsplit=str(int(0.75 * int(config.resources.big.mem))) + 'M'
+        ntfilt=config.mmseqs.filtNT,
+        sensnt=config.mmseqs.sens,
+        memsplit=str(int(0.75 * int(resources.big.mem))) + "M"
     benchmark:
         os.path.join(dir.out.bench,"SECONDARY_NT_taxonomic_assignment.txt")
     log:
         log=os.path.join(dir.out.stderr,"SECONDARY_NT_taxonomic_assignment.log")
     resources:
-        mem_mb=config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
+        time = resources.big.time
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env,"mmseqs2.yaml")
     shell:
@@ -396,13 +407,14 @@ rule SECONDARY_NT_summary:
     conda:
         os.path.join(dir.env,"mmseqs2.yaml")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB",
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     benchmark:
         os.path.join(dir.out.bench,"SECONDARY_NT_summary.txt")
     log:
-        os.path.join(dir.out.stderr,'SECONDARY_NT_summary.log')
+        os.path.join(dir.out.stderr,"SECONDARY_NT_summary.log")
     shell:
         """
         {{ # Filter TopHit results
@@ -434,15 +446,16 @@ rule SECONDARY_NT_convert:
     params:
         respath=os.path.join(dir.out.secondaryNT,"results","result")
     resources:
-        mem_mb=config.resources.big.mem
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     conda:
         os.path.join(dir.env,"mmseqs2.yaml")
     benchmark:
         os.path.join(dir.out.bench,"SECONDARY_NT_convert.txt")
     log:
-        os.path.join(dir.out.stderr,'SECONDARY_NT_convert.log')
+        os.path.join(dir.out.stderr,"SECONDARY_NT_convert.log")
     shell:
         """
         mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} \
@@ -461,9 +474,9 @@ rule secondary_nt_lca_table:
     benchmark:
         os.path.join(dir.out.bench,"secondary_nt_lca_table.txt")
     log:
-        os.path.join(dir.out.stderr,'secondary_nt_lca_table.log')
+        os.path.join(dir.out.stderr,"secondary_nt_lca_table.log")
     script:
-        os.path.join(dir.scripts,'ntSecondaryLca.py')
+        os.path.join(dir.scripts,"ntSecondaryLca.py")
 
 
 rule secondary_nt_calc_lca:
@@ -475,9 +488,10 @@ rule secondary_nt_calc_lca:
         lca_lineage=os.path.join(dir.out.secondaryNT,"results","lca.lineage"),
         reformated=os.path.join(dir.out.secondaryNT,"results","secondary_nt_lca.tsv")
     resources:
-        mem_mb=config.resources.big.mem
+        mem_mb=resources.big.mem,
+        mem=resources.big.mem + "MB",
     threads:
-        config.resources.big.cpu
+        resources.big.cpu
     params:
         taxonFormat=lambda wildcards: config.immutable.taxonkitReformat,
     conda:
@@ -485,7 +499,7 @@ rule secondary_nt_calc_lca:
     benchmark:
         os.path.join(dir.out.bench,"secondary_nt_calc_lca.txt")
     log:
-        os.path.join(dir.out.stderr,'secondary_nt_calc_lca.log')
+        os.path.join(dir.out.stderr,"secondary_nt_calc_lca.log")
     shell:
         """
         {{
@@ -511,23 +525,24 @@ rule SECONDARY_NT_generate_output_table:
         top=os.path.join(dir.out.secondaryNT,"SECONDARY_nt.tsv"),
         lca=os.path.join(dir.out.secondaryNT,"results","secondary_nt_lca.tsv"),
         counts=os.path.join(dir.out.results,"sampleSeqCounts.tsv"),
-        balt=os.path.join(dir.dbs.tables,'2020_07_27_Viral_classification_table_ICTV2019.txt')
+        balt=os.path.join(dir.dbs.tables,"2020_07_27_Viral_classification_table_ICTV2019.txt")
     output:
         vir=os.path.join(dir.out.secondaryNT,"NT_bigtable.tsv"),
         nonvir=os.path.join(dir.out.secondaryNT,"NT_bigtable.nonviral.tsv")
     resources:
-        mem_mb=config.resources.ram.mem
+        mem_mb=resources.ram.mem,
+        mem=resources.ram.mem + "MB",
     threads:
-        config.resources.ram.cpu
+        resources.ram.cpu
     params:
         taxIdIgnore=config.mmseqs.taxIdIgnore.split(),
         bigtableHeader=config.immutable.bigtableHeader
     benchmark:
         os.path.join(dir.out.bench,"SECONDARY_NT_generate_output_table.txt")
     log:
-        os.path.join(dir.out.stderr,'SECONDARY_NT_generate_output_table.log')
+        os.path.join(dir.out.stderr,"SECONDARY_NT_generate_output_table.log")
     script:
-        os.path.join(dir.scripts,'ntBigtable.py')
+        os.path.join(dir.scripts,"ntBigtable.py")
 
 
 rule combine_AA_NT:
@@ -540,7 +555,7 @@ rule combine_AA_NT:
     benchmark:
         os.path.join(dir.out.bench,"combine_AA_NT.txt")
     log:
-        os.path.join(dir.out.stderr,'combine_AA_NT.log')
+        os.path.join(dir.out.stderr,"combine_AA_NT.log")
     shell:
         """
         {{ cat {input.aa} > {output};
