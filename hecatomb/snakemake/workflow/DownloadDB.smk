@@ -16,7 +16,8 @@ import attrmap as ap
 # load db file config
 configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
-config = ap.AttrMap(config)
+resources = ap.AttrMap(config["resources"])
+config = ap.AttrMap(config["hecatomb"])
 
 
 # directories

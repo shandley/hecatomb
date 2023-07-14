@@ -5,7 +5,8 @@ import attrmap as ap
 configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
-config = ap.AttrMap(config)
+resources = ap.AttrMap(config["resources"])
+config = ap.AttrMap(config["hecatomb"])
 
 # folders to combine
 if len(config.args.combineRuns) < 2:
