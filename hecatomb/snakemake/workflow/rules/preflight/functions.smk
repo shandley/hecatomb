@@ -1,6 +1,3 @@
-"""
-Generic rules and functions for Hecatomb
-"""
 
 import re
 
@@ -39,31 +36,31 @@ def file_len(fname):
 
 
 ## GENERIC RECIPES
-if config.args.custom_aa:
+if config["args"]["custom_aa"]:
     rule create_custom_primary_aa:
         """Create a custom primary aa database from a FASTA"""
         input:
-            config.args.custom_aa
+            config["args"]["custom_aa"]
         output:
-            os.path.join(dir.dbs.base, "aa", "virus_primary_aa", "sequenceDB")
+            os.path.join(dir["dbs"]["base"], "aa", "virus_primary_aa", "sequenceDB")
         log:
-            os.path.join(dir.out.stderr, "create_custom_primary_aa.stderr")
+            os.path.join(dir["out"]["stderr"], "create_custom_primary_aa.stderr")
         conda:
-            os.path.join(dir.env, "mmseqs2.yaml")
+            os.path.join(dir["env"], "mmseqs2.yaml")
         shell:
             """mmseqs createdb {input} {output} --dbtype 1 2> {log} && rm {log}"""
 
-if config.args.custom_nt:
+if config["args"]["custom_nt"]:
     rule create_custom_primary_nt:
         """Create a custom primary nt database from a FASTA"""
         input:
-            config.args.custom_nt
+            config["args"]["custom_nt"]
         output:
-            os.path.join(dir.dbs.base, "nt", "virus_primary_nt", "sequenceDB")
+            os.path.join(dir["dbs"]["base"], "nt", "virus_primary_nt", "sequenceDB")
         log:
-            os.path.join(dir.out.stderr, "create_custom_primary_nt.stderr")
+            os.path.join(dir["out"]["stderr"], "create_custom_primary_nt.stderr")
         conda:
-            os.path.join(dir.env, "mmseqs2.yaml")
+            os.path.join(dir["env"], "mmseqs2.yaml")
         shell:
             """mmseqs createdb {input} {output} --dbtype 2 2> {log} && rm {log}"""
 
@@ -77,10 +74,10 @@ rule fasta_index:
     log:
         "{file}.samtools.stderr"
     conda:
-        os.path.join(dir.env,   "samtools.yaml")
+        os.path.join(dir["env"],   "samtools.yaml")
     resources:
-        mem_mb = resources.ram.mem,
-        mem = str(resources.ram.mem) + "MB",
+        mem_mb = resources["ram"]["mem"],
+        mem = str(resources["ram"]["mem"]) + "MB",
     shell:
         "samtools faidx {input} > {output} 2> {log} && rm {log}"
 
@@ -94,12 +91,12 @@ rule bam_index:
     log:
         "{file}.samtools.stderr"
     conda:
-        os.path.join(dir.env,   "samtools.yaml")
+        os.path.join(dir["env"],   "samtools.yaml")
     threads:
-        resources.ram.cpu
+        resources["ram"]["cpu"]
     resources:
-        mem_mb = resources.ram.mem,
-        mem = str(resources.ram.mem) + "MB",
+        mem_mb = resources["ram"]["mem"],
+        mem = str(resources["ram"]["mem"]) + "MB",
     shell:
         "samtools index -@ {threads} {input} {output} 2> {log} && rm {log}"
 
@@ -107,20 +104,20 @@ rule bam_index:
 rule calculate_gc:
     """Calculate GC content for sequences"""
     input:
-        os.path.join(dir.out.results, "{file}.fasta")
+        os.path.join(dir["out"]["results"], "{file}.fasta")
     output:
-        temp(os.path.join(dir.out.results, "{file}.properties.gc"))
+        temp(os.path.join(dir["out"]["results"], "{file}.properties.gc"))
     benchmark:
-        os.path.join(dir.out.bench, "calculate_gc.{file}.txt")
+        os.path.join(dir["out"]["bench"], "calculate_gc.{file}.txt")
     log:
-        os.path.join(dir.out.stderr, "calculate_gc.{file}.log")
+        os.path.join(dir["out"]["stderr"], "calculate_gc.{file}.log")
     conda:
-        os.path.join(dir.env, "bbmap.yaml")
+        os.path.join(dir["env"], "bbmap.yaml")
     threads:
-        resources.ram.cpu
+        resources["ram"]["cpu"]
     resources:
-        mem_mb = resources.ram.mem,
-        mem = str(resources.ram.mem) + "MB",
+        mem_mb = resources["ram"]["mem"],
+        mem = str(resources["ram"]["mem"]) + "MB",
     shell:
         """
         countgc.sh in={input} format=2 ow=t > {output} 2> {log} && rm {log}
@@ -133,20 +130,20 @@ rule calculate_tet_freq:
     The tail commands trims the first line which is junk that should be printed to stdout.
     """
     input:
-        os.path.join(dir.out.results, "{file}.fasta")
+        os.path.join(dir["out"]["results"], "{file}.fasta")
     output:
-        temp(os.path.join(dir.out.results, "{file}.properties.tetramer"))
+        temp(os.path.join(dir["out"]["results"], "{file}.properties.tetramer"))
     benchmark:
-        os.path.join(dir.out.bench, "calculate_tet_freq.{file}.txt")
+        os.path.join(dir["out"]["bench"], "calculate_tet_freq.{file}.txt")
     log:
-        os.path.join(dir.out.stderr, "calculate_tet_freq.{file}.log")
+        os.path.join(dir["out"]["stderr"], "calculate_tet_freq.{file}.log")
     conda:
-        os.path.join(dir.env, "bbmap.yaml")
+        os.path.join(dir["env"], "bbmap.yaml")
     threads:
-        resources.ram.cpu
+        resources["ram"]["cpu"]
     resources:
-        mem_mb = resources.ram.mem,
-        mem = str(resources.ram.mem) + "MB",
+        mem_mb = resources["ram"]["mem"],
+        mem = str(resources["ram"]["mem"]) + "MB",
     shell:
         """
         {{
@@ -160,18 +157,18 @@ rule calculate_tet_freq:
 rule seq_properties_table:
     """Combine GC and tet freq tables"""
     input:
-        gc=os.path.join(dir.out.results, "{file}.properties.gc"),
-        tet=os.path.join(dir.out.results, "{file}.properties.tetramer")
+        gc=os.path.join(dir["out"]["results"], "{file}.properties.gc"),
+        tet=os.path.join(dir["out"]["results"], "{file}.properties.tetramer")
     output:
-        os.path.join(dir.out.results, "{file}.properties.tsv")
+        os.path.join(dir["out"]["results"], "{file}.properties.tsv")
     benchmark:
-        os.path.join(dir.out.bench, "seq_properties_table.{file}.txt")
+        os.path.join(dir["out"]["bench"], "seq_properties_table.{file}.txt")
     threads:
-        resources.ram.cpu
+        resources["ram"]["cpu"]
     resources:
-        mem_mb = resources.ram.mem,
-        mem = str(resources.ram.mem) + "MB",
+        mem_mb = resources["ram"]["mem"],
+        mem = str(resources["ram"]["mem"]) + "MB",
     log:
-        os.path.join(dir.out.stderr, "{file}.seq_properties_table.log")
+        os.path.join(dir["out"]["stderr"], "{file}.seq_properties_table.log")
     script:
-        os.path.join(dir.scripts,  "seqPropertyTable.py")
+        os.path.join(dir["scripts"],  "seqPropertyTable.py")

@@ -1,6 +1,4 @@
 import os
-import attrmap as ap
-
 from metasnek import fastq_finder
 
 
@@ -8,17 +6,18 @@ from metasnek import fastq_finder
 configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
-resources = ap.AttrMap(config["resources"])
-trimnami = ap.AttrMap(config["trimnami"])
-trimnami.resources = resources
-config = ap.AttrMap(config["hecatomb"])
+resources = config["resources"]
+
+trimnami = config["trimnami"]
+trimnami["resources"] = resources
+config = config["hecatomb"]
 
 
 ### LAUNCHER-CONTROLLED CONFIG SETTINGS
-if config.args.search == "fast":
-    config.mmseqs.sens = config.mmseqs.fast
+if config["args"]["search"] == "fast":
+    config["mmseqs"]["sens"] = config["mmseqs"]["fast"]
 else:
-    config.mmseqs.sens = config.mmseqs.sensitive
+    config["mmseqs"]["sens"] = config["mmseqs"]["sensitive"]
 
 
 ### DIRECTORIES
@@ -26,11 +25,11 @@ include: os.path.join("rules", "preflight", "directories.smk")
 
 
 ### HOST ORGANISM
-if os.path.isfile(config.args.host):
-    dir.dbs.host.fasta = config.args.host
+if os.path.isfile(config["args"]["host"]):
+    dir["dbs"]["hostFasta"] = config["args"]["host"]
 else:
-    dir.dbs.host.fasta = os.path.join(
-        dir.dbs.host.base, config.args.host, "masked_ref.fa.gz"
+    dir["dbs"]["hostFasta"] = os.path.join(
+        dir["dbs"]["hostBase"], config["args"]["host"], "masked_ref.fa.gz"
     )
 
 
@@ -39,9 +38,9 @@ include: os.path.join("rules", "preflight", "validate.smk")
 include: os.path.join("rules", "preflight", "functions.smk")
 
 
-samples = ap.AttrMap()
-samples.reads = fastq_finder.parse_samples_to_dictionary(config.args.reads)
-samples.names = sorted(list(ap.utils.get_keys(samples.reads)))
+samples = dict()
+samples["reads"] = fastq_finder.parse_samples_to_dictionary(config["args"]["reads"])
+samples["names"] = sorted(list(samples["reads"].keys()))
 
 
 ### TARGETS (must be included AFTER parsing samples)
@@ -50,7 +49,7 @@ include: os.path.join("rules", "preprocessing", "preprocessing.smk")
 
 
 ### ASSEMBLY
-if config.args.trim == "nanopore":
+if config["args"]["trim"] == "filtlong":
     include: os.path.join("rules", "assembly", "longreads.smk")
 else:
     include: os.path.join("rules", "assembly", "shortreads.smk")
@@ -77,37 +76,37 @@ def targetRule(fn):
 @targetRule
 rule all:
     input:
-        targets.preprocessing,
-        targets.assembly,
-        targets.readAnnotations,
-        targets.contigAnnotations,
-        targets.mapping,
-        # targets.summary
+        targets["preprocessing"],
+        targets["assembly"],
+        targets["readAnnotations"],
+        targets["contigAnnotations"],
+        targets["mapping"],
+        # targets["summary"]
 
 
 @targetRule
 rule preprocess:
     input:
-        targets.preprocessing
+        targets["preprocessing"]
 
 
 @targetRule
 rule assemble:
     input:
-        targets.assembly
+        targets["assembly"]
 
 
 @targetRule
 rule annotate:
     input:
-        targets.readAnnotations
+        targets["readAnnotations"]
 
 
 @targetRule
 rule ctg_annotate:
     input:
-        targets.contigAnnotations,
-        targets.mapping
+        targets["contigAnnotations"],
+        targets["mapping"]
 
 
 @targetRule

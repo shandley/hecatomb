@@ -110,7 +110,7 @@ def run_test_options(func):
             help="Trimming engine for trimnami",
             default="fastp",
             show_default=True,
-            type=click.Choice(["fastp", "prinseq", "roundAB", "nanopore", "notrim"]),
+            type=click.Choice(["fastp", "prinseq", "roundAB", "filtlong", "notrim", "cutadapt"]),
         ),
         click.option(
             "--fastqc/--no-fastqc",

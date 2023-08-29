@@ -1,7 +1,0 @@
-name: miniasm
-channels:
-    - conda-forge
-    - bioconda
-    - defaults
-dependencies:
-    - miniasm>=0.3

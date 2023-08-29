@@ -1,40 +1,38 @@
 rule trimnami_config:
     output:
-        temp(os.path.join(dir.out.temp, "trimnami.config.yaml"))
+        temp(os.path.join(dir["out"]["temp"], "trimnami.config.yaml"))
     params:
         config = trimnami,
     localrule:
         True
     run:
         import yaml
-        import attrmap.utils as au
-        config = au.todict(params.config)
         with open(output[0],"w") as f:
-            yaml.dump(config, f)
+            yaml.dump(params.config, f)
 
 
 rule run_trimnami:
     """Get coverage statistics with Koverage"""
     input:
-        tsv = os.path.join(dir.out.results, "hecatomb.samples.tsv"),
-        config = os.path.join(dir.out.temp, "trimnami.config.yaml")
+        tsv = os.path.join(dir["out"]["results"], "hecatomb.samples.tsv"),
+        config = os.path.join(dir["out"]["temp"], "trimnami.config.yaml")
     output:
-        targets.trimnami
+        targets["trimnami"]
     params:
-        out_dir = dir.out.base,
-        host = lambda w: "--host " + dir.dbs.host.fasta if not config.args.host.lower() == "none" else "",
-        trim = config.args.trim,
-        minimap_mode = lambda w: "map-ont " if config.args.trim == "nanopore" else "sr ",
-        profile= lambda wildcards: "--profile " + config.args.profile if config.args.profile else "",
-        fastqc = lambda wildcards: "--fastqc " if config.args.fastqc else "",
+        out_dir = os.path.join(dir["out"]["base"], "trimnami"),
+        host = lambda w: "--host " + dir["dbs"]["hostFasta"] if not config["args"]["host"].lower() == "none" else "",
+        trim = config["args"]["trim"],
+        minimap_mode = lambda w: "map-ont " if config["args"]["trim"] == "nanopore" else "sr ",
+        profile= lambda wildcards: "--profile " + config["args"]["profile"] if config["args"]["profile"] else "",
+        fastqc = lambda wildcards: "--fastqc " if config["args"]["fastqc"] else "",
     threads:
-        resources.big.cpu
+        resources["big"]["cpu"]
     resources:
-        mem_mb = resources.big.mem,
-        mem = str(resources.big.mem) + "MB",
-        time = resources.big.time
+        mem_mb = resources["big"]["mem"],
+        mem = str(resources["big"]["mem"]) + "MB",
+        time = resources["big"]["time"]
     conda:
-        os.path.join(dir.env, "trimnami.yaml")
+        os.path.join(dir["env"], "trimnami.yaml")
     shell:
         """
         trimnami run {params.trim} \
@@ -51,27 +49,27 @@ rule run_trimnami:
 
 rule cluster_sequences:
     input:
-        fq= lambda wildcards: samples.trimmed[wildcards.sample]["R1"],
+        fq= lambda wildcards: samples["trimmed"][wildcards.sample]["R1"],
     output:
-        temp(os.path.join(dir.out.temp,"{sample}_R1_rep_seq.fasta")),
-        temp(os.path.join(dir.out.temp,"{sample}_R1_cluster.tsv")),
-        temp(os.path.join(dir.out.temp,"{sample}_R1_all_seqs.fasta"))
+        temp(os.path.join(dir["out"]["temp"],"{sample}_R1_rep_seq.fasta")),
+        temp(os.path.join(dir["out"]["temp"],"{sample}_R1_cluster.tsv")),
+        temp(os.path.join(dir["out"]["temp"],"{sample}_R1_all_seqs.fasta"))
     params:
         respath=lambda wildcards, output: os.path.split(output[0])[0],
         tmppath=lambda wildcards, output: os.path.join(os.path.split(output[0])[0],f"{wildcards.sample}_TMP"),
         prefix="{sample}_R1",
-        config=config.mmseqs.linclustParams
+        config=config["mmseqs"]["linclustParams"]
     benchmark:
-        os.path.join(dir.out.bench,"cluster_similar_sequences.{sample}.txt")
+        os.path.join(dir["out"]["bench"],"cluster_similar_sequences.{sample}.txt")
     log:
-        os.path.join(dir.out.stderr,"cluster_similar_sequences.{sample}.log")
+        os.path.join(dir["out"]["stderr"],"cluster_similar_sequences.{sample}.log")
     resources:
-        mem_mb=resources.big.mem,
-        mem=str(resources.big.mem) + "MB",
+        mem_mb=resources["big"]["mem"],
+        mem=str(resources["big"]["mem"]) + "MB",
     threads:
-        resources.big.cpu
+        resources["big"]["cpu"]
     conda:
-        os.path.join(dir.env,"mmseqs2.yaml")
+        os.path.join(dir["env"],"mmseqs2.yaml")
     shell:
         """ 
         mmseqs easy-linclust {input.fq} {params.respath}/{params.prefix} {params.tmppath} \
@@ -88,23 +86,23 @@ rule create_individual_seqtables:
     sequence per sample.
     """
     input:
-        seqs=os.path.join(dir.out.temp,"{sample}_R1_rep_seq.fasta"),
-        counts=os.path.join(dir.out.temp,"{sample}_R1_cluster.tsv"),
+        seqs=os.path.join(dir["out"]["temp"],"{sample}_R1_rep_seq.fasta"),
+        counts=os.path.join(dir["out"]["temp"],"{sample}_R1_cluster.tsv"),
     output:
-        seqs=temp(os.path.join(dir.out.temp,"{sample}_R1.seqs")),
-        counts=temp(os.path.join(dir.out.temp,"{sample}_R1.counts")),
-        seqtable=temp(os.path.join(dir.out.temp,"{sample}_R1.seqtable"))
+        seqs=temp(os.path.join(dir["out"]["temp"],"{sample}_R1.seqs")),
+        counts=temp(os.path.join(dir["out"]["temp"],"{sample}_R1.counts")),
+        seqtable=temp(os.path.join(dir["out"]["temp"],"{sample}_R1.seqtable"))
     benchmark:
-        os.path.join(dir.out.bench,"individual_seqtables.{sample}.txt")
+        os.path.join(dir["out"]["bench"],"individual_seqtables.{sample}.txt")
     log:
-        os.path.join(dir.out.stderr,"individual_seqtables.{sample}.txt")
+        os.path.join(dir["out"]["stderr"],"individual_seqtables.{sample}.txt")
     resources:
-        mem_mb=resources.big.mem,
-        mem=str(resources.big.mem) + "MB",
+        mem_mb=resources["big"]["mem"],
+        mem=str(resources["big"]["mem"]) + "MB",
     threads:
-        resources.big.cpu
+        resources["big"]["cpu"]
     conda:
-        os.path.join(dir.env,"seqkit.yaml")
+        os.path.join(dir["env"],"seqkit.yaml")
     shell:
         """
         {{ seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna \
@@ -130,18 +128,18 @@ rule merge_seq_tables:
     the pipline.
     """
     input:
-        seqtables=expand(os.path.join(dir.out.temp,"{sample}_R1.seqtable"),sample=samples.names),
+        seqtables=expand(os.path.join(dir["out"]["temp"],"{sample}_R1.seqtable"),sample=samples["names"]),
     output:
-        fa=os.path.join(dir.out.results,"seqtable.fasta"),
-        tsv=os.path.join(dir.out.results,"sampleSeqCounts.tsv")
+        fa=os.path.join(dir["out"]["results"],"seqtable.fasta"),
+        tsv=os.path.join(dir["out"]["results"],"sampleSeqCounts.tsv")
     params:
-        samples=samples.names,
+        samples=samples["names"],
         tmpdir=lambda wildcards, input: os.path.split(input[0])[0]
     conda:
-        os.path.join(dir.env,"pysam.yaml")
+        os.path.join(dir["env"],"pysam.yaml")
     benchmark:
-        os.path.join(dir.out.bench,"merge_seq_table.txt")
+        os.path.join(dir["out"]["bench"],"merge_seq_table.txt")
     log:
-        os.path.join(dir.out.stderr,"merge_seq_table.log")
+        os.path.join(dir["out"]["stderr"],"merge_seq_table.log")
     script:
-        os.path.join(dir.scripts,"mergeSeqTable.py")
+        os.path.join(dir["scripts"],"mergeSeqTable.py")
