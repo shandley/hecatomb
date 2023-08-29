@@ -37,7 +37,7 @@ for sample_name in samples["names"]:
 
         targets["unmapped"]["r1"].append(os.path.join(dir["out"]["assembly"], sample_name, sample_name + ".assemblyUnmapped_R1.fastq"))
         targets["unmapped"]["r2"].append(os.path.join(dir["out"]["assembly"], sample_name, sample_name + ".assemblyUnmapped_R2.fastq"))
-        targets["unmapped"]["s"].append(os.path.join(dir["out"]["assembly"], sample_name, sample_name + ".assemblyUnmapped.s.fastq"))
+        targets["unmapped"]["s"].append(os.path.join(dir["out"]["assembly"], sample_name, sample_name + ".assemblyUnmapped_RS.fastq"))
 
         targets["trimnami"] += [
             samples["trimmed"][sample_name]["R1"],
@@ -49,7 +49,7 @@ for sample_name in samples["names"]:
         samples["trimmed"][sample_name]["R2"] = None
         samples["trimmed"][sample_name]["S"] = None
         targets["cross"]["s"].append(samples["trimmed"][sample_name]["R1"])
-        targets["unmapped"]["s"].append(os.path.join(dir["out"]["assembly"],sample_name,sample_name + ".assemblyUnmapped.s.fastq"))
+        targets["unmapped"]["s"].append(os.path.join(dir["out"]["assembly"],sample_name,sample_name + ".assemblyUnmapped_S.fastq"))
         targets["trimnami"].append(samples["trimmed"][sample_name]["R1"])
 
 targets["cross"]["r1"] = "-1 " + ",".join(targets["cross"]["r1"])

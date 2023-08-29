@@ -295,7 +295,7 @@ rule secondary_nt_search:
             | sed 's/tid|//' \
             | sed 's/|.*//' \
             > {output.tax};
-        }} 2> {log}
+        }} &> {log}
         rm {log}
         """
 

@@ -74,7 +74,7 @@ rule megahit_sample_paired:
     input:
         r1 = os.path.join(dir["out"]["trim"], "{sample}" + "_R1" + config["args"]["hostStr"] + ".fastq.gz"),
         r2 = os.path.join(dir["out"]["trim"], "{sample}" + "_R2" + config["args"]["hostStr"] + ".fastq.gz"),
-        s  = os.path.join(dir["out"]["trim"], "{sample}" + "_S" + config["args"]["hostStr"] + ".fastq.gz"),
+        s  = os.path.join(dir["out"]["trim"], "{sample}" + "_RS" + config["args"]["hostStr"] + ".fastq.gz"),
     output:
         contigs = os.path.join(dir["out"]["assembly"], "{sample}", "{sample}.contigs.fa"),
         renamed = os.path.join(dir["out"]["assembly"], "{sample}", "{sample}.rename.contigs.fa"),
@@ -203,10 +203,10 @@ rule minimap_sample_paired_contigs:
 rule minimap_sample_paired_singletons_contigs:
     """Map the sample unpaired reads to the sample assembly"""
     input:
-        s=os.path.join(dir["out"]["trim"],"{sample}" + "_S" + config["args"]["hostStr"] + ".fastq.gz"),
+        s=os.path.join(dir["out"]["trim"],"{sample}" + "_RS" + config["args"]["hostStr"] + ".fastq.gz"),
         contigs = os.path.join(dir["out"]["assembly"],"{sample}","{sample}.contigs.fa")
     output:
-        temp(os.path.join(dir["out"]["assembly"],"{sample}","{sample}.assemblyUnmapped_S.fastq"))
+        temp(os.path.join(dir["out"]["assembly"],"{sample}","{sample}.assemblyUnmapped_RS.fastq"))
     conda:
         os.path.join(dir["env"], "minimap2.yaml")
     threads:
@@ -330,7 +330,7 @@ rule pool_unmapped_singletons:
     input:
         targets["unmapped"]["s"]
     output:
-        os.path.join(dir["out"]["trim"], "rescue" + "_S" + config["args"]["hostStr"] + ".fastq.gz"),
+        os.path.join(dir["out"]["trim"], "rescue" + "_RS" + config["args"]["hostStr"] + ".fastq.gz"),
     conda:
         os.path.join(dir["env"], "pigz.yaml")
     threads:
