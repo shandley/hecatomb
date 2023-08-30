@@ -96,11 +96,9 @@ rule combine_canu_contigs:
         resources["lrg"]["cpu"]
     resources:
         time = resources["sml"]["time"]
-    params:
-        compression = "-" + str(config["qc"]["compression"])
     conda:
         os.path.join(dir["env"], "pigz.yaml")
     group:
         "assembly"
     shell:
-        """cat {input} | pigz -p {threads} {params.compression} -c > {output}"""
+        """cat {input} | pigz -p {threads} -1 -c > {output}"""

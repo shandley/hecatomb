@@ -354,7 +354,6 @@ rule concatenate_contigs:
         os.path.join(dir["out"]["assembly"], "all_sample_contigs.fasta.gz")
     params:
         dirs = expand(os.path.join(dir["out"]["assembly"],"{sample}"), sample=samples["names"] + ["rescue"]),
-        compression= "-1"
     threads:
         resources["med"]["cpu"]
     resources:
@@ -365,6 +364,6 @@ rule concatenate_contigs:
         "assemblyRescue"
     shell:
         """
-        cat {input} | pigz -p {threads} {params.compression} -c > {output}
+        cat {input} | pigz -p {threads} -1 -c > {output}
         rm -rf {params.dirs}
         """
