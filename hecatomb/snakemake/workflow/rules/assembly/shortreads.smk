@@ -13,7 +13,8 @@ rule cross_assembly:
     params:
         r1p=targets["cross"]["r1"],
         r2p=targets["cross"]["r2"],
-        rs=targets["cross"]["s"],
+        rs= lambda wildcards: "-r " + ",".join([file for file in targets["cross"]["s"] if os.path.getsize(file) > 200]) \
+            if len([file for file in targets["cross"]["s"] if os.path.getsize(file) > 200]) > 0 else "",
         mh_dir=os.path.join(dir["out"]["assembly"],"crossAssembly"),
         mh_int=os.path.join(dir["out"]["assembly"],"crossAssembly","intermediate_contigs"),
         params=config["assembly"]["megahit"],
@@ -81,7 +82,8 @@ rule megahit_sample_paired:
         tar = os.path.join(dir["out"]["assembly"],"{sample}.tar.zst")
     params:
         mh_dir = lambda w, output: os.path.split(output.contigs)[0],
-        params = config["assembly"]["megahit"]
+        params = config["assembly"]["megahit"],
+        rs = lambda w, input: "-r " + input.s if os.path.getsize(input.s) > 200 else ""
     benchmark:
         os.path.join(dir["out"]["bench"], "megahit_sample_paired.{sample}.txt")
     log:
@@ -106,7 +108,7 @@ rule megahit_sample_paired:
         megahit \
             -1 {input.r1} \
             -2 {input.r2} \
-            -r {input.s} \
+            {params.rs} \
             -o {params.mh_dir} \
             --out-prefix {wildcards.sample} \
             -t {threads} \

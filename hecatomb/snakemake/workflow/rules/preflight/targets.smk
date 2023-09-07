@@ -54,7 +54,7 @@ for sample_name in samples["names"]:
 
 targets["cross"]["r1"] = "-1 " + ",".join(targets["cross"]["r1"])
 targets["cross"]["r2"] = "-2 " + ",".join(targets["cross"]["r2"])
-targets["cross"]["s"]  = "-r " + ",".join(targets["cross"]["s"])
+# targets["cross"]["s"]  = "-r " + ",".join(targets["cross"]["s"])
 
 
 ### PREPROCESSING
