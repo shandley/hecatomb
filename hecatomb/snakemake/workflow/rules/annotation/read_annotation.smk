@@ -109,7 +109,8 @@ rule secondary_aa_tophit_lineage:
     conda:
         os.path.join(dir["env"], "seqkit.yaml")
     resources:
-        time = resources["sml"]["time"]
+        time = resources["sml"]["time"],
+        mem = resources["ram"]["mem"]
     params:
         taxonFormat = lambda wildcards: config["immutable"]["taxonkitReformat"]
     benchmark:
@@ -312,7 +313,8 @@ rule secondary_nt_lca_table:
     log:
         os.path.join(dir["out"]["stderr"], "secondary_nt_lca_table.log")
     resources:
-        time = resources["sml"]["time"]
+        time = resources["sml"]["time"],
+        mem = resources["ram"]["mem"]
     group:
         "secondary_nt_parsing"
     script:

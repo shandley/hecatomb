@@ -1,6 +1,6 @@
 rule trimnami_config:
     output:
-        temp(os.path.join(dir["out"]["temp"], "trimnami.config.yaml"))
+        os.path.join(dir["out"]["temp"], "trimnami.config.yaml")
     params:
         config = trimnami,
     localrule:
