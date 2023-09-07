@@ -39,6 +39,17 @@ def default_to_output(ctx, param, value):
     return value
 
 
+def tuple_to_list(dictionary):
+    """Convert click tuples to lists for pyyaml"""
+    out_dict = {}
+    for key, value in dictionary.items():
+        if isinstance(value, tuple):
+            out_dict[key] = list(value)
+        else:
+            out_dict[key] = value
+    return out_dict
+
+
 def common_options(func):
     """Common command line args
     Define common command line args here, and include them with the @common_options decorator below.
@@ -95,7 +106,7 @@ def common_options(func):
             callback=default_to_output,
             hidden=True,
         ),
-        click.argument("snake_args", nargs=-1),
+        click.argument("snake_args", nargs=-1,),
     ]
     for option in reversed(options):
         func = option(func)
@@ -232,19 +243,7 @@ def run(**kwargs):
 
     merge_config = {
         "hecatomb":{
-            "args": {
-                "reads": kwargs["reads"],
-                "output": kwargs["output"],
-                "host": kwargs["host"],
-                "trim": kwargs["trim"],
-                "fastqc": kwargs["fastqc"],
-                "assembly": kwargs["assembly"],
-                "custom_aa": kwargs["custom_aa"],
-                "custom_nt": kwargs["custom_nt"],
-                "search": kwargs["search"],
-                "profile": kwargs["profile"],
-                "log": kwargs["log"],
-            }
+            "args": tuple_to_list(kwargs)
         }
     }
 
@@ -274,17 +273,7 @@ def test(**kwargs):
 
     merge_config = {
         "hecatomb": {
-            "args": {
-                "reads": kwargs["reads"],
-                "output": kwargs["output"],
-                "host": kwargs["host"],
-                "trim": kwargs["trim"],
-                "fastqc": kwargs["fastqc"],
-                "assembly": kwargs["assembly"],
-                "search": kwargs["search"],
-                "profile": kwargs["profile"],
-                "log": kwargs["log"],
-            }
+            "args": tuple_to_list(kwargs)
         }
     }
 
@@ -320,10 +309,7 @@ def install(**kwargs):
     """Install the Hecatomb databases"""
 
     merge_config = {
-        "args": {
-            "output": kwargs["output"],
-            "log": kwargs["log"],
-        }
+        "args": tuple_to_list(kwargs)
     }
     run_snakemake(
         snakefile_path=snake_base(
@@ -351,14 +337,10 @@ def install(**kwargs):
 @common_options
 def combine(**kwargs):
     """Combine multiple Hecatomb runs"""
-
+    kwargs["combineRuns"] = list(kwargs["comb"])
     merge_config = {
         "hecatomb": {
-            "args": {
-                "output": kwargs["output"],
-                "combineRuns": list(kwargs["comb"]),
-                "log": kwargs["log"],
-            }
+            "args": tuple_to_list(kwargs)
         }
     }
     run_snakemake(
@@ -386,15 +368,11 @@ def combine(**kwargs):
 @common_options
 def add_host(**kwargs):
     """Add a new host genome to use with Hecatomb"""
-
+    kwargs["hostFa"] = kwargs["host_fa"]
+    kwargs["hostName"] = kwargs["host"]
     merge_config = {
         "hecatomb": {
-            "args": {
-                "output": kwargs["output"],
-                "hostFa": kwargs["host_fa"],
-                "hostName": kwargs["host"],
-                "log": kwargs["log"],
-            }
+            "args": tuple_to_list(kwargs)
         }
     }
     run_snakemake(

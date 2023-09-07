@@ -14,7 +14,7 @@ rule trimnami_config:
 rule run_trimnami:
     """Get coverage statistics with Koverage"""
     input:
-        tsv = os.path.join(dir["out"]["results"], "hecatomb.samples.tsv"),
+        tsv = ancient(os.path.join(dir["out"]["results"], "hecatomb.samples.tsv")),
         config = os.path.join(dir["out"]["temp"], "trimnami.config.yaml")
     output:
         targets["trimnami"]
@@ -26,10 +26,10 @@ rule run_trimnami:
         profile= lambda wildcards: "--profile " + config["args"]["profile"] if config["args"]["profile"] else "",
         fastqc = lambda wildcards: "--fastqc " if config["args"]["fastqc"] else "",
     threads:
-        resources["big"]["cpu"]
+        lambda wildcards: resources["sml"]["cpu"] if config["args"]["profile"] else resources["big"]["cpu"]
     resources:
-        mem_mb = resources["big"]["mem"],
-        mem = str(resources["big"]["mem"]) + "MB",
+        mem_mb = lambda wildcards: resources["sml"]["mem"] if config["args"]["profile"] else resources["big"]["mem"],
+        mem = lambda wildcards: str(resources["sml"]["mem"]) + "MB" if config["args"]["profile"] else str(resources["big"]["mem"]) + "MB",
         time = resources["big"]["time"]
     conda:
         os.path.join(dir["env"], "trimnami.yaml")

@@ -61,13 +61,13 @@ rule koverage_calculations:
         os.path.join(dir["out"]["results"], "all_coverage.tsv")
     params:
         out_dir = dir["out"]["base"],
-        minimap_mode = lambda w: "map-ont" if config["args"]["trim"] == "nanopore" else "sr",
+        minimap_mode = lambda wildcards: "map-ont" if config["args"]["trim"] == "nanopore" else "sr",
         profile= lambda wildcards: "--profile " + config["args"]["profile"] if config["args"]["profile"] else "",
     threads:
-        resources["big"]["cpu"]
+        lambda wildcards: resources["sml"]["cpu"] if config["args"]["profile"] else resources["big"]["cpu"]
     resources:
-        mem_mb = resources["big"]["mem"],
-        mem = str(resources["big"]["mem"]) + "MB",
+        mem_mb = lambda wildcards: resources["sml"]["mem"] if config["args"]["profile"] else resources["big"]["mem"],
+        mem = lambda wildcards: str(resources["sml"]["mem"]) + "MB" if config["args"]["profile"] else str(resources["big"]["mem"]) + "MB",
         time = resources["big"]["time"]
     conda:
         os.path.join(dir["env"], "koverage.yaml")

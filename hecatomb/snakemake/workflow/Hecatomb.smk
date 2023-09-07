@@ -39,7 +39,7 @@ include: os.path.join("rules", "preflight", "functions.smk")
 
 
 samples = dict()
-samples["reads"] = fastq_finder.parse_samples_to_dictionary(config["args"]["reads"])
+samples["reads"] = dict(sorted(fastq_finder.parse_samples_to_dictionary(config["args"]["reads"]).items()))
 samples["names"] = sorted(list(samples["reads"].keys()))
 
 
@@ -65,7 +65,6 @@ include: os.path.join("rules","reports","summaries_optional.smk")
 
 
 target_rules = []
-
 
 def targetRule(fn):
     assert fn.__name__.startswith("__")

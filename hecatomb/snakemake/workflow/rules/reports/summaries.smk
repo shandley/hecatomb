@@ -35,7 +35,6 @@ rule dumpSamplesTsv:
         fastq_finder.write_samples_tsv(params[0], output[0])
 
 
-
 rule krona_text_format:
     """Taxon step 18: Text format summary of bigtable for a krona plot"""
     input:
