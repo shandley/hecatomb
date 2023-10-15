@@ -39,17 +39,6 @@ def default_to_output(ctx, param, value):
     return value
 
 
-def tuple_to_list(dictionary):
-    """Convert click tuples to lists for pyyaml"""
-    out_dict = {}
-    for key, value in dictionary.items():
-        if isinstance(value, tuple):
-            out_dict[key] = list(value)
-        else:
-            out_dict[key] = value
-    return out_dict
-
-
 def common_options(func):
     """Common command line args
     Define common command line args here, and include them with the @common_options decorator below.
@@ -104,6 +93,11 @@ def common_options(func):
             "--log",
             default="hecatomb.log",
             callback=default_to_output,
+            hidden=True,
+        ),
+        click.option(
+            "--system-config",
+            default=snake_base(os.path.join("snakemake", "config", "config.yaml")),
             hidden=True,
         ),
         click.argument("snake_args", nargs=-1,),
@@ -213,12 +207,12 @@ Add Snakemake args: hecatomb run ... --dry-run --keep-going --touch
 Specify stages:     hecatomb run ... all print_stages
 \b
 AVAILABLE STAGES:
-    all             Run everything (default)
-    preprocess      Preprocessing steps only
-    assemble        Assembly steps (+ preprocess)
-    annotate        Read annotations (+ preprocess)
-    ctg_annotate    Contig annotations (+ preprocess,assemble)
-    print_stages    List available stages
+    all                 Run everything (default)
+    preprocessing       Preprocessing steps only
+    assembly            Assembly steps (+ preprocess)
+    read_annotations    Read annotations (+ preprocess)
+    contig_annotations  Contig annotations (+ preprocess,assemble)
+    print_stages        List available stages
 """
 
 
@@ -243,7 +237,7 @@ def run(**kwargs):
 
     merge_config = {
         "hecatomb":{
-            "args": tuple_to_list(kwargs)
+            "args": kwargs
         }
     }
 
@@ -252,7 +246,6 @@ def run(**kwargs):
         snakefile_path=snake_base(
             os.path.join("snakemake", "workflow", "Hecatomb.smk")
         ),
-        system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
         merge_config=merge_config,
         **kwargs
     )
@@ -273,7 +266,7 @@ def test(**kwargs):
 
     merge_config = {
         "hecatomb": {
-            "args": tuple_to_list(kwargs)
+            "args": kwargs
         }
     }
 
@@ -281,7 +274,6 @@ def test(**kwargs):
         snakefile_path=snake_base(
             os.path.join("snakemake", "workflow", "Hecatomb.smk")
         ),
-        system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
         merge_config=merge_config,
         **kwargs
     )
@@ -309,13 +301,12 @@ def install(**kwargs):
     """Install the Hecatomb databases"""
 
     merge_config = {
-        "args": tuple_to_list(kwargs)
+        "args": kwargs
     }
     run_snakemake(
         snakefile_path=snake_base(
             os.path.join("snakemake", "workflow", "DownloadDB.smk")
         ),
-        system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
         merge_config=merge_config,
         **kwargs
     )
@@ -340,14 +331,13 @@ def combine(**kwargs):
     kwargs["combineRuns"] = list(kwargs["comb"])
     merge_config = {
         "hecatomb": {
-            "args": tuple_to_list(kwargs)
+            "args": kwargs
         }
     }
     run_snakemake(
         snakefile_path=snake_base(
             os.path.join("snakemake", "workflow", "combineOutputs.smk")
         ),
-        system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
         merge_config=merge_config,
         **kwargs
     )
@@ -372,12 +362,11 @@ def add_host(**kwargs):
     kwargs["hostName"] = kwargs["host"]
     merge_config = {
         "hecatomb": {
-            "args": tuple_to_list(kwargs)
+            "args": kwargs
         }
     }
     run_snakemake(
         snakefile_path=snake_base(os.path.join("snakemake", "workflow", "AddHost.smk")),
-        system_config=snake_base(os.path.join("snakemake", "config", "config.yaml")),
         merge_config=merge_config,
         **kwargs
     )

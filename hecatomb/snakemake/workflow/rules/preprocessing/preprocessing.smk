@@ -14,7 +14,7 @@ rule trimnami_config:
 rule run_trimnami:
     """Get coverage statistics with Koverage"""
     input:
-        tsv = ancient(os.path.join(dir["out"]["results"], "hecatomb.samples.tsv")),
+        tsv = os.path.join(dir["out"]["results"], "hecatomb.samples.tsv"),
         config = os.path.join(dir["out"]["temp"], "trimnami.config.yaml")
     output:
         targets["trimnami"]

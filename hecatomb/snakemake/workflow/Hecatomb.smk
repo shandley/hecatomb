@@ -84,27 +84,32 @@ rule all:
 
 
 @targetRule
-rule preprocess:
+rule preprocessing:
     input:
         targets["preprocessing"]
 
 
 @targetRule
-rule assemble:
+rule assembly:
     input:
         targets["assembly"]
 
 
 @targetRule
-rule annotate:
+rule read_annotations:
     input:
         targets["readAnnotations"]
 
 
 @targetRule
-rule ctg_annotate:
+rule contig_annotations:
     input:
-        targets["contigAnnotations"],
+        targets["contigAnnotations"]
+
+
+@targetRule
+rule combined_annotations:
+    input:
         targets["mapping"]
 
 
