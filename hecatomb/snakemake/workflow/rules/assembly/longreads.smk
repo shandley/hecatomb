@@ -30,7 +30,6 @@ rule lr_cross_assembly:
         mv {params.assembly} {output.assembly}
         mv {params.graph} {output.graph}
         tar cf - {params.dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        rm {log}
         """
 
 
@@ -68,7 +67,6 @@ rule canu_sample_assembly:
         sed 's/>tig/>{wildcards.sample}./' {output.ctg} > {output.ctgq}
         sed 's/>tig/>{wildcards.sample}./' {output.un} > {output.unq}
         tar cf - {params.canu_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        rm {log}
         """
 
 

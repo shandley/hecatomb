@@ -6,14 +6,6 @@ import logging
 import re
 
 
-def exitLogCleanup(*args):
-    """Cleanup the logging file(s) prior to exiting"""
-    for logFile in args:
-        os.unlink(logFile)
-    return None
-
-
-atexit.register(exitLogCleanup, snakemake.log[0])
 logging.basicConfig(filename=snakemake.log[0], filemode="w", level=logging.DEBUG)
 
 logging.debug("Reading in Baltimore classifications")

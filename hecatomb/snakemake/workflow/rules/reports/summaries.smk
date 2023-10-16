@@ -71,7 +71,6 @@ rule krona_plot:
     shell:
         """
         ktImportText {input} -o {output} &> {log}
-        rm {log}
         """
 
 
@@ -105,5 +104,4 @@ rule contig_krona_plot:
     shell:
         """
         ktImportText {input} -o {output} &> {log}
-        rm {log}
         """

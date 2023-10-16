@@ -127,7 +127,6 @@ rule secondary_aa_tophit_lineage:
             | taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} \
             | cut --complement -f3 \
             > {output.tophit_lineage_refomated}; }} &> {log}
-        rm {log}
         """
 
 
@@ -157,7 +156,6 @@ rule secondary_aa_refactor_finalize:
             | taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} \
             | cut --complement -f3 \
             > {output.lca_reformated}; }} &> {log}
-        rm {log}
         """
 
 
@@ -235,7 +233,6 @@ rule primary_nt_search:
         mmseqs easy-search {input.seqs} {input.db} {output} {params.tmppath} \
             {params.ntsens} {params.filtnt} \
             --search-type 3 --threads {threads} --split-memory-limit {params.memsplit} &> {log}
-        rm {log}
         """
 
 
@@ -297,7 +294,6 @@ rule secondary_nt_search:
             | sed 's/|.*//' \
             > {output.tax};
         }} &> {log}
-        rm {log}
         """
 
 
@@ -356,7 +352,6 @@ rule secondary_nt_calc_lca:
             taxonkit reformat --data-dir {input.taxdb} -i 3 {params.taxonFormat} | \
             cut --complement -f 3 > {output.top_lineage}
         }} &> {log}
-        rm {log}
         """
 
 
@@ -405,5 +400,4 @@ rule combine_aa_nt:
         """
         {{ cat {input.aa} > {output};
         tail -n+2 {input.nt} >> {output}; }} &> {log}
-        rm {log}
         """

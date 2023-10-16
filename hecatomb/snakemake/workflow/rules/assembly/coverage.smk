@@ -33,7 +33,6 @@ rule population_assembly:
         statswrapper.sh in={output.assembly} out={output.stats} \
             format=2 \
             ow=t 2> {log.log2}
-        rm {log.log2}
         """
 
 

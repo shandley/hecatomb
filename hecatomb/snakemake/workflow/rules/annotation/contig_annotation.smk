@@ -40,7 +40,6 @@ rule mmseqs_contig_annotation:
         mmseqs search {output.queryDB} {input.db} {params.prefix} {params.tmppath} \
             {params.sensnt} --split-memory-limit {params.memsplit} {params.filtnt} \
             --search-type 3 --threads {threads} ; }} &> {log}
-        rm {log}
         """
 
 
@@ -93,5 +92,4 @@ rule mmseqs_contig_annotation_summary:
             taxonkit reformat --data-dir {input.taxdb} -i 18 {params.taxonFormat} | \
             cut --complement -f2,19 >> {output.tsv};
         }} &> {log}
-        rm {log}
         """

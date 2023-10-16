@@ -67,7 +67,6 @@ rule cross_assembly:
             | zstd -T{threads} -9 \
             > {output.tar} \
             2> {log}
-        rm {log}
         """
 
 
@@ -118,8 +117,6 @@ rule megahit_sample_paired:
         sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}
         
         tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        
-        rm {log}
         """
 
 
@@ -165,8 +162,6 @@ rule megahit_sample_unpaired:
         sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}
 
         tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-
-        rm {log}
         """
 
 
@@ -198,7 +193,6 @@ rule minimap_sample_paired_contigs:
         minimap2 -t {threads} -ax sr {input.contigs} {input.r1} {input.r2} | \
             samtools sort -n -o {output};
         }} 2> {log} 
-        rm {log}
         """
 
 
@@ -230,7 +224,6 @@ rule minimap_sample_paired_singletons_contigs:
             samtools sort -n | \
             samtools fastq -f 4 > {output};
         }} 2> {log}
-        rm {log}
         """
 
 

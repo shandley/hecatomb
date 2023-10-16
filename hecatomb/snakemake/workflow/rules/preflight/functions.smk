@@ -120,7 +120,7 @@ rule calculate_gc:
         mem = str(resources["ram"]["mem"]) + "MB",
     shell:
         """
-        countgc.sh in={input} format=2 ow=t > {output} 2> {log} && rm {log}
+        countgc.sh in={input} format=2 ow=t > {output} 2> {log}
         """
 
 
@@ -150,7 +150,6 @@ rule calculate_tet_freq:
         tetramerfreq.sh in={input} w=0 ow=t -Xmx{resources.mem_mb}m \
             | tail -n+2;
         }} > {output} 2>> {log}
-        rm {log}
         """
 
 

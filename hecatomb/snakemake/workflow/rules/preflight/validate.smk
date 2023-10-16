@@ -28,7 +28,7 @@ if dbFail:
 # Cleanup old logfiles etc.
 onstart:
     if os.path.isdir(dir["out"]["stderr"]):
-        oldLogs = filter(re.compile(r'^(?!old_).*.log').match, os.listdir(dir["out"]["stderr"]))
+        oldLogs = filter(re.compile(r'^(?!old_).*').match, os.listdir(dir["out"]["stderr"]))
         for logfile in oldLogs:
             os.rename(os.path.join(dir["out"]["stderr"], logfile), os.path.join(dir["out"]["stderr"], f'old_{logfile}'))
 
@@ -41,14 +41,9 @@ onsuccess:
 onerror:
     copy_log()
     sys.stderr.write('\n\n    FATAL: Hecatomb encountered an error.\n\n')
-    logfiles = list(filter(re.compile(r'^(?!old_).*.log').match, os.listdir(dir["out"]["stderr"])))
-    if len(logfiles) > 0:
-        sys.stderr.write('    Dumping all error logs to "hecatomb.crashreport.log"\n')
-        with open('hecatomb.crashreport.log', 'w') as crashDump:
-            for file in logfiles:
-                if os.path.getsize(os.path.join(dir["out"]["stderr"], file)) > 0:
-                    rulename = re.sub(r'.log$', '', file)
-                    crashDump.write(''.join(('\n','-'*10,f'\nstderr for rule {rulename}:\n','-'*10,'\n')))
-                    with open(os.path.join(dir["out"]["stderr"], file), 'r') as logfh:
-                        for line in logfh:
-                            crashDump.write(line)
+    sys.stderr.write(f'Check the Hecatomb logs directory for command-related errors:\n\n{dir["out"]["stderr"]}\n\n')
+    if config["args"]["profile"]:
+        sys.stderr.write(
+            'Also check your scheduler logs for sheduler-related errors. Your profile determins where these are saved'
+            'but by default is usually logs/ in your working directory.\n\n'
+        )
