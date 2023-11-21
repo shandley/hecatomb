@@ -81,3 +81,8 @@ hecatomb:
             - tax/taxonomy/merged.dmp
             - tax/taxonomy/names.dmp
             - tax/taxonomy/nodes.dmp
+    dbvirRefSeq:
+        url:
+            "https://ftp.ncbi.nlm.nih.gov/refseq/release/viral/viral.1.1.genomic.fna.gz"
+        file:
+            host/viral.1.1.genomic.fna.gz

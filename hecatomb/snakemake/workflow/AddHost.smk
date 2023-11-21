@@ -15,12 +15,25 @@ include: os.path.join("rules", "preflight", "directories.smk")
 dir["dbs"]["host"]["fasta"] = os.path.join(
     dir["dbs"]["host"]["base"], config["args"]["hostName"], "masked_ref.fa.gz"
 )
-dir["dbs"]["host"]["virShred"] = os.path.join(dir["dbs"]["host"]["base"], "virus_shred.fasta.gz")
+dir["dbs"]["host"]["virRefSeq"] = os.path.join(dir["dbs"]["host"]["base"], "viral.1.1.genomic.fna.gz")
 
 
 rule all:
     input:
         dir["dbs"]["host"]["fasta"]
+
+
+rule dl_refseq_viral:
+    """Download the refseq viral genomic file needed"""
+    output:
+        dir["dbs"]["host"]["virRefSeq"]
+    params:
+        url = config["dbvirRefSeq"]["url"],
+        file = config["dbvirRefSeq"]["file"]
+    conda:
+        os.path.join(dir["env"], "curl.yaml")
+    shell:
+        "curl {params.url} -o {params.file}"
 
 
 rule minimap_viral_refseq:
