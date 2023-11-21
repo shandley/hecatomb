@@ -5,14 +5,6 @@ import atexit
 import logging
 
 
-def exitLogCleanup(*args):
-    """Cleanup the logging file(s) prior to exiting"""
-    for logFile in args:
-        os.unlink(logFile)
-    return None
-
-
-atexit.register(exitLogCleanup, snakemake.log[0])
 logging.basicConfig(filename=snakemake.log[0], filemode="w", level=logging.DEBUG)
 
 # the index position for each tax level in the bigtable.tsv - off by one because we capture the range as l[21:i]

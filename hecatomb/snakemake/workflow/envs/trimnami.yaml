@@ -1,0 +1,7 @@
+name: trimnami
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+    - trimnami>=0.1.0

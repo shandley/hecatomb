@@ -4,17 +4,39 @@ Command line interface for installing and running Hecatomb
 
 import os
 import click
+import yaml
+import glob
 
-from .cli_util import (
-    snake_base,
-    get_version,
-    default_to_output,
-    copy_config,
-    run_snakemake,
+from snaketool_utils.cli_utils import (
     OrderedCommands,
-    print_citation,
-    run_list_hosts,
+    run_snakemake,
+    copy_config,
+    echo_click,
+    msg_box,
 )
+
+
+def snake_base(rel_path):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), rel_path)
+
+
+def get_version():
+    with open(snake_base("hecatomb.VERSION"), "r") as f:
+        version = f.readline()
+    return version
+
+
+def print_citation():
+    with open(snake_base("hecatomb.CITATION"), "r") as f:
+        for line in f:
+            echo_click(line)
+
+
+def default_to_output(ctx, param, value):
+    """Callback for click options; places value in output directory unless specified"""
+    if param.default == value:
+        return os.path.join(ctx.params["output"], value)
+    return value
 
 
 def common_options(func):
@@ -38,6 +60,9 @@ def common_options(func):
         ),
         click.option(
             "--threads", help="Number of threads to use", default=32, show_default=True
+        ),
+        click.option(
+            "--profile", help="Snakemake profile", default=None, show_default=False
         ),
         click.option(
             "--use-conda/--no-use-conda",
@@ -70,7 +95,68 @@ def common_options(func):
             callback=default_to_output,
             hidden=True,
         ),
-        click.argument("snake_args", nargs=-1),
+        click.option(
+            "--system-config",
+            default=snake_base(os.path.join("snakemake", "config", "config.yaml")),
+            hidden=True,
+        ),
+        click.argument("snake_args", nargs=-1,),
+    ]
+    for option in reversed(options):
+        func = option(func)
+    return func
+
+
+def run_test_options(func):
+    """Common command line options for "run" and "test" """
+    options = [
+        click.option(
+            "--trim",
+            help="Trimming engine for trimnami",
+            default="fastp",
+            show_default=True,
+            type=click.Choice(["fastp", "prinseq", "roundAB", "filtlong", "notrim", "cutadapt"]),
+        ),
+        click.option(
+            "--fastqc/--no-fastqc",
+            default=False,
+            help="Generate fastqc reports",
+            show_default=True,
+        ),
+        click.option(
+            "--assembly",
+            help="Assembly method: [cross]-assembly or [merged]-assembly",
+            default="merged",
+            show_default=True,
+            type=click.Choice(["cross", "merged"]),
+        ),
+        click.option(
+            "--custom-aa",
+            help="Custom protein fasta for prefiltering",
+            type=click.Path(readable=True, exists=True),
+            default=None,
+            show_default=False,
+        ),
+        click.option(
+            "--custom-nt",
+            help="Custom nucleotide fasta for prefiltering",
+            type=click.Path(readable=True, exists=True),
+            default=None,
+            show_default=False,
+        ),
+        click.option(
+            "--search",
+            help="MMSeqs search speed settings",
+            default="sensitive",
+            type=click.Choice(["fast", "sensitive"]),
+            show_default=True,
+        ),
+        click.option(
+            "--host",
+            help="Host genome name for filtering, or 'none' for no host removal.",
+            default="human",
+            show_default=True,
+        ),
     ]
     for option in reversed(options):
         func = option(func)
@@ -90,19 +176,21 @@ def cli():
 
 
 def print_splash():
-    click.echo("""
-    \b
-    ██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗
-    ██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗
-    ███████║█████╗  ██║     ███████║   ██║   ██║   ██║██╔████╔██║██████╔╝
-    ██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗
-    ██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝
-    ╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝
-    """)
+    click.echo(
+        """
+\b
+██╗  ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ███╗   ███╗██████╗
+██║  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗
+███████║█████╗  ██║     ███████║   ██║   ██║   ██║██╔████╔██║██████╔╝
+██╔══██║██╔══╝  ██║     ██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██╗
+██║  ██║███████╗╚██████╗██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██████╔╝
+╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═════╝
+"""
+    )
 
 
 def help_msg_epilog():
-    return ("""
+    return """
 \b
 CLUSTER EXECUTION:
 hecatomb run ... --profile [profile]
@@ -119,13 +207,13 @@ Add Snakemake args: hecatomb run ... --dry-run --keep-going --touch
 Specify stages:     hecatomb run ... all print_stages
 \b
 AVAILABLE STAGES:
-    all             Run everything (default)
-    preprocess      Preprocessing steps only
-    assemble        Assembly steps (+ preprocess)
-    annotate        Read annotations (+ preprocess)
-    ctg_annotate    Contig annotations (+ preprocess,assemble)
-    print_stages    List available stages
-""")
+    all                 Run everything (default)
+    preprocessing       Preprocessing steps only
+    assembly            Assembly steps (+ preprocess)
+    read_annotations    Read annotations (+ preprocess)
+    contig_annotations  Contig annotations (+ preprocess,assemble)
+    print_stages        List available stages
+"""
 
 
 @click.command(
@@ -134,35 +222,31 @@ AVAILABLE STAGES:
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option('--reads', 'reads', help='Input file/directory', type=str, default=None, required=True)
-@click.option('--library', help='Library type', default='paired', show_default=True,
-              type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
-@click.option('--assembly', help='Assembly method: [cross]-assembly or [co]-assembly', default='cross',
-              show_default=True, type=click.Choice(['cross', 'co']))
-@click.option('--search', help='MMSeqs search speed settings', default='sensitive',
-              type=click.Choice(['fast', 'sensitive']), show_default=True)
-@click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
+@click.option(
+    "--reads",
+    "reads",
+    help="Input file/directory",
+    type=str,
+    default=None,
+    required=True,
+)
+@run_test_options
 @common_options
-def run(reads, library, assembly, search, host, output, log, **kwargs):
+def run(**kwargs):
     """Run hecatomb"""
 
     merge_config = {
-        'args': {
-            'reads': reads,
-            'output': output,
-            'host': host,
-            'library': library,
-            'assembly': assembly,
-            'search': search,
-            'log': log
+        "hecatomb":{
+            "args": kwargs
         }
     }
 
     run_snakemake(
         # Full path to Snakefile
-        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'Hecatomb.smk')),
+        snakefile_path=snake_base(
+            os.path.join("snakemake", "workflow", "Hecatomb.smk")
+        ),
         merge_config=merge_config,
-        log=log,
         **kwargs
     )
 
@@ -173,119 +257,141 @@ def run(reads, library, assembly, search, host, output, log, **kwargs):
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option('--library', help='Library type', default='paired', show_default=True,
-              type=click.Choice(['paired', 'single', 'longread', 'roundAB']))
-@click.option('--assembly', help='Assembly method: [cross]-assembly or [co]-assembly', default='cross',
-              show_default=True, type=click.Choice(['cross', 'co']))
-@click.option('--search', help='MMSeqs search speed settings', default='sensitive',
-              type=click.Choice(['fast', 'sensitive']), show_default=True)
-@click.option('--host', help='Host genome name for filtering', default='human', show_default=True)
+@run_test_options
 @common_options
-def test(library, assembly, search, host, output, log, **kwargs):
+def test(**kwargs):
     """Run the Hecatomb test dataset"""
 
-    reads = snake_base('test_data')
+    kwargs["reads"] = snake_base("test_data")
 
     merge_config = {
-        'args': {
-            'reads': reads,
-            'output': output,
-            'host': host,
-            'library': library,
-            'assembly': assembly,
-            'search': search,
-            'log': log
+        "hecatomb": {
+            "args": kwargs
         }
     }
 
     run_snakemake(
-        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'Hecatomb.smk')),
+        snakefile_path=snake_base(
+            os.path.join("snakemake", "workflow", "Hecatomb.smk")
+        ),
         merge_config=merge_config,
-        log=log,
         **kwargs
     )
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
+@click.command(
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    )
+)
 @common_options
-def config(configfile, **kwargs):
+def config(**kwargs):
     """Copy the system default config file"""
-    copy_config(configfile)
+    copy_config(kwargs["configfile"])
 
 
-@click.command(epilog=help_msg_epilog(),
-               context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
+@click.command(
+    epilog=help_msg_epilog(),
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
 @common_options
-def install(output, log, **kwargs):
+def install(**kwargs):
     """Install the Hecatomb databases"""
 
     merge_config = {
-        'args': {
-            'output': output,
-            'log': log
-        }
+        "args": kwargs
     }
     run_snakemake(
-        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'DownloadDB.smk')),
+        snakefile_path=snake_base(
+            os.path.join("snakemake", "workflow", "DownloadDB.smk")
+        ),
         merge_config=merge_config,
-        log=log,
         **kwargs
     )
 
 
-@click.command(epilog=help_msg_epilog(),
-               context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
-@click.option('--comb', multiple=True, required=True, show_default=False,
-              help='Two or more Hecatomb output directories to combine. e.g. --comb dir1/ --comb dir2/ ...')
+@click.command(
+    epilog=help_msg_epilog(),
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
+@click.option(
+    "--comb",
+    multiple=True,
+    required=True,
+    show_default=False,
+    help="Two or more Hecatomb output directories to combine. e.g. --comb dir1/ --comb dir2/ ...",
+)
 @common_options
-def combine(comb, output, log, **kwargs):
+def combine(**kwargs):
     """Combine multiple Hecatomb runs"""
-
+    kwargs["combineRuns"] = list(kwargs["comb"])
     merge_config = {
-        'args': {
-            'output': output,
-            'combineRuns': list(comb),
-            'log': log
+        "hecatomb": {
+            "args": kwargs
         }
     }
     run_snakemake(
-        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'combineOutputs.smk')),
+        snakefile_path=snake_base(
+            os.path.join("snakemake", "workflow", "combineOutputs.smk")
+        ),
         merge_config=merge_config,
-        log=log,
         **kwargs
     )
 
 
-@click.command(epilog=help_msg_epilog(),
-               context_settings=dict(help_option_names=["-h", "--help"], ignore_unknown_options=True))
-@click.option('--host', help='Name for your host genome', show_default=False, required=True)
-@click.option('--host-fa', help='Host genome fasta file', show_default=False, required=True)
+@click.command(
+    epilog=help_msg_epilog(),
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
+@click.option(
+    "--host", help="Name for your host genome", show_default=False, required=True
+)
+@click.option(
+    "--host-fa", help="Host genome fasta file", show_default=False, required=True
+)
 @common_options
-def add_host(host, host_fa, output, log, **kwargs):
+def add_host(**kwargs):
     """Add a new host genome to use with Hecatomb"""
-
+    kwargs["hostFa"] = kwargs["host_fa"]
+    kwargs["hostName"] = kwargs["host"]
     merge_config = {
-        'args': {
-            'output': output,
-            'hostFa': host_fa,
-            'hostName': host,
-            'log': log
+        "hecatomb": {
+            "args": kwargs
         }
     }
     run_snakemake(
-        snakefile_path=snake_base(os.path.join('snakemake', 'workflow', 'AddHost.smk')),
+        snakefile_path=snake_base(os.path.join("snakemake", "workflow", "AddHost.smk")),
         merge_config=merge_config,
-        log=log,
         **kwargs
     )
 
 
 @click.command()
 @common_options
-def list_hosts(configfile, **kwargs):
+def list_hosts(**kwargs):
     """List the available host genomes"""
-
-    run_list_hosts(configfile)
+    copy_config(kwargs["configfile"])
+    with open(kwargs["configfile"], "r") as f:
+        config = yaml.safe_load(f)
+    dbdir = snake_base(os.path.join("snakemake", "databases"))
+    try:
+        if config["Databases"] is not None:
+            dbdir = config["Databases"]
+    except KeyError:
+        pass
+    host_path = os.path.join(dbdir, "host", "*")
+    host_fastas = list([os.path.basename(x) for x in glob.glob(host_path)])
+    try:
+        host_fastas.remove("virus_shred.fasta.gz")
+    except ValueError:
+        pass
+    msg_box("Available host genomes", "\n".join(host_fastas))
 
 
 @click.command()

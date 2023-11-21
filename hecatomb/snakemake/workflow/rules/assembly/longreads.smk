@@ -1,65 +1,61 @@
-"""
-Per-sample assemblies for longreads
-    Take all host-removed reads, create pooled contigs "all_samples_contigs_size_selected.fasta" for use
-    in combine_sample_assemblies.smk
-"""
 
-rule lr_co_assembly:
-    """Alternative to cross assembly; assemble everything together in one hit."""
+rule lr_cross_assembly:
+    """Alternative to merged assembly; assemble everything together in one hit."""
     input:
-        expand(os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz"), sample=samples.names)
+        targets["trimnami"]
     output:
-        assembly = os.path.join(dir.out.results, "co_assembly.fasta"),
-        graph = os.path.join(dir.out.results, "co_assembly_graph.gfa"),
-        tar = os.path.join(dir.out.assembly,"coAssembly.tar.zst")
+        assembly = os.path.join(dir["out"]["results"], "cross_assembly.fasta"),
+        graph = os.path.join(dir["out"]["results"], "cross_assembly.gfa"),
+        tar = os.path.join(dir["out"]["assembly"],"crossAssembly.tar.zst")
     params:
-        params = config.assembly.metaflye,
-        dir = os.path.join(dir.out.assembly, "coAssembly"),
-        assembly = os.path.join(dir.out.assembly, "coAssembly", "assembly.fasta"),
-        graph = os.path.join(dir.out.assembly, "coAssembly", "assembly_graph.gfa"),
+        params = config["assembly"]["metaflye"],
+        dir = os.path.join(dir["out"]["assembly"], "crossAssembly"),
+        assembly = os.path.join(dir["out"]["assembly"], "crossAssembly", "assembly.fasta"),
+        graph = os.path.join(dir["out"]["assembly"], "crossAssembly", "assembly_graph.gfa"),
     resources:
-        mem_mb = config.resources.big.mem,
-        time = config.resources.big.time
+        mem_mb = resources["big"]["mem"],
+        mem = str(resources["big"]["mem"]) + "MB",
+        time = resources["big"]["time"]
     threads:
-        config.resources.big.cpu
+        resources["big"]["cpu"]
     log:
-        os.path.join(dir.out.stderr, "canu_co_assembly.log")
+        os.path.join(dir["out"]["stderr"], "canu_cross_assembly.log")
     benchmark:
-        os.path.join(dir.out.bench, "canu_co_assembly.txt")
+        os.path.join(dir["out"]["bench"], "canu_cross_assembly.txt")
     conda:
-        os.path.join(dir.env, "metaflye.yaml")
+        os.path.join(dir["env"], "metaflye.yaml")
     shell:
         """
         flye -o {params.dir} -t {threads} {params.params} {input} 2> {log}
         mv {params.assembly} {output.assembly}
         mv {params.graph} {output.graph}
         tar cf - {params.dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        rm {log}
         """
 
 
 rule canu_sample_assembly:
     """Per-sample assembly with canu; also works for unmapped rescue reads"""
     input:
-        os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz")
+        os.path.join(dir["out"]["trim"], "{sample}" + "_S" + config["args"]["hostStr"] + ".fastq.gz")
     output:
-        ctg = os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.fasta"),
-        ctgq = os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.uniq.fasta"),
-        un = os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.fasta"),
-        unq = os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.uniq.fasta"),
-        tar = os.path.join(dir.out.assembly,"{sample}.tar.zst")
+        ctg = os.path.join(dir["out"]["assembly"],"{sample}","{sample}.contigs.fasta"),
+        ctgq = os.path.join(dir["out"]["assembly"],"{sample}","{sample}.contigs.uniq.fasta"),
+        un = os.path.join(dir["out"]["assembly"],"{sample}","{sample}.unassembled.fasta"),
+        unq = os.path.join(dir["out"]["assembly"],"{sample}","{sample}.unassembled.uniq.fasta"),
+        tar = os.path.join(dir["out"]["assembly"],"{sample}.tar.zst")
     params:
-        settings = config.assembly.canu,
+        settings = config["assembly"]["canu"],
         canu_dir = lambda w, output: os.path.split(output.ctg)[0]
     resources:
-        mem_mb = config.resources.med.mem,
-        time = config.resources.med.time
+        mem_mb = resources["lrg"]["mem"],
+        mem = str(resources["lrg"]["mem"]) + "MB",
+        time = resources["lrg"]["time"]
     threads:
-        config.resources.med.cpu
+        resources["lrg"]["cpu"]
     log:
-        os.path.join(dir.out.stderr, "canu_sample_assembly.{sample}.log")
+        os.path.join(dir["out"]["stderr"], "canu_sample_assembly.{sample}.log")
     conda:
-        os.path.join(dir.env, "canu.yaml")
+        os.path.join(dir["env"], "canu.yaml")
     shell:
         """
         canu {params.settings} {input} \
@@ -71,18 +67,17 @@ rule canu_sample_assembly:
         sed 's/>tig/>{wildcards.sample}./' {output.ctg} > {output.ctgq}
         sed 's/>tig/>{wildcards.sample}./' {output.un} > {output.unq}
         tar cf - {params.canu_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        rm {log}
         """
 
 
 rule combine_canu_unassembled:
     """Combine the unassembled reads from all canu assemblies"""
     input:
-        expand(os.path.join(dir.out.assembly,"{sample}","{sample}.unassembled.uniq.fasta"), sample=samples.names)
+        expand(os.path.join(dir["out"]["assembly"],"{sample}","{sample}.unassembled.uniq.fasta"), sample=samples["names"])
     output:
-        temp(os.path.join(dir.out.assembly,"unmappedRescue_R1.all.fasta.gz"))
+        temp(os.path.join(dir["out"]["assembly"],"unmappedRescue_R1.all.fasta.gz"))
     resources:
-        time = config.resources.sml.time
+        time = resources["sml"]["time"]
     group:
         "assembly"
     shell:
@@ -92,64 +87,16 @@ rule combine_canu_unassembled:
 rule combine_canu_contigs:
     """Combine contigs from all samples plus unmapped rescue assembly"""
     input:
-        expand(os.path.join(dir.out.assembly,"{sample}","{sample}.contigs.uniq.fasta"), sample=samples.names + ["unmappedRescue"])
+        expand(os.path.join(dir["out"]["assembly"],"{sample}","{sample}.contigs.uniq.fasta"), sample=samples["names"])
     output:
-        os.path.join(dir.out.assembly,"all_sample_contigs.fasta.gz")
+        os.path.join(dir["out"]["assembly"],"all_sample_contigs.fasta.gz")
     threads:
-        config.resources.med.cpu
+        resources["lrg"]["cpu"]
     resources:
-        time = config.resources.sml.time
-    params:
-        compression = '-' + str(config.qc.compression)
+        time = resources["sml"]["time"]
     conda:
-        os.path.join(dir.env, "pigz.yaml")
+        os.path.join(dir["env"], "pigz.yaml")
     group:
         "assembly"
     shell:
-        """cat {input} | pigz -p {threads} {params.compression} -c > {output}"""
-
-
-rule coverage_calculations:
-    """Assembly step 07: Calculate per sample contig coverage and extract unmapped reads"""
-    input:
-        r1 = os.path.join(dir.out.assembly,"{sample}_R1.all.fasta.gz"),
-        ref = os.path.join(dir.out.results, f"{config.args.assembly}_assembly.fasta")
-    output:
-        sam = temp(os.path.join(dir.out.mapping, "{sample}.aln.sam.gz")),
-        unmap = temp(os.path.join(dir.out.mapping, "{sample}.unmapped.fastq")),
-        covstats = temp(os.path.join(dir.out.mapping, "{sample}.cov_stats")),
-        rpkm = temp(os.path.join(dir.out.mapping, "{sample}.rpkm")),
-        statsfile = temp(os.path.join(dir.out.mapping, "{sample}.statsfile")),
-        scafstats = temp(os.path.join(dir.out.mapping, "{sample}.scafstats"))
-    benchmark:
-        os.path.join(dir.out.bench, "coverage_calculations.{sample}.txt")
-    log:
-        os.path.join(dir.out.stderr, "coverage_calculations.{sample}.log")
-    resources:
-        mem_mb = config.resources.med.mem,
-        javaAlloc = int(0.9 * config.resources.med.mem),
-        time = config.resources.med.time
-    threads:
-        config.resources.med.cpu
-    conda:
-        os.path.join(dir.env, "bbmap.yaml")
-    group:
-        "assembly"
-    shell:
-        """
-        bbmap.sh ref={input.ref} in={input.r1} \
-            nodisk \
-            out={output.sam} \
-            outu={output.unmap} \
-            ambiguous=random \
-            slow=t \
-            physcov=t \
-            covstats={output.covstats} \
-            rpkm={output.rpkm} \
-            statsfile={output.statsfile} \
-            scafstats={output.scafstats} \
-            maxindel=100 minid=90 \
-            ow=t \
-            threads={threads} -Xmx{resources.javaAlloc}m 2> {log}
-        rm {log}
-        """
+        """cat {input} | pigz -p {threads} -1 -c > {output}"""

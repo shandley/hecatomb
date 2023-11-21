@@ -1,14 +1,13 @@
-import attrmap as ap
-
 
 ### CONFIG
 configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
-config = ap.AttrMap(config)
+resources = config["resources"]
+config = config["hecatomb"]
 
 # folders to combine
-if len(config.args.combineRuns) < 2:
+if len(config["args"]["combineRuns"]) < 2:
     sys.stderr.write(
         "\nError: Please specify two or more Hecatomb directories to combine\n\n"
     )
@@ -20,10 +19,10 @@ def is_non_zero_file(fpath):
 
 
 # check for sample duplications and assembly files
-allDirSmplLen = {}  # dir.out.results:sample:len
+allDirSmplLen = {}  # dir["out"]["results"]:sample:len
 allSamples = []
 assemblyFiles = True
-for f in config.args.combineRuns:
+for f in config["args"]["combineRuns"]:
     for assemblyFile in [
         os.path.join(f, "results", "assembly.fasta"),
         os.path.join(f, "results", "contigSeqTable.tsv"),
@@ -55,12 +54,12 @@ include: "rules/preflight/contig_mapping.smk"
 
 # TARGETS
 targets = [
-    os.path.join(dir.out.results, "bigtable.tsv"),
-    os.path.join(dir.out.results, "seqtable.fasta"),
-    os.path.join(dir.out.results, "seqtable.properties.tsv"),
-    os.path.join(dir.out.results, "assembly.fasta"),
-    os.path.join(dir.out.results, "sampleSeqCounts.tsv"),
-    os.path.join(dir.out.results, "contigSeqTable.tsv"),
+    os.path.join(dir["out"]["results"], "bigtable.tsv"),
+    os.path.join(dir["out"]["results"], "seqtable.fasta"),
+    os.path.join(dir["out"]["results"], "seqtable.properties.tsv"),
+    os.path.join(dir["out"]["results"], "assembly.fasta"),
+    os.path.join(dir["out"]["results"], "sampleSeqCounts.tsv"),
+    os.path.join(dir["out"]["results"], "contigSeqTable.tsv"),
 ]
 
 
@@ -94,9 +93,9 @@ rule all:
 rule combineSampleSeqCounts:
     """Combine all sampleSeqCounts.tsv files"""
     input:
-        expand(os.path.join('{dir}','results','sampleSeqCounts.tsv'), dir=config.args.combineRuns)
+        expand(os.path.join('{dir}','results','sampleSeqCounts.tsv'), dir=config["args"]["combineRuns"])
     output:
-        os.path.join(dir.out.results, 'sampleSeqCounts.tsv')
+        os.path.join(dir["out"]["results"], 'sampleSeqCounts.tsv')
     run:
         with open(output[0],'w') as o:
             for oDir in allDirSmplLen.keys():
@@ -107,9 +106,9 @@ rule combineSampleSeqCounts:
 rule combineBigtables:
     """Combine all bigtable.tsv files"""
     input:
-        expand(os.path.join('{dir}','results','bigtable.tsv'),dir=config.args.combineRuns)
+        expand(os.path.join('{dir}','results','bigtable.tsv'),dir=config["args"]["combineRuns"])
     output:
-        os.path.join(dir.out.results, 'bigtable.tsv')
+        os.path.join(dir["out"]["results"], 'bigtable.tsv')
     run:
         combineResultDirOutput(output[0],'bigtable.tsv')
 
@@ -117,9 +116,9 @@ rule combineBigtables:
 rule combineSeqtableProperties:
     """Combine all seqtable.properties.tsv files"""
     input:
-        expand(os.path.join('{dir}','results','seqtable.properties.tsv'),dir=config.args.combineRuns)
+        expand(os.path.join('{dir}','results','seqtable.properties.tsv'),dir=config["args"]["combineRuns"])
     output:
-        os.path.join(dir.out.results, 'seqtable.properties.tsv')
+        os.path.join(dir["out"]["results"], 'seqtable.properties.tsv')
     run:
         combineResultDirOutput(output[0],'seqtable.properties.tsv',sampleCol=0)
 
@@ -127,9 +126,9 @@ rule combineSeqtableProperties:
 rule combineSeqTables:
     """Combine all seqtable.fasta files"""
     input:
-        expand(os.path.join('{dir}','results','seqtable.fasta'),dir=config.args.combineRuns)
+        expand(os.path.join('{dir}','results','seqtable.fasta'),dir=config["args"]["combineRuns"])
     output:
-        os.path.join(dir.out.results, 'seqtable.fasta')
+        os.path.join(dir["out"]["results"], 'seqtable.fasta')
     run:
         with open(output[0],'w') as o:
             for oDir in allDirSmplLen.keys():
@@ -152,17 +151,17 @@ rule combineSeqTables:
 rule combineAssemblies:
     "Combine assemblies by running flye with subassemblies"
     input:
-        expand(os.path.join('{dir}','results','assembly.fasta'),dir=config.args.combineRuns)
+        expand(os.path.join('{dir}','results','assembly.fasta'),dir=config["args"]["combineRuns"])
     output:
-        assembly = os.path.join(dir.out.results, 'assembly.fasta'),
-        contigs = temp(os.path.join(dir.out.results, 'allContigs.fa')),
-        flye = temp(directory(os.path.join(dir.out.results, 'Flye')))
+        assembly = os.path.join(dir["out"]["results"], 'assembly.fasta'),
+        contigs = temp(os.path.join(dir["out"]["results"], 'allContigs.fa')),
+        flye = temp(directory(os.path.join(dir["out"]["results"], 'Flye')))
     params:
-        os.path.join(dir.out.results, 'Flye', 'assembly.fasta')
+        os.path.join(dir["out"]["results"], 'Flye', 'assembly.fasta')
     threads:
-        config.resources.med.cpu
+        config["resources"]["med"]["cpu"]
     resources:
-        mem_mb = config.resources.med.mem
+        mem_mb = config["resources"]["med"]["mem"]
     conda:
         os.path.join('envs', 'metaflye.yaml')
     shell:

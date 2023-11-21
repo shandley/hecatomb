@@ -5,13 +5,6 @@ import logging
 import atexit
 
 
-def exitLogCleanup(*args):
-    """Cleanup the logging file(s) prior to exiting"""
-    for logFile in args:
-        os.unlink(logFile)
-    return None
-
-
 def streamCountTable(file):
     """Parse the seq count table"""
     with open(file, "r") as counts:
@@ -24,7 +17,6 @@ def streamCountTable(file):
                 logging.warning(f"Possible malformed sample seqtable {file}")
 
 
-atexit.register(exitLogCleanup, snakemake.log[0])
 logging.basicConfig(filename=snakemake.log[0], filemode="w", level=logging.DEBUG)
 logging.debug("Reading in individual sample seqtables")
 outFa = open(snakemake.output.fa, "w")

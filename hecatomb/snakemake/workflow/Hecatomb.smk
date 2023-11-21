@@ -1,34 +1,23 @@
-"""
-The snakefile that runs hecatomb.
-
-USE THE LAUNCHER:
-hecatomb run --reads test_data/ --profile slurm
-
-Manual launch example:
-snakemake -s Hecatomb.smk --profile slurm --config Reads=test_data/ Host=human
-
-Rob Edwards, October 2020
-Overhauled: Michael Roach, Q2 2021
-"""
-
-import attrmap as ap
-import attrmap.utils as au
+import os
+from metasnek import fastq_finder
 
 
 ### CONFIG
 configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
-config = ap.AttrMap(config)
+resources = config["resources"]
+
+trimnami = config["trimnami"]
+trimnami["resources"] = resources
+config = config["hecatomb"]
 
 
 ### LAUNCHER-CONTROLLED CONFIG SETTINGS
-if config.args.search == "fast":
-    config.mmseqs.sensAA = config.mmseqs.perfAAfast
-    config.mmseqs.sensNT = config.mmseqs.perfNTfast
+if config["args"]["search"] == "fast":
+    config["mmseqs"]["sens"] = config["mmseqs"]["fast"]
 else:
-    config.mmseqs.sensAA = config.mmseqs.perfAA
-    config.mmseqs.sensNT = config.mmseqs.perfNT
+    config["mmseqs"]["sens"] = config["mmseqs"]["sensitive"]
 
 
 ### DIRECTORIES
@@ -36,49 +25,46 @@ include: os.path.join("rules", "preflight", "directories.smk")
 
 
 ### HOST ORGANISM
-dir.dbs.host.fasta = os.path.join(
-    dir.dbs.host.base, config.args.host, "masked_ref.fa.gz"
-)
-dir.dbs.host.index = dir.dbs.host.fasta + ".idx"
+if os.path.isfile(config["args"]["host"]):
+    dir["dbs"]["hostFasta"] = config["args"]["host"]
+else:
+    dir["dbs"]["hostFasta"] = os.path.join(
+        dir["dbs"]["hostBase"], config["args"]["host"], "masked_ref.fa.gz"
+    )
 
 
 ### PREFLIGHT CHECKS, PARSE SAMPLES
 include: os.path.join("rules", "preflight", "validate.smk")
 include: os.path.join("rules", "preflight", "functions.smk")
-include: config.modules[config.args.library]["preflight"]
 
 
-samples = ap.AttrMap()
-samples.reads = parseSamples(config.args.reads)
-samples.names = list(ap.utils.get_keys(samples.reads))
-samples = au.convert_state(samples, read_only=True)
-
-# wildcard_constraints:
-#     sample="[a-zA-Z0-9._-]+"
+samples = dict()
+samples["reads"] = dict(sorted(fastq_finder.parse_samples_to_dictionary(config["args"]["reads"]).items()))
+samples["names"] = sorted(list(samples["reads"].keys()))
 
 
 ### TARGETS (must be included AFTER parsing samples)
 include: os.path.join("rules", "preflight", "targets.smk")
+include: os.path.join("rules", "preprocessing", "preprocessing.smk")
 
 
-### PREPROCESSING
-include: config.modules[config.args.library]["preprocessing"]
-include: config.modules[config.args.library]["assembly"]
+### ASSEMBLY
+if config["args"]["trim"] == "filtlong":
+    include: os.path.join("rules", "assembly", "longreads.smk")
+else:
+    include: os.path.join("rules", "assembly", "shortreads.smk")
 
 
-### REMAINING PIPELINE RULES
-include: os.path.join("rules","preprocessing","cluster_seqs.smk")
+### REMAINING RULES
 include: os.path.join("rules","annotation","read_annotation.smk")
-include: os.path.join("rules","assembly","combine_sample_assemblies.smk")
+include: os.path.join("rules","assembly","coverage.smk")
 include: os.path.join("rules","annotation","contig_mapping.smk")
 include: os.path.join("rules","annotation","contig_annotation.smk")
 include: os.path.join("rules","reports","summaries.smk")
 include: os.path.join("rules","reports","summaries_optional.smk")
 
 
-# Mark target rules
 target_rules = []
-
 
 def targetRule(fn):
     assert fn.__name__.startswith("__")
@@ -86,47 +72,51 @@ def targetRule(fn):
     return fn
 
 
-localrules: all, preprocess, assemble, annotate, ctg_annotate, print_stages, dumpSamplesTsv
-
-
 @targetRule
 rule all:
     input:
-        targets.preprocessing,
-        targets.assembly,
-        targets.readAnnotations,
-        targets.contigAnnotations,
-        targets.mapping,
-        targets.summary
+        targets["preprocessing"],
+        targets["assembly"],
+        targets["readAnnotations"],
+        targets["contigAnnotations"],
+        targets["mapping"],
+        # targets["summary"]
 
 
 @targetRule
-rule preprocess:
+rule preprocessing:
     input:
-        targets.preprocessing
+        targets["preprocessing"]
 
 
 @targetRule
-rule assemble:
+rule assembly:
     input:
-        targets.assembly
+        targets["assembly"]
 
 
 @targetRule
-rule annotate:
+rule read_annotations:
     input:
-        targets.readAnnotations
+        targets["readAnnotations"]
 
 
 @targetRule
-rule ctg_annotate:
+rule contig_annotations:
     input:
-        targets.contigAnnotations,
-        targets.mapping
+        targets["contigAnnotations"]
+
+
+@targetRule
+rule combined_annotations:
+    input:
+        targets["mapping"]
 
 
 @targetRule
 rule print_stages:
+    localrule:
+        True
     run:
         print("\nIndividual Hecatomb stages to run: \n", file=sys.stderr)
         print("* " + "\n* ".join(target_rules) + "\n\n", file=sys.stderr)

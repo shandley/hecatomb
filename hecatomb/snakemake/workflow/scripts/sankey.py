@@ -6,13 +6,6 @@ import plotly.graph_objects as go
 import atexit
 
 
-def exitLogCleanup(*args):
-    """Cleanup the logging file(s) prior to exiting"""
-    for logFile in args:
-        os.unlink(logFile)
-    return None
-
-
 def sum_counts(fname, R1=False):
     """Collect the sum of all reads for all samples from a summary count file (e.g. from collect_counts)"""
     count = 0
@@ -27,7 +20,6 @@ def sum_counts(fname, R1=False):
     return count
 
 
-atexit.register(exitLogCleanup, snakemake.log[0])
 logging.basicConfig(filename=snakemake.log[0], filemode="w", level=logging.DEBUG)
 
 logging.debug("Collecting summary counts")

@@ -1,13 +1,12 @@
 ![](hecatombLogo.png)
 
-![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)
-![](https://img.shields.io/github/v/tag/shandley/hecatomb?label=version&style=flat-square)
+[![](https://img.shields.io/static/v1?label=CLI&message=Snaketool&color=blueviolet)](https://github.com/beardymcjohnface/Snaketool)
 ![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/license.svg)
+![Anaconda-Server Badge](https://anaconda.org/bioconda/hecatomb/badges/latest_release_date.svg)
 [![Documentation Status](https://readthedocs.org/projects/hecatomb/badge/?version=latest&style=flat-square)](https://hecatomb.readthedocs.io/en/latest/?badge=latest)
 [![install with bioconda](https://img.shields.io/badge/Install%20with-conda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/hecatomb/README.html)
 ![](https://img.shields.io/conda/dn/bioconda/hecatomb?label=Conda%20downloads&style=flat-square)
 [![install with PyPI](https://img.shields.io/badge/Install%20with-PyPI-brightgreen.svg?style=flat-square)](https://pypi.org/project/hecatomb/)
-![PyPI Downloads](https://img.shields.io/pypi/dw/hecatomb?label=PyPI%20Downloads&style=flat-square)
 
 ---
 
@@ -35,16 +34,18 @@ This process frequently results in a great loss of suspected viral sequences / c
 
 ## Quick start guide
 
-### Running on HPC
+### Snakemake profiles (for running on HPCs)
 
 Hecatomb is powered by [Snakemake](https://snakemake.readthedocs.io/en/stable/#) and greatly benefits from the use of 
 Snakemake profiles for HPC Clusters.
 [More information and example for setting up Snakemake profiles for Hecatomb in the documentation](https://hecatomb.readthedocs.io/en/latest/profiles/).
 
-### Install option 1: PIP
+### Install Hecatomb
+
+__option 1: PIP__
 
 ```bash
-# Optional: create a virtual env with conda
+# Optional: create a virtual with conda or venv
 conda create -n hecatomb python=3.10
 
 # activate
@@ -54,7 +55,7 @@ conda activte hecatomb
 pip install hecatomb
 ```
 
-### Install option 2: Conda
+__option 2: Conda__
 
 ```bash
 # Create the conda env and install hecatomb in one step
@@ -64,13 +65,13 @@ conda create -n hecatomb -c conda-forge -c bioconda hecatomb
 conda activate hecatomb
 ```
 
-### Check the installation
+__Check installation__
 
 ```bash
 hecatomb --help
 ```
 
-### Install the databases
+### Install databases
 
 ```bash
 # locally: using 8 threads (default is 32 threads)
@@ -80,7 +81,7 @@ hecatomb install --threads 8
 hecatomb install --profile slurm
 ```
 
-### Run the test dataset
+### Run test dataset
 
 ```bash
 # locally: using 32 threads and 64 GB RAM by default
@@ -92,34 +93,20 @@ hecatomb test --profile slurm
 
 ## Inputs
 
-Hecatomb can process paired- or single-end short-read sequencing, longread sequencing, 
-and paired-end sequencing for round A/B library protocol.
+### Parsing samples with `--reads`
 
-```bash
-hecatomb run --library paired
-hecatomb run --library single
-hecatomb run --library longread
-hecatomb run --library roundAB
-```
+You can pass either a directory of reads or a TSV file to `--reads`. 
+Note that Hecatomb expects your read file names to include common R1/R2 tags. 
+ - __Directory:__ Hecatomb will infer sample names and \_R1/\_R2 pairs from the filenames.
+ - __TSV file:__ Hecatomb expects 2 or 3 columns, with column 1 being the sample name and columns 2 and 3 the reads files.
 
-When you specify a directory of reads with `--reads` for paried-end sequencing, 
-Hecatomb expects paired-end sequencing reads in the format sampleName_R1/R2.fastq(.gz). e.g. 
+[More information and examples are available here](https://gist.github.com/beardymcjohnface/bb161ba04ae1042299f48a4849e917c8#file-readme-md)
 
-```text
-sample1_R1.fastq.gz
-sample1_R2.fastq.gz
-sample2_R1.fastq.gz
-sample2_R2.fastq.gz
-```
+### Library preprocessing with `--trim`
 
-When you specify a TSV file with `--reads`, Hecatomb expects a 2- or 3-column tab separated file (depending on 
-preprocessing method) with the first column specifying a sample name, and the other columns the relative or full paths 
-to the forward (and reverse) read files. e.g.
-
-```text
-sample1    /path/to/reads/sample1.1.fastq.gz    /path/to/reads/sample1.2.fastq.gz
-sample2    /path/to/reads/sample2.1.fastq.gz    /path/to/reads/sample2.2.fastq.gz
-```
+Hecatomb uses [Trimnami](https://github.com/beardymcjohnface/Trimnami) for read trimming which supports many different
+trimming methods. Current options are `fastp` (default), `prinseq`, `roundAB`, `filtlong` (longreads), 
+`cutadapt` (FASTA input), and `notrim` (skip trimming). See Trimnami's documentation for more information.
 
 ## Dependencies
 
