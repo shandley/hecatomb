@@ -85,4 +85,4 @@ hecatomb:
         url:
             "https://ftp.ncbi.nlm.nih.gov/refseq/release/viral/viral.1.1.genomic.fna.gz"
         file:
-            host/viral.1.1.genomic.fna.gz
+            viral.1.1.genomic.fna.gz

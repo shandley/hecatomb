@@ -15,7 +15,7 @@ include: os.path.join("rules", "preflight", "directories.smk")
 config["outFasta"] = os.path.join(
     dir["dbs"]["hostBase"], config["args"]["hostName"], "masked_ref.fa.gz"
 )
-config["virRefSeq"] = os.path.join(dir["dbs"]["hostBase"], "viral.1.1.genomic.fna.gz")
+config["virRefSeq"] = os.path.join(dir["dbs"]["hostBase"], config["dbvirRefSeq"]["file"])
 
 
 rule all:
@@ -29,7 +29,7 @@ rule dl_refseq_viral:
         config["virRefSeq"]
     params:
         url = config["dbvirRefSeq"]["url"],
-        file = config["dbvirRefSeq"]["file"]
+        file = config["virRefSeq"]
     conda:
         os.path.join(dir["env"], "curl.yaml")
     shell:
@@ -46,7 +46,7 @@ rule minimap_viral_refseq:
     params:
         config["addHost"]["minViralAlnLen"]
     conda:
-        os.path.join(dir["env"], "minimap.yaml")
+        os.path.join(dir["env"], "minimap2.yaml")
     resources:
         mem_mb = res["med"]["mem"],
         mem = str(res["med"]["mem"]) + "MB",
@@ -73,7 +73,7 @@ rule mask_fasta:
         fa = config["args"]["hostFa"],
         aln = os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.bed')
     output:
-        mask = os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.mask.bed'),
+        mask = temp(os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.mask.bed')),
         fa = config["outFasta"]
     conda:
         os.path.join(dir["env"], "bedtools.yaml")
@@ -84,8 +84,8 @@ rule mask_fasta:
     shell:
         """
         bedtools merge -i {input.aln} > {output.mask}
-        bedtools maskfasta -fi {input.fa} -bed {output.mask} \
-            | gzip -1 - > {output.mask}
+        bedtools maskfasta -fi {input.fa} -bed {output.mask} -fo - \
+            | gzip -1 - > {output.fa}
         """
 
 
