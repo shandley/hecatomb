@@ -75,6 +75,14 @@ rule mask_fasta:
     output:
         mask = temp(os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.mask.bed')),
         fa = config["outFasta"]
+    params:
+        fa = os.path.join(dir["dbs"]["hostBase"],config["args"]["hostName"],"masked_ref.fa"),
+    resources:
+        mem_mb = res["med"]["mem"],
+        mem = str(res["med"]["mem"]) + "MB",
+        time = res["med"]["time"]
+    threads:
+        res["med"]["cpu"]
     conda:
         os.path.join(dir["env"], "bedtools.yaml")
     log:
@@ -84,57 +92,6 @@ rule mask_fasta:
     shell:
         """
         bedtools merge -i {input.aln} > {output.mask}
-        bedtools maskfasta -fi {input.fa} -bed {output.mask} -fo - \
-            | gzip -1 - > {output.fa}
+        bedtools maskfasta -fi {input.fa} -bed {output.mask} -fo {params.fa}
+        pigz -p {threads} -1 {params.fa}
         """
-
-
-# rule map_shred_seq:
-#     """Add host step 01: Map the virus shred seqs to the input host"""
-#     input:
-#         ref = config["args"]["hostFa"],
-#         shred = dir["dbs"]["host"]["virShred"]
-#     output:
-#         temp(os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.sam.gz'))
-#     conda:
-#         os.path.join(dir["env"], "bbmap.yaml")
-#     resources:
-#         mem_mb = config["resources"]["med"]["mem"],
-#     threads:
-#         config["resources"]["med"]["cpu"]
-#     log:
-#         os.path.join(dir["out"]["stderr"], 'map_shred_seq.log')
-#     shell:
-#         """
-#         bbmap.sh ref={input.ref} in={input.shred} \
-#             outm={output} path=tmp/ \
-#             minid=0.90 maxindel=2 ow=t \
-#             threads={threads} -Xmx{resources.mem_mb}m &> {log}
-#         """
-#
-#
-# rule mask_host:
-#     """Add host step 02: Mask the host"""
-#     input:
-#         ref = config["args"]["hostFa"],
-#         sam = os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.sam.gz')
-#     output:
-#         fa = temp(os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.processed.fasta')),
-#         gz = dir["dbs"]["host"]["fasta"]
-#     conda:
-#         os.path.join(dir.env, "bbmap.yaml")
-#     resources:
-#         mem_mb = config["resources"]["med"]["mem"],
-#     threads:
-#         config["resources"]["med"]["cpu"]
-#     params:
-#         entropy = config["qc"]["entropy"]
-#     log:
-#         os.path.join(dir["out"]["stderr"], 'mask_host.log')
-#     shell:
-#         """
-#         bbmask.sh in={input.ref} out={output.fa} \
-#             entropy={params.entropy} sam={input.sam} ow=t \
-#             threads={threads} -Xmx{resources.mem_mb}m &> {log}
-#         gzip -c {output.fa} > {output.gz}
-#         """
