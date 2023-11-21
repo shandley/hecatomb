@@ -12,21 +12,21 @@ include: os.path.join("rules", "preflight", "directories.smk")
 
 
 # host files
-dir["dbs"]["host"]["fasta"] = os.path.join(
-    dir["dbs"]["host"]["base"], config["args"]["hostName"], "masked_ref.fa.gz"
+config["outFasta"] = os.path.join(
+    dir["dbs"]["hostBase"], config["args"]["hostName"], "masked_ref.fa.gz"
 )
-dir["dbs"]["host"]["virRefSeq"] = os.path.join(dir["dbs"]["host"]["base"], "viral.1.1.genomic.fna.gz")
+config["virRefSeq"] = os.path.join(dir["dbs"]["hostBase"], "viral.1.1.genomic.fna.gz")
 
 
 rule all:
     input:
-        dir["dbs"]["host"]["fasta"]
+        config["outFasta"]
 
 
 rule dl_refseq_viral:
     """Download the refseq viral genomic file needed"""
     output:
-        dir["dbs"]["host"]["virRefSeq"]
+        config["virRefSeq"]
     params:
         url = config["dbvirRefSeq"]["url"],
         file = config["dbvirRefSeq"]["file"]
@@ -40,7 +40,7 @@ rule minimap_viral_refseq:
     """Map the viral refseq db to the host"""
     input:
         ref = config["args"]["hostFa"],
-        vir = dir["dbs"]["host"]["virRefSeq"]
+        vir = config["virRefSeq"]
     output:
         temp(os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.bed'))
     params:
@@ -71,10 +71,10 @@ rule mask_fasta:
     """Mask the host genome using bedtools"""
     input:
         fa = config["args"]["hostFa"],
-        aln = os.path.join(dir["out"]["temp"],f'{config["args"]["hostName"]}.bed')
+        aln = os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.bed')
     output:
-        mask = (dir["out"]["temp"],f'{config["args"]["hostName"]}.mask.bed'),
-        fa = dir["dbs"]["host"]["fasta"]
+        mask = os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.mask.bed'),
+        fa = config["outFasta"]
     conda:
         os.path.join(dir["env"], "bedtools.yaml")
     log:

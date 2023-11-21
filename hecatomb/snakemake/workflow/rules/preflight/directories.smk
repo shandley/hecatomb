@@ -49,7 +49,8 @@ else:
 ### OUTPUT DIRs
 dir["out"]["results"]         = os.path.join(dir["out"]["base"], "results")
 dir["out"]["processing"]      = os.path.join(dir["out"]["base"], "processing")
-dir["out"]["trim"]            = os.path.join(dir["out"]["base"], "trimnami", "results", config["args"]["trim"])
+if config["args"]["trim"]: # todo: something better
+    dir["out"]["trim"]        = os.path.join(dir["out"]["base"], "trimnami", "results", config["args"]["trim"])
 dir["out"]["temp"]            = os.path.join(dir["out"]["processing"], "temp")
 dir["out"]["stderr"]          = os.path.join(dir["out"]["base"], "logs")
 dir["out"]["bench"]           = os.path.join(dir["out"]["base"], "benchmarks")
