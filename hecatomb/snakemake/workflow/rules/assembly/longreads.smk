@@ -76,6 +76,8 @@ rule combine_canu_unassembled:
         expand(os.path.join(dir["out"]["assembly"],"{sample}","{sample}.unassembled.uniq.fasta"), sample=samples["names"])
     output:
         temp(os.path.join(dir["out"]["assembly"],"unmappedRescue_R1.all.fasta.gz"))
+    threads:
+        resources["lrg"]["cpu"]
     resources:
         time = resources["sml"]["time"]
     group:

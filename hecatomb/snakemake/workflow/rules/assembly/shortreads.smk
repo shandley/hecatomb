@@ -135,9 +135,9 @@ rule megahit_sample_unpaired:
     log:
         os.path.join(dir["out"]["stderr"],"megahit_sample_unpaired.{sample}.log")
     resources:
-        mem_mb=resources["lrg"]["mem"],
-        mem=str(resources["lrg"]["mem"]) + "MB",
-        time=resources["lrg"]["time"]
+        mem_mb = resources["lrg"]["mem"],
+        mem = str(resources["lrg"]["mem"]) + "MB",
+        time = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     conda:
@@ -175,12 +175,12 @@ rule minimap_sample_paired_contigs:
         temp(os.path.join(dir["out"]["assembly"], "{sample}", "{sample}.pe.bam"))
     conda:
         os.path.join(dir["env"], "minimap2.yaml")
-    threads:
-        resources["med"]["cpu"]
     resources:
-        mem_mb = resources["med"]["mem"],
-        mem = str(resources["med"]["mem"]) + "MB",
-        time = resources["med"]["time"]
+        mem_mb = resources["lrg"]["mem"],
+        mem = str(resources["lrg"]["mem"]) + "MB",
+        time = resources["lrg"]["time"]
+    threads:
+        resources["lrg"]["cpu"]
     log:
         os.path.join(dir["out"]["stderr"], "minimap_sample_paired_contigs.{sample}.log")
     benchmark:
@@ -205,12 +205,12 @@ rule minimap_sample_paired_singletons_contigs:
         temp(os.path.join(dir["out"]["assembly"],"{sample}","{sample}.assemblyUnmapped_RS.fastq"))
     conda:
         os.path.join(dir["env"], "minimap2.yaml")
-    threads:
-        resources["med"]["cpu"]
     resources:
-        mem_mb = resources["med"]["mem"],
-        mem = str(resources["med"]["mem"]) + "MB",
-        time = resources["med"]["time"]
+        mem_mb = resources["lrg"]["mem"],
+        mem = str(resources["lrg"]["mem"]) + "MB",
+        time = resources["lrg"]["time"]
+    threads:
+        resources["lrg"]["cpu"]
     benchmark:
         os.path.join(dir["out"]["bench"], "minimap_sample_paired_singletons_contigs.{sample}.txt")
     log:
@@ -236,12 +236,12 @@ rule minimap_sample_unpaired_contigs:
         temp(os.path.join(dir["out"]["assembly"],"{sample}","{sample}.assemblyUnmapped_S.fastq"))
     conda:
         os.path.join(dir["env"], "minimap2.yaml")
-    threads:
-        resources["med"]["cpu"]
     resources:
-        mem_mb = resources["med"]["mem"],
-        mem = str(resources["med"]["mem"]) + "MB",
-        time = resources["med"]["time"]
+        mem_mb = resources["lrg"]["mem"],
+        mem = str(resources["lrg"]["mem"]) + "MB",
+        time = resources["lrg"]["time"]
+    threads:
+        resources["lrg"]["cpu"]
     log:
         os.path.join(dir["out"]["stderr"], "minimap_sample_unpaired_contigs.{sample}.log")
     benchmark:
@@ -270,7 +270,11 @@ rule samtools_fastq_paired:
     conda:
         os.path.join(dir["env"],   "samtools.yaml")
     resources:
-        time = resources["sml"]["time"]
+        mem_mb = resources["lrg"]["mem"],
+        mem = str(resources["lrg"]["mem"]) + "MB",
+        time = resources["lrg"]["time"]
+    threads:
+        resources["lrg"]["cpu"]
     benchmark:
         os.path.join(dir["out"]["bench"], "samtools_fastq_paired.{sample}.txt")
     log:
@@ -295,7 +299,7 @@ rule pool_paired_unmapped_R1:
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["sml"]["time"]
+        time = resources["med"]["time"]
     group:
         "assemblyRescue"
     shell:
@@ -313,7 +317,7 @@ rule pool_paired_unmapped_R2:
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["sml"]["time"]
+        time = resources["med"]["time"]
     group:
         "assemblyRescue"
     shell:
@@ -331,7 +335,7 @@ rule pool_unmapped_singletons:
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["sml"]["time"]
+        time = resources["med"]["time"]
     group:
         "assemblyRescue"
     shell:
@@ -352,7 +356,7 @@ rule concatenate_contigs:
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["sml"]["time"]
+        time = resources["med"]["time"]
     conda:
         os.path.join(dir["env"], "pigz.yaml")
     group:

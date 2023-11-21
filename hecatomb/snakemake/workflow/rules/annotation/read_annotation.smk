@@ -140,7 +140,8 @@ rule secondary_aa_refactor_finalize:
     conda:
         os.path.join(dir["env"], "seqkit.yaml")
     resources:
-        time = resources["sml"]["time"]
+        time=resources["sml"]["time"],
+        mem=resources["ram"]["mem"]
     params:
         taxonFormat = lambda wildcards: config["immutable"]["taxonkitReformat"]
     benchmark:
@@ -171,7 +172,8 @@ rule secondary_aa_output_table:
         vir = os.path.join(dir["out"]["secondaryAA"], "AA_bigtable.tsv"),
         nonvir = os.path.join(dir["out"]["secondaryAA"], "AA_bigtable.nonviral.tsv")
     resources:
-        time = resources["sml"]["time"]
+        time=resources["sml"]["time"],
+        mem=resources["ram"]["mem"]
     benchmark:
         os.path.join(dir["out"]["bench"], "secondary_aa_generate_output_table.txt")
     log:
@@ -193,7 +195,8 @@ rule secondary_aa_parsing:
     output:
         unclass_seqs = os.path.join(dir["out"]["primaryAA"], "primary.aa.unclassified.fasta")
     resources:
-        time = resources["sml"]["time"]
+        time=resources["sml"]["time"],
+        mem=resources["ram"]["mem"]
     benchmark:
         os.path.join(dir["out"]["bench"], "secondary_aa_parsing.txt")
     log:
@@ -327,7 +330,8 @@ rule secondary_nt_calc_lca:
         lca_lineage = os.path.join(dir["out"]["secondaryNT"], "lca_lineage.tsv"),
         top_lineage = os.path.join(dir["out"]["secondaryNT"], "top_lineage.tsv"),
     resources:
-        time = resources["sml"]["time"]
+        time=resources["sml"]["time"],
+        mem=resources["ram"]["mem"]
     params:
         taxonFormat = lambda wildcards: config["immutable"]["taxonkitReformat"],
     conda:
@@ -367,7 +371,8 @@ rule secondary_nt_generate_output_table:
         vir = os.path.join(dir["out"]["secondaryNT"], "NT_bigtable.tsv"),
         nonvir = os.path.join(dir["out"]["secondaryNT"], "NT_bigtable.nonviral.tsv")
     resources:
-        time = resources["sml"]["time"]
+        time=resources["sml"]["time"],
+        mem=resources["ram"]["mem"]
     params:
         taxIdIgnore = config["mmseqs"]["taxIdIgnore"].split(),
         bigtableHeader = config["immutable"]["bigtableHeader"]
@@ -393,7 +398,8 @@ rule combine_aa_nt:
     log:
         os.path.join(dir["out"]["stderr"], "combine_AA_NT.log")
     resources:
-        time = resources["sml"]["time"]
+        time=resources["sml"]["time"],
+        mem=resources["ram"]["mem"]
     group:
         "secondary_nt_parsing"
     shell:
