@@ -1,32 +1,24 @@
-"""
-Snakefile for downloading the databases. Only need to run this once.
 
-Set a custom database install location in hecatomb/snakemake/config/config.yaml
-
-Use the launcher to run:
-hecatomb install
-
-Rob Edwards, Feb 2020
-Updated: Michael Roach, Q2 2021
-"""
-
-# load db file config
+# LOAD CONFIG FILES
 configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
+configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
 resources = config["resources"]
 config = config["hecatomb"]
 
 
-# directories
-include: "rules/preflight/directories.smk"
+# DIRECTORIES
+include: os.path.join("rules", "preflight", "directories.smk")
 
 
+# TARGET OUTPUTS
 rule all:
     input:
         expand(os.path.join(dir["dbs"]["base"], "{file}"), file=config["dbs"]["files"]),
         expand(os.path.join(dir["dbs"]["base"], "{file}"), file=config["dbtax"]["files"]),
 
 
+# DOWNLOAD RULES
 rule download_db_file:
     """Download a Hecatomb-maintained DB file."""
     output:
