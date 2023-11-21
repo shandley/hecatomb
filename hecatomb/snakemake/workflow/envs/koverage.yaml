@@ -1,7 +1,7 @@
 name: koverage
 channels:
-    - defaults
+  - bioconda
+  - conda-forge
+  - defaults
 dependencies:
-    - pip
-    - pip:
-        - koverage>=0.1.5
+    - koverage>=0.1.5
