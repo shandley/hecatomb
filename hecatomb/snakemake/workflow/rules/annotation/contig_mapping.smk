@@ -5,7 +5,7 @@ rule map_seq_table:
     the organism to which each contig belongs.
     """
     input:
-        assembly = os.path.join(dir["out"]["results"], f'{config["args"]["assembly"]}_assembly.fasta'),
+        assembly = os.path.join(dir["out"]["results"], config["args"]["assembly"] + '_assembly.fasta'),
         seqtable = os.path.join(dir["out"]["results"], "seqtable.fasta")
     output:
         os.path.join(dir["out"]["mapping"], "assembly.seqtable.bam")
@@ -25,10 +25,8 @@ rule map_seq_table:
     group:
         "contigmap"
     shell:
-        """
-        minimap2 -ax sr --secondary=no -t {threads} {input.assembly} {input.seqtable} 2> {log.mm2} \
-            | samtools sort -@ {threads} -o {output} 2> {log.stool}
-        """
+        "minimap2 -ax sr --secondary=no -t {threads} {input.assembly} {input.seqtable} 2> {log.mm2} "
+            "| samtools sort -@ {threads} -o {output} 2> {log.stool}; "
 
 
 rule contig_read_taxonomy:

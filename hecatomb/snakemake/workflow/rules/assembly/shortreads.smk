@@ -33,41 +33,32 @@ rule cross_assembly:
     conda:
         os.path.join(dir["env"],"megahit.yaml")
     shell:
-        """
-        if [[ -d {params.mh_dir} ]]
-        then
-            rm -rf {params.mh_dir}
-        fi
-
-        megahit \
-            {params.r1p} \
-            {params.r2p} \
-            {params.rs} \
-            -o {params.mh_dir} \
-            -t {threads} \
-            {params.params} \
-            &> {log}
-
-        kctg=$(ls -t {params.mh_int}/*.contigs.fa | grep -v final | head -1)
-
-        kmax=$(head -1 $kctg | sed 's/>k\|_.*//g')
-
-        megahit_toolkit \
-            contig2fastg \
-            $kmax \
-            $kctg \
-            > {output.tmp} \
-            2> {log}
-
-        Bandage reduce {output.tmp} {output.graph} 2> {log}
-
-        cp {params.assembly} {output.assembly}
-
-        tar cf - {params.mh_dir} \
-            | zstd -T{threads} -9 \
-            > {output.tar} \
-            2> {log}
-        """
+        "if [[ -d {params.mh_dir} ]]; "
+        "then; "
+            "rm -rf {params.mh_dir}; "
+        "fi; "
+        "megahit "
+            "{params.r1p} "
+            "{params.r2p} "
+            "{params.rs} "
+            "-o {params.mh_dir} "
+            "-t {threads} "
+            "{params.params} "
+            "&> {log}; "
+        "kctg=$(ls -t {params.mh_int}/*.contigs.fa | grep -v final | head -1); "
+        r"kmax=$(head -1 $kctg | sed 's/>k\|_.*//g'); "
+        "megahit_toolkit "
+            "contig2fastg "
+            "$kmax "
+            "$kctg "
+            "> {output.tmp} "
+            "2> {log}; "
+        "Bandage reduce {output.tmp} {output.graph} 2> {log}; "
+        "cp {params.assembly} {output.assembly}; "
+        "tar cf - {params.mh_dir} "
+            "| zstd -T{threads} -9 "
+            "> {output.tar} "
+            "2> {log}; "
 
 
 rule megahit_sample_paired:
@@ -98,26 +89,21 @@ rule megahit_sample_paired:
     group:
         "assembly"
     shell:
-        """
-        if [[ -d {params.mh_dir} ]]
-        then
-            rm -rf {params.mh_dir}
-        fi
-        
-        megahit \
-            -1 {input.r1} \
-            -2 {input.r2} \
-            {params.rs} \
-            -o {params.mh_dir} \
-            --out-prefix {wildcards.sample} \
-            -t {threads} \
-            {params.params} \
-            &> {log}
-        
-        sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}
-        
-        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        """
+        "if [[ -d {params.mh_dir} ]]; "
+        "then; "
+            "rm -rf {params.mh_dir}; "
+        "fi; "
+        "megahit "
+            "-1 {input.r1} "
+            "-2 {input.r2} "
+            "{params.rs} "
+            "-o {params.mh_dir} "
+            "--out-prefix {wildcards.sample} "
+            "-t {threads} "
+            "{params.params}"
+            "&> {log}; "
+        "sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}; "
+        "tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}; "
 
 
 rule megahit_sample_unpaired:
@@ -145,24 +131,19 @@ rule megahit_sample_unpaired:
     group:
         "assembly"
     shell:
-        """
-        if [[ -d {params.mh_dir} ]]
-        then
-            rm -rf {params.mh_dir}
-        fi
-
-        megahit \
-            -r {input} \
-            -o {params.mh_dir} \
-            --out-prefix {wildcards.sample} \
-            -t {threads} \
-            {params.params} \
-            &> {log}
-
-        sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}
-
-        tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        """
+        "if [[ -d {params.mh_dir} ]]; "
+        "then; "
+            "rm -rf {params.mh_dir}; "
+        "fi; "
+        "megahit "
+            "-r {input} "
+            "-o {params.mh_dir} "
+            "--out-prefix {wildcards.sample} "
+            "-t {threads} "
+            "{params.params} "
+            "&> {log}; "
+        "sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}; "
+        "tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}; "
 
 
 rule minimap_sample_paired_contigs:
@@ -188,12 +169,9 @@ rule minimap_sample_paired_contigs:
     group:
         "assembly"
     shell:
-        """
-        {{
-        minimap2 -t {threads} -ax sr {input.contigs} {input.r1} {input.r2} | \
-            samtools sort -n -o {output};
-        }} 2> {log} 
-        """
+        "{{ minimap2 -t {threads} -ax sr {input.contigs} {input.r1} {input.r2} | "
+            "samtools sort -n -o {output};"
+        "}} 2> {log}; "
 
 
 rule minimap_sample_paired_singletons_contigs:
@@ -218,13 +196,10 @@ rule minimap_sample_paired_singletons_contigs:
     group:
         "assembly"
     shell:
-        """
-        {{
-        minimap2 -t {threads} -ax sr {input.contigs} {input.s} | \
-            samtools sort -n | \
-            samtools fastq -f 4 > {output};
-        }} 2> {log}
-        """
+        "{{ minimap2 -t {threads} -ax sr {input.contigs} {input.s} | "
+            "samtools sort -n | "
+            "samtools fastq -f 4 > {output}; "
+        "}} 2> {log}; "
 
 
 rule minimap_sample_unpaired_contigs:
@@ -249,15 +224,13 @@ rule minimap_sample_unpaired_contigs:
     group:
         "assembly"
     shell:
-        """
-        minimap2 \
-            -t {threads} \
-            -ax sr \
-            {input.contigs} \
-            {input.r1} \
-            2> {log} \
-            | samtools fastq -f 4 > {output}
-        """
+        "{{ minimap2 "
+            "-t {threads} "
+            "-ax sr "
+            "{input.contigs} "
+            "{input.r1} "
+            "| samtools fastq -f 4 > {output}; "
+        "}} 2> {log}; "
 
 
 rule samtools_fastq_paired:
@@ -282,10 +255,8 @@ rule samtools_fastq_paired:
     group:
         "assembly"
     shell:
-        """
-        samtools fastq -f 77 {input} > {output.r1} 2> {log}
-        samtools fastq -f 141 {input} > {output.r2} 2> {log}
-        """
+        "samtools fastq -f 77 {input} > {output.r1} 2> {log}; "
+        "samtools fastq -f 141 {input} > {output.r2} 2>> {log}; "
 
 
 rule pool_paired_unmapped_R1:
@@ -303,7 +274,7 @@ rule pool_paired_unmapped_R1:
     group:
         "assemblyRescue"
     shell:
-        """cat {input} | pigz -c -p {threads} - > {output}"""
+        "cat {input} | pigz -c -p {threads} - > {output}"
 
 
 rule pool_paired_unmapped_R2:
@@ -321,7 +292,7 @@ rule pool_paired_unmapped_R2:
     group:
         "assemblyRescue"
     shell:
-        """cat {input} | pigz -c -p {threads} - > {output}"""
+        "cat {input} | pigz -c -p {threads} - > {output}"
 
 
 rule pool_unmapped_singletons:
@@ -339,9 +310,7 @@ rule pool_unmapped_singletons:
     group:
         "assemblyRescue"
     shell:
-        """
-        cat {input} | pigz -c -p {threads} - > {output}
-        """
+        "cat {input} | pigz -c -p {threads} - > {output}"
 
 
 rule concatenate_contigs:
@@ -362,7 +331,5 @@ rule concatenate_contigs:
     group:
         "assemblyRescue"
     shell:
-        """
-        cat {input} | pigz -p {threads} -1 -c > {output}
-        rm -rf {params.dirs}
-        """
+        "cat {input} | pigz -p {threads} -1 -c > {output}; "
+        "rm -rf {params.dirs}; "

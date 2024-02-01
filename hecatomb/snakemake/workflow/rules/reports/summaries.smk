@@ -69,9 +69,7 @@ rule krona_plot:
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     shell:
-        """
-        ktImportText {input} -o {output} &> {log}
-        """
+        "ktImportText {input} -o {output} &> {log} "
 
 
 rule contig_krona_text_format:
@@ -102,6 +100,4 @@ rule contig_krona_plot:
         mem_mb = resources["ram"]["mem"],
         mem = str(resources["ram"]["mem"]) + "MB",
     shell:
-        """
-        ktImportText {input} -o {output} &> {log}
-        """
+        "ktImportText {input} -o {output} &> {log} "
