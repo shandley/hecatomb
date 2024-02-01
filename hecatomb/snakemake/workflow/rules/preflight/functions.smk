@@ -48,7 +48,7 @@ if config["args"]["custom_aa"]:
         conda:
             os.path.join(dir["env"], "mmseqs2.yaml")
         shell:
-            """mmseqs createdb {input} {output} --dbtype 1 2> {log} && rm {log}"""
+            "mmseqs createdb {input} {output} --dbtype 1 2> {log} && rm {log}"
 
 if config["args"]["custom_nt"]:
     rule create_custom_primary_nt:
@@ -62,7 +62,7 @@ if config["args"]["custom_nt"]:
         conda:
             os.path.join(dir["env"], "mmseqs2.yaml")
         shell:
-            """mmseqs createdb {input} {output} --dbtype 2 2> {log} && rm {log}"""
+            "mmseqs createdb {input} {output} --dbtype 2 2> {log} && rm {log}"
 
 
 rule fasta_index:
@@ -119,9 +119,7 @@ rule calculate_gc:
         mem_mb = resources["ram"]["mem"],
         mem = str(resources["ram"]["mem"]) + "MB",
     shell:
-        """
-        countgc.sh in={input} format=2 ow=t > {output} 2> {log}
-        """
+        "countgc.sh in={input} format=2 ow=t > {output} 2> {log}"
 
 
 rule calculate_tet_freq:
@@ -145,12 +143,10 @@ rule calculate_tet_freq:
         mem_mb = resources["ram"]["mem"],
         mem = str(resources["ram"]["mem"]) + "MB",
     shell:
-        """
-        {{
-        tetramerfreq.sh in={input} w=0 ow=t -Xmx{resources.mem_mb}m \
-            | tail -n+2;
-        }} > {output} 2>> {log}
-        """
+        "{{ "
+        "tetramerfreq.sh in={input} w=0 ow=t -Xmx{resources.mem_mb}m "
+            "| tail -n+2; "
+        "}} > {output} 2>> {log}; "
 
 
 rule seq_properties_table:

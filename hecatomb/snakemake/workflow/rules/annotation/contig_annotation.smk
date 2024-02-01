@@ -31,16 +31,14 @@ rule mmseqs_contig_annotation:
     group:
         "contigannot"
     shell:
-        """
-        {{
-        if [[ -d {params.resdir} ]]; then rm -r {params.resdir}; fi;
-        if [[ -d {params.tmppath} ]]; then rm -r {params.tmppath}; fi;
-        mkdir -p {params.resdir}
-        mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2;
-        mmseqs search {output.queryDB} {input.db} {params.prefix} {params.tmppath} \
-            {params.sensnt} --split-memory-limit {params.memsplit} {params.filtnt} \
-            --search-type 3 --threads {threads} ; }} &> {log}
-        """
+        "{{ "
+        "if [[ -d {params.resdir} ]]; then rm -r {params.resdir}; fi; "
+        "if [[ -d {params.tmppath} ]]; then rm -r {params.tmppath}; fi; "
+        "mkdir -p {params.resdir}; "
+        "mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2; "
+        "mmseqs search {output.queryDB} {input.db} {params.prefix} {params.tmppath} "
+            "{params.sensnt} --split-memory-limit {params.memsplit} {params.filtnt} "
+            "--search-type 3 --threads {threads} ; }} &> {log}"
 
 
 rule mmseqs_contig_annotation_summary:
@@ -74,22 +72,13 @@ rule mmseqs_contig_annotation_summary:
     group:
         "contigannot"
     shell:
-        """
-        {{ 
-        # Filter TopHit results
-        mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1;
-        
-        # Convert to alignments
-        mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} {params.secondaryNtFormat};
-        
-        # Header for output table
-        printf "{params.header}\n" > {output.tsv};
-        
-        # Assign taxonomy
-        sed 's/tid|//' {output.align} | \
-            sed 's/|\S*//' | \
-            taxonkit lineage --data-dir {input.taxdb} -i 2 | \
-            taxonkit reformat --data-dir {input.taxdb} -i 18 {params.taxonFormat} | \
-            cut --complement -f2,19 >> {output.tsv};
-        }} &> {log}
-        """
+        "{{ "
+        "mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1; "
+        "mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} {params.secondaryNtFormat}; "
+        "printf '{params.header}\n' > {output.tsv}; "
+        "sed 's/tid|//' {output.align} | "
+            "sed 's/|\S*//' | "
+            "taxonkit lineage --data-dir {input.taxdb} -i 2 | "
+            "taxonkit reformat --data-dir {input.taxdb} -i 18 {params.taxonFormat} | "
+            "cut --complement -f2,19 >> {output.tsv}; "
+        "}} &> {log}; "

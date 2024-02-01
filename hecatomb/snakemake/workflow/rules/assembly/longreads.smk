@@ -25,12 +25,10 @@ rule lr_cross_assembly:
     conda:
         os.path.join(dir["env"], "metaflye.yaml")
     shell:
-        """
-        flye -o {params.dir} -t {threads} {params.params} {input} 2> {log}
-        mv {params.assembly} {output.assembly}
-        mv {params.graph} {output.graph}
-        tar cf - {params.dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        """
+        "flye -o {params.dir} -t {threads} {params.params} {input} 2> {log} "
+        "mv {params.assembly} {output.assembly} "
+        "mv {params.graph} {output.graph} "
+        "tar cf - {params.dir} | zstd -T{threads} -9 > {output.tar} 2> {log} "
 
 
 rule canu_sample_assembly:
@@ -57,17 +55,15 @@ rule canu_sample_assembly:
     conda:
         os.path.join(dir["env"], "canu.yaml")
     shell:
-        """
-        canu {params.settings} {input} \
-            batThreads={threads} \
-            batMemory={resources.mem_mb}M \
-            -p {wildcards.sample} \
-            -d {params.canu_dir} \
-            &>> {log}
-        sed 's/>tig/>{wildcards.sample}./' {output.ctg} > {output.ctgq}
-        sed 's/>tig/>{wildcards.sample}./' {output.un} > {output.unq}
-        tar cf - {params.canu_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}
-        """
+        "canu {params.settings} {input} "
+            "batThreads={threads} "
+            "batMemory={resources.mem_mb}M "
+            "-p {wildcards.sample} "
+            "-d {params.canu_dir} "
+            "&>> {log} "
+        "sed 's/>tig/>{wildcards.sample}./' {output.ctg} > {output.ctgq} "
+        "sed 's/>tig/>{wildcards.sample}./' {output.un} > {output.unq} "
+        "tar cf - {params.canu_dir} | zstd -T{threads} -9 > {output.tar} 2> {log} "
 
 
 rule combine_canu_unassembled:
@@ -83,7 +79,7 @@ rule combine_canu_unassembled:
     group:
         "assembly"
     shell:
-        """cat {input} > {output}"""
+        "cat {input} > {output}"
 
 
 rule combine_canu_contigs:
@@ -101,4 +97,4 @@ rule combine_canu_contigs:
     group:
         "assembly"
     shell:
-        """cat {input} | pigz -p {threads} -1 -c > {output}"""
+        "cat {input} | pigz -p {threads} -1 -c > {output}"

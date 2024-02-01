@@ -25,10 +25,8 @@ rule map_seq_table:
     group:
         "contigmap"
     shell:
-        """
-        minimap2 -ax sr --secondary=no -t {threads} {input.assembly} {input.seqtable} 2> {log.mm2} \
-            | samtools sort -@ {threads} -o {output} 2> {log.stool}
-        """
+        "minimap2 -ax sr --secondary=no -t {threads} {input.assembly} {input.seqtable} 2> {log.mm2} "
+            "| samtools sort -@ {threads} -o {output} 2> {log.stool}; "
 
 
 rule contig_read_taxonomy:

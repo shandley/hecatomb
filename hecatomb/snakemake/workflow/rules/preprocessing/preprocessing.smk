@@ -43,17 +43,15 @@ rule run_trimnami:
     conda:
         os.path.join(dir["env"], "trimnami.yaml")
     shell:
-        """
-        trimnami run {params.trim} \
-            --reads {input.tsv} \
-            --configfile {input.config} \
-            {params.host} \
-            --output {params.out_dir} \
-            --threads {threads} \
-            --minimap {params.minimap_mode} \
-            {params.fastqc} \
-            {params.profile}
-        """
+        "trimnami run {params.trim} "
+            "--reads {input.tsv} "
+            "--configfile {input.config} "
+            "{params.host} "
+            "--output {params.out_dir} "
+            "--threads {threads} "
+            "--minimap {params.minimap_mode} "
+            "{params.fastqc} "
+            "{params.profile}; "
 
 
 rule cluster_sequences:
@@ -80,12 +78,9 @@ rule cluster_sequences:
     conda:
         os.path.join(dir["env"],"mmseqs2.yaml")
     shell:
-        """ 
-        mmseqs easy-linclust {input.fq} {params.respath}/{params.prefix} {params.tmppath} \
-            {params.config} \
-            --threads {threads} &> {log}
-        rm {log}
-        """
+        "mmseqs easy-linclust {input.fq} {params.respath}/{params.prefix} {params.tmppath} "
+            "{params.config} "
+            "--threads {threads} &> {log}; "
 
 
 rule create_individual_seqtables:
@@ -113,21 +108,18 @@ rule create_individual_seqtables:
     conda:
         os.path.join(dir["env"],"seqkit.yaml")
     shell:
-        """
-        {{ seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna \
-            | seqkit fx2tab -w 5000 -t dna \
-            | sed 's/\\t\\+$//' \
-            | cut -f2,3 \
-            | sed "1i sequence" > {output.seqs};
-        cut -f1 {input.counts} \
-            | sort \
-            | uniq -c \
-            | awk -F ' ' '{{print$2"\\t"$1}}' \
-            | cut -f2 \
-            | sed '1i {wildcards.sample}' > {output.counts};
-        paste {output.seqs} {output.counts} > {output.seqtable}; }} 2> {log}
-        rm {log}
-        """
+        "{{ seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna "
+            "| seqkit fx2tab -w 5000 -t dna "
+            "| sed 's/\\t\\+$//' "
+            "| cut -f2,3 "
+            "| sed '1i sequence' > {output.seqs}; "
+        "cut -f1 {input.counts} "
+            "| sort "
+            "| uniq -c "
+            "| awk -F ' ' '{{print$2\"\\t\"$1}}' "
+            "| cut -f2 "
+            "| sed '1i {wildcards.sample}' > {output.counts}; "
+        "paste {output.seqs} {output.counts} > {output.seqtable}; }} 2> {log}; "
 
 
 rule merge_seq_tables:

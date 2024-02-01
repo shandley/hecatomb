@@ -33,12 +33,10 @@ rule primary_aa_search:
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
     shell:
-        """
-        mmseqs easy-search {input.seqs} {input.db} {output} {params.alnRes} \
-            {params.filtaa} {params.sensaa} \
-            --threads {threads} --split-memory-limit {params.memsplit} &> {log}
-        rm {log}
-        """
+        "mmseqs easy-search {input.seqs} {input.db} {output} {params.alnRes} "
+            " {params.filtaa} {params.sensaa} "
+            " --threads {threads} --split-memory-limit {params.memsplit} &> {log} "
+
 
 
 rule primary_aa_parsing:
@@ -89,14 +87,11 @@ rule secondary_aa_taxonomy_assignment:
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
     shell:
-        """
-        {{ # Run mmseqs taxonomy module
-        mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} \
-            {params.filtaa} {params.sensaa} {params.formataa} \
-            --lca-mode 2 --threads {threads} --split-memory-limit {params.memsplit};
-        }} &> {log}
-        rm {log}
-        """
+        "{{ "
+        "mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} "
+            "{params.filtaa} {params.sensaa} {params.formataa} "
+            "--lca-mode 2 --threads {threads} --split-memory-limit {params.memsplit}; "
+        "}} &> {log} "
 
 
 rule secondary_aa_tophit_lineage:
@@ -120,14 +115,12 @@ rule secondary_aa_tophit_lineage:
     group:
         "secondary_aa_parsing"
     shell:
-        """
-        {{ # Make a table: SeqID <tab> taxID
-        cut -f1,20 {input.tophit} \
-            | taxonkit lineage --data-dir {input.db} -i 2 \
-            | taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} \
-            | cut --complement -f3 \
-            > {output.tophit_lineage_refomated}; }} &> {log}
-        """
+        "{{ "
+        "cut -f1,20 {input.tophit} "
+            "| taxonkit lineage --data-dir {input.db} -i 2 "
+            "| taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} "
+            "| cut --complement -f3 "
+            "> {output.tophit_lineage_refomated}; }} &> {log} "
 
 
 rule secondary_aa_refactor_finalize:
@@ -151,13 +144,11 @@ rule secondary_aa_refactor_finalize:
     group:
         "secondary_aa_parsing"
     shell:
-        """
-        {{ cut -f1,2 {input.lca} \
-            | taxonkit lineage --data-dir {input.db} -i 2 \
-            | taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} \
-            | cut --complement -f3 \
-            > {output.lca_reformated}; }} &> {log}
-        """
+        "{{ cut -f1,2 {input.lca} "
+            "| taxonkit lineage --data-dir {input.db} -i 2 "
+            "| taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} "
+            "| cut --complement -f3 "
+            "> {output.lca_reformated}; }} &> {log} "
 
 
 rule secondary_aa_output_table:
@@ -232,11 +223,9 @@ rule primary_nt_search:
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
     shell:
-        """
-        mmseqs easy-search {input.seqs} {input.db} {output} {params.tmppath} \
-            {params.ntsens} {params.filtnt} \
-            --search-type 3 --threads {threads} --split-memory-limit {params.memsplit} &> {log}
-        """
+        "mmseqs easy-search {input.seqs} {input.db} {output} {params.tmppath} "
+            "{params.ntsens} {params.filtnt} "
+            "--search-type 3 --threads {threads} --split-memory-limit {params.memsplit} &> {log} "
 
 
 rule primary_nt_parsing:
@@ -287,17 +276,16 @@ rule secondary_nt_search:
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
     shell:
-        """{{
-        if [[ -d {params.tmp} ]]; then rm -r {params.tmp}; fi;
-        mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmp} \
-            {params.sensnt} {params.ntfilt} {params.format} \
-            --search-type 3 --threads {threads} --split-memory-limit {params.memsplit};
-        cut -f1,2 {output.aln} \
-            | sed 's/tid|//' \
-            | sed 's/|.*//' \
-            > {output.tax};
-        }} &> {log}
-        """
+        "{{ "
+        "if [[ -d {params.tmp} ]]; then rm -r {params.tmp}; fi; "
+        "mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmp} "
+            "{params.sensnt} {params.ntfilt} {params.format} "
+            "--search-type 3 --threads {threads} --split-memory-limit {params.memsplit}; "
+        "cut -f1,2 {output.aln} "
+            "| sed 's/tid|//' "
+            "| sed 's/|.*//' "
+            "> {output.tax}; "
+        "}} &> {log} "
 
 
 rule secondary_nt_lca_table:
@@ -343,20 +331,17 @@ rule secondary_nt_calc_lca:
     group:
         "secondary_nt_parsing"
     shell:
-        """
-        {{
-        taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} | \
-            awk -F '\t' '$3 != 0' | \
-            taxonkit lineage -i 3 --data-dir {input.taxdb} | \
-            taxonkit reformat --data-dir {input.taxdb} -i 4 {params.taxonFormat} | \
-            cut --complement -f 3,4 \
-            > {output.lca_lineage}
-        
-        taxonkit lineage -i 2 --data-dir {input.taxdb} {input.top} | \
-            taxonkit reformat --data-dir {input.taxdb} -i 3 {params.taxonFormat} | \
-            cut --complement -f 3 > {output.top_lineage}
-        }} &> {log}
-        """
+        "{{ "
+        "taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} | "
+            "awk -F '\t' '$3 != 0' | "
+            "taxonkit lineage -i 3 --data-dir {input.taxdb} | "
+            "taxonkit reformat --data-dir {input.taxdb} -i 4 {params.taxonFormat} | "
+            "cut --complement -f 3,4 "
+            "> {output.lca_lineage}; "
+        "taxonkit lineage -i 2 --data-dir {input.taxdb} {input.top} | "
+            "taxonkit reformat --data-dir {input.taxdb} -i 3 {params.taxonFormat} | "
+            "cut --complement -f 3 > {output.top_lineage}; "
+        "}} &> {log}; "
 
 
 rule secondary_nt_generate_output_table:
@@ -403,7 +388,5 @@ rule combine_aa_nt:
     group:
         "secondary_nt_parsing"
     shell:
-        """
-        {{ cat {input.aa} > {output};
-        tail -n+2 {input.nt} >> {output}; }} &> {log}
-        """
+        "{{ cat {input.aa} > {output}; "
+        "tail -n+2 {input.nt} >> {output}; }} &> {log}; "
