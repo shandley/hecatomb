@@ -7,6 +7,8 @@
 [![install with bioconda](https://img.shields.io/badge/Install%20with-conda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/hecatomb/README.html)
 ![](https://img.shields.io/conda/dn/bioconda/hecatomb?label=Conda%20downloads&style=flat-square)
 [![install with PyPI](https://img.shields.io/badge/Install%20with-PyPI-brightgreen.svg?style=flat-square)](https://pypi.org/project/hecatomb/)
+[![Unit tests](https://github.com/shandley/hecatomb/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/shandley/hecatomb/actions/workflows/unit-tests.yaml)
+[![Env builds](https://github.com/shandley/hecatomb/actions/workflows/build-hecatomb-envs.yaml/badge.svg)](https://github.com/shandley/hecatomb/actions/workflows/build-hecatomb-envs.yaml)
 
 ---
 
