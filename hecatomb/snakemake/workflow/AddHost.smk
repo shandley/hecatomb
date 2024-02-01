@@ -1,5 +1,5 @@
 
-# load default config
+# LOAD CONFIG
 configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
 configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
@@ -7,22 +7,24 @@ res = config["resources"]
 config = config["hecatomb"]
 
 
-# directories
+# DIRECTORIES
 include: os.path.join("rules", "preflight", "directories.smk")
 
 
-# host files
+# NEW HOST TARGET
 config["outFasta"] = os.path.join(
     dir["dbs"]["hostBase"], config["args"]["hostName"], "masked_ref.fa.gz"
 )
 config["virRefSeq"] = os.path.join(dir["dbs"]["hostBase"], config["dbvirRefSeq"]["file"])
 
 
+# TARGET RULE
 rule all:
     input:
         config["outFasta"]
 
 
+# ADD HOST RULES
 rule dl_refseq_viral:
     """Download the refseq viral genomic file needed"""
     output:
