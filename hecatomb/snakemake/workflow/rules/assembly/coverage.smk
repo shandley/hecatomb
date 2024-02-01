@@ -27,12 +27,12 @@ rule population_assembly:
     shell:
         " flye --subassemblies {input} "
             "-t {threads} --plasmids -o {params.flye_out} {params.flye_params} "
-            "&>> {log.log1} "
-        "mv {params.assembly} {output.assembly} "
-        "mv {params.graph} {output.graph} "
+            "&>> {log.log1}; "
+        "mv {params.assembly} {output.assembly}; "
+        "mv {params.graph} {output.graph}; "
         "statswrapper.sh in={output.assembly} out={output.stats} "
             "format=2 "
-            "ow=t 2> {log.log2} "
+            "ow=t 2> {log.log2}; "
 
 
 rule koverage_samples:
@@ -52,7 +52,7 @@ rule koverage_calculations:
     """Get coverage statistics with Koverage"""
     input:
         tsv = os.path.join(dir["out"]["temp"], "samples_trimmed.tsv"),
-        ref = os.path.join(dir["out"]["results"], f'{config["args"]["assembly"]}_assembly.fasta'),
+        ref = os.path.join(dir["out"]["results"], config["args"]["assembly"] + '_assembly.fasta'),
         req = targets["preprocessing"]
     output:
         os.path.join(dir["out"]["results"], "sample_coverage.tsv"),
@@ -76,4 +76,4 @@ rule koverage_calculations:
             "--output {params.out_dir} "
             "--threads {threads} "
             "--minimap {params.minimap_mode} "
-            "{params.profile} "
+            "{params.profile}; "

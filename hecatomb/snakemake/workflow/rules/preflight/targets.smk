@@ -63,8 +63,8 @@ targets["preprocessing"] = targets["trimnami"]
 
 ### ASSEMBLY
 targets["assembly"] = [
-    os.path.join(dir["out"]["results"], f'{config["args"]["assembly"]}_assembly.fasta'),
-    os.path.join(dir["out"]["results"], f'{config["args"]["assembly"]}_assembly.gfa'),
+    os.path.join(dir["out"]["results"], config["args"]["assembly"] + '_assembly.fasta'),
+    os.path.join(dir["out"]["results"], config["args"]["assembly"] + '_assembly.gfa'),
     os.path.join(dir["out"]["results"], "sample_coverage.tsv"),
     os.path.join(dir["out"]["results"], "all_coverage.tsv"),
 ]
