@@ -77,7 +77,7 @@ rule mmseqs_contig_annotation_summary:
         "mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} {params.secondaryNtFormat}; "
         "printf '{params.header}\n' > {output.tsv}; "
         "sed 's/tid|//' {output.align} | "
-            "sed 's/|\S*//' | "
+            r"sed 's/|\S*//' | "
             "taxonkit lineage --data-dir {input.taxdb} -i 2 | "
             "taxonkit reformat --data-dir {input.taxdb} -i 18 {params.taxonFormat} | "
             "cut --complement -f2,19 >> {output.tsv}; "

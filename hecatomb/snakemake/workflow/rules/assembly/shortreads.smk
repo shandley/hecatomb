@@ -46,7 +46,7 @@ rule cross_assembly:
             "{params.params} "
             "&> {log}; "
         "kctg=$(ls -t {params.mh_int}/*.contigs.fa | grep -v final | head -1); "
-        "kmax=$(head -1 $kctg | sed 's/>k\|_.*//g'); "
+        r"kmax=$(head -1 $kctg | sed 's/>k\|_.*//g'); "
         "megahit_toolkit "
             "contig2fastg "
             "$kmax "

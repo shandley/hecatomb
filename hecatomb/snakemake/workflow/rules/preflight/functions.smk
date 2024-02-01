@@ -21,7 +21,7 @@ def file_len(fname):
         f = gzip.open(fname, "rb")
     else:
         f = open(fname, "r")
-    if re.search("fastq(\.gz)?$", fname):
+    if re.search(r"fastq(\.gz)?$", fname):
         for i, l in enumerate(f):
             pass
         f.close()
