@@ -101,3 +101,11 @@ targets["readAnnotations"] = [
 targets["summary"] = [
     os.path.join(dir["out"]["results"], "summary.tsv"),
 ]
+
+
+# BUILD ENV TARGETS
+targets["envs"] = []
+
+for filename in os.listdir(dir["env"]):
+    if filename.endswith(".yaml") or filename.endswith(".yml"):
+        targets["envs"].append(os.path.join(dir["out"]["temp"], filename + ".done"))

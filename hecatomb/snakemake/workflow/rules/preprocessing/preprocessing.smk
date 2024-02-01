@@ -1,3 +1,12 @@
+rule buildEnv:
+    output:
+        os.path.join(dir["out"]["temp"], "{env}.done")
+    conda:
+        lambda wildcards: os.path.join(dir["env"], wildcards.env)
+    shell:
+        "touch {output}"
+
+
 rule trimnami_config:
     output:
         os.path.join(dir["out"]["temp"], "trimnami.config.yaml")

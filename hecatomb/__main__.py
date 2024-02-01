@@ -85,6 +85,7 @@ def common_options(func):
                 "--printshellcmds",
                 "--nolock",
                 "--show-failed-logs",
+                "--conda-frontend conda",
             ],
             help="Customise Snakemake runtime args",
             show_default=True,
@@ -94,6 +95,12 @@ def common_options(func):
             default="hecatomb.log",
             callback=default_to_output,
             hidden=True,
+        ),
+        click.option(
+            "--simulate/--no-simulate",
+            default=False,
+            hidden=True,
+            help="Create empty database files for simulated runs testing",
         ),
         click.option(
             "--system-config",
@@ -297,11 +304,14 @@ def config(**kwargs):
     ),
 )
 @common_options
+@run_test_options
 def install(**kwargs):
     """Install the Hecatomb databases"""
 
     merge_config = {
-        "args": kwargs
+        "hecatomb": {
+            "args": kwargs
+        }
     }
     run_snakemake(
         snakefile_path=snake_base(

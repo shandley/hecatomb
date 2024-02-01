@@ -44,7 +44,7 @@ def test_hecatomb_cli(tmp_dir):
 
 
 def test_koverage_commands(tmp_dir):
-    exec_command("hecatomb test --threads 1 -n")
-    exec_command("hecatomb hecatomb install -n")
+    exec_command("hecatomb install -n")
+    exec_command("hecatomb test --simulate -n")
     exec_command("hecatomb config")
     exec_command("hecatomb citation")

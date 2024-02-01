@@ -112,6 +112,11 @@ rule combined_annotations:
     input:
         targets["mapping"]
 
+@targetRule
+rule build_envs:
+    input:
+        targets["envs"]
+
 
 @targetRule
 rule print_stages:

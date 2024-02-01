@@ -1,0 +1,60 @@
+
+name: Test build Hecatomb envs
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - '.github/workflows/build-hecatomb-envs.yaml'
+      - 'tests/**'
+      - 'hecatomb/**'
+      - 'setup.py'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '.github/workflows/build-hecatomb-envs.yaml'
+      - 'tests/**'
+      - 'hecatomb/**'
+      - 'setup.py'
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: "Envs for Python ${{ matrix.python-version }} on ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11"]
+
+    steps:
+      - uses: "actions/checkout@v3"
+        with:
+          fetch-depth: 0
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          miniforge-version: "latest"
+          miniforge-variant: Mambaforge
+          use-mamba: true
+          mamba-version: "*"
+          channels: conda-forge,bioconda,defaults
+          channel-priority: strict
+#          activate-environment: hecatomb
+          python-version: ${{ matrix.python-version }}
+          auto-activate-base: false
+
+      - name: "Test build Hecatomb and build envs on ${{ matrix.os }} for Python ${{ matrix.python-version }}"
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .
+          Hecatomb test build_envs

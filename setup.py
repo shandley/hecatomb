@@ -32,9 +32,9 @@ CLASSIFIERS = [
     "Natural Language :: English",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS :: MacOS X",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 
@@ -42,7 +42,7 @@ setup(
     name="hecatomb",
     packages=find_packages(),
     url="https://github.com/shandley/hecatomb",
-    python_requires=">=3.7",
+    python_requires=">=3.9",
     description="Viral metagenomics framework for short and longreads",
     long_description=get_description(),
     long_description_content_type="text/markdown",
@@ -52,7 +52,8 @@ setup(
     data_files=get_data_files(),
     py_modules=["hecatomb"],
     install_requires=[
-        "snakemake>=7.14.0",
+        "snakemake>=7.14.0,<8",
+        "pulp<2.8",
         "pyyaml>=6.0",
         "Click>=8.1.3",
         "metasnek>=0.0.7",

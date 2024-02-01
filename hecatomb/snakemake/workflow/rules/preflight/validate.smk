@@ -11,9 +11,18 @@ def copy_log():
     shell("cat " + current_log + " >> " + config["args"]["log"])
 
 
+# simulate db files
+if config["args"]["simulate"]:
+    for f in config["dbs"]["files"] + config["dbtax"]["files"]:
+        dbFile = os.path.join(dir["dbs"]["base"], f)
+        os.makedirs(os.path.dirname(dbFile), exist_ok=True)
+        with open(dbFile, 'a'):
+            os.utime(dbFile, None)
+
+
 # Check for Database files
 dbFail = False
-for f in config["dbs"]["files"]:
+for f in config["dbs"]["files"] + config["dbtax"]["files"]:
     dbFile = os.path.join(dir["dbs"]["base"], f)
     if not os.path.isfile(dbFile):
         dbFail = True
