@@ -1,5 +1,5 @@
 
-name: Test build Hecatomb envs
+name: Env builds
 
 on:
   push:
