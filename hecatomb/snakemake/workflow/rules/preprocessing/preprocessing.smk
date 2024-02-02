@@ -7,6 +7,15 @@ rule buildEnv:
         "touch {output}"
 
 
+rule subsnake_build_envs:
+    output:
+        os.path.join(dir["out"]["temp"], "subenvs.{env}")
+    conda:
+        lambda wildcards: os.path.join(dir["env"], wildcards.env + ".yaml")
+    shell:
+        "{wildcards.env} test build_envs"
+
+
 rule trimnami_config:
     output:
         os.path.join(dir["out"]["temp"], "trimnami.config.yaml")
