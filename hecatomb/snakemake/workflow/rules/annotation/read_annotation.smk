@@ -34,8 +34,8 @@ rule primary_aa_search:
         os.path.join(dir["env"], "mmseqs2.yaml")
     shell:
         "mmseqs easy-search {input.seqs} {input.db} {output} {params.alnRes} "
-            " {params.filtaa} {params.sensaa} "
-            " --threads {threads} --split-memory-limit {params.memsplit} &> {log} "
+            "{params.filtaa} {params.sensaa} "
+            "--threads {threads} --split-memory-limit {params.memsplit} &> {log}; "
 
 
 
@@ -105,7 +105,8 @@ rule secondary_aa_tophit_lineage:
         os.path.join(dir["env"], "seqkit.yaml")
     resources:
         time = resources["sml"]["time"],
-        mem = resources["ram"]["mem"]
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
     params:
         taxonFormat = lambda wildcards: config["immutable"]["taxonkitReformat"]
     benchmark:
@@ -134,7 +135,8 @@ rule secondary_aa_refactor_finalize:
         os.path.join(dir["env"], "seqkit.yaml")
     resources:
         time=resources["sml"]["time"],
-        mem=resources["ram"]["mem"]
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
     params:
         taxonFormat = lambda wildcards: config["immutable"]["taxonkitReformat"]
     benchmark:
@@ -164,7 +166,8 @@ rule secondary_aa_output_table:
         nonvir = os.path.join(dir["out"]["secondaryAA"], "AA_bigtable.nonviral.tsv")
     resources:
         time=resources["sml"]["time"],
-        mem=resources["ram"]["mem"]
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
         os.path.join(dir["out"]["bench"], "secondary_aa_generate_output_table.txt")
     log:
@@ -187,7 +190,8 @@ rule secondary_aa_parsing:
         unclass_seqs = os.path.join(dir["out"]["primaryAA"], "primary.aa.unclassified.fasta")
     resources:
         time=resources["sml"]["time"],
-        mem=resources["ram"]["mem"]
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
         os.path.join(dir["out"]["bench"], "secondary_aa_parsing.txt")
     log:
@@ -301,7 +305,8 @@ rule secondary_nt_lca_table:
         os.path.join(dir["out"]["stderr"], "secondary_nt_lca_table.log")
     resources:
         time = resources["sml"]["time"],
-        mem = resources["ram"]["mem"]
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
     group:
         "secondary_nt_parsing"
     script:
@@ -319,7 +324,8 @@ rule secondary_nt_calc_lca:
         top_lineage = os.path.join(dir["out"]["secondaryNT"], "top_lineage.tsv"),
     resources:
         time=resources["sml"]["time"],
-        mem=resources["ram"]["mem"]
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
     params:
         taxonFormat = lambda wildcards: config["immutable"]["taxonkitReformat"],
     conda:
@@ -357,7 +363,8 @@ rule secondary_nt_generate_output_table:
         nonvir = os.path.join(dir["out"]["secondaryNT"], "NT_bigtable.nonviral.tsv")
     resources:
         time=resources["sml"]["time"],
-        mem=resources["ram"]["mem"]
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
     params:
         taxIdIgnore = config["mmseqs"]["taxIdIgnore"].split(),
         bigtableHeader = config["immutable"]["bigtableHeader"]
@@ -384,7 +391,8 @@ rule combine_aa_nt:
         os.path.join(dir["out"]["stderr"], "combine_AA_NT.log")
     resources:
         time=resources["sml"]["time"],
-        mem=resources["ram"]["mem"]
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
     group:
         "secondary_nt_parsing"
     shell:
