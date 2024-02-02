@@ -9,7 +9,7 @@ rule buildEnv:
 
 rule subsnake_build_envs:
     output:
-        os.path.join(dir["out"]["temp"], "subenvs.{env}")
+        touch(os.path.join(dir["out"]["temp"], "subenvs.{env}"))
     conda:
         lambda wildcards: os.path.join(dir["env"], wildcards.env + ".yaml")
     shell:
