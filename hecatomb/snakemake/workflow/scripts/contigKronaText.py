@@ -23,5 +23,5 @@ with open(snakemake.input[0], "r") as fh:
 logging.debug("Sorting and writing contig taxon info")
 outFH = open(snakemake.output[0], "w")
 for k in sorted(counts.keys()):
-    outFH.write(counts[k] + "\t" + k + "\n")
+    outFH.write(str(counts[k]) + "\t" + k + "\n")
 outFH.close()

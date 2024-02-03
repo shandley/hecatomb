@@ -28,7 +28,7 @@ for sample in snakemake.params.samples:
     st = os.path.join(snakemake.params.tmpdir, sample + "_R1.seqtable")
     for l in streamCountTable(st):
         seqCounts += int(l[1])
-    outTsv.write(sample + "\t" + seqCounts + "\n")
+    outTsv.write(sample + "\t" + str(seqCounts) + "\n")
     for l in streamCountTable(st):
         # fasta header = >sample:count:percentCount:seqId
         id = ":".join(
