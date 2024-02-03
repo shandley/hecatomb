@@ -4,4 +4,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-    - koverage>=0.1.9
+    - koverage>=0.1.10
