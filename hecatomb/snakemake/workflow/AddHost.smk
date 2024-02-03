@@ -44,7 +44,7 @@ rule minimap_viral_refseq:
         ref = config["args"]["hostFa"],
         vir = config["virRefSeq"]
     output:
-        temp(os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.bed'))
+        temp(os.path.join(dir["out"]["temp"], config["args"]["hostName"] + ".bed"))
     params:
         config["addHost"]["minViralAlnLen"]
     conda:
@@ -73,9 +73,9 @@ rule mask_fasta:
     """Mask the host genome using bedtools"""
     input:
         fa = config["args"]["hostFa"],
-        aln = os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.bed')
+        aln = os.path.join(dir["out"]["temp"], config["args"]["hostName"] + ".bed")
     output:
-        mask = temp(os.path.join(dir["out"]["temp"], f'{config["args"]["hostName"]}.mask.bed')),
+        mask = temp(os.path.join(dir["out"]["temp"], config["args"]["hostName"] + ".mask.bed")),
         fa = config["outFasta"]
     params:
         fa = os.path.join(dir["dbs"]["hostBase"],config["args"]["hostName"],"masked_ref.fa"),

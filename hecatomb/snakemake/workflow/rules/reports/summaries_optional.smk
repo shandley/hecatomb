@@ -34,9 +34,9 @@ rule trimmedHostRemovedCounts:
     run:
         out_counts = dict()
         for sample in params.samples["names"]:
-            out_counts[sample]["s2_host_removed_R1"] = file_len(os.path.join(dir["out"]["temp"], "p04", f"{sample}_R1.all.fastq"))
+            out_counts[sample]["s2_host_removed_R1"] = file_len(os.path.join(dir["out"]["temp"], "p04", sample + "_R1.all.fastq"))
             try:
-                out_counts[sample]["s2_host_removed_R2"] = file_len(os.path.join(dir["out"]["temp"],"p04", f"{sample}_R2.all.fastq"))
+                out_counts[sample]["s2_host_removed_R2"] = file_len(os.path.join(dir["out"]["temp"],"p04", sample + "_R2.all.fastq"))
             except FileNotFoundError:
                 pass
         with open(output[0],"w") as stream:
@@ -134,9 +134,9 @@ rule unclassifiedSeqs:
                         try:
                             classSeq[id]
                         except KeyError:
-                            out_fh.write(f">{id}\n{seq}\n")
+                            out_fh.write(">" + id + "\n" + seq + "\n")
                     else:
-                        sys.stderr.write(f"malformed {input.fa} file? expecting {line} to be fasta header, complain to Mike")
+                        sys.stderr.write("malformed " + input.fa + " file? expecting " + line + " to be fasta header, complain to Mike")
                         exit(1)
 
 

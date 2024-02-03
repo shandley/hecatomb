@@ -22,10 +22,10 @@ with open(snakemake.input.seqs, "r") as inFa:
                 id = line.strip().replace(">", "")
                 seq = inFa.readline().strip()
                 if not id in virSeqs:
-                    outFa.write(f">{id}\n{seq}\n")
+                    outFa.write(">" + id + "\n" + seq + "\n")
             else:
                 logging.error(
-                    f"malformed {snakemake.input.seqs} file, or something, complain to Mike"
+                    "malformed " + snakemake.input.seqs + " file, or something, complain to Mike"
                 )
                 exit(1)
 

@@ -72,7 +72,7 @@ rule cluster_sequences:
         temp(os.path.join(dir["out"]["temp"],"{sample}_R1_all_seqs.fasta"))
     params:
         respath=lambda wildcards, output: os.path.split(output[0])[0],
-        tmppath=lambda wildcards, output: os.path.join(os.path.split(output[0])[0],f"{wildcards.sample}_TMP"),
+        tmppath=lambda wildcards, output: os.path.join(os.path.split(output[0])[0], wildcards.sample + "_TMP"),
         prefix="{sample}_R1",
         config=config["mmseqs"]["linclustParams"]
     benchmark:
@@ -87,9 +87,12 @@ rule cluster_sequences:
     conda:
         os.path.join(dir["env"],"mmseqs2.yaml")
     shell:
-        "mmseqs easy-linclust {input.fq} {params.respath}/{params.prefix} {params.tmppath} "
+        "mmseqs easy-linclust {input.fq} "
+            "{params.respath}/{params.prefix} "
+            "{params.tmppath} "
             "{params.config} "
-            "--threads {threads} &> {log}; "
+            "--threads {threads} "
+            "&> {log}; "
 
 
 rule create_individual_seqtables:

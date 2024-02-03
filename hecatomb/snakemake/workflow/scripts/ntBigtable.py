@@ -15,7 +15,7 @@ with open(snakemake.input.balt, 'r') as balfh:
     for line in balfh:
         l = line.strip().split('\t')
         if len(l) == 3:
-            balt[l[0]] = f'{l[1]}\t{l[2]}'
+            balt[l[0]] = l[1] + "\t" + l[2]
 
 logging.debug('Reading in lca-hit seq IDs')
 lcaLin = {}

@@ -13,7 +13,7 @@ curRead = ""
 
 def dumpRead(lst, fh):
     tOut = ";".join(list(lst))
-    fh.write(f"{curRead}\t{tOut}\n")
+    fh.write(curRead + "\t" + tOut + "\n")
 
 
 logging.debug("Reading alignments and extracting taxon IDs")
@@ -28,7 +28,7 @@ with open(snakemake.output.top, "w") as outTop:
                         dumpRead(lin, outLin)
                     curRead = l[0]
                 if not l[0] in topDone:
-                    outTop.write(f"{l[0]}\t{l[1]}\n")
+                    outTop.write(l[0] + "\t" + l[1] + "\n")
                     topDone.add(l[0])
                 lin.add(l[1])
         dumpRead(lin, outLin)
