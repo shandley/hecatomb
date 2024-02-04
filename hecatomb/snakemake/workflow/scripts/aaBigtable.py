@@ -15,7 +15,7 @@ with open(snakemake.input.balt, "r") as baltfh:
     for line in baltfh:
         l = line.strip().split("\t")
         if len(l) == 3:
-            balt[l[0]] = f"{l[1]}\t{l[2]}"
+            balt[l[0]] = l[1] + "\t" + l[2]
 
 logging.debug("Reading in Taxon info for LCA seqs")
 lcaLin = {}

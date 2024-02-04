@@ -12,7 +12,7 @@ logging.debug("Concatenating ORFM ORFs from seqtable.fasta")
 
 def printSeq(seq, fh):
     if seqComp["curID"]:
-        fh.write(f'{seq["curID"]}{seq["curSeq"]}\n')
+        fh.write(seq["curID"] + seq["curSeq"] + "\t")
 
 
 seqComp = {"curID": str(), "CurSeq": str()}
@@ -27,5 +27,5 @@ with open(snakemake.input[0], "r") as ifh:
                 else:
                     seqComp["curSeq"] = 'XXXXX'.join([seqComp["curSeq"], ifh.readline().strip()])
             else:
-                logging.debug(f"Not a seq ID, this shouldn't occur: {line}")
+                logging.debug("Not a seq ID, this shouldn't occur: " + line)
                 exit(1)

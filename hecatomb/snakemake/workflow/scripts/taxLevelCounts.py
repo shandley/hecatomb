@@ -20,12 +20,12 @@ tsvIndex = {
 idxStart = 23
 short = {"23": "k", "24": "p", "25": "c", "26": "o", "27": "f", "28": "g", "29": "s"}
 
-logging.debug(f"Opening {snakemake.output[0]} for writing\n")
+logging.debug("Opening " + snakemake.output[0] + "for writing\n")
 out = open(snakemake.output[0], "w")
 out.write("sampleID\ttaxonLevel\ttaxonPath\ttaxonName\tcount\tpercent\n")
 # re-read the file for each sample to keep the memory happy - this is probably not necessary
 for sample in snakemake.params.samples:
-    logging.debug(f"parsing {snakemake.input[0]} for sample {sample}\n")
+    logging.debug("parsing " + snakemake.input[0] + " for sample " + sample + "\n")
     counts = {}  # counts[taxlevel][taxname] = int
     cpm = {}  # normalised counts, same structure as counts
     infh = open(snakemake.input[0], "r")
@@ -48,7 +48,7 @@ for sample in snakemake.params.samples:
                 taxPath = []
                 for o in range(idxStart, i):
                     taxPath.append(
-                        f"{short[str(o)]}_{l[o]}"
+                        short[str(o)] + "_" + l[o]
                     )  # taxon path = k_kingName,p_phylName etc.
                 outPath = ",".join(taxPath)
                 try:
@@ -62,6 +62,12 @@ for sample in snakemake.params.samples:
         for taxPath in counts[taxLevel].keys():
             taxName = taxPath.split("_")[-1]
             out.write(
-                f"{sample}\t{taxLevel}\t{taxPath}\t{taxName}\t{counts[taxLevel][taxPath]}\t{cpm[taxLevel][taxPath]}\n"
+                "\t".join([
+                    sample,
+                    taxLevel,
+                    taxPath,
+                    taxName,
+                    counts[taxLevel][taxPath],
+                    cpm[taxLevel][taxPath] + "\n"])
             )
 out.close()

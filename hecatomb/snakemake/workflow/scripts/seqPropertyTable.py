@@ -23,7 +23,7 @@ with open(snakemake.output[0], "w") as out:
             if l[0] == "scaffold":
                 out.write("id\tGC\t")
             else:
-                out.write(f"{l[0]}\t{gc[l[0]]}\t")
+                out.write(l[0] + "\t" + gc[l[0]] + "\t")
             out.write("\t".join(l[2:]))
             out.write("\n")
 

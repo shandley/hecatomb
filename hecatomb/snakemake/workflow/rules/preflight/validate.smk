@@ -26,7 +26,7 @@ for f in config["dbs"]["files"] + config["dbtax"]["files"]:
     dbFile = os.path.join(dir["dbs"]["base"], f)
     if not os.path.isfile(dbFile):
         dbFail = True
-        sys.stderr.write(f"    ERROR: missing database file {dbFile}\n")
+        sys.stderr.write("    ERROR: missing database file " + dbFile + "\n")
 if dbFail:
     sys.stderr.write("\n"
         "    FATAL: One or more database files is missing.\n"
@@ -39,7 +39,7 @@ onstart:
     if os.path.isdir(dir["out"]["stderr"]):
         oldLogs = filter(re.compile(r'^(?!old_).*').match, os.listdir(dir["out"]["stderr"]))
         for logfile in oldLogs:
-            os.rename(os.path.join(dir["out"]["stderr"], logfile), os.path.join(dir["out"]["stderr"], f'old_{logfile}'))
+            os.rename(os.path.join(dir["out"]["stderr"], logfile), os.path.join(dir["out"]["stderr"], "old_" + logfile))
 
 # Success message
 onsuccess:
@@ -50,7 +50,7 @@ onsuccess:
 onerror:
     copy_log()
     sys.stderr.write('\n\n    FATAL: Hecatomb encountered an error.\n\n')
-    sys.stderr.write(f'Check the Hecatomb logs directory for command-related errors:\n\n{dir["out"]["stderr"]}\n\n')
+    sys.stderr.write("Check the Hecatomb logs directory for command-related errors:\n\n" + dir["out"]["stderr"] + "\n\n")
     if config["args"]["profile"]:
         sys.stderr.write(
             'Also check your scheduler logs for sheduler-related errors. Your profile determins where these are saved'

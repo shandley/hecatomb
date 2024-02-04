@@ -46,7 +46,7 @@ with open(snakemake.output[0], "w") as outFH:
             taxOut = "\t".join(
                 ([c[1], str((int(c[1]) / smplCounts[c[0]]) * 1000000)] + ["NA"] * 11)
             )
-        outFH.write(f"{infOut}\t{taxOut}\n")
+        outFH.write(infOut + "\t" + taxOut + "\n")
     bam.close()
 
 logging.debug("Done")

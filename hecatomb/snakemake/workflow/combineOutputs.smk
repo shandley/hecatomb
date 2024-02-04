@@ -29,7 +29,7 @@ for f in config["args"]["combineRuns"]:
     ]:
         if not is_non_zero_file(assemblyFile):
             sys.stderr.write(
-                f"No/missing assembly files for {f}, skipping assembly files.\n"
+                "No/missing assembly files for " + f + ", skipping assembly files.\n"
             )
             assemblyFiles = False
     with open(os.path.join(f, "results", "sampleSeqCounts.tsv"), "r") as t:
@@ -43,7 +43,7 @@ for f in config["args"]["combineRuns"]:
                     allDirSmplLen[f] = {}
                     allDirSmplLen[f][l[0]] = l[1]
             else:
-                sys.stderr.write(f"Ignoring duplicated sample {l[0]} in {f}\n")
+                sys.stderr.write("Ignoring duplicated sample " + l[0] + " in " + f + "\n")
 
 
 # hijack contig_mapping.smk for remaking the contigSeqTable
@@ -97,10 +97,10 @@ rule combineSampleSeqCounts:
     output:
         os.path.join(dir["out"]["results"], 'sampleSeqCounts.tsv')
     run:
-        with open(output[0],'w') as o:
+        with open(output[0], 'w') as o:
             for oDir in allDirSmplLen.keys():
                 for smpl in allDirSmplLen[oDir].keys():
-                    o.write(f'{smpl}\t{allDirSmplLen[oDir][smpl]}\n')
+                    o.write(smpl + "\t" + allDirSmplLen[oDir][smpl] + "\n")
 
 
 rule combineBigtables:

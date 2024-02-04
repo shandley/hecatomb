@@ -22,10 +22,10 @@ with open(snakemake.output.class_seqs, "w") as outClass:
                 id = line.strip().replace(">", "")
                 seq = inFa.readline().strip()
                 if id in topHit:
-                    outClass.write(f">{id}\n{seq}\n")
+                    outClass.write(">" + id + "\n" + seq + "\n")
             else:
                 sys.stderr.write(
-                    f"malformed {snakemake.input.seqs} file, or something, complain to Mike."
+                    "malformed " + snakemake.input.seqs + " file, or something, complain to Mike."
                 )
                 exit(1)
 
