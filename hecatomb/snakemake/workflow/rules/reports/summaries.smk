@@ -47,6 +47,11 @@ rule krona_text_format:
         "krona"
     log:
         os.path.join(dir["out"]["stderr"], "krona_text_format.log")
+    resources:
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
+    threads:
+        resources["ram"]["cpu"]
     script:
         os.path.join(dir["scripts"],  "kronaText.py")
 
@@ -68,6 +73,8 @@ rule krona_plot:
     resources:
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
+    threads:
+        resources["ram"]["cpu"]
     shell:
         "ktImportText {input} -o {output} &> {log} "
 
@@ -81,6 +88,11 @@ rule contig_krona_text_format:
         "contig_krona"
     log:
         os.path.join(dir["out"]["stderr"], "contig_krona_text_format.log")
+    resources:
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
+    threads:
+        resources["ram"]["cpu"]
     script:
         os.path.join(dir["scripts"],  "contigKronaText.py")
 
@@ -97,7 +109,9 @@ rule contig_krona_plot:
     log:
         os.path.join(dir["out"]["stderr"], "contig_krona_plot.log")
     resources:
-        mem_mb = resources["ram"]["mem"],
-        mem = str(resources["ram"]["mem"]) + "MB",
+        mem_mb=resources["ram"]["mem"],
+        mem=str(resources["ram"]["mem"]) + "MB",
+    threads:
+        resources["ram"]["cpu"]
     shell:
         "ktImportText {input} -o {output} &> {log} "
