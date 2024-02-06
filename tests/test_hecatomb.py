@@ -4,21 +4,6 @@ from pathlib import Path
 import pytest
 
 
-TEST_ROOTDIR = Path(__file__).parent
-EXEC_ROOTDIR = Path(__file__).parent.parent
-
-
-@pytest.fixture(scope="session")
-def tmp_dir(tmpdir_factory):
-    return tmpdir_factory.mktemp("tmp")
-
-
-@pytest.fixture(autouse=True)
-def workingdir(tmp_dir, monkeypatch):
-    """set the working directory for all tests"""
-    monkeypatch.chdir(tmp_dir)
-
-
 def exec_command(cmnd, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
     """executes shell command and returns stdout if completes exit code 0
     Parameters
@@ -36,16 +21,25 @@ def exec_command(cmnd, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
     return out.decode("utf8") if out is not None else None
 
 
-def test_hecatomb_cli(tmp_dir):
+def test_hecatomb_cli():
     exec_command("hecatomb -v")
     exec_command("hecatomb -h")
     exec_command("hecatomb run -h")
     exec_command("hecatomb config -h")
 
 
-def test_koverage_commands(tmp_dir):
+def test_koverage_commands(tmp_path):
+    temp_dir = tmp_path / "tmp"
+    temp_dir.mkdir()
+    temp_file = temp_dir / "yeet.txt"
+    temp_file.write_text("yeet")
     exec_command("hecatomb install -n")
-    exec_command("hecatomb test --simulate -n")
-    exec_command("hecatomb test --example-profile --simulate -n")
     exec_command("hecatomb config")
     exec_command("hecatomb citation")
+    simulate = ["hecatomb test --simulate -n "]
+    hpc = ["--example-profile "]
+    options = ["--assembly cross --fastqc --search fast --custom-aa ", temp_file, " --custom-nt ", temp_file]
+    exec_command(" ".join(simulate))
+    exec_command(" ".join(simulate + hpc))
+    exec_command(" ".join(simulate + options))
+    exec_command(" ".join(simulate + hpc + options))
