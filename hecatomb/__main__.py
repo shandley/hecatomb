@@ -279,7 +279,7 @@ def test(**kwargs):
     if kwargs["example_profile"]:
         kwargs["profile"] = snake_base(
             os.path.join("snakemake", "profile", "example_slurm")
-        ),
+        )
 
     merge_config = {
         "hecatomb": {
