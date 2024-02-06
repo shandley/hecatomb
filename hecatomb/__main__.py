@@ -103,6 +103,12 @@ def common_options(func):
             help="Create empty database files for simulated runs testing",
         ),
         click.option(
+            "--example-profile/--no-example-profile",
+            default=False,
+            hidden=True,
+            help="Pass the example profile (for unit testing)",
+        ),
+        click.option(
             "--system-config",
             default=snake_base(os.path.join("snakemake", "config", "config.yaml")),
             hidden=True,
@@ -270,6 +276,10 @@ def test(**kwargs):
     """Run the Hecatomb test dataset"""
 
     kwargs["reads"] = snake_base("test_data")
+    if kwargs["example_profile"]:
+        kwargs["profile"] = snake_base(
+            os.path.join("snakemake", "profile", "example_slurm")
+        ),
 
     merge_config = {
         "hecatomb": {
