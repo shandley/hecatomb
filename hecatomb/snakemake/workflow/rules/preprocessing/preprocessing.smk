@@ -45,6 +45,7 @@ rule run_trimnami:
         minimap_mode = lambda w: "map-ont " if config["args"]["trim"] == "nanopore" else "sr ",
         profile= lambda wildcards: "--profile " + config["args"]["profile"] if config["args"]["profile"] else "",
         fastqc = lambda wildcards: "--fastqc " if config["args"]["fastqc"] else "",
+        workflow_profile = config["args"]["workflow_profile"]
     threads:
         lambda wildcards: resources["sml"]["cpu"] if config["args"]["profile"] else resources["big"]["cpu"]
     resources:
@@ -62,6 +63,7 @@ rule run_trimnami:
             "--threads {threads} "
             "--minimap {params.minimap_mode} "
             "{params.fastqc} "
+            "--workflow-profile {params.workflow_profile} "
             "{params.profile}; "
 
 

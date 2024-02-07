@@ -10,7 +10,7 @@ import glob
 from snaketool_utils.cli_utils import (
     OrderedCommands,
     run_snakemake,
-    copy_config,
+    initialise_config,
     echo_click,
     msg_box,
 )
@@ -65,6 +65,13 @@ def common_options(func):
             "--profile", help="Snakemake profile", default=None, show_default=False
         ),
         click.option(
+            "--workflow-profile",
+            default="hecatomb.profile",
+            show_default=False,
+            callback=default_to_output,
+            help="Custom config file [default: (outputDir)/hecatomb.profile/]",
+        ),
+        click.option(
             "--use-conda/--no-use-conda",
             default=True,
             help="Use conda for Snakemake rules",
@@ -78,17 +85,10 @@ def common_options(func):
             show_default=False,
         ),
         click.option(
-            "--snake-default",
-            multiple=True,
-            default=[
-                "--rerun-incomplete",
-                "--printshellcmds",
-                "--nolock",
-                "--show-failed-logs",
-                "--conda-frontend conda",
-            ],
-            help="Customise Snakemake runtime args",
-            show_default=True,
+            "--system-workflow-profile",
+            default=snake_base(os.path.join("snakemake", "profile", "default", "config.yaml")),
+            help="Default workflow profile",
+            hidden=True,
         ),
         click.option(
             "--log",
@@ -249,7 +249,7 @@ def run(**kwargs):
     """Run hecatomb"""
 
     merge_config = {
-        "hecatomb":{
+        "hecatomb": {
             "args": kwargs
         }
     }
@@ -304,7 +304,7 @@ def test(**kwargs):
 @common_options
 def config(**kwargs):
     """Copy the system default config file"""
-    copy_config(kwargs["configfile"])
+    initialise_config(**kwargs)
 
 
 @click.command(
@@ -396,16 +396,16 @@ def add_host(**kwargs):
 @common_options
 def list_hosts(**kwargs):
     """List the available host genomes"""
-    copy_config(kwargs["configfile"])
+    initialise_config(**kwargs)
     with open(kwargs["configfile"], "r") as f:
-        config = yaml.safe_load(f)
-    dbdir = snake_base(os.path.join("snakemake", "databases"))
+        config_content = yaml.safe_load(f)
+    db_dir = snake_base(os.path.join("snakemake", "databases"))
     try:
-        if config["Databases"] is not None:
-            dbdir = config["Databases"]
+        if config_content["Databases"] is not None:
+            db_dir = config_content["Databases"]
     except KeyError:
         pass
-    host_path = os.path.join(dbdir, "host", "*")
+    host_path = os.path.join(db_dir, "host", "*")
     host_fastas = list([os.path.basename(x) for x in glob.glob(host_path)])
     try:
         host_fastas.remove("virus_shred.fasta.gz")
