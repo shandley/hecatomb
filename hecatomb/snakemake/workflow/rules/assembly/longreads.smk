@@ -55,15 +55,14 @@ rule canu_sample_assembly:
     conda:
         os.path.join(dir["env"], "canu.yaml")
     shell:
-        "canu {params.settings} {input} "
+        "{{ canu {params.settings} {input} "
             "batThreads={threads} "
             "batMemory={resources.mem_mb}M "
             "-p {wildcards.sample} "
             "-d {params.canu_dir} "
-            "&>> {log} "
         "sed 's/>tig/>{wildcards.sample}./' {output.ctg} > {output.ctgq} "
         "sed 's/>tig/>{wildcards.sample}./' {output.un} > {output.unq} "
-        "tar cf - {params.canu_dir} | zstd -T{threads} -9 > {output.tar} 2> {log} "
+        "tar cf - {params.canu_dir} | zstd -T{threads} -9 > {output.tar}; }} 2> {log} "
 
 
 rule combine_canu_unassembled:

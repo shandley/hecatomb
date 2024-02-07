@@ -31,14 +31,13 @@ rule mmseqs_contig_annotation:
     group:
         "contigannot"
     shell:
-        "{{ "
-        "if [[ -d {params.resdir} ]]; then rm -r {params.resdir}; fi; "
+        "{{ if [[ -d {params.resdir} ]]; then rm -r {params.resdir}; fi; "
         "if [[ -d {params.tmppath} ]]; then rm -r {params.tmppath}; fi; "
         "mkdir -p {params.resdir}; "
         "mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2; "
         "mmseqs search {output.queryDB} {input.db} {params.prefix} {params.tmppath} "
             "{params.sensnt} --split-memory-limit {params.memsplit} {params.filtnt} "
-            "--search-type 3 --threads {threads} ; }} &> {log}"
+            "--search-type 3 --threads {threads} ; }} 2> {log}"
 
 
 rule mmseqs_contig_annotation_summary:
@@ -55,7 +54,6 @@ rule mmseqs_contig_annotation_summary:
         inputpath=os.path.join(dir["out"]["assembly"],"FLYE","results","result"),
         respath=os.path.join(dir["out"]["assembly"],"FLYE","results","tophit"),
         header=config["immutable"]["contigAnnotHeader"],
-        taxonFormat=lambda wildcards: config["immutable"]["taxonkitReformat"],
         secondaryNtFormat=config["immutable"]["secondaryNtFormat"]
     benchmark:
         os.path.join(dir["out"]["bench"], "mmseqs_contig_annotation_summary.txt")
@@ -72,13 +70,13 @@ rule mmseqs_contig_annotation_summary:
     group:
         "contigannot"
     shell:
-        "{{ "
-        "mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1; "
+        "{{ mmseqs filterdb {params.inputpath} {params.respath} --extract-lines 1; "
         "mmseqs convertalis {input.queryDB} {input.db} {params.respath} {output.align} {params.secondaryNtFormat}; "
         "printf '{params.header}\n' > {output.tsv}; "
         "sed 's/tid|//' {output.align} | "
             r"sed 's/|\S*//' | "
             "taxonkit lineage --data-dir {input.taxdb} -i 2 | "
-            "taxonkit reformat --data-dir {input.taxdb} -i 18 {params.taxonFormat} | "
+            "taxonkit reformat --data-dir {input.taxdb} -i 18 "
+            r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank | "
             "cut --complement -f2,19 >> {output.tsv}; "
-        "}} &> {log}; "
+        "}} 2> {log}; "
