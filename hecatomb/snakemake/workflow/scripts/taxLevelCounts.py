@@ -67,7 +67,7 @@ for sample in snakemake.params.samples:
                     taxLevel,
                     taxPath,
                     taxName,
-                    counts[taxLevel][taxPath],
+                    str(counts[taxLevel][taxPath]),
                     str(cpm[taxLevel][taxPath]) + "\n"])
             )
 out.close()
