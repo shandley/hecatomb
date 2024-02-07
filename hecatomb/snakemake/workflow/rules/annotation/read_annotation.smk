@@ -89,7 +89,7 @@ rule secondary_aa_taxonomy_assignment:
         "{{ mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} "
             "{params.filtaa} {params.sensaa} {params.formataa} "
             "--lca-mode 2 --threads {threads} --split-memory-limit {params.memsplit}; "
-        "}} 2> {log} "
+        "}} &> {log} "
 
 
 rule secondary_aa_tophit_lineage:
@@ -145,7 +145,7 @@ rule secondary_aa_refactor_finalize:
             "| taxonkit reformat --data-dir {input.db} -i 3 "
                 r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
             "| cut --complement -f3 "
-            "> {output.lca_reformated}; }} 2> {log} "
+            "> {output.lca_reformated}; }} &> {log} "
 
 
 rule secondary_aa_output_table:
@@ -283,7 +283,7 @@ rule secondary_nt_search:
             "| sed 's/tid|//' "
             "| sed 's/|.*//' "
             "> {output.tax}; "
-        "}} 2> {log} "
+        "}} &> {log} "
 
 
 rule secondary_nt_lca_table:
@@ -340,7 +340,7 @@ rule secondary_nt_calc_lca:
             "| taxonkit reformat --data-dir {input.taxdb} -i 3 "
                 r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
             "| cut --complement -f 3 > {output.top_lineage}; "
-        "}} 2> {log}; "
+        "}} &> {log}; "
 
 
 rule secondary_nt_generate_output_table:

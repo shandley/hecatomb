@@ -8,7 +8,7 @@ import atexit
 def streamCountTable(file):
     """Parse the seq count table"""
     with open(file, "r") as counts:
-        line = counts.readline()  # skip header
+        _ = counts.readline()  # skip header
         for line in counts:
             l = line.split()
             if len(l) == 2:

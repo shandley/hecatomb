@@ -37,7 +37,7 @@ rule mmseqs_contig_annotation:
         "mmseqs createdb {input.contigs} {output.queryDB} --dbtype 2; "
         "mmseqs search {output.queryDB} {input.db} {params.prefix} {params.tmppath} "
             "{params.sensnt} --split-memory-limit {params.memsplit} {params.filtnt} "
-            "--search-type 3 --threads {threads} ; }} 2> {log}"
+            "--search-type 3 --threads {threads} ; }} &> {log}"
 
 
 rule mmseqs_contig_annotation_summary:
@@ -79,4 +79,4 @@ rule mmseqs_contig_annotation_summary:
             "taxonkit reformat --data-dir {input.taxdb} -i 18 "
                 r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank | "
             "cut --complement -f2,19 >> {output.tsv}; "
-        "}} 2> {log}; "
+        "}} &> {log}; "
