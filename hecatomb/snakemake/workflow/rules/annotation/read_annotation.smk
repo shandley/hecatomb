@@ -38,7 +38,6 @@ rule primary_aa_search:
             "--threads {threads} --split-memory-limit {params.memsplit} &> {log}; "
 
 
-
 rule primary_aa_parsing:
     """Taxon step 02: Parse primary AA search results for classified (potentially viral) and unclassified sequences"""
     input:
@@ -116,7 +115,7 @@ rule secondary_aa_tophit_lineage:
         "{{ cut -f1,20 {input.tophit} "
             "| taxonkit lineage --data-dir {input.db} -i 2 "
             "| taxonkit reformat --data-dir {input.db} -i 3 "
-            r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
+                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
             "| cut --complement -f3 "
             "> {output.tophit_lineage_refomated}; }} 2> {log} "
 
@@ -144,7 +143,7 @@ rule secondary_aa_refactor_finalize:
         "{{ cut -f1,2 {input.lca} "
             "| taxonkit lineage --data-dir {input.db} -i 2 "
             "| taxonkit reformat --data-dir {input.db} -i 3 "
-            r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
+                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
             "| cut --complement -f3 "
             "> {output.lca_reformated}; }} 2> {log} "
 
@@ -330,17 +329,17 @@ rule secondary_nt_calc_lca:
     group:
         "secondary_nt_parsing"
     shell:
-        "{{ "
-        "taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} "
+        "{{ taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} "
             r"| awk -F '\t' '$3 != 0' "
             "| taxonkit lineage -i 3 --data-dir {input.taxdb} "
             "| taxonkit reformat --data-dir {input.taxdb} -i 4 "
-            r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
+                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
             "| cut --complement -f 3,4 "
             "> {output.lca_lineage}; "
-        "taxonkit lineage -i 2 --data-dir {input.taxdb} {input.top} | "
-            "taxonkit reformat --data-dir {input.taxdb} -i 3 {params.taxonFormat} | "
-            "cut --complement -f 3 > {output.top_lineage}; "
+        "taxonkit lineage -i 2 --data-dir {input.taxdb} {input.top} "
+            "| taxonkit reformat --data-dir {input.taxdb} -i 3 "
+                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
+            "| cut --complement -f 3 > {output.top_lineage}; "
         "}} 2> {log}; "
 
 

@@ -77,6 +77,6 @@ rule mmseqs_contig_annotation_summary:
             r"sed 's/|\S*//' | "
             "taxonkit lineage --data-dir {input.taxdb} -i 2 | "
             "taxonkit reformat --data-dir {input.taxdb} -i 18 "
-            r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank | "
+                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank | "
             "cut --complement -f2,19 >> {output.tsv}; "
         "}} 2> {log}; "
