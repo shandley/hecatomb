@@ -38,7 +38,7 @@ def test_koverage_commands(tmp_path):
     exec_command("hecatomb citation")
     simulate = ["hecatomb test --simulate -n "]
     hpc = ["--example-profile "]
-    options = ["--assembly cross --fastqc --search fast --custom-aa ", temp_file, " --custom-nt ", temp_file]
+    options = ["--assembly cross --fastqc --search fast --custom-aa ", str(temp_file), " --custom-nt ", str(temp_file)]
     exec_command(" ".join(simulate))
     exec_command(" ".join(simulate + hpc))
     exec_command(" ".join(simulate + options))
