@@ -26,7 +26,7 @@ hecatomb:
             --format-output 'query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits'
         mmseqsHeaderAA: "query\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tqheader\ttheader\ttaxid\ttaxname\tlineage"
         mmseqConvertAliFormat: "query,target,evalue,pident,fident,nident,mismatch,qcov,tcov,qstart,qend,qlen,tstart,tend,tlen,alnlen,bits,qheader,theader"
-        contigAnnotHeader: "contigID\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\ttarget\tkingdom\tphylum\tclass\torder\tfamily\tgenus\tspecies"
+        contigAnnotHeader: "contigID\ttarget\tevalue\tpident\tfident\tnident\tmismatch\tqcov\ttcov\tqstart\tqend\tqlen\ttstart\ttend\ttlen\talnlen\tbits\tkingdom\tphylum\tclass\torder\tfamily\tgenus\tspecies"
         bigtableHeader:
             - seqID
             - sampleID
