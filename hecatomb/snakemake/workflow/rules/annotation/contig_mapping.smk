@@ -22,8 +22,6 @@ rule map_seq_table:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
         time = resources["lrg"]["time"]
-    group:
-        "contigmap"
     shell:
         "minimap2 -ax sr --secondary=no -t {threads} {input.assembly} {input.seqtable} 2> {log.mm2} "
             "| samtools sort -@ {threads} -o {output} 2> {log.stool}; "
@@ -58,7 +56,5 @@ rule contig_read_taxonomy:
         os.path.join(dir["out"]["stderr"], "contig_read_taxonomy.log")
     conda:
         os.path.join(dir["env"], "pysam.yaml")
-    group:
-        "contigmap"
     script:
         os.path.join(dir["scripts"],  "contigReadTaxon.py")
