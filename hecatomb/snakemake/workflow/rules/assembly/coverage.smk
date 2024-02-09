@@ -25,14 +25,18 @@ rule population_assembly:
     conda:
         os.path.join(dir["env"], "metaflye.yaml")
     shell:
-        " flye --subassemblies {input} "
-            "-t {threads} --plasmids -o {params.flye_out} {params.flye_params} "
-            "&>> {log.log1}; "
+        "flye --subassemblies {input} "
+            "-t {threads} "
+            "--plasmids "
+            "-o {params.flye_out} "
+            "{params.flye_params} "
+            "&> {log.log1}; "
         "mv {params.assembly} {output.assembly}; "
         "mv {params.graph} {output.graph}; "
-        "statswrapper.sh in={output.assembly} out={output.stats} "
+        "statswrapper.sh in={output.assembly} "
+            "out={output.stats} "
             "format=2 "
-            "ow=t 2> {log.log2}; "
+            "ow=t &> {log.log2}; "
 
 
 rule koverage_samples:
@@ -61,6 +65,7 @@ rule koverage_calculations:
         out_dir = dir["out"]["base"],
         minimap_mode = lambda wildcards: "map-ont" if config["args"]["trim"] == "nanopore" else "sr",
         profile= lambda wildcards: "--profile " + config["args"]["profile"] if config["args"]["profile"] else "",
+        workflow_profile = config["args"]["workflow_profile"]
     threads:
         lambda wildcards: resources["sml"]["cpu"] if config["args"]["profile"] else resources["big"]["cpu"]
     resources:
@@ -76,4 +81,5 @@ rule koverage_calculations:
             "--output {params.out_dir} "
             "--threads {threads} "
             "--minimap {params.minimap_mode} "
+            "--workflow-profile {params.workflow_profile} "
             "{params.profile}; "

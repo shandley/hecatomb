@@ -48,7 +48,7 @@ if config["args"]["custom_aa"]:
         conda:
             os.path.join(dir["env"], "mmseqs2.yaml")
         shell:
-            "mmseqs createdb {input} {output} --dbtype 1 2> {log} && rm {log}"
+            "mmseqs createdb {input} {output} --dbtype 1 &> {log}"
 
 if config["args"]["custom_nt"]:
     rule create_custom_primary_nt:
@@ -62,7 +62,7 @@ if config["args"]["custom_nt"]:
         conda:
             os.path.join(dir["env"], "mmseqs2.yaml")
         shell:
-            "mmseqs createdb {input} {output} --dbtype 2 2> {log} && rm {log}"
+            "mmseqs createdb {input} {output} --dbtype 2 &> {log}"
 
 
 rule fasta_index:
@@ -74,12 +74,12 @@ rule fasta_index:
     log:
         "{file}.samtools.stderr"
     conda:
-        os.path.join(dir["env"],   "samtools.yaml")
+        os.path.join(dir["env"], "samtools.yaml")
     resources:
         mem_mb = resources["ram"]["mem"],
         mem = str(resources["ram"]["mem"]) + "MB",
     shell:
-        "samtools faidx {input} > {output} 2> {log} && rm {log}"
+        "samtools faidx {input} > {output} 2> {log}"
 
 
 rule bam_index:
@@ -91,14 +91,14 @@ rule bam_index:
     log:
         "{file}.samtools.stderr"
     conda:
-        os.path.join(dir["env"],   "samtools.yaml")
+        os.path.join(dir["env"], "samtools.yaml")
     threads:
         resources["ram"]["cpu"]
     resources:
         mem_mb = resources["ram"]["mem"],
         mem = str(resources["ram"]["mem"]) + "MB",
     shell:
-        "samtools index -@ {threads} {input} {output} 2> {log} && rm {log}"
+        "samtools index -@ {threads} {input} {output} 2> {log}"
 
 
 rule calculate_gc:

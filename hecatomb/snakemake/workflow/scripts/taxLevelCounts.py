@@ -39,11 +39,9 @@ for sample in snakemake.params.samples:
                         continue
                 except IndexError:
                     continue
-                try:
-                    counts[t]
-                    cpm[t]
-                except KeyError:
+                if t not in counts:
                     counts[t] = {}
+                if t not in cpm:
                     cpm[t] = {}
                 taxPath = []
                 for o in range(idxStart, i):
@@ -67,7 +65,7 @@ for sample in snakemake.params.samples:
                     taxLevel,
                     taxPath,
                     taxName,
-                    counts[taxLevel][taxPath],
-                    cpm[taxLevel][taxPath] + "\n"])
+                    str(counts[taxLevel][taxPath]),
+                    str(cpm[taxLevel][taxPath]) + "\n"])
             )
 out.close()

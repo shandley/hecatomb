@@ -63,7 +63,7 @@ with open(snakemake.input.aln, "r") as alnfh:
             else:
                 out = outNonVir
             seqInf = l[0].split(":")  # seq ID = sample:count:perc:seqNum
-            tName = re.sub(".*\||[a-zA-Z]+=.*", "", l[18])
+            tName = re.sub(r".*\||[a-zA-Z]+=.*", "", l[18])
             seqOut = "\t".join((l[0], seqInf[0], seqInf[1], seqInf[2]))
             l[15] = str(
                 int(l[15]) * 3

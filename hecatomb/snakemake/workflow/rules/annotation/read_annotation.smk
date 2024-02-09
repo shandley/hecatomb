@@ -38,7 +38,6 @@ rule primary_aa_search:
             "--threads {threads} --split-memory-limit {params.memsplit} &> {log}; "
 
 
-
 rule primary_aa_parsing:
     """Taxon step 02: Parse primary AA search results for classified (potentially viral) and unclassified sequences"""
     input:
@@ -87,8 +86,7 @@ rule secondary_aa_taxonomy_assignment:
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
     shell:
-        "{{ "
-        "mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} "
+        "{{ mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} "
             "{params.filtaa} {params.sensaa} {params.formataa} "
             "--lca-mode 2 --threads {threads} --split-memory-limit {params.memsplit}; "
         "}} &> {log} "
@@ -107,8 +105,6 @@ rule secondary_aa_tophit_lineage:
         time = resources["sml"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
-    params:
-        taxonFormat = lambda wildcards: config["immutable"]["taxonkitReformat"]
     benchmark:
         os.path.join(dir["out"]["bench"], "secondary_aa_tophit_lineage.txt")
     log:
@@ -116,12 +112,12 @@ rule secondary_aa_tophit_lineage:
     group:
         "secondary_aa_parsing"
     shell:
-        "{{ "
-        "cut -f1,20 {input.tophit} "
+        "{{ cut -f1,20 {input.tophit} "
             "| taxonkit lineage --data-dir {input.db} -i 2 "
-            "| taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} "
+            "| taxonkit reformat --data-dir {input.db} -i 3 "
+                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
             "| cut --complement -f3 "
-            "> {output.tophit_lineage_refomated}; }} &> {log} "
+            "> {output.tophit_lineage_refomated}; }} 2> {log} "
 
 
 rule secondary_aa_refactor_finalize:
@@ -137,8 +133,6 @@ rule secondary_aa_refactor_finalize:
         time=resources["sml"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
-    params:
-        taxonFormat = lambda wildcards: config["immutable"]["taxonkitReformat"]
     benchmark:
         os.path.join(dir["out"]["bench"], "secondary_aa_refactor_finalize.txt")
     log:
@@ -148,7 +142,8 @@ rule secondary_aa_refactor_finalize:
     shell:
         "{{ cut -f1,2 {input.lca} "
             "| taxonkit lineage --data-dir {input.db} -i 2 "
-            "| taxonkit reformat --data-dir {input.db} -i 3 {params.taxonFormat} "
+            "| taxonkit reformat --data-dir {input.db} -i 3 "
+                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
             "| cut --complement -f3 "
             "> {output.lca_reformated}; }} &> {log} "
 
@@ -280,8 +275,7 @@ rule secondary_nt_search:
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
     shell:
-        "{{ "
-        "if [[ -d {params.tmp} ]]; then rm -r {params.tmp}; fi; "
+        "{{ if [[ -d {params.tmp} ]]; then rm -r {params.tmp}; fi; "
         "mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmp} "
             "{params.sensnt} {params.ntfilt} {params.format} "
             "--search-type 3 --threads {threads} --split-memory-limit {params.memsplit}; "
@@ -326,8 +320,6 @@ rule secondary_nt_calc_lca:
         time=resources["sml"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
-    params:
-        taxonFormat = lambda wildcards: config["immutable"]["taxonkitReformat"],
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
     benchmark:
@@ -337,16 +329,17 @@ rule secondary_nt_calc_lca:
     group:
         "secondary_nt_parsing"
     shell:
-        "{{ "
-        "taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} | "
-            "awk -F '\t' '$3 != 0' | "
-            "taxonkit lineage -i 3 --data-dir {input.taxdb} | "
-            "taxonkit reformat --data-dir {input.taxdb} -i 4 {params.taxonFormat} | "
-            "cut --complement -f 3,4 "
+        "{{ taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} "
+            r"| awk -F '\t' '$3 != 0' "
+            "| taxonkit lineage -i 3 --data-dir {input.taxdb} "
+            "| taxonkit reformat --data-dir {input.taxdb} -i 4 "
+                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
+            "| cut --complement -f 3,4 "
             "> {output.lca_lineage}; "
-        "taxonkit lineage -i 2 --data-dir {input.taxdb} {input.top} | "
-            "taxonkit reformat --data-dir {input.taxdb} -i 3 {params.taxonFormat} | "
-            "cut --complement -f 3 > {output.top_lineage}; "
+        "taxonkit lineage -i 2 --data-dir {input.taxdb} {input.top} "
+            "| taxonkit reformat --data-dir {input.taxdb} -i 3 "
+                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
+            "| cut --complement -f 3 > {output.top_lineage}; "
         "}} &> {log}; "
 
 
@@ -397,4 +390,4 @@ rule combine_aa_nt:
         "secondary_nt_parsing"
     shell:
         "{{ cat {input.aa} > {output}; "
-        "tail -n+2 {input.nt} >> {output}; }} &> {log}; "
+        "tail -n+2 {input.nt} >> {output}; }} 2> {log}; "
