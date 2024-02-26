@@ -63,7 +63,7 @@ rule koverage_calculations:
         os.path.join(dir["out"]["results"], "all_coverage.tsv")
     params:
         out_dir = dir["out"]["base"],
-        minimap_mode = lambda wildcards: "map-ont" if config["args"]["trim"] == "nanopore" else "sr",
+        minimap_mode = lambda wildcards: "map-ont" if config["args"]["trim"] == "filtlong" else "sr",
         profile= lambda wildcards: "--profile " + config["args"]["profile"] if config["args"]["profile"] else "",
         workflow_profile = config["args"]["workflow_profile"]
     threads:

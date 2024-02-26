@@ -42,7 +42,7 @@ rule run_trimnami:
         out_dir = os.path.join(dir["out"]["base"], "trimnami"),
         host = lambda w: "--host " + dir["dbs"]["hostFasta"] if not config["args"]["host"].lower() == "none" else "",
         trim = config["args"]["trim"],
-        minimap_mode = lambda w: "map-ont " if config["args"]["trim"] == "nanopore" else "sr ",
+        minimap_mode = lambda w: "map-ont " if config["args"]["trim"] == "filtlong" else "sr ",
         profile= lambda wildcards: "--profile " + config["args"]["profile"] if config["args"]["profile"] else "",
         fastqc = lambda wildcards: "--fastqc " if config["args"]["fastqc"] else "",
         workflow_profile = config["args"]["workflow_profile"]
@@ -84,10 +84,10 @@ rule cluster_sequences:
     log:
         os.path.join(dir["out"]["stderr"],"cluster_similar_sequences.{sample}.log")
     resources:
-        mem_mb=resources["big"]["mem"],
-        mem=str(resources["big"]["mem"]) + "MB",
+        mem_mb=resources["lrg"]["mem"],
+        mem=str(resources["lrg"]["mem"]) + "MB",
     threads:
-        resources["big"]["cpu"]
+        resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"],"mmseqs2.yaml")
     shell:
@@ -117,10 +117,10 @@ rule create_individual_seqtables:
     log:
         os.path.join(dir["out"]["stderr"],"individual_seqtables.{sample}.txt")
     resources:
-        mem_mb=resources["big"]["mem"],
-        mem=str(resources["big"]["mem"]) + "MB",
+        mem_mb=resources["lrg"]["mem"],
+        mem=str(resources["lrg"]["mem"]) + "MB",
     threads:
-        resources["big"]["cpu"]
+        resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"],"seqkit.yaml")
     shell:
