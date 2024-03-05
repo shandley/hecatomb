@@ -145,3 +145,5 @@ All of Hecatomb's dependencies are installed during installation or runtime, so 
 
 [Hecatomb @ WorkflowHub](https://workflowhub.eu/workflows/235)
 
+[Hecatomb RRID:SCR_025002](https://scicrunch.org/resources/data/record/nlx_144509-1/SCR_025002/resolver)
+
