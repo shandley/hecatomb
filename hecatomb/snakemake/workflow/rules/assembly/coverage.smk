@@ -63,8 +63,9 @@ rule koverage_calculations:
         os.path.join(dir["out"]["results"], "all_coverage.tsv")
     params:
         out_dir = dir["out"]["base"],
-        minimap_mode = lambda wildcards: "map-ont" if config["args"]["trim"] == "nanopore" else "sr",
+        minimap_mode = lambda wildcards: "map-ont" if config["args"]["trim"] == "filtlong" else "sr",
         profile= lambda wildcards: "--profile " + config["args"]["profile"] if config["args"]["profile"] else "",
+        conda_prefix= lambda wildcards: "--conda-prefix " + config["args"]["conda_prefix"] if config["args"]["conda_prefix"] else "",
         workflow_profile = config["args"]["workflow_profile"]
     threads:
         lambda wildcards: resources["sml"]["cpu"] if config["args"]["profile"] else resources["big"]["cpu"]
@@ -82,4 +83,5 @@ rule koverage_calculations:
             "--threads {threads} "
             "--minimap {params.minimap_mode} "
             "--workflow-profile {params.workflow_profile} "
+            "{params.conda_prefix} "
             "{params.profile}; "
