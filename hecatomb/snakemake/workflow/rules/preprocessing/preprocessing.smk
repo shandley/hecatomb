@@ -45,6 +45,7 @@ rule run_trimnami:
         minimap_mode = lambda w: "map-ont " if config["args"]["trim"] == "filtlong" else "sr ",
         profile= lambda wildcards: "--profile " + config["args"]["profile"] if config["args"]["profile"] else "",
         fastqc = lambda wildcards: "--fastqc " if config["args"]["fastqc"] else "",
+        conda_prefix = lambda wildcards: "--conda-prefix " + config["args"]["conda_prefix"] if config["args"]["conda_prefix"] else "",
         workflow_profile = config["args"]["workflow_profile"]
     threads:
         lambda wildcards: resources["sml"]["cpu"] if config["args"]["profile"] else resources["big"]["cpu"]
@@ -64,6 +65,7 @@ rule run_trimnami:
             "--minimap {params.minimap_mode} "
             "{params.fastqc} "
             "--workflow-profile {params.workflow_profile} "
+            "{params.conda_prefix} "
             "{params.profile}; "
 
 
