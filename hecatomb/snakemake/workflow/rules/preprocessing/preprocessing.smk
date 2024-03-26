@@ -13,9 +13,10 @@ rule subsnake_build_envs:
     conda:
         lambda wildcards: os.path.join(dir["env"], wildcards.env + ".yaml")
     params:
-        out_dir = os.path.join(dir["out"]["base"], "{env}")
+        out_dir = os.path.join(dir["out"]["base"], "{env}"),
+        conda_prefix= lambda wildcards: "--conda-prefix " + config["args"]["conda_prefix"] if config["args"]["conda_prefix"] else "",
     shell:
-        "{wildcards.env} test build_envs --output {params.out_dir}"
+        "{wildcards.env} test build_envs --output {params.out_dir} {params.conda_prefix}"
 
 
 rule trimnami_config:
