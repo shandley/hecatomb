@@ -11,6 +11,7 @@ hecatomb:
         hostFa:
         hostName:
         assembly:
+        longreads:
         custom_aa:
         custom_nt:
         profile:

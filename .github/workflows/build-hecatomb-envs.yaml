@@ -36,17 +36,11 @@ jobs:
         python-version: ["3.11"]
 
     steps:
-      - uses: "actions/checkout@v3"
-        with:
-          fetch-depth: 0
-
+      - uses: "actions/checkout@v4"
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          miniforge-version: "latest"
-          miniforge-variant: Mambaforge
-          use-mamba: true
-          mamba-version: "*"
+          miniforge-version: latest
           channels: conda-forge,bioconda,defaults
           channel-priority: strict
           activate-environment: hecatomb

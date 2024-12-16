@@ -49,7 +49,7 @@ include: os.path.join("rules", "preprocessing", "preprocessing.smk")
 
 
 ### ASSEMBLY
-if config["args"]["trim"] == "filtlong":
+if config["args"]["longreads"]:
     include: os.path.join("rules", "assembly", "longreads.smk")
 else:
     include: os.path.join("rules", "assembly", "shortreads.smk")

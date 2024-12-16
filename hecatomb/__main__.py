@@ -137,6 +137,12 @@ def run_test_options(func):
             show_default=True,
         ),
         click.option(
+            "--longreads/--no-longreads",
+            default=False,
+            help="Sequencing is longreads (PacBio, Nanopore, etc)",
+            show_default=True,
+        ),
+        click.option(
             "--assembly",
             help="Assembly method: [cross]-assembly or [merged]-assembly",
             default="merged",
