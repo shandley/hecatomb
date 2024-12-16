@@ -116,10 +116,14 @@ Note that Hecatomb expects paired read file names to include common R1/R2 tags.
 
 [More information and examples are available here](https://gist.github.com/beardymcjohnface/bb161ba04ae1042299f48a4849e917c8#file-readme-md)
 
+### Lonread support `--longreads`
+
+Pass the `--longreads` argument to tell Hecatomb that you are using longreads.
+
 ### Library preprocessing with `--trim`
 
 Hecatomb uses [Trimnami](https://github.com/beardymcjohnface/Trimnami) for read trimming which supports many different
-trimming methods. Current options are `fastp` (default), `prinseq`, `roundAB`, `filtlong` (longreads), 
+trimming methods. Current options are `fastp` (default), `prinseq`, `roundAB`, `filtlong` (for longreads), 
 `cutadapt` (FASTA input), and `notrim` (skip trimming). See Trimnami's documentation for more information.
 
 ### Configuration
