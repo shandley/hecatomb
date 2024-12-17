@@ -34,7 +34,8 @@ rule lr_cross_assembly:
 rule canu_sample_assembly:
     """Per-sample assembly with canu; also works for unmapped rescue reads"""
     input:
-        os.path.join(dir["out"]["trim"], "{sample}" + "_S" + config["args"]["hostStr"] + ".fastq.gz")
+        lambda w: samples["trimmed"][w.sample]["R1"]
+        # os.path.join(dir["out"]["trim"], "{sample}" + "_S" + config["args"]["hostStr"] + ".fastq.gz")
     output:
         ctg = os.path.join(dir["out"]["assembly"],"{sample}","{sample}.contigs.fasta"),
         ctgq = os.path.join(dir["out"]["assembly"],"{sample}","{sample}.contigs.uniq.fasta"),
