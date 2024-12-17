@@ -25,16 +25,17 @@ rule lr_cross_assembly:
     conda:
         os.path.join(dir["env"], "metaflye.yaml")
     shell:
-        "flye -o {params.dir} -t {threads} {params.params} {input} 2> {log} "
-        "mv {params.assembly} {output.assembly} "
-        "mv {params.graph} {output.graph} "
-        "tar cf - {params.dir} | zstd -T{threads} -9 > {output.tar} 2> {log} "
+        "flye -o {params.dir} -t {threads} {params.params} {input} 2> {log}; "
+        "mv {params.assembly} {output.assembly}; "
+        "mv {params.graph} {output.graph}; "
+        "tar cf - {params.dir} | zstd -T{threads} -9 > {output.tar} 2> {log}; "
 
 
 rule canu_sample_assembly:
     """Per-sample assembly with canu; also works for unmapped rescue reads"""
     input:
-        os.path.join(dir["out"]["trim"], "{sample}" + "_RS" + config["args"]["hostStr"] + ".fastq.gz")
+        lambda w: samples["trimmed"][w.sample]["R1"]
+        # os.path.join(dir["out"]["trim"], "{sample}" + "_S" + config["args"]["hostStr"] + ".fastq.gz")
     output:
         ctg = os.path.join(dir["out"]["assembly"],"{sample}","{sample}.contigs.fasta"),
         ctgq = os.path.join(dir["out"]["assembly"],"{sample}","{sample}.contigs.uniq.fasta"),
@@ -59,10 +60,10 @@ rule canu_sample_assembly:
             "batThreads={threads} "
             "batMemory={resources.mem_mb}M "
             "-p {wildcards.sample} "
-            "-d {params.canu_dir} "
-        "sed 's/>tig/>{wildcards.sample}./' {output.ctg} > {output.ctgq} "
-        "sed 's/>tig/>{wildcards.sample}./' {output.un} > {output.unq} "
-        "tar cf - {params.canu_dir} | zstd -T{threads} -9 > {output.tar}; }} 2> {log} "
+            "-d {params.canu_dir}; "
+        "sed 's/>tig/>{wildcards.sample}./' {output.ctg} > {output.ctgq}; "
+        "sed 's/>tig/>{wildcards.sample}./' {output.un} > {output.unq}; "
+        "tar cf - {params.canu_dir} | zstd -T{threads} -9 > {output.tar}; }} 2> {log}; "
 
 
 rule combine_canu_unassembled:
