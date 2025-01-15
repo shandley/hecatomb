@@ -32,7 +32,9 @@ This process frequently results in a great loss of suspected viral sequences / c
 
 ## Citation
 
-[Hecatomb is currently on BioRxiv!](https://www.biorxiv.org/content/10.1101/2022.05.15.492003v1)
+__Hecatomb: an integrated software platform for viral metagenomics__,
+_Michael J Roach, Sarah J Beecroft, Kathie A Mihindukulasuriya, Leran Wang, Anne Paredes, Luis Alberto Chica Cárdenas, Kara Henry-Cocks, Lais Farias Oliveira Lima, Elizabeth A Dinsdale, Robert A Edwards, Scott A Handley_,
+GigaScience, Volume 13, 2024, giae020, [https://doi.org/10.1093/gigascience/giae020](https://doi.org/10.1093/gigascience/giae020)
 
 ## Quick start guide
 
