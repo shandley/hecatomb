@@ -52,8 +52,8 @@ for sample_name in samples["names"]:
         targets["unmapped"]["s"].append(os.path.join(dir["out"]["assembly"],sample_name,sample_name + ".assemblyUnmapped_S.fastq"))
         targets["trimnami"].append(samples["trimmed"][sample_name]["R1"])
 
-targets["cross"]["r1"] = "-1 " + ",".join(targets["cross"]["r1"])
-targets["cross"]["r2"] = "-2 " + ",".join(targets["cross"]["r2"])
+targets["cross"]["r1"] = "-1 " + ",".join(targets["cross"]["r1"]) if targets["cross"]["r1"] else ""
+targets["cross"]["r2"] = "-2 " + ",".join(targets["cross"]["r2"]) if targets["cross"]["r2"] else ""
 # targets["cross"]["s"]  = "-r " + ",".join(targets["cross"]["s"])
 
 
