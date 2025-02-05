@@ -1,0 +1,22 @@
+blacklist_ids:
+  A0A097ZRK1:
+    id: A0A097ZRK1
+    header: sp|A0A097ZRK1|Protease (Fragment) n=1 OS=HIV-1 M:CRF02_AG_MAU513
+      OX=1407694 RepID=A0A097ZRK1_9HIV1
+    reason: this is a fusion between two proteins, one is an HIV-1 protein and one
+      is a bacterial protein
+  G0W2I5:
+    id: G0W2I5
+    header: sp|G0W2I5|Protease (Fragment) n=1 OS=HIV-1 M:A MnObl-02-A-BY OX=1071962
+      RepID=G0W2I5_9HIV1
+    reason: this is a fusion between two proteins, one is an HIV-1 protein and one
+      is a bacterial protein
+  F1AXJ9:
+    id: F1AXJ9
+    header: ">tr|F1AXJ9|F1AXJ9_ORFV PP287 OS=Orf virus OX=10258 PE=4 SV=1"
+    reason: this sequence is characterised as a pox virus, but the sequence is also
+      present in sheep, deer, water buffalo, and other animals
+  Q8QTC0:
+    id: "Q8QTC0"
+    header: ">tr|Q8QTC0|Q8QTC0_WSSV WSSV410 OS=White spot syndrome virus OX=92652 PE=4 SV=1"
+    reason: this sequence is 100% identical to an IS4 transposase in E. coli
