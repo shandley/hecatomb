@@ -49,10 +49,10 @@ rule run_trimnami:
         conda_prefix = lambda wildcards: "--conda-prefix " + config["args"]["conda_prefix"] if config["args"]["conda_prefix"] else "",
         workflow_profile = config["args"]["workflow_profile"]
     threads:
-        lambda wildcards: resources["sml"]["cpu"] if config["args"]["profile"] else resources["big"]["cpu"]
+        resources["big"]["cpu"]
     resources:
-        mem_mb = lambda wildcards: resources["sml"]["mem"] if config["args"]["profile"] else resources["big"]["mem"],
-        mem = lambda wildcards: str(resources["sml"]["mem"]) + "MB" if config["args"]["profile"] else str(resources["big"]["mem"]) + "MB",
+        mem_mb = resources["big"]["mem"],
+        mem =  str(resources["big"]["mem"]) + "MB",
         time = resources["big"]["time"]
     conda:
         os.path.join(dir["env"], "trimnami.yaml")
