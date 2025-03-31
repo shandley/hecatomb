@@ -51,6 +51,8 @@ rule run_trimnami:
     threads:
         resources["big"]["cpu"]
     resources:
+        cpus_per_task = resources["big"]["cpu"],
+        tasks = 1,
         mem_mb = resources["big"]["mem"],
         mem =  str(resources["big"]["mem"]) + "MB",
         time = resources["big"]["time"]
