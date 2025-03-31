@@ -1,0 +1,10 @@
+Bootstrap: docker
+
+From: continuumio/miniconda3
+
+%post
+    conda create -n metaflye -c conda-forge -c bioconda flye=2.7.1 bbmap=38.90
+    conda init bash
+
+%environment
+    conda activate metaflye

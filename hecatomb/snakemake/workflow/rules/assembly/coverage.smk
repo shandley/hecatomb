@@ -24,6 +24,8 @@ rule population_assembly:
         resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"], "metaflye.yaml")
+    container:
+        os.path.join(dir["container"], "metaflye.sif")
     shell:
         "flye --subassemblies {input} "
             "-t {threads} "
@@ -75,6 +77,8 @@ rule koverage_calculations:
         time = resources["big"]["time"]
     conda:
         os.path.join(dir["env"], "koverage.yaml")
+    container:
+        os.path.join(dir["container"], "koverage.sif")
     shell:
         "koverage run "
             "--reads {input.tsv} "
@@ -82,6 +86,4 @@ rule koverage_calculations:
             "--output {params.out_dir} "
             "--threads {threads} "
             "--minimap {params.minimap_mode} "
-            "--workflow-profile {params.workflow_profile} "
-            "{params.conda_prefix} "
             "{params.profile}; "

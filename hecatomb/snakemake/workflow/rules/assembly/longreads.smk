@@ -24,6 +24,8 @@ rule lr_cross_assembly:
         os.path.join(dir["out"]["bench"], "canu_cross_assembly.txt")
     conda:
         os.path.join(dir["env"], "metaflye.yaml")
+    container:
+        os.path.join(dir["container"], "metaflye.sif")
     shell:
         "flye -o {params.dir} -t {threads} {params.params} {input} 2> {log}; "
         "mv {params.assembly} {output.assembly}; "
@@ -55,6 +57,8 @@ rule canu_sample_assembly:
         os.path.join(dir["out"]["stderr"], "canu_sample_assembly.{sample}.log")
     conda:
         os.path.join(dir["env"], "canu.yaml")
+    container:
+        os.path.join(dir["container"], "metaflye.sif")
     shell:
         "{{ canu {params.settings} {input} "
             "batThreads={threads} "
@@ -94,6 +98,8 @@ rule combine_canu_contigs:
         time = resources["sml"]["time"]
     conda:
         os.path.join(dir["env"], "pigz.yaml")
+    container:
+        os.path.join(dir["container"], "pigz.sif")
     group:
         "assembly"
     shell:

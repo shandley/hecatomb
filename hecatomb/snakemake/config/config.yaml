@@ -21,7 +21,6 @@ resources:
         cpu: 2
         time: "04:00:00"
 hecatomb:
-    singularity: "docker://linsalrob/hecatomb:v1.3.2_37c06e3a9f8a"
     addHost:
         minViralAlnLen:
             1000

@@ -56,6 +56,8 @@ rule run_trimnami:
         time = resources["big"]["time"]
     conda:
         os.path.join(dir["env"], "trimnami.yaml")
+    container:
+        os.path.join(dir["container"], "trimnami.sif")
     shell:
         "trimnami run {params.trim} "
             "--reads {input.tsv} "
@@ -65,8 +67,6 @@ rule run_trimnami:
             "--threads {threads} "
             "--minimap {params.minimap_mode} "
             "{params.fastqc} "
-            "--workflow-profile {params.workflow_profile} "
-            "{params.conda_prefix} "
             "{params.profile}; "
 
 
@@ -93,6 +93,8 @@ rule cluster_sequences:
         resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"],"mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"],"mmseqs2.sif")
     shell:
         "mmseqs easy-linclust {input.fq} "
             "{params.respath}/{params.prefix} "
@@ -126,6 +128,8 @@ rule create_individual_seqtables:
         resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"],"seqkit.yaml")
+    container:
+        os.path.join(dir["container"],"seqkit.sif")
     shell:
         "{{ seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna "
             "| seqkit fx2tab -w 5000 -t dna "
@@ -157,6 +161,8 @@ rule merge_seq_tables:
         tmpdir=lambda wildcards, input: os.path.split(input[0])[0]
     conda:
         os.path.join(dir["env"],"pysam.yaml")
+    container:
+        os.path.join(dir["container"],"pysam.sif")
     benchmark:
         os.path.join(dir["out"]["bench"],"merge_seq_table.txt")
     log:

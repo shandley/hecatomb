@@ -32,6 +32,8 @@ rule primary_aa_search:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     shell:
         "mmseqs easy-search {input.seqs} {input.db} {output} {params.alnRes} "
             "{params.filtaa} {params.sensaa} "
@@ -85,6 +87,8 @@ rule secondary_aa_taxonomy_assignment:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     shell:
         "{{ mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} "
             "{params.filtaa} {params.sensaa} {params.formataa} "
@@ -101,8 +105,10 @@ rule secondary_aa_tophit_lineage:
         tophit_lineage_refomated = os.path.join(dir["out"]["secondaryAA"], "tophit.lineage.reformated"),
     conda:
         os.path.join(dir["env"], "seqkit.yaml")
+    container:
+        os.path.join(dir["container"], "seqkit.sif")
     resources:
-        time = resources["sml"]["time"],
+        time = resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -129,8 +135,10 @@ rule secondary_aa_refactor_finalize:
         lca_reformated = os.path.join(dir["out"]["secondaryAA"], "mmseqs.aa.secondary_lca.reformatted"),
     conda:
         os.path.join(dir["env"], "seqkit.yaml")
+    container:
+        os.path.join(dir["container"], "seqkit.sif")
     resources:
-        time=resources["sml"]["time"],
+        time=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -160,7 +168,7 @@ rule secondary_aa_output_table:
         vir = os.path.join(dir["out"]["secondaryAA"], "AA_bigtable.tsv"),
         nonvir = os.path.join(dir["out"]["secondaryAA"], "AA_bigtable.nonviral.tsv")
     resources:
-        time=resources["sml"]["time"],
+        time=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -184,7 +192,7 @@ rule secondary_aa_parsing:
     output:
         unclass_seqs = os.path.join(dir["out"]["primaryAA"], "primary.aa.unclassified.fasta")
     resources:
-        time=resources["sml"]["time"],
+        time=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -221,6 +229,8 @@ rule primary_nt_search:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     shell:
         "mmseqs easy-search {input.seqs} {input.db} {output} {params.tmppath} "
             "{params.ntsens} {params.filtnt} "
@@ -274,6 +284,8 @@ rule secondary_nt_search:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     shell:
         "{{ if [[ -d {params.tmp} ]]; then rm -r {params.tmp}; fi; "
         "mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmp} "
@@ -298,7 +310,7 @@ rule secondary_nt_lca_table:
     log:
         os.path.join(dir["out"]["stderr"], "secondary_nt_lca_table.log")
     resources:
-        time = resources["sml"]["time"],
+        time = resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     group:
@@ -317,11 +329,13 @@ rule secondary_nt_calc_lca:
         lca_lineage = os.path.join(dir["out"]["secondaryNT"], "lca_lineage.tsv"),
         top_lineage = os.path.join(dir["out"]["secondaryNT"], "top_lineage.tsv"),
     resources:
-        time=resources["sml"]["time"],
+        time=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     benchmark:
         os.path.join(dir["out"]["bench"], "secondary_nt_calc_lca.txt")
     log:

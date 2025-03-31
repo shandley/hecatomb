@@ -52,7 +52,7 @@ setup(
     data_files=get_data_files(),
     py_modules=["hecatomb"],
     install_requires=[
-        "snakemake>=7.29,<8",
+        "snakemake>=8",
         "pulp<2.8",
         "pyyaml>=6.0",
         "Click>=8.1.3",

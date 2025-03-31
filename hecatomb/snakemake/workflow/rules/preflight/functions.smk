@@ -47,6 +47,8 @@ if config["args"]["custom_aa"]:
             os.path.join(dir["out"]["stderr"], "create_custom_primary_aa.stderr")
         conda:
             os.path.join(dir["env"], "mmseqs2.yaml")
+        container:
+            os.path.join(dir["container"],"mmseqs2.sif")
         shell:
             "mmseqs createdb {input} {output} --dbtype 1 &> {log}"
 
@@ -61,6 +63,8 @@ if config["args"]["custom_nt"]:
             os.path.join(dir["out"]["stderr"], "create_custom_primary_nt.stderr")
         conda:
             os.path.join(dir["env"], "mmseqs2.yaml")
+        container:
+            os.path.join(dir["container"],"mmseqs2.sif")
         shell:
             "mmseqs createdb {input} {output} --dbtype 2 &> {log}"
 
@@ -75,6 +79,8 @@ rule fasta_index:
         "{file}.samtools.stderr"
     conda:
         os.path.join(dir["env"], "samtools.yaml")
+    container:
+        os.path.join(dir["container"], "minimap2.sif")
     resources:
         mem_mb = resources["ram"]["mem"],
         mem = str(resources["ram"]["mem"]) + "MB",
@@ -92,6 +98,8 @@ rule bam_index:
         "{file}.samtools.stderr"
     conda:
         os.path.join(dir["env"], "samtools.yaml")
+    container:
+        os.path.join(dir["container"], "minimap2.sif")
     threads:
         resources["ram"]["cpu"]
     resources:
@@ -113,6 +121,8 @@ rule calculate_gc:
         os.path.join(dir["out"]["stderr"], "calculate_gc.{file}.log")
     conda:
         os.path.join(dir["env"], "bbmap.yaml")
+    container:
+        os.path.join(dir["container"], "bbmap.sif")
     threads:
         resources["ram"]["cpu"]
     resources:
@@ -137,6 +147,8 @@ rule calculate_tet_freq:
         os.path.join(dir["out"]["stderr"], "calculate_tet_freq.{file}.log")
     conda:
         os.path.join(dir["env"], "bbmap.yaml")
+    container:
+        os.path.join(dir["container"], "bbmap.sif")
     threads:
         resources["ram"]["cpu"]
     resources:

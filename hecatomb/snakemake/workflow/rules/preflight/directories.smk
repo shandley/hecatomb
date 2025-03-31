@@ -26,6 +26,7 @@ except (KeyError, AssertionError):
 ### WORKFLOW DIRs
 dir["env"]     = os.path.join(workflow.basedir, "envs")
 dir["scripts"] = os.path.join(workflow.basedir, "scripts")
+dir["container"] = os.path.join(workflow.basedir, "container")
 
 
 ### DATABASE DIRs

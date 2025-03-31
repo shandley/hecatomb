@@ -49,6 +49,8 @@ rule minimap_viral_refseq:
         config["addHost"]["minViralAlnLen"]
     conda:
         os.path.join(dir["env"], "minimap2.yaml")
+    container:
+        os.path.join(dir["container"], "minimap2.sif")
     resources:
         mem_mb = res["med"]["mem"],
         mem = str(res["med"]["mem"]) + "MB",
@@ -87,6 +89,8 @@ rule mask_fasta:
         res["med"]["cpu"]
     conda:
         os.path.join(dir["env"], "bedtools.yaml")
+    container:
+        os.path.join(dir["container"], "bedtools.sif")
     log:
         os.path.join(dir["out"]["stderr"], "mask_fasta.log")
     benchmark:
