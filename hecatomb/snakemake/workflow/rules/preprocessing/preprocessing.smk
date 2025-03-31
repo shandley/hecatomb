@@ -53,7 +53,7 @@ rule run_trimnami:
     resources:
         mem_mb = resources["big"]["mem"],
         mem =  str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     conda:
         os.path.join(dir["env"], "trimnami.yaml")
     container:
