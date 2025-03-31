@@ -66,8 +66,7 @@ rule run_trimnami:
             "--output {params.out_dir} "
             "--threads {threads} "
             "--minimap {params.minimap_mode} "
-            "{params.fastqc} "
-            "{params.profile}; "
+            "{params.fastqc}; "
 
 
 rule cluster_sequences:

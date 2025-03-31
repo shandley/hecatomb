@@ -85,5 +85,4 @@ rule koverage_calculations:
             "--ref {input.ref} "
             "--output {params.out_dir} "
             "--threads {threads} "
-            "--minimap {params.minimap_mode} "
-            "{params.profile}; "
+            "--minimap {params.minimap_mode}; "
