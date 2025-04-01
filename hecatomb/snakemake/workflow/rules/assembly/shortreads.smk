@@ -27,7 +27,7 @@ rule cross_assembly:
     resources:
         mem_mb=resources["big"]["mem"],
         mem=str(resources["big"]["mem"]) + "MB",
-        time=resources["big"]["time"]
+        runtime=resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
@@ -83,7 +83,7 @@ rule megahit_sample_paired:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     conda:
@@ -127,7 +127,7 @@ rule megahit_sample_unpaired:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     conda:
@@ -167,7 +167,7 @@ rule minimap_sample_paired_contigs:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     log:
@@ -196,7 +196,7 @@ rule minimap_sample_paired_singletons_contigs:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     benchmark:
@@ -226,7 +226,7 @@ rule minimap_sample_unpaired_contigs:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     log:
@@ -259,7 +259,7 @@ rule samtools_fastq_paired:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     benchmark:
@@ -286,7 +286,7 @@ rule pool_paired_unmapped_R1:
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["med"]["time"]
+        runtime = resources["med"]["time"]
     group:
         "assemblyRescue"
     shell:
@@ -306,7 +306,7 @@ rule pool_paired_unmapped_R2:
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["med"]["time"]
+        runtime = resources["med"]["time"]
     group:
         "assemblyRescue"
     shell:
@@ -326,7 +326,7 @@ rule pool_unmapped_singletons:
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["med"]["time"]
+        runtime = resources["med"]["time"]
     group:
         "assemblyRescue"
     shell:
@@ -345,7 +345,7 @@ rule concatenate_contigs:
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["med"]["time"]
+        runtime = resources["med"]["time"]
     conda:
         os.path.join(dir["env"], "pigz.yaml")
     container:

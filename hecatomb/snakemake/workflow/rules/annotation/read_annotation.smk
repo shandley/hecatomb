@@ -27,7 +27,7 @@ rule primary_aa_search:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
@@ -48,7 +48,7 @@ rule primary_aa_parsing:
     output:
         class_seqs = os.path.join(dir["out"]["primaryAA"], "primary.aa.classified.fasta"),
     resources:
-        time = resources["sml"]["time"]
+        runtime = resources["sml"]["time"]
     benchmark:
         os.path.join(dir["out"]["bench"], "primary_aa_parsing.txt")
     log:
@@ -82,7 +82,7 @@ rule secondary_aa_taxonomy_assignment:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
@@ -108,7 +108,7 @@ rule secondary_aa_tophit_lineage:
     container:
         os.path.join(dir["container"], "seqkit.sif")
     resources:
-        time = resources["ram"]["time"],
+        runtime = resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -138,7 +138,7 @@ rule secondary_aa_refactor_finalize:
     container:
         os.path.join(dir["container"], "seqkit.sif")
     resources:
-        time=resources["ram"]["time"],
+        runtime=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -168,7 +168,7 @@ rule secondary_aa_output_table:
         vir = os.path.join(dir["out"]["secondaryAA"], "AA_bigtable.tsv"),
         nonvir = os.path.join(dir["out"]["secondaryAA"], "AA_bigtable.nonviral.tsv")
     resources:
-        time=resources["ram"]["time"],
+        runtime=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -192,7 +192,7 @@ rule secondary_aa_parsing:
     output:
         unclass_seqs = os.path.join(dir["out"]["primaryAA"], "primary.aa.unclassified.fasta")
     resources:
-        time=resources["ram"]["time"],
+        runtime=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -224,7 +224,7 @@ rule primary_nt_search:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
@@ -249,7 +249,7 @@ rule primary_nt_parsing:
         class_seqs = os.path.join(dir["out"]["primaryNT"], "primary.nt.classified.fasta"),
         unclass_seqs = os.path.join(dir["out"]["primaryNT"], "primary.nt.unclassified.fasta")
     resources:
-        time = resources["sml"]["time"]
+        runtime = resources["sml"]["time"]
     benchmark:
         os.path.join(dir["out"]["bench"], "primary_nt_parsing.txt")
     log:
@@ -279,7 +279,7 @@ rule secondary_nt_search:
     resources:
         mem_mb=resources["big"]["mem"],
         mem=str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
@@ -310,7 +310,7 @@ rule secondary_nt_lca_table:
     log:
         os.path.join(dir["out"]["stderr"], "secondary_nt_lca_table.log")
     resources:
-        time = resources["ram"]["time"],
+        runtime = resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     group:
@@ -329,7 +329,7 @@ rule secondary_nt_calc_lca:
         lca_lineage = os.path.join(dir["out"]["secondaryNT"], "lca_lineage.tsv"),
         top_lineage = os.path.join(dir["out"]["secondaryNT"], "top_lineage.tsv"),
     resources:
-        time=resources["ram"]["time"],
+        runtime=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     conda:
@@ -369,7 +369,7 @@ rule secondary_nt_generate_output_table:
         vir = os.path.join(dir["out"]["secondaryNT"], "NT_bigtable.tsv"),
         nonvir = os.path.join(dir["out"]["secondaryNT"], "NT_bigtable.nonviral.tsv")
     resources:
-        time=resources["sml"]["time"],
+        runtime=resources["sml"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     params:
@@ -397,7 +397,7 @@ rule combine_aa_nt:
     log:
         os.path.join(dir["out"]["stderr"], "combine_AA_NT.log")
     resources:
-        time=resources["sml"]["time"],
+        runtime=resources["sml"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     group:

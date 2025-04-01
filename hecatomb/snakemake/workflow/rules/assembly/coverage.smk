@@ -19,7 +19,7 @@ rule population_assembly:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     conda:
@@ -74,7 +74,7 @@ rule koverage_calculations:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     conda:
         os.path.join(dir["env"], "koverage.yaml")
     container:

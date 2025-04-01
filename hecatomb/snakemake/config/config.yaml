@@ -3,23 +3,23 @@ resources:
     big:
         mem: 64000
         cpu: 32
-        time: "24:00:00"
+        time: 1440
     lrg:
         mem: 32000
         cpu: 16
-        time: "04:00:00"
+        time: 240
     med:
         mem: 16000
         cpu: 8
-        time: "04:00:00"
+        time: 240
     sml:
         mem: 2000
         cpu: 1
-        time: "01:00:00"
+        time: 60
     ram:
         mem: 16000
         cpu: 2
-        time: "04:00:00"
+        time: 240
 hecatomb:
     addHost:
         minViralAlnLen:

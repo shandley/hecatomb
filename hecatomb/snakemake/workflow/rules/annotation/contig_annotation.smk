@@ -23,7 +23,7 @@ rule mmseqs_contig_annotation:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
@@ -64,7 +64,7 @@ rule mmseqs_contig_annotation_summary:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:

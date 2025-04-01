@@ -15,7 +15,7 @@ rule lr_cross_assembly:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     log:
@@ -50,7 +50,7 @@ rule canu_sample_assembly:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     log:
@@ -79,7 +79,7 @@ rule combine_canu_unassembled:
     threads:
         resources["lrg"]["cpu"]
     resources:
-        time = resources["sml"]["time"]
+        runtime = resources["sml"]["time"]
     group:
         "assembly"
     shell:
@@ -95,7 +95,7 @@ rule combine_canu_contigs:
     threads:
         resources["lrg"]["cpu"]
     resources:
-        time = resources["sml"]["time"]
+        runtime = resources["sml"]["time"]
     conda:
         os.path.join(dir["env"], "pigz.yaml")
     container:
