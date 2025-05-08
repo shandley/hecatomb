@@ -341,7 +341,7 @@ rule secondary_nt_calc_lca:
     shell:
         "{{ taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} "
             r"| awk -F '\t' '$3 != 0' "
-            "| taxonkit reformat2 --data-dir {input.db} -i 3 "
+            "| taxonkit reformat2 --data-dir {input.taxdb} -i 3 "
                 r"-f '{{domain}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
             "| cut --complement -f3 "
             "> {output.lca_lineage}; "
