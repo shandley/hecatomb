@@ -3,4 +3,4 @@ Bootstrap: docker
 From: continuumio/miniconda3
 
 %post
-    conda install -c conda-forge -c bioconda seqkit=0.16.1 taxonkit=0.7.2
+    conda install -c conda-forge -c bioconda seqkit=0.16.1 taxonkit
