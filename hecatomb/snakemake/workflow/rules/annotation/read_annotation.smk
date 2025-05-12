@@ -119,7 +119,7 @@ rule secondary_aa_tophit_lineage:
         "secondary_aa_parsing"
     shell:
         "{{ cut -f1,20 {input.tophit} "
-            "| taxonkit reformat2 --data-dir {input.db} -i 2 "
+            "| taxonkit reformat2 --data-dir {input.db} -I 2 "
                 r"-f '{{domain}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
             "> {output.tophit_lineage_refomated}; }} 2> {log} "
 
@@ -147,7 +147,7 @@ rule secondary_aa_refactor_finalize:
         "secondary_aa_parsing"
     shell:
         "{{ cut -f1,2 {input.lca} "
-            "| taxonkit reformat2 --data-dir {input.db} -i 2 "
+            "| taxonkit reformat2 --data-dir {input.db} -I 2 "
                 r"-f '{{domain}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
             "> {output.lca_reformated}; }} &> {log} "
 
@@ -341,11 +341,11 @@ rule secondary_nt_calc_lca:
     shell:
         "{{ taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} "
             r"| awk -F '\t' '$3 != 0' "
-            "| taxonkit reformat2 --data-dir {input.taxdb} -i 3 "
+            "| taxonkit reformat2 --data-dir {input.taxdb} -I 3 "
                 r"-f '{{domain}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
             "| cut --complement -f3 "
             "> {output.lca_lineage}; "
-        "taxonkit reformat2 -i 2 --data-dir {input.taxdb} {input.top} "
+        "taxonkit reformat2 -I 2 --data-dir {input.taxdb} {input.top} "
             r"-f '{{domain}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
             "> {output.top_lineage}; "
         "}} &> {log}; "
