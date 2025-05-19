@@ -343,7 +343,7 @@ rule secondary_nt_calc_lca:
             r"| awk -F '\t' '$3 != 0' "
             "| taxonkit reformat2 --data-dir {input.taxdb} -I 3 --miss-rank-repl NA "
                 r"-f '{{domain|acellular root|superkingdom}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
-            "| cut --complement -f3 "
+            "| cut --complement -f2 "
             "> {output.lca_lineage}; "
         "taxonkit reformat2 -I 2 --data-dir {input.taxdb} {input.top} --miss-rank-repl NA "
             r"-f '{{domain|acellular root|superkingdom}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
