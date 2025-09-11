@@ -110,5 +110,5 @@ for filename in os.listdir(dir["env"]):
     if filename.endswith(".yaml") or filename.endswith(".yml"):
         targets["envs"].append(os.path.join(dir["out"]["temp"], filename + ".done"))
 # Envs build by sub-snaketools
-targets["envs"].append(os.path.join(dir["out"]["temp"], "subenvs.trimnami"))
-targets["envs"].append(os.path.join(dir["out"]["temp"], "subenvs.koverage"))
+#targets["envs"].append(os.path.join(dir["out"]["temp"], "subenvs.trimnami"))
+#targets["envs"].append(os.path.join(dir["out"]["temp"], "subenvs.koverage"))
