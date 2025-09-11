@@ -2,22 +2,27 @@
 resources:
     big:
         mem: 64000
+        mem_mb: 64000
         cpu: 32
         time: 1440
     lrg:
         mem: 32000
+        mem_mb: 32000
         cpu: 16
         time: 240
     med:
         mem: 16000
+        mem_mb: 16000
         cpu: 8
         time: 240
     sml:
         mem: 2000
+        mem_mb: 2000
         cpu: 1
         time: 60
     ram:
         mem: 16000
+        mem_mb: 16000
         cpu: 2
         time: 240
 hecatomb:
