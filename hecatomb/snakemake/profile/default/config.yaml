@@ -4,6 +4,6 @@ rerun-incomplete: True
 printshellcmds: True
 nolock: True
 show-failed-logs: True
-use-conda: False
-use-apptainer: True
+use-conda: True
+use-apptainer: False
 apptainer-args: "--bind `pwd` --bind $HOME"
