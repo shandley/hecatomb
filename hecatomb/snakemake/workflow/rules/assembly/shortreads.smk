@@ -104,7 +104,7 @@ rule megahit_sample_paired:
             "-o {params.mh_dir} "
             "--out-prefix {wildcards.sample} "
             "-t {threads} "
-            "{params.params}"
+            "{params.params} "
             "&> {log}; "
         "sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}; "
         "tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}; "
