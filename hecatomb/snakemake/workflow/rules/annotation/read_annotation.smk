@@ -27,11 +27,13 @@ rule primary_aa_search:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     shell:
         "mmseqs easy-search {input.seqs} {input.db} {output} {params.alnRes} "
             "{params.filtaa} {params.sensaa} "
@@ -46,7 +48,7 @@ rule primary_aa_parsing:
     output:
         class_seqs = os.path.join(dir["out"]["primaryAA"], "primary.aa.classified.fasta"),
     resources:
-        time = resources["sml"]["time"]
+        runtime = resources["sml"]["time"]
     benchmark:
         os.path.join(dir["out"]["bench"], "primary_aa_parsing.txt")
     log:
@@ -80,11 +82,13 @@ rule secondary_aa_taxonomy_assignment:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     shell:
         "{{ mmseqs easy-taxonomy {input.seqs} {input.db} {params.alnRes} {params.tmppath} "
             "{params.filtaa} {params.sensaa} {params.formataa} "
@@ -101,8 +105,10 @@ rule secondary_aa_tophit_lineage:
         tophit_lineage_refomated = os.path.join(dir["out"]["secondaryAA"], "tophit.lineage.reformated"),
     conda:
         os.path.join(dir["env"], "seqkit.yaml")
+    container:
+        os.path.join(dir["container"], "seqkit.sif")
     resources:
-        time = resources["sml"]["time"],
+        runtime = resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -113,10 +119,8 @@ rule secondary_aa_tophit_lineage:
         "secondary_aa_parsing"
     shell:
         "{{ cut -f1,20 {input.tophit} "
-            "| taxonkit lineage --data-dir {input.db} -i 2 "
-            "| taxonkit reformat --data-dir {input.db} -i 3 "
-                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
-            "| cut --complement -f3 "
+            "| taxonkit reformat2 --data-dir {input.db} -I 2 --miss-rank-repl NA "
+                r"-f '{{domain|acellular root|superkingdom}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
             "> {output.tophit_lineage_refomated}; }} 2> {log} "
 
 
@@ -129,8 +133,10 @@ rule secondary_aa_refactor_finalize:
         lca_reformated = os.path.join(dir["out"]["secondaryAA"], "mmseqs.aa.secondary_lca.reformatted"),
     conda:
         os.path.join(dir["env"], "seqkit.yaml")
+    container:
+        os.path.join(dir["container"], "seqkit.sif")
     resources:
-        time=resources["sml"]["time"],
+        runtime=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -141,10 +147,8 @@ rule secondary_aa_refactor_finalize:
         "secondary_aa_parsing"
     shell:
         "{{ cut -f1,2 {input.lca} "
-            "| taxonkit lineage --data-dir {input.db} -i 2 "
-            "| taxonkit reformat --data-dir {input.db} -i 3 "
-                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
-            "| cut --complement -f3 "
+            "| taxonkit reformat2 --data-dir {input.db} -I 2 --miss-rank-repl NA "
+                r"-f '{{domain|acellular root|superkingdom}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
             "> {output.lca_reformated}; }} &> {log} "
 
 
@@ -160,7 +164,7 @@ rule secondary_aa_output_table:
         vir = os.path.join(dir["out"]["secondaryAA"], "AA_bigtable.tsv"),
         nonvir = os.path.join(dir["out"]["secondaryAA"], "AA_bigtable.nonviral.tsv")
     resources:
-        time=resources["sml"]["time"],
+        runtime=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -184,7 +188,7 @@ rule secondary_aa_parsing:
     output:
         unclass_seqs = os.path.join(dir["out"]["primaryAA"], "primary.aa.unclassified.fasta")
     resources:
-        time=resources["sml"]["time"],
+        runtime=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     benchmark:
@@ -216,11 +220,13 @@ rule primary_nt_search:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     shell:
         "mmseqs easy-search {input.seqs} {input.db} {output} {params.tmppath} "
             "{params.ntsens} {params.filtnt} "
@@ -239,7 +245,7 @@ rule primary_nt_parsing:
         class_seqs = os.path.join(dir["out"]["primaryNT"], "primary.nt.classified.fasta"),
         unclass_seqs = os.path.join(dir["out"]["primaryNT"], "primary.nt.unclassified.fasta")
     resources:
-        time = resources["sml"]["time"]
+        runtime = resources["sml"]["time"]
     benchmark:
         os.path.join(dir["out"]["bench"], "primary_nt_parsing.txt")
     log:
@@ -269,11 +275,13 @@ rule secondary_nt_search:
     resources:
         mem_mb=resources["big"]["mem"],
         mem=str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     shell:
         "{{ if [[ -d {params.tmp} ]]; then rm -r {params.tmp}; fi; "
         "mmseqs easy-search {input.seqs} {input.db} {output.aln} {params.tmp} "
@@ -298,7 +306,7 @@ rule secondary_nt_lca_table:
     log:
         os.path.join(dir["out"]["stderr"], "secondary_nt_lca_table.log")
     resources:
-        time = resources["sml"]["time"],
+        runtime = resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     group:
@@ -317,11 +325,13 @@ rule secondary_nt_calc_lca:
         lca_lineage = os.path.join(dir["out"]["secondaryNT"], "lca_lineage.tsv"),
         top_lineage = os.path.join(dir["out"]["secondaryNT"], "top_lineage.tsv"),
     resources:
-        time=resources["sml"]["time"],
+        runtime=resources["ram"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     benchmark:
         os.path.join(dir["out"]["bench"], "secondary_nt_calc_lca.txt")
     log:
@@ -331,15 +341,13 @@ rule secondary_nt_calc_lca:
     shell:
         "{{ taxonkit lca -i 2 -s ';' --data-dir {input.taxdb} {input.lin} "
             r"| awk -F '\t' '$3 != 0' "
-            "| taxonkit lineage -i 3 --data-dir {input.taxdb} "
-            "| taxonkit reformat --data-dir {input.taxdb} -i 4 "
-                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
-            "| cut --complement -f 3,4 "
+            "| taxonkit reformat2 --data-dir {input.taxdb} -I 3 --miss-rank-repl NA "
+                r"-f '{{domain|acellular root|superkingdom}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
+            "| cut --complement -f2 "
             "> {output.lca_lineage}; "
-        "taxonkit lineage -i 2 --data-dir {input.taxdb} {input.top} "
-            "| taxonkit reformat --data-dir {input.taxdb} -i 3 "
-                r"-f '{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}' -F --fill-miss-rank "
-            "| cut --complement -f 3 > {output.top_lineage}; "
+        "taxonkit reformat2 -I 2 --data-dir {input.taxdb} {input.top} --miss-rank-repl NA "
+            r"-f '{{domain|acellular root|superkingdom}}\t{{phylum}}\t{{class}}\t{{order}}\t{{family}}\t{{genus}}\t{{species}}' "
+            "> {output.top_lineage}; "
         "}} &> {log}; "
 
 
@@ -355,7 +363,7 @@ rule secondary_nt_generate_output_table:
         vir = os.path.join(dir["out"]["secondaryNT"], "NT_bigtable.tsv"),
         nonvir = os.path.join(dir["out"]["secondaryNT"], "NT_bigtable.nonviral.tsv")
     resources:
-        time=resources["sml"]["time"],
+        runtime=resources["sml"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     params:
@@ -383,7 +391,7 @@ rule combine_aa_nt:
     log:
         os.path.join(dir["out"]["stderr"], "combine_AA_NT.log")
     resources:
-        time=resources["sml"]["time"],
+        runtime=resources["sml"]["time"],
         mem_mb=resources["ram"]["mem"],
         mem=str(resources["ram"]["mem"]) + "MB",
     group:

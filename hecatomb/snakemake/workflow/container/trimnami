@@ -1,0 +1,7 @@
+Bootstrap: docker
+
+From: continuumio/miniconda3
+
+%post
+    conda install -c conda-forge -c bioconda "trimnami>=0.1.3"
+    trimnami test build_envs

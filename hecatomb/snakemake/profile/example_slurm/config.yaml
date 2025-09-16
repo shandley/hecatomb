@@ -1,13 +1,13 @@
-cluster:
-  mkdir -p logs/{rule}/ &&
-  sbatch
-    --cpus-per-task={threads}
-    --mem={resources.mem_mb}
-    --time={resources.time}
-    --job-name=smk-{rule}
-    --parsable
-    --output=logs/{rule}/{jobid}.out
-    --error=logs/{rule}/{jobid}.err
+#cluster:
+#  mkdir -p logs/{rule}/ &&
+#  sbatch
+#    --cpus-per-task={threads}
+#    --mem={resources.mem_mb}
+#    --time={resources.time}
+#    --job-name=smk-{rule}
+#    --parsable
+#    --output=logs/{rule}/{jobid}.out
+#    --error=logs/{rule}/{jobid}.err
 default-resources:
   - mem_mb=2000
   - time=1440
@@ -20,5 +20,5 @@ keep-going: True
 rerun-incomplete: True
 printshellcmds: True
 scheduler: greedy
-cluster-status: ~/.config/snakemake/slurm/slurm-status.py
+#cluster-status: ~/.config/snakemake/slurm/slurm-status.py
 max-status-checks-per-second: 10

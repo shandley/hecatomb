@@ -62,6 +62,8 @@ rule krona_plot:
         os.path.join(dir["out"]["results"], "krona.html")
     conda:
         os.path.join(dir["env"], "krona.yaml")
+    container:
+        os.path.join(dir["container"], "krona.sif")
     benchmark:
         os.path.join(dir["out"]["bench"], "krona_plot.txt")
     log:
@@ -98,6 +100,8 @@ rule contig_krona_plot:
         os.path.join(dir["out"]["results"], "contigKrona.html")
     conda:
         os.path.join(dir["env"], "krona.yaml")
+    container:
+        os.path.join(dir["container"], "krona.sif")
     log:
         os.path.join(dir["out"]["stderr"], "contig_krona_plot.log")
     resources:

@@ -1,0 +1,13 @@
+Bootstrap: docker
+
+From: continuumio/miniconda3
+
+%post
+    conda create -n koverage -c conda-forge -c bioconda "koverage>=0.1.11"
+    conda init bash
+    . /root/.bashrc
+    conda activate koverage
+    koverage test build_envs
+
+%environment
+    conda activate koverage

@@ -19,11 +19,13 @@ rule population_assembly:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"], "metaflye.yaml")
+    container:
+        os.path.join(dir["container"], "metaflye.sif")
     shell:
         "flye --subassemblies {input} "
             "-t {threads} "
@@ -68,20 +70,19 @@ rule koverage_calculations:
         conda_prefix= lambda wildcards: "--conda-prefix " + config["args"]["conda_prefix"] if config["args"]["conda_prefix"] else "",
         workflow_profile = config["args"]["workflow_profile"]
     threads:
-        lambda wildcards: resources["sml"]["cpu"] if config["args"]["profile"] else resources["big"]["cpu"]
+        resources["big"]["cpu"]
     resources:
-        mem_mb = lambda wildcards: resources["sml"]["mem"] if config["args"]["profile"] else resources["big"]["mem"],
-        mem = lambda wildcards: str(resources["sml"]["mem"]) + "MB" if config["args"]["profile"] else str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        mem_mb = resources["big"]["mem"],
+        mem = str(resources["big"]["mem"]) + "MB",
+        runtime = resources["big"]["time"]
     conda:
         os.path.join(dir["env"], "koverage.yaml")
+    container:
+        os.path.join(dir["container"], "koverage.sif")
     shell:
         "koverage run "
             "--reads {input.tsv} "
             "--ref {input.ref} "
             "--output {params.out_dir} "
             "--threads {threads} "
-            "--minimap {params.minimap_mode} "
-            "--workflow-profile {params.workflow_profile} "
-            "{params.conda_prefix} "
-            "{params.profile}; "
+            "--minimap {params.minimap_mode}; "

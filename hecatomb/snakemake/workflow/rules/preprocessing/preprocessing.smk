@@ -49,13 +49,15 @@ rule run_trimnami:
         conda_prefix = lambda wildcards: "--conda-prefix " + config["args"]["conda_prefix"] if config["args"]["conda_prefix"] else "",
         workflow_profile = config["args"]["workflow_profile"]
     threads:
-        lambda wildcards: resources["sml"]["cpu"] if config["args"]["profile"] else resources["big"]["cpu"]
+        resources["big"]["cpu"]
     resources:
-        mem_mb = lambda wildcards: resources["sml"]["mem"] if config["args"]["profile"] else resources["big"]["mem"],
-        mem = lambda wildcards: str(resources["sml"]["mem"]) + "MB" if config["args"]["profile"] else str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        mem_mb = resources["big"]["mem"],
+        mem =  str(resources["big"]["mem"]) + "MB",
+        runtime = resources["big"]["time"]
     conda:
         os.path.join(dir["env"], "trimnami.yaml")
+    container:
+        os.path.join(dir["container"], "trimnami.sif")
     shell:
         "trimnami run {params.trim} "
             "--reads {input.tsv} "
@@ -64,10 +66,7 @@ rule run_trimnami:
             "--output {params.out_dir} "
             "--threads {threads} "
             "--minimap {params.minimap_mode} "
-            "{params.fastqc} "
-            "--workflow-profile {params.workflow_profile} "
-            "{params.conda_prefix} "
-            "{params.profile}; "
+            "{params.fastqc}; "
 
 
 rule cluster_sequences:
@@ -93,6 +92,8 @@ rule cluster_sequences:
         resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"],"mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"],"mmseqs2.sif")
     shell:
         "mmseqs easy-linclust {input.fq} "
             "{params.respath}/{params.prefix} "
@@ -126,6 +127,8 @@ rule create_individual_seqtables:
         resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"],"seqkit.yaml")
+    container:
+        os.path.join(dir["container"],"seqkit.sif")
     shell:
         "{{ seqkit sort {input.seqs} --quiet -j {threads} -w 5000 -t dna "
             "| seqkit fx2tab -w 5000 -t dna "
@@ -157,6 +160,8 @@ rule merge_seq_tables:
         tmpdir=lambda wildcards, input: os.path.split(input[0])[0]
     conda:
         os.path.join(dir["env"],"pysam.yaml")
+    container:
+        os.path.join(dir["container"],"pysam.sif")
     benchmark:
         os.path.join(dir["out"]["bench"],"merge_seq_table.txt")
     log:

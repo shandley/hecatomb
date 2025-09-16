@@ -27,11 +27,13 @@ rule cross_assembly:
     resources:
         mem_mb=resources["big"]["mem"],
         mem=str(resources["big"]["mem"]) + "MB",
-        time=resources["big"]["time"]
+        runtime=resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"],"megahit.yaml")
+    container:
+        os.path.join(dir["container"], "megahit.sif")
     shell:
         "if [[ -d {params.mh_dir} ]]; "
         "then "
@@ -81,11 +83,13 @@ rule megahit_sample_paired:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"], "megahit.yaml")
+    container:
+        os.path.join(dir["container"], "megahit.sif")
     group:
         "assembly"
     shell:
@@ -100,7 +104,7 @@ rule megahit_sample_paired:
             "-o {params.mh_dir} "
             "--out-prefix {wildcards.sample} "
             "-t {threads} "
-            "{params.params}"
+            "{params.params} "
             "&> {log}; "
         "sed 's/>/>{wildcards.sample}/' {output.contigs} > {output.renamed}; "
         "tar cf - {params.mh_dir} | zstd -T{threads} -9 > {output.tar} 2> {log}; "
@@ -123,11 +127,13 @@ rule megahit_sample_unpaired:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     conda:
         os.path.join(dir["env"],"megahit.yaml")
+    container:
+        os.path.join(dir["container"], "megahit.sif")
     group:
         "assembly"
     shell:
@@ -156,10 +162,12 @@ rule minimap_sample_paired_contigs:
         temp(os.path.join(dir["out"]["assembly"], "{sample}", "{sample}.pe.bam"))
     conda:
         os.path.join(dir["env"], "minimap2.yaml")
+    container:
+        os.path.join(dir["container"], "minimap2.sif")
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     log:
@@ -183,10 +191,12 @@ rule minimap_sample_paired_singletons_contigs:
         temp(os.path.join(dir["out"]["assembly"],"{sample}","{sample}.assemblyUnmapped_RS.fastq"))
     conda:
         os.path.join(dir["env"], "minimap2.yaml")
+    container:
+        os.path.join(dir["container"], "minimap2.sif")
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     benchmark:
@@ -211,10 +221,12 @@ rule minimap_sample_unpaired_contigs:
         temp(os.path.join(dir["out"]["assembly"],"{sample}","{sample}.assemblyUnmapped_S.fastq"))
     conda:
         os.path.join(dir["env"], "minimap2.yaml")
+    container:
+        os.path.join(dir["container"], "minimap2.sif")
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     log:
@@ -242,10 +254,12 @@ rule samtools_fastq_paired:
         r2 = temp(os.path.join(dir["out"]["assembly"], "{sample}", "{sample}.assemblyUnmapped_R2.fastq")),
     conda:
         os.path.join(dir["env"],   "samtools.yaml")
+    container:
+        os.path.join(dir["container"], "minimap2.sif")
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     threads:
         resources["lrg"]["cpu"]
     benchmark:
@@ -267,10 +281,12 @@ rule pool_paired_unmapped_R1:
         os.path.join(dir["out"]["trim"], "rescue" + "_R1" + config["args"]["hostStr"] + ".fastq.gz"),
     conda:
         os.path.join(dir["env"], "pigz.yaml")
+    container:
+        os.path.join(dir["container"],"pigz.sif")
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["med"]["time"]
+        runtime = resources["med"]["time"]
     group:
         "assemblyRescue"
     shell:
@@ -285,10 +301,12 @@ rule pool_paired_unmapped_R2:
         os.path.join(dir["out"]["trim"], "rescue" + "_R2" + config["args"]["hostStr"] + ".fastq.gz"),
     conda:
         os.path.join(dir["env"], "pigz.yaml")
+    container:
+        os.path.join(dir["container"],"pigz.sif")
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["med"]["time"]
+        runtime = resources["med"]["time"]
     group:
         "assemblyRescue"
     shell:
@@ -303,10 +321,12 @@ rule pool_unmapped_singletons:
         os.path.join(dir["out"]["trim"], "rescue" + "_RS" + config["args"]["hostStr"] + ".fastq.gz"),
     conda:
         os.path.join(dir["env"], "pigz.yaml")
+    container:
+        os.path.join(dir["container"],"pigz.sif")
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["med"]["time"]
+        runtime = resources["med"]["time"]
     group:
         "assemblyRescue"
     shell:
@@ -325,9 +345,11 @@ rule concatenate_contigs:
     threads:
         resources["med"]["cpu"]
     resources:
-        time = resources["med"]["time"]
+        runtime = resources["med"]["time"]
     conda:
         os.path.join(dir["env"], "pigz.yaml")
+    container:
+        os.path.join(dir["container"],"pigz.sif")
     group:
         "assemblyRescue"
     shell:

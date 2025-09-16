@@ -23,11 +23,13 @@ rule mmseqs_contig_annotation:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     group:
         "contigannot"
     shell:
@@ -62,11 +64,13 @@ rule mmseqs_contig_annotation_summary:
     resources:
         mem_mb = resources["big"]["mem"],
         mem = str(resources["big"]["mem"]) + "MB",
-        time = resources["big"]["time"]
+        runtime = resources["big"]["time"]
     threads:
         resources["big"]["cpu"]
     conda:
         os.path.join(dir["env"], "mmseqs2.yaml")
+    container:
+        os.path.join(dir["container"], "mmseqs2.sif")
     group:
         "contigannot"
     shell:

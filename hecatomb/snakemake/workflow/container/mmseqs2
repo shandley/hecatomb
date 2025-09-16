@@ -1,0 +1,6 @@
+Bootstrap: docker
+
+From: continuumio/miniconda3
+
+%post
+    conda install -c conda-forge -c bioconda mmseqs2=12.113e3 taxonkit csvtk=0.23.0

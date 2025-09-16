@@ -14,6 +14,8 @@ rule map_seq_table:
         stool = os.path.join(dir["out"]["stderr"], "map_seq_table.stools.log")
     conda:
         os.path.join(dir["env"], "minimap2.yaml")
+    container:
+        os.path.join(dir["container"], "minimap2.sif")
     benchmark:
         os.path.join(dir["out"]["bench"], "map_seq_table.txt")
     threads:
@@ -21,7 +23,7 @@ rule map_seq_table:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     shell:
         "minimap2 -ax sr --secondary=no -t {threads} {input.assembly} {input.seqtable} 2> {log.mm2} "
             "| samtools sort -@ {threads} -o {output} 2> {log.stool}; "
@@ -49,12 +51,14 @@ rule contig_read_taxonomy:
     resources:
         mem_mb = resources["lrg"]["mem"],
         mem = str(resources["lrg"]["mem"]) + "MB",
-        time = resources["lrg"]["time"]
+        runtime = resources["lrg"]["time"]
     benchmark:
         os.path.join(dir["out"]["bench"], "contig_read_taxonomy.txt")
     log:
         os.path.join(dir["out"]["stderr"], "contig_read_taxonomy.log")
     conda:
         os.path.join(dir["env"], "pysam.yaml")
+    container:
+        os.path.join(dir["container"],"pysam.sif")
     script:
         os.path.join(dir["scripts"],  "contigReadTaxon.py")

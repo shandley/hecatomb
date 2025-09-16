@@ -12,6 +12,8 @@ trimnami = config["trimnami"]
 trimnami["resources"] = resources
 config = config["hecatomb"]
 
+### GLOBAL SINGULATIRY CONTAINER
+# container: config["container"]
 
 ### LAUNCHER-CONTROLLED CONFIG SETTINGS
 if config["args"]["search"] == "fast":

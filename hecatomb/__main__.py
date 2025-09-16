@@ -73,7 +73,7 @@ def common_options(func):
         ),
         click.option(
             "--use-conda/--no-use-conda",
-            default=True,
+            default=False,
             help="Use conda for Snakemake rules",
             show_default=True,
         ),

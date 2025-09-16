@@ -1,0 +1,6 @@
+Bootstrap: docker
+
+From: continuumio/miniconda3
+
+%post
+    conda install -c conda-forge -c bioconda "samtools>=1.13"

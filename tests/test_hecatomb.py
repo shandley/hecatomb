@@ -28,7 +28,7 @@ def test_hecatomb_cli():
     exec_command("hecatomb config -h")
 
 
-def test_koverage_commands(tmp_path):
+def test_hecatomb_commands(tmp_path):
     temp_dir = tmp_path / "tmp"
     temp_dir.mkdir()
     temp_file = temp_dir / "yeet.txt"
