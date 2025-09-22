@@ -1,9 +1,0 @@
-name: seqkit
-channels:
-  - bioconda
-  - conda-forge
-  - defaults
-dependencies:
-  - seqkit>=0.16.1
-  - taxonkit>=0.8.0
-

@@ -1,1 +1,0 @@
-Filtered seqtable.fasta to only include unclassified sequences.

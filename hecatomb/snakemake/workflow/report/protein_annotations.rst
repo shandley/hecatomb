@@ -1,1 +1,0 @@
-Viral and non-viral protein-based annotation counts.

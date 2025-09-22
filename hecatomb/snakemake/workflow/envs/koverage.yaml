@@ -1,7 +1,0 @@
-name: koverage
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-    - koverage>=0.1.11

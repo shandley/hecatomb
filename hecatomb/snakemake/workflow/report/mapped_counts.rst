@@ -1,1 +1,0 @@
-Number of reads for each sample that map to the assembly.
