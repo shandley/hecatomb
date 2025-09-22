@@ -7,3 +7,6 @@
 [submodule "hecatomb-containers"]
 	path = hecatomb-containers
 	url = https://github.com/beardymcjohnface/hecatomb-containers.git
+[submodule "hecatomb-testdb"]
+	path = hecatomb-testdb
+	url = https://github.com/beardymcjohnface/hecatomb-testdb.git
