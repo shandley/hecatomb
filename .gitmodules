@@ -1,0 +1,9 @@
+[submodule "trimnami-module"]
+	path = trimnami-module
+	url = https://github.com/beardymcjohnface/trimnami-module.git
+[submodule "koverage-module"]
+	path = koverage-module
+	url = https://github.com/beardymcjohnface/koverage-module.git
+[submodule "hecatomb-containers"]
+	path = hecatomb-containers
+	url = https://github.com/beardymcjohnface/hecatomb-containers.git
