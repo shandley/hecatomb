@@ -8,12 +8,13 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-hecatomb/build/
+resources/
 develop-eggs/
 dist/
 downloads/
 eggs/
 .eggs/
+.java/
 lib/
 lib64/
 parts/
@@ -22,6 +23,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+*.sif
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -70,10 +72,8 @@ target/
 
 # snakemake databases and default output files
 .snakemake
-databases/bac_giant_unique_species/
-databases/hecatomb.databases.tar.bz2
-databases/contaminants/
-databases/human_masked/
+hecatomb.out/
+databases/
 clumped/
 QC/
 
