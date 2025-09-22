@@ -1,0 +1,10 @@
+name: krona
+channels:
+    - conda-forge
+    - bioconda
+    - defaults
+dependencies:
+    - krona
+    - curl
+    - zstd
+    - pysam>=0.16.0.1

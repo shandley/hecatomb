@@ -1,0 +1,180 @@
+import os
+from metasnek import fastq_finder
+
+
+### CONFIG
+configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
+configfile: os.path.join(workflow.basedir, "../", "config", "dbFiles.yaml")
+configfile: os.path.join(workflow.basedir, "../", "config", "immutable.yaml")
+
+### DIRECTORIES
+include: os.path.join("rules", "preflight", "directories.smk")
+
+
+### HOST ORGANISM
+if os.path.isfile(config["hecatomb"]["args"]["host"]):
+    config["hecatomb"]["args"]["hostFasta"] = config["hecatomb"]["args"]["host"]
+else:
+    config["hecatomb"]["args"]["hostFasta"] = os.path.join(
+        config["hecatomb"]["args"]["database_paths"]["hostBase"], config["hecatomb"]["args"]["host"], "masked_ref.fa.gz"
+    )
+
+
+### PREFLIGHT CHECKS, PARSE SAMPLES
+include: os.path.join("rules", "preflight", "validate.smk")
+include: os.path.join("rules", "preflight", "functions.smk")
+include: os.path.join("rules", "preflight", "dbdownload.smk")
+
+
+samples = dict()
+samples["reads"] = dict(sorted(fastq_finder.parse_samples_to_dictionary(config["hecatomb"]["args"]["reads"]).items()))
+samples["names"] = sorted(list(samples["reads"].keys()))
+
+
+
+### IMPORT TRIMNAMI CONFIG ###
+configfile: os.path.join(workflow.basedir, "..", "trimnami-module", "config", "config.yaml")
+configfile: os.path.join(workflow.basedir, "..", "trimnami-module", "config", "system_config.yaml")
+
+### UPDATE TRIMNAMI CONFIG ###
+config["trimnami"]["args"]["reads"] = config["hecatomb"]["args"]["reads"]
+config["trimnami"]["args"]["host"] = config["hecatomb"]["args"]["hostFasta"]
+config["trimnami"]["args"]["steps"] = config["hecatomb"]["args"]["trim"]
+config["trimnami"]["args"]["output"] = os.path.join(config["hecatomb"]["args"]["output"], "trimnami")
+
+### IMPORT TRIMNAMI RULES ###
+include: os.path.join("..", "trimnami-module", "workflow", "rules", "preflight.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules", "hostRemoval.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules", "fastqc.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules", "fasta.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules", "results.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules", "rasusa.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules", "reports.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules-trimmers", "cutadapt.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules-trimmers", "fastp.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules-trimmers", "filtlong.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules-trimmers", "notrim.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules-trimmers", "prinseq.smk")
+include: os.path.join("..", "trimnami-module", "workflow", "rules-trimmers", "roundAB.smk")
+
+
+### IMPORT KOVERAGE CONFIG ###
+configfile: os.path.join(workflow.basedir, '..', 'koverage-module', 'config', 'config.yaml')
+configfile: os.path.join(workflow.basedir, '..', 'koverage-module', 'config', 'system_config.yaml')
+
+### UPDATE KOVERAGE CONFIG ###
+config["koverage"]["samples"] = dict()
+config["koverage"]["samples"]["reads"] = config["trimnami"]["trimmed"]
+config["koverage"]["samples"]["names"] = config["trimnami"]["samples"]["names"]
+config["koverage"]["args"]["ref"] = os.path.join(config["hecatomb"]["args"]["output_paths"]["results"], config["hecatomb"]["args"]["assembly"] + '_assembly.fasta')
+config["koverage"]["args"]["output"] = config["hecatomb"]["args"]["output"]
+
+### IMPORT KOVERAGE RULES ###
+include: os.path.join("..", "koverage-module", "workflow", "rules", "preflight.smk")
+include: os.path.join("..", "koverage-module", "workflow", "rules", "combine_refs.smk")
+include: os.path.join("..", "koverage-module", "workflow", "rules", "coverage.smk")
+include: os.path.join("..", "koverage-module", "workflow", "rules", "kmer_coverage.smk")
+include: os.path.join("..", "koverage-module", "workflow", "rules", "coverm.smk")
+include: os.path.join("..", "koverage-module", "workflow", "rules", "reports.smk")
+
+
+
+### TARGETS (must be included AFTER parsing samples)
+include: os.path.join("rules", "preflight", "targets.smk")
+include: os.path.join("rules", "preprocessing", "preprocessing.smk")
+
+
+### ASSEMBLY
+if config["hecatomb"]["args"]["longreads"]:
+    include: os.path.join("rules", "assembly", "longreads.smk")
+else:
+    include: os.path.join("rules", "assembly", "shortreads.smk")
+
+
+### REMAINING RULES
+include: os.path.join("rules","annotation","read_annotation.smk")
+include: os.path.join("rules","assembly","coverage.smk")
+include: os.path.join("rules","annotation","contig_mapping.smk")
+include: os.path.join("rules","annotation","contig_annotation.smk")
+include: os.path.join("rules","reports","summaries.smk")
+include: os.path.join("rules","reports","summaries_optional.smk")
+
+
+
+
+target_rules = []
+
+def targetRule(fn):
+    assert fn.__name__.startswith("__")
+    target_rules.append(fn.__name__[2:])
+    return fn
+
+
+@targetRule
+rule all:
+    input:
+        targets["preprocessing"],
+        targets["assembly"],
+        targets["readAnnotations"],
+        targets["contigAnnotations"],
+        targets["mapping"],
+        targets["summary"]
+
+
+@targetRule
+rule install:
+    input:
+        expand(os.path.join(config["hecatomb"]["args"]["databases"], "{file}"), file=config["hecatomb"]["dbs"]["files"]),
+        expand(os.path.join(config["hecatomb"]["args"]["databases"], "{file}"), file=config["hecatomb"]["dbtax"]["files"]),
+        expand(os.path.join(config["hecatomb"]["args"]["databases"],"{file}"), file=config["hecatomb"]["testdbs"])
+
+
+@targetRule
+rule add_host:
+    input:
+        config["hecatomb"]["outFasta"]
+
+
+@targetRule
+rule preprocessing:
+    input:
+        targets["preprocessing"]
+
+
+@targetRule
+rule assembly:
+    input:
+        targets["assembly"]
+
+
+@targetRule
+rule read_annotations:
+    input:
+        targets["readAnnotations"]
+
+
+@targetRule
+rule contig_annotations:
+    input:
+        targets["contigAnnotations"]
+
+
+@targetRule
+rule combined_annotations:
+    input:
+        targets["mapping"]
+
+
+@targetRule
+rule build_envs:
+    input:
+        targets["envs"],
+
+
+@targetRule
+rule print_stages:
+    localrule:
+        True
+    run:
+        print("\nIndividual Hecatomb stages to run: \n", file=sys.stderr)
+        print("* " + "\n* ".join(target_rules) + "\n\n", file=sys.stderr)

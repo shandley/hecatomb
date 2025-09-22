@@ -1,0 +1,10 @@
+latency-wait: 100
+restart-times: 0
+rerun-incomplete: True
+printshellcmds: True
+nolock: True
+show-failed-logs: True
+use-conda: True
+use-apptainer: False
+apptainer-args: "--bind `pwd` --bind $HOME"
+scheduler: greedy
