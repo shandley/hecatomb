@@ -4,7 +4,7 @@ rule download_db_file:
     output:
         os.path.join(config["hecatomb"]["args"]["databases"], "{path}","{file}")
     wildcard_constraints:
-        path=r"virus_.*_aa|virus_.*_nt|host|contaminants|tables"
+        path=r"aa/virus_.*_aa|nt/virus_.*_nt|host|contaminants|tables"
     run:
         import urllib.request
         import urllib.parse
@@ -26,7 +26,7 @@ rule unzip_test_db:
     output:
         os.path.join(config["hecatomb"]["args"]["databases"], "{path}","{file}")
     wildcard_constraints:
-        path=r"virus_.*_testing",
+        path=r"../virus_.*_testing",
         file=r"(?!.*zst$).*"
     conda:
         os.path.join("..", "..", "envs", "krona_curl_zstd_pysam.yaml")

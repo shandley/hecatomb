@@ -62,14 +62,14 @@ hecatomb:
             secondaryNT: "mmseqs_nt_secondary/"
         databases:
         database_paths:
-            contaminants: "contaminants"
-            taxonomy: "taxonomy"
-            tables: "tables"
-            hostBase: "host"
-            primaryAA: "virus_primary_aa"
-            primaryNT: "virus_primary_nt"
-            secondaryAA: "virus_secondary_aa"
-            secondaryNT: "virus_secondary_nt"
+            contaminants: "contaminants/"
+            taxonomy: "taxonomy/"
+            tables: "tables/"
+            hostBase: "host/"
+            primaryAA: "aa/virus_primary_aa/"
+            primaryNT: "nt/virus_primary_nt/"
+            secondaryAA: "aa/virus_secondary_aa/"
+            secondaryNT: "nt/virus_secondary_nt/"
         custom_aa:
         custom_nt:
     container:

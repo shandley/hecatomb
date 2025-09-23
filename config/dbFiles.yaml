@@ -1,47 +1,47 @@
 hecatomb:
     testdbs:
-        - virus_primary_aa_testing/sequenceDB
-        - virus_primary_aa_testing/sequenceDB.dbtype
-        - virus_primary_aa_testing/sequenceDB_delnodes.dmp
-        - virus_primary_aa_testing/sequenceDB_h
-        - virus_primary_aa_testing/sequenceDB_h.dbtype
-        - virus_primary_aa_testing/sequenceDB_h.index
-        - virus_primary_aa_testing/sequenceDB.index
-        - virus_primary_aa_testing/sequenceDB.lookup
-        - virus_primary_aa_testing/sequenceDB_mapping
-        - virus_primary_aa_testing/sequenceDB_merged.dmp
-        - virus_primary_aa_testing/sequenceDB_names.dmp
-        - virus_primary_aa_testing/sequenceDB_nodes.dmp
-        - virus_primary_aa_testing/sequenceDB.source
-        - virus_secondary_aa_testing/sequenceDB
-        - virus_secondary_aa_testing/sequenceDB.dbtype
-        - virus_secondary_aa_testing/sequenceDB_delnodes.dmp
-        - virus_secondary_aa_testing/sequenceDB_h
-        - virus_secondary_aa_testing/sequenceDB_h.dbtype
-        - virus_secondary_aa_testing/sequenceDB_h.index
-        - virus_secondary_aa_testing/sequenceDB.index
-        - virus_secondary_aa_testing/sequenceDB.lookup
-        - virus_secondary_aa_testing/sequenceDB_mapping
-        - virus_secondary_aa_testing/sequenceDB_merged.dmp
-        - virus_secondary_aa_testing/sequenceDB_names.dmp
-        - virus_secondary_aa_testing/sequenceDB_nodes.dmp
-        - virus_secondary_aa_testing/sequenceDB.source
-        - virus_primary_nt_testing/sequenceDB
-        - virus_primary_nt_testing/sequenceDB.dbtype
-        - virus_primary_nt_testing/sequenceDB_h
-        - virus_primary_nt_testing/sequenceDB_h.dbtype
-        - virus_primary_nt_testing/sequenceDB_h.index
-        - virus_primary_nt_testing/sequenceDB.index
-        - virus_primary_nt_testing/sequenceDB.lookup
-        - virus_primary_nt_testing/sequenceDB.source
-        - virus_secondary_nt_testing/sequenceDB
-        - virus_secondary_nt_testing/sequenceDB.dbtype
-        - virus_secondary_nt_testing/sequenceDB_h
-        - virus_secondary_nt_testing/sequenceDB_h.dbtype
-        - virus_secondary_nt_testing/sequenceDB_h.index
-        - virus_secondary_nt_testing/sequenceDB.index
-        - virus_secondary_nt_testing/sequenceDB.lookup
-        - virus_secondary_nt_testing/sequenceDB.source
+        - aa/virus_primary_aa_testing/sequenceDB
+        - aa/virus_primary_aa_testing/sequenceDB.dbtype
+        - aa/virus_primary_aa_testing/sequenceDB_delnodes.dmp
+        - aa/virus_primary_aa_testing/sequenceDB_h
+        - aa/virus_primary_aa_testing/sequenceDB_h.dbtype
+        - aa/virus_primary_aa_testing/sequenceDB_h.index
+        - aa/virus_primary_aa_testing/sequenceDB.index
+        - aa/virus_primary_aa_testing/sequenceDB.lookup
+        - aa/virus_primary_aa_testing/sequenceDB_mapping
+        - aa/virus_primary_aa_testing/sequenceDB_merged.dmp
+        - aa/virus_primary_aa_testing/sequenceDB_names.dmp
+        - aa/virus_primary_aa_testing/sequenceDB_nodes.dmp
+        - aa/virus_primary_aa_testing/sequenceDB.source
+        - aa/virus_secondary_aa_testing/sequenceDB
+        - aa/virus_secondary_aa_testing/sequenceDB.dbtype
+        - aa/virus_secondary_aa_testing/sequenceDB_delnodes.dmp
+        - aa/virus_secondary_aa_testing/sequenceDB_h
+        - aa/virus_secondary_aa_testing/sequenceDB_h.dbtype
+        - aa/virus_secondary_aa_testing/sequenceDB_h.index
+        - aa/virus_secondary_aa_testing/sequenceDB.index
+        - aa/virus_secondary_aa_testing/sequenceDB.lookup
+        - aa/virus_secondary_aa_testing/sequenceDB_mapping
+        - aa/virus_secondary_aa_testing/sequenceDB_merged.dmp
+        - aa/virus_secondary_aa_testing/sequenceDB_names.dmp
+        - aa/virus_secondary_aa_testing/sequenceDB_nodes.dmp
+        - aa/virus_secondary_aa_testing/sequenceDB.source
+        - nt/virus_primary_nt_testing/sequenceDB
+        - nt/virus_primary_nt_testing/sequenceDB.dbtype
+        - nt/virus_primary_nt_testing/sequenceDB_h
+        - nt/virus_primary_nt_testing/sequenceDB_h.dbtype
+        - nt/virus_primary_nt_testing/sequenceDB_h.index
+        - nt/virus_primary_nt_testing/sequenceDB.index
+        - nt/virus_primary_nt_testing/sequenceDB.lookup
+        - nt/virus_primary_nt_testing/sequenceDB.source
+        - nt/virus_secondary_nt_testing/sequenceDB
+        - nt/virus_secondary_nt_testing/sequenceDB.dbtype
+        - nt/virus_secondary_nt_testing/sequenceDB_h
+        - nt/virus_secondary_nt_testing/sequenceDB_h.dbtype
+        - nt/virus_secondary_nt_testing/sequenceDB_h.index
+        - nt/virus_secondary_nt_testing/sequenceDB.index
+        - nt/virus_secondary_nt_testing/sequenceDB.lookup
+        - nt/virus_secondary_nt_testing/sequenceDB.source
     dbs:
         mirror1: "https://hecatombdatabases.s3.us-west-2.amazonaws.com/databases/"
         mirror2: "https://htcf.wustl.edu/files/lXraB7eg/hecatomb/"
@@ -51,32 +51,32 @@ hecatomb:
             - contaminants/rc_primerB_ad6.fa
             - contaminants/truseq.fa
             - contaminants/vector_contaminants.fa
-            - virus_primary_aa/sequenceDB
-            - virus_primary_aa/sequenceDB.dbtype
-            - virus_primary_aa/sequenceDB_delnodes.dmp
-            - virus_primary_aa/sequenceDB_h
-            - virus_primary_aa/sequenceDB_h.dbtype
-            - virus_primary_aa/sequenceDB_h.index
-            - virus_primary_aa/sequenceDB.index
-            - virus_primary_aa/sequenceDB.lookup
-            - virus_primary_aa/sequenceDB_mapping
-            - virus_primary_aa/sequenceDB_merged.dmp
-            - virus_primary_aa/sequenceDB_names.dmp
-            - virus_primary_aa/sequenceDB_nodes.dmp
-            - virus_primary_aa/sequenceDB.source
-            - virus_secondary_aa/sequenceDB
-            - virus_secondary_aa/sequenceDB.dbtype
-            - virus_secondary_aa/sequenceDB_delnodes.dmp
-            - virus_secondary_aa/sequenceDB_h
-            - virus_secondary_aa/sequenceDB_h.dbtype
-            - virus_secondary_aa/sequenceDB_h.index
-            - virus_secondary_aa/sequenceDB.index
-            - virus_secondary_aa/sequenceDB.lookup
-            - virus_secondary_aa/sequenceDB_mapping
-            - virus_secondary_aa/sequenceDB_merged.dmp
-            - virus_secondary_aa/sequenceDB_names.dmp
-            - virus_secondary_aa/sequenceDB_nodes.dmp
-            - virus_secondary_aa/sequenceDB.source
+            - aa/virus_primary_aa/sequenceDB
+            - aa/virus_primary_aa/sequenceDB.dbtype
+            - aa/virus_primary_aa/sequenceDB_delnodes.dmp
+            - aa/virus_primary_aa/sequenceDB_h
+            - aa/virus_primary_aa/sequenceDB_h.dbtype
+            - aa/virus_primary_aa/sequenceDB_h.index
+            - aa/virus_primary_aa/sequenceDB.index
+            - aa/virus_primary_aa/sequenceDB.lookup
+            - aa/virus_primary_aa/sequenceDB_mapping
+            - aa/virus_primary_aa/sequenceDB_merged.dmp
+            - aa/virus_primary_aa/sequenceDB_names.dmp
+            - aa/virus_primary_aa/sequenceDB_nodes.dmp
+            - aa/virus_primary_aa/sequenceDB.source
+            - aa/virus_secondary_aa/sequenceDB
+            - aa/virus_secondary_aa/sequenceDB.dbtype
+            - aa/virus_secondary_aa/sequenceDB_delnodes.dmp
+            - aa/virus_secondary_aa/sequenceDB_h
+            - aa/virus_secondary_aa/sequenceDB_h.dbtype
+            - aa/virus_secondary_aa/sequenceDB_h.index
+            - aa/virus_secondary_aa/sequenceDB.index
+            - aa/virus_secondary_aa/sequenceDB.lookup
+            - aa/virus_secondary_aa/sequenceDB_mapping
+            - aa/virus_secondary_aa/sequenceDB_merged.dmp
+            - aa/virus_secondary_aa/sequenceDB_names.dmp
+            - aa/virus_secondary_aa/sequenceDB_nodes.dmp
+            - aa/virus_secondary_aa/sequenceDB.source
             - host/bat/masked_ref.fa.gz
             - host/camel/masked_ref.fa.gz
             - host/cat/masked_ref.fa.gz
@@ -90,22 +90,22 @@ hecatomb:
             - host/rat/masked_ref.fa.gz
             - host/tick/masked_ref.fa.gz
             - host/virus_shred.fasta.gz
-            - virus_primary_nt/sequenceDB
-            - virus_primary_nt/sequenceDB.dbtype
-            - virus_primary_nt/sequenceDB_h
-            - virus_primary_nt/sequenceDB_h.dbtype
-            - virus_primary_nt/sequenceDB_h.index
-            - virus_primary_nt/sequenceDB.index
-            - virus_primary_nt/sequenceDB.lookup
-            - virus_primary_nt/sequenceDB.source
-            - virus_secondary_nt/sequenceDB
-            - virus_secondary_nt/sequenceDB.dbtype
-            - virus_secondary_nt/sequenceDB_h
-            - virus_secondary_nt/sequenceDB_h.dbtype
-            - virus_secondary_nt/sequenceDB_h.index
-            - virus_secondary_nt/sequenceDB.index
-            - virus_secondary_nt/sequenceDB.lookup
-            - virus_secondary_nt/sequenceDB.source
+            - nt/virus_primary_nt/sequenceDB
+            - nt/virus_primary_nt/sequenceDB.dbtype
+            - nt/virus_primary_nt/sequenceDB_h
+            - nt/virus_primary_nt/sequenceDB_h.dbtype
+            - nt/virus_primary_nt/sequenceDB_h.index
+            - nt/virus_primary_nt/sequenceDB.index
+            - nt/virus_primary_nt/sequenceDB.lookup
+            - nt/virus_primary_nt/sequenceDB.source
+            - nt/virus_secondary_nt/sequenceDB
+            - nt/virus_secondary_nt/sequenceDB.dbtype
+            - nt/virus_secondary_nt/sequenceDB_h
+            - nt/virus_secondary_nt/sequenceDB_h.dbtype
+            - nt/virus_secondary_nt/sequenceDB_h.index
+            - nt/virus_secondary_nt/sequenceDB.index
+            - nt/virus_secondary_nt/sequenceDB.lookup
+            - nt/virus_secondary_nt/sequenceDB.source
             - tables/2020_07_27_Viral_classification_table_ICTV2019.txt
             - tables/phage_taxonomic_lineages_12102020.txt
     dbtax:
