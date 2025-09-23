@@ -17,6 +17,37 @@ Heactomb the software empowers an analyst to make data driven decisions to *'sac
 metagenomes to enrich for true-positive viral reads. 
 This process frequently results in a great loss of suspected viral sequences / contigs.
 
+## New branch "overhaul" for testing
+
+__Install__
+
+```shell
+# create a conda env if needed
+conda create -n hecatomb -c conda-forge -c bioconda snakemake=9
+conda activate hecatomb
+ 
+# pull the repo and checkout the branch
+git clone https://github.com/shandley/hecatomb.git
+cd hecatomb
+git checkout overhaul
+
+# pull the submodules (trimnami, koverage, and test DBs
+git submodule init
+git submodule update
+
+# test build the conda envs (including submodules)
+snakemake -j1 --use-conda --conda-create-envs-only
+
+# install the databases (including test db)
+snakemake -j1 --use-conda install
+
+# run the test with conda
+snakemake -j20 --use-conda
+
+# run the test with apptainer
+snakemake -j20 --use-apptainer --apptainer-args "-B $(pwd) -B $HOME"
+```
+
 ## Contents
 
 - [Documentation](#documentation)
